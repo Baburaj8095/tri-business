@@ -1,0 +1,1505 @@
+﻿import axios from "axios";
+import { incrementLoading, decrementLoading } from "../hooks/loadingStore";
+import { deepFixMojibake, fixMojibakeString } from "../utils/encodingFix";
+
+const rawBaseURL =
+  process.env.REACT_APP_API_URL ||
+  "/api";
+let baseURL = rawBaseURL.endsWith("/") ? rawBaseURL : rawBaseURL + "/";
+
+/* In browser, prefer explicit REACT_APP_API_URL if provided; otherwise fall back to relative "/api/"
+   (for CRA proxy or same-origin hosting). This avoids unwanted cancellations when no dev proxy is active.
+   Additionally: when running under CRA dev server (http://localhost:3000), force relative "/api/" to leverage setupProxy and avoid CORS. */
+if (typeof window !== "undefined") {
+  const origin = (window.location && window.location.origin) || "";
+  const isCRADev = /^(http:\/\/localhost:3000|http:\/\/127\.0\.0\.1:3000)$/i.test(origin);
+  if (isCRADev) {
+    // Force relative API during CRA dev to leverage setupProxy and avoid CORS/preflight
+    baseURL = "/api/";
+  } else if (process.env.REACT_APP_API_URL) {
+    baseURL = rawBaseURL.endsWith("/") ? rawBaseURL : rawBaseURL + "/";
+  } else {
+    baseURL = "/api/";
+  }
+}
+
+// Expose/debug baseURL used by the app at runtime (development only)
+if (typeof window !== "undefined") {
+  try { window.__API_BASE_URL__ = baseURL; } catch (_) {}
+  if (process.env.NODE_ENV !== "production") {
+    try { console.info("[API] baseURL:", baseURL); } catch (_) {}
+  }
+}
+
+const API = axios.create({ baseURL });
+
+// Separate client without interceptors for token refresh to avoid recursion/deadlocks
+const refreshClient = axios.create({ baseURL });
+
+// Performance defaults and helpers
+const DEFAULT_TIMEOUT = 15000;
+API.defaults.timeout = DEFAULT_TIMEOUT;
+refreshClient.defaults.timeout = DEFAULT_TIMEOUT;
+
+// In-flight request tracking and simple in-memory cache (GET)
+const inflight = new Map(); // key -> { abort, cancel, ts }
+const cache = new Map(); // key -> { data, headers, expiry }
+const DEFAULT_GET_CACHE_TTL = 0; // default: no caching unless caller opts-in via config.cacheTTL
+
+function makeRequestKey(cfg) {
+  try {
+    const method = (cfg.method || "get").toLowerCase();
+    const url = cfg.url || "";
+    const params = cfg.params || {};
+    // Sanitize params: drop cache-busting keys and sort keys for stability
+    const dropKeys = new Set(["_", "cacheBust", "cache_bust", "ts", "timestamp"]);
+    const sanitize = (obj) => {
+      if (obj == null || typeof obj !== "object") return obj;
+      if (Array.isArray(obj)) return obj.map(sanitize);
+      const out = {};
+      Object.keys(obj)
+        .filter((k) => !dropKeys.has(k))
+        .sort()
+        .forEach((k) => {
+          out[k] = sanitize(obj[k]);
+        });
+      return out;
+    };
+    const paramsStr = JSON.stringify(sanitize(params));
+    return `${method}:${url}?${paramsStr}`;
+  } catch (_) {
+    return `${cfg.method || "get"}:${cfg.url || ""}`;
+  }
+}
+
+// Session namespace helpers: isolate tokens per role (admin, user, agency, employee, business)
+function currentNamespace() {
+  try {
+    // Allow UI shells to override the namespace explicitly (e.g., AdminShell -> "admin")
+    if (typeof window !== "undefined" && window.__tk_force_namespace) {
+      return String(window.__tk_force_namespace);
+    }
+
+    const p =
+      typeof window !== "undefined" &&
+      window.location &&
+      typeof window.location.pathname === "string"
+        ? window.location.pathname
+        : "";
+
+    // Treat admin-prefixed routes as admin
+    if (p.startsWith("/admin")) return "admin";
+    if (p.startsWith("/agency")) return "agency";
+    if (p.startsWith("/employee")) return "employee";
+    if (p.startsWith("/business")) return "business";
+    if (p.startsWith("/merchant")) return "business";
+
+    // Legacy Admin RBAC routes without /admin prefix (ensure they use admin namespace)
+    if (
+      p === "/admin_user" ||
+      p === "/role" ||
+      p === "/permission" ||
+      p === "/permission_role" ||
+      p.startsWith("/permission_role/")
+    ) {
+      return "admin";
+    }
+
+    return "user";
+  } catch {
+    return "user";
+  }
+}
+
+function nsKey(base, ns) {
+  return `${base}_${ns}`;
+}
+
+function readNamespaced(base) {
+  // Strictly read namespaced keys only to prevent cross-role token leakage
+  const ns = currentNamespace();
+  const k = nsKey(base, ns);
+  return (
+    (typeof localStorage !== "undefined" && localStorage.getItem(k)) ||
+    (typeof sessionStorage !== "undefined" && sessionStorage.getItem(k)) ||
+    null
+  );
+}
+
+function writeNamespaced(base, value) {
+  const ns = currentNamespace();
+  const k = nsKey(base, ns);
+  // Always persist to localStorage to keep session until explicit logout or cache clear
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(k, value);
+    } else if (typeof sessionStorage !== "undefined") {
+      sessionStorage.setItem(k, value);
+    }
+  } catch (_) {}
+}
+
+function clearNamespaced(base) {
+  try {
+    const ns = currentNamespace();
+    const k = nsKey(base, ns);
+    if (typeof localStorage !== "undefined") {
+      try { localStorage.removeItem(k); } catch (_) {}
+    }
+    if (typeof sessionStorage !== "undefined") {
+      try { sessionStorage.removeItem(k); } catch (_) {}
+    }
+  } catch (_) {}
+}
+
+// Per-namespace auth block to avoid wiping tokens globally
+function setAuthBlocked(blocked = true, ns = null) {
+  try {
+    if (typeof window === "undefined") return;
+    const key = "__tk_auth_blocked_ns";
+    const map = window[key] && typeof window[key] === "object" ? window[key] : {};
+    const nsEff = ns || currentNamespace();
+    map[nsEff] = !!blocked;
+    window[key] = map;
+  } catch (_) {}
+}
+
+function isAuthBlocked(ns = null) {
+  try {
+    if (typeof window === "undefined") return false;
+    const key = "__tk_auth_blocked_ns";
+    const map = window[key] && typeof window[key] === "object" ? window[key] : {};
+    const nsEff = ns || currentNamespace();
+    return !!map[nsEff];
+  } catch (_) {
+    return false;
+  }
+}
+
+function clearAllAuthForNamespace() {
+  try {
+    // Do NOT remove stored tokens automatically. Simply block attaching Authorization headers for this namespace.
+    // This preserves the session in storage until explicit logout or manual cache clear.
+    setAuthBlocked(true);
+  } catch (_) {}
+}
+
+/**
+ * JWT helpers to keep session active until logout or storage is cleared.
+ */
+let refreshingPromise = null;
+
+function parseJwt(token) {
+  try {
+    const [, payload] = token.split(".");
+    return JSON.parse(atob(payload));
+  } catch {
+    return null;
+  }
+}
+
+function getAccessToken() {
+  const t = readNamespaced("token");
+  if (t) return t;
+  // Fallback: if we're on an admin route but tokens exist under user namespace (e.g. logged in from non-admin URL)
+  try {
+    if (currentNamespace() !== "user") {
+      const k = "token_user";
+      const v =
+        (typeof localStorage !== "undefined" && localStorage.getItem(k)) ||
+        (typeof sessionStorage !== "undefined" && sessionStorage.getItem(k)) ||
+        null;
+      if (v) return v;
+    }
+  } catch (_) {}
+  return null;
+}
+
+function getRefreshToken() {
+  const r = readNamespaced("refresh");
+  if (r) return r;
+  // Fallback for cross-namespace login (e.g., admin using token from user namespace)
+  try {
+    if (currentNamespace() !== "user") {
+      const k = "refresh_user";
+      const v =
+        (typeof localStorage !== "undefined" && localStorage.getItem(k)) ||
+        (typeof sessionStorage !== "undefined" && sessionStorage.getItem(k)) ||
+        null;
+      if (v) return v;
+    }
+  } catch (_) {}
+  return null;
+}
+
+async function refreshAccessToken() {
+  const refresh = getRefreshToken();
+  if (!refresh) return null;
+  try {
+    const resp = await refreshClient.post("accounts/token/refresh/", { refresh });
+    const { access, refresh: newRefresh } = resp?.data || {};
+    if (access) {
+      writeNamespaced("token", access);
+    }
+    if (newRefresh) {
+      writeNamespaced("refresh", newRefresh);
+    }
+    // On successful refresh, allow auth again for this namespace
+    try { setAuthBlocked(false); } catch (_) {}
+    return access || null;
+  } catch (err) {
+    // Refresh failed (400/401/expired/missing user): block auth to avoid infinite refresh loops
+    clearAllAuthForNamespace();
+    return null;
+  }
+}
+
+async function ensureFreshAccess() {
+  let token = getAccessToken();
+  const hasRefresh = !!getRefreshToken();
+
+  // If no access but we have a refresh, try to mint a new access
+  if (!token && hasRefresh) {
+    return await refreshAccessToken();
+  }
+  if (!token) return null;
+
+  const payload = parseJwt(token);
+  const now = Math.floor(Date.now() / 1000);
+  const exp = payload?.exp || 0;
+  const isExpiringSoon = exp && exp - now < 60; // refresh 60s before expiry
+  if (!isExpiringSoon) return token;
+
+  if (!refreshingPromise) {
+    refreshingPromise = refreshAccessToken().finally(() => {
+      refreshingPromise = null;
+    });
+  }
+  const refreshed = await refreshingPromise;
+  const isExpired = exp && exp <= now;
+  if (!refreshed && isExpired) {
+    // Access is already expired and refresh failed: clear tokens and proceed unauthenticated
+    clearAllAuthForNamespace();
+    return null;
+  }
+  return refreshed || token;
+}
+
+/**
+ * Redaction helpers for console logging ONLY (does not change the actual request payload).
+ * Note: It's impossible to hide the password from your own browser's Network tab,
+ * but we can ensure we never log it in the console or error traces.
+ */
+const SENSITIVE_KEYS = new Set([
+  "password",
+  "new_password",
+  "confirmPassword",
+  "confirm_password",
+  "old_password",
+]);
+
+function redact(value) {
+  if (Array.isArray(value)) return value.map(redact);
+  if (value && typeof value === "object") {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) {
+      out[k] = SENSITIVE_KEYS.has(k) ? "******" : redact(v);
+    }
+    return out;
+  }
+  return value;
+}
+
+/* Performance: defaults, GET caching, and request de-duplication (latest wins). */
+API.interceptors.request.use((config) => {
+  try {
+    // Apply default timeout if not provided
+    if (config.timeout == null) {
+      config.timeout = DEFAULT_TIMEOUT;
+    }
+
+    // Normalize request URL to work with both baseURL="/api" (dev proxy) and absolute REACT_APP_API_URL.
+    // If url starts with "/", strip the leading slash when baseURL ends with "/api" or is absolute,
+    // so axios appends the path instead of resetting to the origin root and avoids double "/api".
+    try {
+      const u = config?.url || "";
+      if (typeof u === "string" && u.startsWith("/")) {
+        const b = config.baseURL || API.defaults.baseURL || baseURL || "";
+        const isAbs = /^https?:\/\//i.test(b);
+        const bEndsWithApi = /\/api\/?$/.test(b);
+        if (isAbs || bEndsWithApi) {
+          // Example:
+          //  - baseURL="/api", url="/uploads/cards/" -> "uploads/cards/" => "/api/uploads/cards/"
+          //  - baseURL="http://localhost:8000/api", url="/uploads/cards/" -> "uploads/cards/" => "http://.../api/uploads/cards/"
+          //  - If url already begins with "/api/", strip that prefix to avoid "/api/api/*" when using axios baseURL="/api"
+          let path = u.startsWith("/api/") ? u.slice(5) : u.slice(1);
+          config.url = path || u; // if empty, keep original so guard rejects
+        }
+      }
+    } catch (_) {}
+
+
+    // Debug guard: detect empty/baseURL requests that would hit "/api/" with no path
+    {
+      const rawUrl = config.url;
+      const urlStr = typeof rawUrl === "string" ? rawUrl.trim() : "";
+      const isUndefinedStr = typeof rawUrl === "string" && (rawUrl === "undefined" || rawUrl === "null");
+      const isEmptyOrRoot =
+        !urlStr ||
+        urlStr === "/" ||
+        urlStr === "api" ||
+        urlStr === "api/" ||
+        urlStr === "/api" ||
+        urlStr === "/api/" ||
+        isUndefinedStr;
+
+      if (!urlStr || isEmptyOrRoot || typeof rawUrl !== "string") {
+        const err = new Error("[API] Aborting request: empty or root API path. Check caller stack.");
+        if (process.env.NODE_ENV !== "production") {
+          // eslint-disable-next-line no-console
+          console.error("[API] Aborting request with empty path.", {
+            url: rawUrl,
+            baseURL: config.baseURL || API.defaults.baseURL || baseURL,
+            stack: err.stack,
+          });
+        }
+        return Promise.reject(err); // abort request here
+      }
+    }
+
+    const method = (config.method || "get").toLowerCase();
+
+    // Heuristics: apply safe defaults for common admin endpoints to reduce duplicate requests
+    try {
+      const rawUrl = String(config.url || "");
+      const path = rawUrl.startsWith("/") ? rawUrl.slice(1) : rawUrl;
+      const p = path.toLowerCase();
+      if (method === "get") {
+        // admin/me: cache for 60s and cancel previous in-flight by default
+        if (p.startsWith("admin/me/")) {
+          if (config.cacheTTL == null) config.cacheTTL = 60_000;
+          if (config.dedupe == null) config.dedupe = "cancelPrevious";
+        }
+        // admin/metrics: cache for 15s to smooth out re-renders/StrictMode
+        if (p.startsWith("admin/metrics/") || p.startsWith("adminapi/metrics/")) {
+          if (config.cacheTTL == null) config.cacheTTL = 15_000;
+          if (config.dedupe == null) config.dedupe = "cancelPrevious";
+        }
+      }
+    } catch (_) {}
+
+    if (method === "get") {
+      const key = makeRequestKey(config);
+      const ttl =
+        typeof config.cacheTTL === "number" ? config.cacheTTL : DEFAULT_GET_CACHE_TTL;
+
+      // Serve from cache using a custom adapter to short-circuit the network
+      if (ttl > 0) {
+        const entry = cache.get(key);
+        if (entry && Date.now() < entry.expiry) {
+          config._fromCache = true;
+          config._skipLoadingTrack = true; // prevent spinner for cache hits
+          config.adapter = async () => ({
+            data: entry.data,
+            status: 200,
+            statusText: "OK",
+            headers: entry.headers || {},
+            config,
+            request: null,
+          });
+          return config;
+        }
+      }
+
+      // Request de-duplication: cancel previous in-flight identical GET, keep latest
+      const strategy = config.dedupe ?? "none"; // default: no dedupe unless explicitly requested
+      if (strategy !== "none") {
+        const existing = inflight.get(key);
+        if (existing) {
+          try {
+            existing.abort?.();
+            existing.cancel?.("deduped");
+          } catch (_) {}
+        }
+        // Prepare abort handle for current request
+        let abort = null;
+        let cancel = null;
+        try {
+          if (typeof AbortController !== "undefined" && !config.signal) {
+            const controller = new AbortController();
+            config.signal = controller.signal;
+            abort = () => controller.abort();
+          } else if (axios && axios.CancelToken && !config.cancelToken) {
+            const src = axios.CancelToken.source();
+            config.cancelToken = src.token;
+            cancel = src.cancel;
+          }
+        } catch (_) {}
+        inflight.set(key, { abort, cancel, ts: Date.now() });
+        config._reqKey = key;
+      }
+    }
+  } catch (_) {}
+  return config;
+});
+
+/* Track loading + attach JWT Authorization header from storage when available. */
+API.interceptors.request.use(async (config) => {
+  // Skip refresh endpoint to prevent recursion/deadlock
+  const url = config?.url || "";
+  if (url.includes("/accounts/token/refresh/")) {
+    return config;
+  }
+
+  // Track loading unless explicitly skipped (e.g., retried request)
+  if (config._skipLoadingTrack) {
+    try {
+      delete config._skipLoadingTrack;
+    } catch (_) {}
+  } else {
+    config._trackLoading = true;
+    try {
+      incrementLoading();
+    } catch (_) {}
+  }
+
+  // Ensure we have a fresh access token before each request
+  let token = await ensureFreshAccess();
+  if (!token) token = getAccessToken();
+
+  // If UI has explicitly blocked auth (e.g., after refresh failure), skip attaching Authorization header.
+  // This prevents auto-clearing tokens and avoids infinite refresh loops while preserving stored session.
+  try {
+    if (isAuthBlocked()) {
+      return config;
+    }
+  } catch (_) {}
+
+  // Do not attach Authorization header for public endpoints to avoid 401 on AllowAny views
+  // when a stale/invalid token is present.
+  const pathForAuth = String(config.url || "").replace(/^\//, "");
+  const isPublicEndpoint =
+    pathForAuth.startsWith("location/") ||
+    pathForAuth.startsWith("accounts/regions/by-sponsor/");
+
+  if (token && !isPublicEndpoint) {
+    config.headers = config.headers || {};
+    // Respect manually provided Authorization header (e.g., post-login profile fetch)
+    if (!config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
+  // Dev-only: emit whether Authorization is attached for hierarchy endpoint to debug 401s
+  if (process.env.NODE_ENV !== "production") {
+    try {
+      const path = String(config.url || "").replace(/^\//, "");
+      if (path.startsWith("accounts/hierarchy/")) {
+        const hasAuth = !!(config.headers && config.headers.Authorization);
+        // eslint-disable-next-line no-console
+        console.debug("[API] hierarchy Authorization attached:", hasAuth);
+      }
+    } catch (_) {}
+  }
+
+  return config;
+});
+
+// Dev-only safe logging with redaction (commented out by default)
+API.interceptors.request.use((config) => {
+  if (process.env.NODE_ENV !== "production") {
+    try {
+      const redactedData =
+        config?.data && typeof config.data === "object" ? redact(config.data) : config.data;
+      const redactedParams =
+        config?.params && typeof config.params === "object" ? redact(config.params) : config.params;
+
+      // console.debug("[API] ->", (config.method || "GET").toUpperCase(), config.url, { data: redactedData, params: redactedParams });
+    } catch (_) {}
+  }
+  return config;
+});
+
+/* Ensure we decrement loader even if a request fails before reaching the response interceptors (e.g., network error, CORS, cancellation). */
+API.interceptors.request.use(
+  undefined,
+  (error) => {
+    try {
+      if (error?.config?._trackLoading) decrementLoading();
+    } catch (_) {}
+    return Promise.reject(error);
+  }
+);
+
+API.interceptors.response.use(
+  (res) => {
+    try {
+      if (res?.config?._trackLoading) decrementLoading();
+    } catch (_) {}
+    // Attempt to repair mojibake in response payloads (strings and JSON objects)
+    try {
+      const d = res?.data;
+      if (typeof d === "string") {
+        res.data = fixMojibakeString(d);
+      } else if (d && typeof d === "object") {
+        res.data = deepFixMojibake(d);
+      }
+    } catch (_) {}
+    // Cache GET responses and clear inflight tracking
+    try {
+      const cfg = res?.config || {};
+      const method = (cfg.method || "get").toLowerCase();
+      if (method === "get") {
+        const ttl =
+          typeof cfg.cacheTTL === "number" ? cfg.cacheTTL : DEFAULT_GET_CACHE_TTL;
+        if (ttl > 0 && !cfg._fromCache) {
+          const key = makeRequestKey(cfg);
+          cache.set(key, {
+            data: res?.data,
+            headers: res?.headers || {},
+            expiry: Date.now() + ttl,
+          });
+        }
+        if (cfg._reqKey && inflight.has(cfg._reqKey)) {
+          inflight.delete(cfg._reqKey);
+        }
+      }
+    } catch (_) {}
+    return res;
+  },
+  async (error) => {
+    // Dev logging (redacted)
+    if (process.env.NODE_ENV !== "production") {
+      try {
+        const cfg = error?.config || {};
+        const redactedCfgData =
+          cfg?.data && typeof cfg.data === "object" ? redact(cfg.data) : cfg.data;
+        // console.debug("[API] x ", (cfg.method || "GET").toUpperCase(), cfg.url, {
+        //   data: redactedCfgData,
+        //   status: error?.response?.status,
+        //   response: error?.response?.data,
+        // });
+      } catch (_) {}
+    }
+
+    const status = error?.response?.status;
+    const data = error?.response?.data;
+    const originalRequest = error?.config || {};
+
+    // Clear inflight map entry (if any)
+    try {
+      if (originalRequest?._reqKey && inflight.has(originalRequest._reqKey)) {
+        inflight.delete(originalRequest._reqKey);
+      }
+    } catch (_) {}
+
+    // Treat request cancellations/aborts distinctly: do not retry or surface as timeout
+    const isCanceled =
+      (typeof axios !== "undefined" && typeof axios.isCancel === "function" && axios.isCancel(error)) ||
+      error?.code === "ERR_CANCELED" ||
+      error?.name === "CanceledError" ||
+      (typeof error?.message === "string" && /aborted|abort|canceled|cancelled/i.test(error.message));
+    if (isCanceled) {
+      try {
+        if (originalRequest?._trackLoading) decrementLoading();
+      } catch (_) {}
+      try { error.__canceled = true; } catch (_) {}
+      return Promise.reject(error);
+    }
+
+    // Lightweight retries for idempotent requests on transient errors
+    try {
+      const method = (originalRequest.method || "get").toLowerCase();
+      const isTransient =
+        (typeof status !== "number" || status >= 500) ||
+        error?.code === "ECONNABORTED";
+      const isIdempotent = method === "get" || method === "head";
+      const maxAttempts =
+        typeof originalRequest.retryAttempts === "number"
+          ? originalRequest.retryAttempts
+          : 2;
+      const count = originalRequest._retryCount || 0;
+
+      if (isTransient && isIdempotent && !originalRequest._retrying && count < maxAttempts) {
+        originalRequest._retryCount = count + 1;
+        originalRequest._retrying = true;
+        originalRequest._skipLoadingTrack = true; // avoid re-incrementing loader
+        const base = 200 * Math.pow(2, count);
+        const jitter = Math.floor(Math.random() * 100);
+        const delay = Math.min(1000, base + jitter);
+        await new Promise((r) => setTimeout(r, delay));
+        return API(originalRequest);
+      }
+    } catch (_) {}
+
+    const tokenInvalid =
+      status === 401 &&
+      (data?.code === "token_not_valid" ||
+        data?.detail === "Given token not valid for any token type");
+
+    // Avoid infinite loops
+    if (tokenInvalid && !originalRequest._retry) {
+      originalRequest._retry = true;
+      // Do not increment loading again for the retried request
+      originalRequest._skipLoadingTrack = true;
+
+      const refreshed = await refreshAccessToken();
+      if (refreshed) {
+        // Update auth header and retry original request
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers.Authorization = `Bearer ${refreshed}`;
+        return API(originalRequest);
+      }
+
+      // No refresh available or refresh failed: block auth and signal UI to route to login
+      clearAllAuthForNamespace();
+
+      try {
+        if (originalRequest?._trackLoading) decrementLoading();
+      } catch (_) {}
+      return Promise.reject(error);
+    }
+
+    // Non-refreshable error: ensure we decrement loading if we tracked it
+    try {
+      if (originalRequest?._trackLoading) decrementLoading();
+    } catch (_) {}
+
+    return Promise.reject(error);
+  }
+);
+
+/* One-time cleanup of legacy non-namespaced auth keys to avoid cross-role collisions */
+(function cleanupLegacyAuthKeys() {
+  try {
+    if (typeof localStorage !== "undefined") {
+      ["token", "refresh", "role", "user"].forEach((k) => {
+        try { localStorage.removeItem(k); } catch (_) {}
+      });
+    }
+    if (typeof sessionStorage !== "undefined") {
+      ["token", "refresh", "role", "user"].forEach((k) => {
+        try { sessionStorage.removeItem(k); } catch (_) {}
+      });
+    }
+  } catch (_) {}
+})();
+
+/**
+ * Keep UI session alive by silently refreshing the access token at intervals
+ * while the app is open. This ensures users remain logged in until they
+ * explicitly logout or clear their browser storage.
+ */
+(function startTokenKeepAlive() {
+  if (typeof window === "undefined") return;
+  try {
+    if (window.__tk_keepalive) return;
+    window.__tk_keepalive = setInterval(() => {
+      // ensureFreshAccess() refreshes 60s before expiry using the refresh token (if present)
+      ensureFreshAccess().catch(() => {});
+    }, 120000); // every 2 minutes
+  } catch (_) {}
+})();
+
+export async function assignConsumerByCount(payload) {
+  const res = await API.post("/coupons/codes/assign-consumer-count/", payload);
+  return res?.data || res;
+}
+
+export async function assignEmployeeByCount(payload) {
+  // payload supports either { employee_username, count, batch?, notes? } or { employee_id, count, ... }
+  const res = await API.post("/coupons/codes/assign-employee-count/", payload);
+  return res?.data || res;
+}
+
+/**
+ * E‑Coupon Store APIs
+ */
+
+// Bootstrap: role‑filtered products + active payment config (for create order screen)
+export async function getEcouponStoreBootstrap() {
+  const res = await API.get("/coupons/store/orders/bootstrap/", {
+    // cache for short time to reduce flicker
+    cacheTTL: 15_000,
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+
+// Create an e‑coupon order (multipart). Fields: product, quantity, utr?, notes?, payment_proof_file?
+export async function createEcouponOrder({ product, quantity, utr = "", notes = "", file = null }) {
+  const fd = new FormData();
+  fd.append("product", String(product));
+  fd.append("quantity", String(quantity));
+  if (utr) fd.append("utr", String(utr));
+  if (notes) fd.append("notes", String(notes));
+  if (file) fd.append("payment_proof_file", file);
+  const res = await API.post("/coupons/store/orders/", fd, {
+    headers: { "Content-Type": "multipart/form-data" },
+    timeout: 30000,
+  });
+  return res?.data || res;
+}
+
+// List my orders (consumer/agency/employee)
+export async function getMyEcouponOrders(params = {}) {
+  const res = await API.get("/coupons/store/orders/mine/", { params, dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+
+// Admin: list pending orders
+export async function adminGetPendingEcouponOrders(params = {}) {
+  const res = await API.get("/coupons/store/orders/pending/", { params, dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+
+// Admin: approve an order and allocate codes
+export async function adminApproveEcouponOrder(id, review_note = "") {
+  const res = await API.post(`/coupons/store/orders/${id}/approve/`, { review_note });
+  return res?.data || res;
+}
+
+// Admin: reject an order
+export async function adminRejectEcouponOrder(id, review_note = "") {
+  const res = await API.post(`/coupons/store/orders/${id}/reject/`, { review_note });
+  return res?.data || res;
+}
+
+// Admin: payment configs and products (basic CRUD helpers)
+export async function listPaymentConfigs(params = {}) {
+  const res = await API.get("/coupons/store/payment-configs/", { params });
+  return res?.data || res;
+}
+export async function setActivePaymentConfig(id) {
+  const res = await API.post(`/coupons/store/payment-configs/${id}/set-active/`, {});
+  return res?.data || res;
+}
+export async function listStoreProducts(params = {}) {
+  const res = await API.get("/coupons/store/products/", { params });
+  return res?.data || res;
+}
+
+export async function listCouponSeasons(params = {}) {
+  // Admin-created Season/Coupon masters
+  // Returns array of coupons where code/title/campaign starts with "Season"
+  const res = await API.get("/coupons/seasons/", {
+    params,
+    cacheTTL: 10_000,
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+
+/**
+ * Consumer e‑coupon wallet helpers
+ */
+export async function getMyECoupons(params = {}) {
+  const res = await API.get("/coupons/codes/mine-consumer/", { params, dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+export async function getMyECouponSummary() {
+  const res = await API.get("/coupons/codes/consumer-summary/", { cacheTTL: 10_000, dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+export async function transferECoupon(codeId, { to_username, pincode = "", notes = "" }) {
+  const res = await API.post(`/coupons/codes/${codeId}/transfer/`, { to_username, pincode, notes });
+  return res?.data || res;
+}
+
+// Activation/Redeem using v1 endpoints with e‑coupon source context
+export async function activateECoupon150({ code }) {
+  const res = await API.post("/v1/coupon/activate/?async=1", {
+    type: "150",
+    source: { channel: "e_coupon", code },
+  });
+  return res?.data || res;
+}
+export async function redeemECoupon150({ code }) {
+  const res = await API.post("/v1/coupon/redeem/", {
+    type: "150",
+    source: { channel: "e_coupon", code },
+  });
+  return res?.data || res;
+}
+
+/**
+ * Admin: Master Level Commission APIs
+ */
+export async function adminGetLevelCommission() {
+  const res = await API.get("/admin/commission/levels/", {
+    cacheTTL: 10_000,
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+
+export async function adminUpdateLevelCommission(payload = {}) {
+  // Accepts any subset of { direct, l1, l2, l3, l4, l5 }
+  const res = await API.patch("/admin/commission/levels/", payload);
+  return res?.data || res;
+}
+
+export async function adminSeedLevelCommission() {
+  const res = await API.post("/admin/commission/levels/seed/", {});
+  return res?.data || res;
+}
+
+export async function adminGetMatrixCommissionConfig(product = null) {
+  const cfg = { cacheTTL: 10_000, dedupe: "cancelPrevious" };
+  if (product) cfg.params = { product };
+  const res = await API.get("/admin/commission/matrix/", cfg);
+  return res?.data || res;
+}
+
+export async function adminUpdateMatrixCommissionConfig(payload = {}, product = null) {
+  // Accepts any subset of:
+  //  - five_matrix_levels, five_matrix_amounts_json, five_matrix_percents_json
+  //  - three_matrix_levels, three_matrix_amounts_json, three_matrix_percents_json
+  const cfg = {};
+  if (product) cfg.params = { product };
+  const res = await API.patch("/admin/commission/matrix/", payload, cfg);
+  return res?.data || res;
+}
+
+/**
+ * Admin: Master Commission (tax, withdrawal sponsor %, company user, upline %, geo %)
+ */
+export async function adminGetMasterCommission(product = null) {
+  const cfg = { cacheTTL: 10_000, dedupe: "cancelPrevious" };
+  if (product) cfg.params = { product };
+  const res = await API.get("/admin/commission/master/", cfg);
+  return res?.data || res;
+}
+
+export async function adminUpdateMasterCommission(payload = {}, product = null) {
+  // Accepts any subset:
+  // {
+  //   tax: { percent },
+  //   tax_company_user_id,
+  //   withdrawal: { sponsor_percent },
+  //   upline: { l1, l2, l3, l4, l5 },
+  //   geo: { sub_franchise, pincode, pincode_coord, district, district_coord, state, state_coord, employee, royalty }
+  // }
+  const cfg = {};
+  if (product) cfg.params = { product };
+  const res = await API.patch("/admin/commission/master/", payload, cfg);
+  return res?.data || res;
+}
+
+/**
+ * Admin: Preview Direct Refer Withdraw distribution
+ */
+export async function adminPreviewWithdrawDistribution({ user_id = null, user = null, username = null, amount }) {
+  const params = {};
+  if (user_id) params.user_id = user_id;
+  if (!params.user_id && user) params.user = user;
+  if (!params.user_id && !params.user && username) params.username = username;
+  params.amount = amount;
+  const res = await API.get("/admin/withdrawals/distribution-preview/", {
+    params,
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+
+/**
+ * Admin: Rewards Points Config (tiers + per-coupon after base)
+ */
+export async function adminGetRewardPointsConfig() {
+  const res = await API.get("/admin/rewards/points-config/", {
+    cacheTTL: 10_000,
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+export async function adminUpdateRewardPointsConfig(payload = {}) {
+  const res = await API.patch("/admin/rewards/points-config/", payload);
+  return res?.data || res;
+}
+
+/**
+ * Promo Packages (Consumer + Admin)
+ */
+export async function getPromoPackages() {
+  const res = await API.get("/business/promo/packages/", {
+    cacheTTL: 10_000,
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+
+export async function listMyPromoPurchases(params = {}) {
+  const res = await API.get("/business/promo/purchases/", { params, dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+
+export async function createPromoPurchase({
+  package_id,
+  quantity = 1,
+  year = null,
+  month = null,
+  file = null,
+  remarks = "",
+  selected_product_id = null,
+  selected_promo_product_id = null,
+  shipping_address = "",
+  // For PRIME 150 user choice
+  prime150_choice = "EBOOK",
+  // For PRIME 750 user choice
+  prime750_choice = "PRODUCT",
+  // New Monthly flow
+  package_number = null,
+  boxes = [],
+}) {
+  const fd = new FormData();
+  fd.append("package_id", String(package_id));
+
+  // MONTHLY (boxes) takes precedence over legacy year/month
+  const hasBoxes = Array.isArray(boxes) && boxes.length > 0 && package_number != null;
+  if (hasBoxes) {
+    // quantity equals number of selected boxes
+    const q = Math.max(1, Number(boxes.length) || 1);
+    fd.append("quantity", String(q));
+    fd.append("package_number", String(package_number));
+    for (const b of boxes) {
+      try {
+        fd.append("boxes", String(parseInt(b, 10)));
+      } catch (_) {}
+    }
+  } else {
+    // Legacy path (kept for backward compatibility)
+    const qty = Math.max(1, Number(quantity) || 1);
+    fd.append("quantity", String(qty));
+    if (year != null) fd.append("year", String(year));
+    if (month != null) fd.append("month", String(month));
+  }
+
+  if (file) fd.append("payment_proof", file);
+  if (remarks) fd.append("remarks", String(remarks));
+  if (selected_product_id != null) fd.append("selected_product_id", String(selected_product_id));
+  if (selected_promo_product_id != null) fd.append("selected_promo_product_id", String(selected_promo_product_id));
+  if (shipping_address) fd.append("shipping_address", String(shipping_address));
+  if (prime150_choice != null && String(prime150_choice).trim() !== "") {
+    fd.append("prime150_choice", String(prime150_choice).toUpperCase());
+  }
+  if (prime750_choice != null && String(prime750_choice).trim() !== "") {
+    fd.append("prime750_choice", String(prime750_choice).toUpperCase());
+  }
+  const res = await API.post("/business/promo/purchases/", fd, {
+    headers: { "Content-Type": "multipart/form-data" },
+    timeout: 30000,
+  });
+  return res?.data || res;
+}
+
+// Admin promo purchases
+export async function adminListPromoPurchases(params = {}) {
+  const res = await API.get("/business/admin/promo/purchases/", { params });
+  return res?.data || res;
+}
+export async function adminApprovePromoPurchase(id) {
+  const res = await API.post(
+    `/business/admin/promo/purchases/${encodeURIComponent(id)}/approve/`,
+    {},
+    { timeout: 300000 }
+  );
+  return res?.data || res;
+}
+export async function adminRejectPromoPurchase(id, reason = "") {
+  const res = await API.post(
+    `/business/admin/promo/purchases/${encodeURIComponent(id)}/reject/`,
+    { reason },
+    { timeout: 300000 }
+  );
+  return res?.data || res;
+}
+
+/**
+ * Marketplace: Product purchase request (consumer checkout -> admin/owner approval)
+ * Payload: { product, quantity, consumer_name, consumer_email, consumer_phone, consumer_address, payment_method }
+ */
+export async function createProductPurchaseRequest(payload = {}) {
+  const res = await API.post("/purchase-requests", payload);
+  return res?.data || res;
+}
+
+// List my product purchase requests (consumer "My Orders")
+export async function listMyProductPurchaseRequests(params = {}) {
+  const res = await API.get("/purchase-requests", {
+    params: { ...params, mine: 1 },
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+
+// Build absolute/relative API URL for browser navigation (e.g., invoice download)
+function buildApiUrl(path = "") {
+  try {
+    const b = baseURL || "/api/";
+    const p = String(path || "");
+    return b + (p.startsWith("/") ? p.slice(1) : p);
+  } catch (_) {
+    return `/api/${String(path || "").replace(/^\/+/, "")}`;
+  }
+}
+
+// Get invoice download URL for a purchase request
+export function getPurchaseInvoiceUrl(id) {
+  return buildApiUrl(`/purchase-requests/${encodeURIComponent(id)}/invoice/`);
+}
+
+/**
+ * Rewards Points (coupon activation milestones)
+ */
+export async function getRewardPointsSummary() {
+  const res = await API.get("/business/rewards/points/", { cacheTTL: 10_000, dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+
+export async function getActivationStatus() {
+  const res = await API.get("/business/activation/status/", { dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+
+export async function getMyEBooks() {
+  const res = await API.get("/business/ebooks/mine/", { cacheTTL: 10000, dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+
+/**
+ * TRI Apps (Holidays, EV, etc.)
+ */
+export async function getTriApps() {
+  const res = await API.get("/business/tri/apps/", {
+    cacheTTL: 10_000,
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+export async function getTriApp(slug) {
+  const res = await API.get(`/business/tri/apps/${encodeURIComponent(slug)}/`, {
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+
+/**
+ * Agency Packages (Assign + My Payments)
+ */
+export async function agencyAssignPackage({ package_id, amount = null, reference = "", notes = "" } = {}) {
+  const payload = {};
+  if (package_id != null) payload.package_id = package_id;
+  if (amount != null) payload.amount = amount;
+  if (reference) payload.reference = String(reference);
+  if (notes) payload.notes = String(notes);
+  const res = await API.post("/business/agency-packages/assign/", payload);
+  return res?.data || res;
+}
+
+export async function agencyCreateMyPackagePayment(assignmentId, { amount, reference = "", notes = "" } = {}) {
+  const res = await API.post(`/business/agency-packages/${encodeURIComponent(assignmentId)}/my-payments/`, {
+    amount,
+    reference,
+    notes,
+  });
+  return res?.data || res;
+}
+
+/**
+ * Agency: Create a payment request (goes to Admin approval queue)
+ * Endpoint: POST /business/agency-packages/{assignmentId}/payment-requests/
+ * Payload (multipart): amount, method (e.g., "UPI"), utr?, payment_proof?
+ */
+export async function agencyCreatePaymentRequest(assignmentId, { amount, method = "UPI", utr = "", payment_proof = null } = {}) {
+  const fd = new FormData();
+  fd.append("amount", String(amount));
+  if (method) fd.append("method", String(method));
+  if (utr) fd.append("utr", String(utr));
+  if (payment_proof) fd.append("payment_proof", payment_proof);
+  const res = await API.post(`/business/agency-packages/${encodeURIComponent(assignmentId)}/payment-requests/`, fd, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res?.data || res;
+}
+
+/**
+ * Admin: Agency Package Payment Requests (Approve/Reject)
+ */
+export async function adminListAgencyPackagePaymentRequests(params = {}) {
+  const res = await API.get("/business/admin/agency-packages/payment-requests/", {
+    params,
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+
+export async function adminApproveAgencyPackagePaymentRequest(id, admin_notes = "") {
+  const body = admin_notes ? { admin_notes } : {};
+  const res = await API.post(`/business/admin/agency-packages/payment-requests/${encodeURIComponent(id)}/approve/`, body);
+  return res?.data || res;
+}
+
+export async function adminRejectAgencyPackagePaymentRequest(id, admin_notes = "") {
+  const body = admin_notes ? { admin_notes } : {};
+  const res = await API.post(`/business/admin/agency-packages/payment-requests/${encodeURIComponent(id)}/reject/`, body);
+  return res?.data || res;
+}
+
+/**
+ * Merchant marketplace APIs
+ */
+
+// Public shops (ACTIVE only)
+export async function getPublicShops(params = {}) {
+  const res = await API.get("/shops/", { params, dedupe: "cancelPrevious", cacheTTL: 10_000 });
+  return res?.data || res;
+}
+
+export async function getShopDetail(id) {
+  const res = await API.get(`/shops/${encodeURIComponent(id)}/`, { dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+
+export async function getNearbyShops(params = {}) {
+  const cfg = {
+    params: { limit: 5, ...params },
+    dedupe: "cancelPrevious",
+    cacheTTL: 10_000,
+  };
+  const res = await API.get("/shops/nearby/", cfg);
+  return res?.data || res;
+}
+
+// Merchant profile (auto-created on first access)
+export async function getMerchantProfile() {
+  const res = await API.get("/merchant/profile/", { dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+
+export async function updateMerchantProfile(payload = {}) {
+  const res = await API.patch("/merchant/profile/", payload);
+  return res?.data || res;
+}
+
+// Merchant's own shops
+export async function listMyShops(params = {}) {
+  const res = await API.get("/merchant/shops/", { params, dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+
+export async function createShop({
+  shop_name = "",
+  address = "",
+  city = "",
+  latitude = "",
+  longitude = "",
+  contact_number = "",
+  shop_image = null,
+} = {}) {
+  const fd = new FormData();
+  if (shop_name) fd.append("shop_name", String(shop_name));
+  if (address) fd.append("address", String(address));
+  if (city) fd.append("city", String(city));
+  if (latitude !== "" && latitude !== null && latitude !== undefined) fd.append("latitude", String(latitude));
+  if (longitude !== "" && longitude !== null && longitude !== undefined) fd.append("longitude", String(longitude));
+  if (contact_number) fd.append("contact_number", String(contact_number));
+  if (shop_image) fd.append("shop_image", shop_image);
+  const res = await API.post("/merchant/shops/", fd, { headers: { "Content-Type": "multipart/form-data" } });
+  return res?.data || res;
+}
+
+export async function updateShop(id, {
+  shop_name,
+  address,
+  city,
+  latitude,
+  longitude,
+  contact_number,
+  shop_image,
+} = {}) {
+  const fd = new FormData();
+  if (shop_name !== undefined) fd.append("shop_name", String(shop_name));
+  if (address !== undefined) fd.append("address", String(address));
+  if (city !== undefined) fd.append("city", String(city));
+  if (latitude !== undefined) fd.append("latitude", String(latitude));
+  if (longitude !== undefined) fd.append("longitude", String(longitude));
+  if (contact_number !== undefined) fd.append("contact_number", String(contact_number));
+  if (shop_image !== undefined && shop_image !== null) fd.append("shop_image", shop_image);
+  const res = await API.patch(`/merchant/shops/${encodeURIComponent(id)}/`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+  return res?.data || res;
+}
+
+export async function deleteShop(id) {
+  const res = await API.delete(`/merchant/shops/${encodeURIComponent(id)}/`);
+  return res?.data || res;
+}
+
+/**
+ * Merchant Shop Products APIs
+ */
+
+// Public: list ACTIVE products for an ACTIVE shop
+export async function listShopProductsPublic(shopId, params = {}) {
+  const res = await API.get(`/shops/${encodeURIComponent(shopId)}/products/`, {
+    params,
+    dedupe: "cancelPrevious",
+    cacheTTL: 10_000,
+  });
+  return res?.data || res;
+}
+
+// Owner: list my products for a specific shop
+export async function listMyShopProducts(shopId, params = {}) {
+  const res = await API.get(`/merchant/shops/${encodeURIComponent(shopId)}/products/`, {
+    params,
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+
+// Owner: create a product under my shop (multipart)
+export async function createMyShopProduct(shopId, {
+  title,
+  description = "",
+  mrp,
+  discount_percent = 0,
+  price = null, // if null, server computes from mrp & discount_percent
+  online_delivery = false,
+  offline_delivery = true,
+  stock_qty = 0,
+  is_active = true,
+  image = null,
+} = {}) {
+  const fd = new FormData();
+  if (title != null) fd.append("title", String(title));
+  if (description != null) fd.append("description", String(description));
+  if (mrp != null) fd.append("mrp", String(mrp));
+  if (discount_percent != null) fd.append("discount_percent", String(discount_percent));
+  if (price != null) fd.append("price", String(price));
+  // booleans as strings so DRF parses truthy/falsy
+  fd.append("online_delivery", String(Boolean(online_delivery)));
+  fd.append("offline_delivery", String(Boolean(offline_delivery)));
+  if (stock_qty != null) fd.append("stock_qty", String(stock_qty));
+  if (is_active != null) fd.append("is_active", String(Boolean(is_active)));
+  if (image) fd.append("image", image);
+
+  const res = await API.post(
+    `/merchant/shops/${encodeURIComponent(shopId)}/products/`,
+    fd,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return res?.data || res;
+}
+
+// Owner: update a product (multipart; only provided fields are changed)
+export async function updateMyShopProduct(productId, patch = {}) {
+  const fd = new FormData();
+  const append = (k, v) => {
+    if (v === undefined) return;
+    // Pass File/Blob as-is
+    if (typeof Blob !== "undefined" && v instanceof Blob) return fd.append(k, v);
+    fd.append(k, String(v));
+  };
+  append("title", patch.title);
+  append("description", patch.description);
+  append("mrp", patch.mrp);
+  append("discount_percent", patch.discount_percent);
+  append("price", patch.price);
+  if ("online_delivery" in patch) append("online_delivery", Boolean(patch.online_delivery));
+  if ("offline_delivery" in patch) append("offline_delivery", Boolean(patch.offline_delivery));
+  append("stock_qty", patch.stock_qty);
+  if ("is_active" in patch) append("is_active", Boolean(patch.is_active));
+  if ("image" in patch && patch.image != null) append("image", patch.image);
+
+  const res = await API.patch(
+    `/merchant/products/${encodeURIComponent(productId)}/`,
+    fd,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return res?.data || res;
+}
+
+// Owner: delete a product
+export async function deleteMyShopProduct(productId) {
+  const res = await API.delete(`/merchant/products/${encodeURIComponent(productId)}/`);
+  return res?.data || res;
+}
+
+/**
+ * Notifications APIs
+ */
+export async function notificationsRegisterDeviceToken(payload = {}) {
+  const res = await API.post("/notifications/device-token/", payload);
+  return res?.data || res;
+}
+/* Throttle unread-count globally to prevent rapid re-fetch from multiple mounts/renders */
+let __notifUnread_lastAt = 0;
+let __notifUnread_lastData = null;
+let __notifUnread_promise = null;
+
+export async function notificationsUnreadCount(opts = {}) {
+  const { force = false, minIntervalMs = 100_000 } = opts || {};
+  const now = Date.now();
+
+  if (!force) {
+    if (__notifUnread_promise) {
+      try { return await __notifUnread_promise; } catch (_) {}
+    }
+    if (__notifUnread_lastData != null && (now - __notifUnread_lastAt) < minIntervalMs) {
+      return __notifUnread_lastData;
+    }
+  }
+
+  __notifUnread_promise = (async () => {
+    const res = await API.get("/notifications/unread-count/", {
+      cacheTTL: 15_000,
+      dedupe: "cancelPrevious",
+    });
+    const data = res?.data || res;
+    __notifUnread_lastAt = Date.now();
+    __notifUnread_lastData = data;
+    return data;
+  })();
+
+  try {
+    return await __notifUnread_promise;
+  } finally {
+    __notifUnread_promise = null;
+  }
+}
+export async function notificationsPinned() {
+  const res = await API.get("/notifications/pinned/", {
+    cacheTTL: 30_000,
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+export async function notificationsInbox(params = {}) {
+  const res = await API.get("/notifications/inbox/", {
+    params,
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+export async function notificationsMarkRead(body = {}) {
+  const res = await API.patch("/notifications/mark-read/", body);
+  return res?.data || res;
+}
+
+/**
+ * Admin-managed dashboard media
+ */
+export async function listHeroBanners(params = {}) {
+  const res = await API.get("/uploads/hero-banners/", {
+    params,
+    cacheTTL: 10_000,
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+
+export async function listPromotions({ params = {} } = {}) {
+  const res = await API.get("/uploads/promotions/", {
+    params,
+    cacheTTL: 10_000,
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+
+export async function listCategoryBanners({ params = {} } = {}) {
+  const res = await API.get("/uploads/category-banners/", {
+    params,
+    cacheTTL: 10_000,
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+
+
+/**
+ * MLM Ranks APIs
+ */
+export async function getRanks() {
+  const res = await API.get("/ranks/", { cacheTTL: 10_000, dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+
+export async function getUpgradeEligibility() {
+  // Increase timeout as backend may compute large referral subtree (Prime-750 gated team size).
+  // Cancel previous in-flight identical call to avoid overlapping heavy work.
+  const res = await API.get("/user/upgrade-eligibility/", { dedupe: "cancelPrevious", cacheTTL: 5000, timeout: 60000 });
+  return res?.data || res;
+}
+
+export async function initiateUpgrade({ to_rank_id }) {
+  const res = await API.post("/upgrade/initiate/", { to_rank_id });
+  return res?.data || res;
+}
+
+export async function confirmUpgradeSuccess({ upgrade_id = null, to_rank_id = null } = {}) {
+  const body = {};
+  if (upgrade_id != null) body.upgrade_id = upgrade_id;
+  if (to_rank_id != null) body.to_rank_id = to_rank_id;
+  const res = await API.post("/upgrade/success/", body, { timeout: 30000 });
+  return res?.data || res;
+}
+
+export async function createRankUpgradePayment({ upgrade_id, utr = "", remarks = "", file = null }) {
+  const fd = new FormData();
+  fd.append("upgrade_id", String(upgrade_id));
+  if (utr) fd.append("utr", String(utr));
+  if (remarks) fd.append("remarks", String(remarks));
+  if (file) fd.append("payment_proof", file);
+  const res = await API.post("/upgrade/payment-request/", fd, {
+    headers: { "Content-Type": "multipart/form-data" },
+    timeout: 30000,
+  });
+  return res?.data || res;
+}
+
+// User: Rank upgrade commission holds (self)
+export async function getMyRankCommissionHolds(params = {}) {
+  const res = await API.get("/user/rank-commission-holds/", { params, dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+
+// User: Level Bonus progress (Rank-1 directs vs threshold + earliest pending release)
+export async function getMyLevelBonusProgress() {
+  const res = await API.get("/user/level-bonus-progress/", { dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+
+/**
+ * Admin: Rank Upgrade monitoring
+ */
+export async function adminListRankUpgrades(params = {}) {
+  const res = await API.get("/admin/rank-upgrades/", { params, dedupe: "cancelPrevious", timeout: 30000 });
+  return res?.data || res;
+}
+
+export async function adminGetUpgradeCommissions(upgrade_id) {
+  const res = await API.get(`/admin/rank-upgrades/${encodeURIComponent(upgrade_id)}/commissions/`, {
+    dedupe: "cancelPrevious",
+  });
+  return res?.data || res;
+}
+
+export async function adminListRankCommissionHolds(params = {}) {
+  const res = await API.get("/admin/rank-commission-holds/", { params, dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+
+export async function adminApproveRankUpgrade(id) {
+  const res = await API.post(`/admin/rank-upgrades/${encodeURIComponent(id)}/approve/`, {});
+  return res?.data || res;
+}
+
+export async function adminRejectRankUpgrade(id, reason = "") {
+  const body = reason ? { reason } : {};
+  const res = await API.post(`/admin/rank-upgrades/${encodeURIComponent(id)}/reject/`, body);
+  return res?.data || res;
+}
+
+export { ensureFreshAccess, getAccessToken, getRefreshToken, setAuthBlocked, isAuthBlocked };
+export default API;
