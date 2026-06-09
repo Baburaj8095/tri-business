@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 
 .ce-app {
-  --ce-primary: #2563eb;
-  --ce-primary-dark: #1e40af;
-  --ce-primary-light: #3b82f6;
+  --ce-primary: #93c193;
+  --ce-primary-dark: #93c193;
+  --ce-primary-light: #93c193;
   --ce-bg: #f1f1f1;
   --ce-surface: #ffffff;
   --ce-text: #1e293b;
@@ -55,7 +55,7 @@
   z-index: 40;
   background: linear-gradient(180deg, var(--ce-primary-dark) 0%, var(--ce-primary) 100%);
   color: #ffffff;
-  box-shadow: 0 10px 28px rgba(37, 99, 235, 0.18);
+  box-shadow: 0 10px 28px rgba(147, 193, 147, 0.18);
   border-bottom: none;
 }
 
@@ -211,7 +211,7 @@
   background: linear-gradient(135deg, var(--ce-primary), var(--ce-primary-dark));
   color: #fff;
   font-size: 24px;
-  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22);
+  box-shadow: 0 12px 24px rgba(34, 139, 34, 0.22);
 }
 
 .ce-profile-main {

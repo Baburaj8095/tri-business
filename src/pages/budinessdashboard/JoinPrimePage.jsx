@@ -25,10 +25,10 @@ const UI = {
   surface: "#ffffff",
   text: "#1f2937",
   muted: "#6b7280",
-  primary: "#0F52BA",
-  secondary: "#2f6fd0",
+  primary: "#228B22",
+  secondary: "#1B4D3E",
   onPrimary: "#ffffff",
-  gradient: "linear-gradient(180deg, #0F52BA 0%, #2f6fd0 100%)",
+  gradient: "linear-gradient(180deg, #1B4D3E 0%, #228B22 100%)",
 };
 
 const BENEFITS = [
@@ -82,7 +82,7 @@ const AD_PACKAGES = [
 
 function SectionCard({ title, subtitle, children, action }) {
   return (
-    <Card sx={{ borderRadius: 3.5, boxShadow: "0 16px 36px rgba(15,82,186,0.10)" }}>
+    <Card sx={{ borderRadius: 3.5, boxShadow: "0 16px 36px rgba(34,139,34,0.10)" }}>
       <CardContent sx={{ p: 2 }}>
         <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1} sx={{ mb: 1.5 }}>
           <Box sx={{ minWidth: 0 }}>
@@ -137,7 +137,7 @@ function JoinPrimePage() {
           zIndex: 10,
           background: UI.gradient,
           color: UI.onPrimary,
-          boxShadow: "0 10px 24px rgba(15,82,186,0.18)",
+          boxShadow: "0 10px 24px rgba(34,139,34,0.18)",
         }}
       >
         <Box sx={{ px: 2, py: 1.5 }}>
@@ -162,7 +162,7 @@ function JoinPrimePage() {
 
       <Box sx={{ px: 1.75, py: 2, pb: 3, maxWidth: 640, mx: "auto" }}>
         <Stack spacing={1.75}>
-          <Card sx={{ borderRadius: 4, overflow: "hidden", boxShadow: "0 18px 38px rgba(15,82,186,0.12)" }}>
+          <Card sx={{ borderRadius: 4, overflow: "hidden", boxShadow: "0 18px 38px rgba(34,139,34,0.12)" }}>
             <Box sx={{ background: UI.gradient, color: UI.onPrimary, px: 2, py: 2.3 }}>
               <Stack spacing={1.1}>
                 <InfoPill label="1-Year Subscription" />

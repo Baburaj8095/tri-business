@@ -13,10 +13,10 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import DeliveryHeader from "../../components/business/DeliveryHeader";
 import SearchBar from "../../components/business/SearchBar";
 import StoreCard from "../../components/business/StoreCard";
-import ecommerceImage from "../../assets/ecommerce.jpg";
-import giftsImage from "../../assets/gifts.jpg";
-import furnitureImage from "../../assets/furniture.jpeg";
-import electronicsImage from "../../assets/electronics-img.jpg";
+const ecommerceImage = "https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=400&q=80";
+const giftsImage = "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=400&q=80";
+const furnitureImage = "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=400&q=80";
+const electronicsImage = "https://images.unsplash.com/photo-1526738549149-8e07eca2c552?auto=format&fit=crop&w=400&q=80";
 
 const UI = {
   bg: "#f1f5f9",
@@ -24,8 +24,8 @@ const UI = {
   border: "#e5e7eb",
   text: "#1f2937",
   textMuted: "#6b7280",
-  primary: "#0F52BA",
-  secondary: "#2f6fd0",
+  primary: "#228B22",
+  secondary: "#1B4D3E",
   onPrimary: "#ffffff",
 };
 
@@ -128,7 +128,7 @@ function CategoryStrip({ active, onChange }) {
               color: selected ? UI.onPrimary : UI.text,
               bgcolor: selected ? UI.primary : UI.surface,
               border: `1px solid ${selected ? UI.primary : UI.border}`,
-              boxShadow: selected ? "0 8px 18px rgba(15,82,186,0.16)" : "none",
+              boxShadow: selected ? "0 8px 18px rgba(34,139,34,0.16)" : "none",
               "&:hover": {
                 bgcolor: selected ? UI.secondary : alpha(UI.primary, 0.06),
               },

@@ -1,127 +1,76 @@
 import React from "react";
-import { alpha } from "@mui/material/styles";
-import { Box, ButtonBase, Chip, Stack, Typography } from "@mui/material";
+import { Box, Typography, Stack, alpha } from "@mui/material";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
-import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import NearMeOutlinedIcon from "@mui/icons-material/NearMeOutlined";
 
 const UI = {
-  primary: "#0F52BA",
+  primary: "#228B22",
   surface: "#ffffff",
   border: "#e5e7eb",
   text: "#1f2937",
   textMuted: "#6b7280",
-  success: "#16a34a",
+  success: "#1B4D3E",
 };
 
 export default function StoreCard({ store, onClick }) {
+  if (!store) return null;
+
   return (
-    <ButtonBase
+    <Box
       onClick={onClick}
       sx={{
-        display: "block",
-        width: "100%",
-        textAlign: "left",
-        borderRadius: 2.5,
+        px: 2,
+        py: 1,
+        cursor: "pointer",
+        "&:active": { opacity: 0.7 },
       }}
     >
       <Box
         sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "104px minmax(0, 1fr)", sm: "132px minmax(0, 1fr)" },
-          gap: 1.25,
-          width: "100%",
-          p: 1,
           borderRadius: 2.5,
           bgcolor: UI.surface,
           border: `1px solid ${UI.border}`,
-          boxShadow: "0 8px 22px rgba(15,82,186,0.07)",
+          boxShadow: "0 8px 22px rgba(34,139,34,0.07)",
           overflow: "hidden",
         }}
       >
         <Box
-          component="img"
-          src={store.image}
-          alt={store.name}
           sx={{
-            width: "100%",
-            aspectRatio: "1 / 1",
-            height: "auto",
-            objectFit: "cover",
-            borderRadius: 2,
-            bgcolor: alpha(UI.primary, 0.08),
+            height: 140,
+            bgcolor: "#f1f5f9",
+            backgroundImage: `url(${store.image || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400'})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
           }}
         />
-        <Stack spacing={0.75} sx={{ minWidth: 0, py: 0.2 }}>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography
+        <Box sx={{ p: 1.5 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+            <Box>
+              <Typography variant="subtitle1" fontWeight={800} color={UI.text} noWrap>
+                {store.name || "Unnamed Store"}
+              </Typography>
+              <Typography variant="caption" color={UI.textMuted} sx={{ fontWeight: 600 }}>
+                {store.category || "General"} • {store.distance || "0.5 km"}
+              </Typography>
+            </Box>
+            <Stack
+              direction="row"
+              alignItems="center"
               sx={{
-                fontSize: { xs: 14.5, sm: 16 },
-                fontWeight: 900,
-                color: UI.text,
-                lineHeight: 1.22,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
+                bgcolor: alpha(UI.primary, 0.1),
+                px: 1,
+                py: 0.25,
+                borderRadius: 1.5,
               }}
             >
-              {store.name}
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: 11.5,
-                color: UI.textMuted,
-                mt: 0.3,
-                lineHeight: 1.35,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {store.description}
-            </Typography>
-          </Box>
-
-          <Stack direction="row" spacing={0.8} alignItems="center" flexWrap="wrap" useFlexGap>
-            <Stack direction="row" spacing={0.25} alignItems="center">
-              <StarRoundedIcon sx={{ fontSize: 16, color: UI.success }} />
-              <Typography sx={{ fontSize: 12, fontWeight: 900, color: UI.text }}>
-                {store.rating}
-              </Typography>
-            </Stack>
-            <Stack direction="row" spacing={0.25} alignItems="center">
-              <AccessTimeRoundedIcon sx={{ fontSize: 15, color: UI.textMuted }} />
-              <Typography sx={{ fontSize: 12, fontWeight: 700, color: UI.textMuted }}>
-                {store.deliveryTime}
-              </Typography>
-            </Stack>
-            <Stack direction="row" spacing={0.25} alignItems="center">
-              <NearMeOutlinedIcon sx={{ fontSize: 15, color: UI.textMuted }} />
-              <Typography sx={{ fontSize: 12, fontWeight: 700, color: UI.textMuted }}>
-                {store.distance}
+              <StarRoundedIcon sx={{ color: UI.primary, fontSize: 16, mr: 0.25 }} />
+              <Typography variant="caption" fontWeight={800} color={UI.primary}>
+                {store.rating || "4.5"}
               </Typography>
             </Stack>
           </Stack>
-
-          <Stack direction="row" spacing={0.65} flexWrap="wrap" useFlexGap>
-            {store.tags.map((tag) => (
-              <Chip
-                key={tag}
-                label={tag}
-                size="small"
-                sx={{
-                  height: 22,
-                  borderRadius: 999,
-                  fontSize: 10.5,
-                  fontWeight: 800,
-                  bgcolor: alpha(UI.primary, 0.1),
-                  color: UI.primary,
-                }}
-              />
-            ))}
-          </Stack>
-        </Stack>
+        </Box>
       </Box>
-    </ButtonBase>
+    </Box>
   );
 }

@@ -11,6 +11,8 @@ import {
   Divider,
   Drawer,
   IconButton,
+  InputBase,
+  Paper,
   Stack,
   Typography,
 } from "@mui/material";
@@ -25,19 +27,31 @@ import {
   HiOutlineGlobeAlt,
   HiOutlineQrCode,
   HiOutlineSquares2X2,
-  HiOutlineGift,
   HiOutlineChevronRight,
   HiOutlineXMark,
   HiOutlineHandshake,
   HiOutlineBuildingOffice2,
-  HiOutlineDocumentText,
   HiOutlineBuildingStorefront,
   HiOutlineHeart,
   HiOutlineFlag,
   HiOutlinePlayCircle,
   HiOutlineShoppingCart
 } from 'react-icons/hi2';
-import GiftCardCarousel from "../../components/business/GiftCardCarousel";
+import { LuGift, LuSmartphone, LuShirt, LuSofa, LuTag } from 'react-icons/lu';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import MyLocationOutlinedIcon from '@mui/icons-material/MyLocationOutlined';
+import LocationCityRoundedIcon from '@mui/icons-material/LocationCityRounded';
+import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined';
+import PlayCircleOutlineRoundedIcon from '@mui/icons-material/PlayCircleOutlineRounded';
+import AddShoppingCartRoundedIcon from '@mui/icons-material/AddShoppingCartRounded';
+import FavoriteBorderRoundedIcon from '@mui/icons-material/FavoriteBorderRounded';
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
+import ArrowForwardIosRoundedIcon from '@mui/icons-material/ArrowForwardIosRounded';
+import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import SearchBar from "../../components/business/SearchBar";
 import "../consumer-ecommerce/consumerEcommerce.css";
 
 const UI = {
@@ -47,10 +61,10 @@ const UI = {
   border: "#e2e8f0",
   text: "#1e293b",
   textMuted: "#64748b",
-  primary: "#2563eb",
-  secondary: "#1e40af",
+  primary: "#228B22",
+  secondary: "#1B4D3E",
   onPrimary: "#ffffff",
-  headerGradient: "linear-gradient(135deg, #1e40af 0%, #2563eb 100%)",
+  headerGradient: "linear-gradient(135deg, #1B4D3E 0%, #228B22 100%)",
 };
 
 const QUICK_LOCATIONS = [
@@ -59,7 +73,7 @@ const QUICK_LOCATIONS = [
     title: "Nearby",
     icon: HiOutlineMapPin,
     bg: "linear-gradient(135deg, #e9f1ff 0%, #cfdfff 100%)",
-    fg: "#0F52BA",
+    fg: "#1B4D3E",
   },
   {
     id: "karnataka",
@@ -91,38 +105,45 @@ const QUICK_LOCATIONS = [
   },
 ];
 
-const POPULAR_CITIES = [
-  "Mumbai",
-  "Delhi-NCR",
-  "Bengaluru",
-  "Hyderabad",
-  "Chandigarh",
-  "Ahmedabad",
-  "Pune",
-  "Chennai",
-  "Kolkata",
-  "Kochi",
+const TOP_CITIES = [
+  { id: 1, name: "Bangalore", businesses: "12.4K+", image: "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=400&q=80" },
+  { id: 2, name: "Hyderabad", businesses: "8.7K+", image: "https://images.unsplash.com/photo-1626139575955-75b90a723feb?auto=format&fit=crop&w=400&q=80" },
+  { id: 3, name: "Mumbai", businesses: "15.8K+", image: "https://images.unsplash.com/photo-1566550969633-670a81af30ad?auto=format&fit=crop&w=400&q=80" },
+  { id: 4, name: "Chennai", businesses: "7.2K+", image: "https://images.unsplash.com/photo-1582510003544-2d095665039b?auto=format&fit=crop&w=400&q=80" },
+  { id: 5, name: "Delhi", businesses: "20.1K+", image: "https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=400&q=80" },
+  { id: 6, name: "Pune", businesses: "6.5K+", image: "https://images.unsplash.com/photo-1565019053020-13d461b65101?auto=format&fit=crop&w=400&q=80" },
+  { id: 7, name: "Kolkata", businesses: "9.3K+", image: "https://images.unsplash.com/photo-1558431382-27e39cbef4bc?auto=format&fit=crop&w=400&q=80" },
+  { id: 8, name: "Ahmedabad", businesses: "5.8K+", image: "https://images.unsplash.com/photo-1625505826533-5c80aca7d157?auto=format&fit=crop&w=400&q=80" },
+  { id: 9, name: "Kochi", businesses: "3.4K+", image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=400&q=80" },
+  { id: 10, name: "Chandigarh", businesses: "4.2K+", image: "https://images.unsplash.com/photo-1624314138470-5a2f24623f10?auto=format&fit=crop&w=400&q=80" },
 ];
 
 const SHOPS = [
-  { id: 1, name: "Profile Name of the Shop", place: "Bangalore, Karnataka" },
-  { id: 2, name: "Near by Fashion Store", place: "Pune, Maharashtra" },
-  { id: 3, name: "Prime Appliance House", place: "Chennai, Tamil Nadu" },
-  { id: 4, name: "Mechanical Works Yard", place: "Tirupati, Andhra Pradesh" },
+  { id: 1, name: "Profile Name of the Shop", place: "Bangalore, Karnataka", image: "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=500&q=80" },
+  { id: 2, name: "Near by Fashion Store", place: "Pune, Maharashtra", image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=500&q=80" },
+  { id: 3, name: "Prime Appliance House", place: "Chennai, Tamil Nadu", image: "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=500&q=80" },
+  { id: 4, name: "Mechanical Works Yard", place: "Tirupati, Andhra Pradesh", image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=500&q=80" },
 ];
 
-const CATEGORIES = [
-  "Watch & Earn Ads",
-  "Fashion",
-  "Furniture",
-  "Home Appliances",
-  "Mechanical",
+const ALL_CATEGORIES = [
+  { label: 'Daily Needs', icon: LuGift },
+  { label: 'Mobiles', icon: LuSmartphone },
+  { label: 'Fashion', icon: LuShirt },
+  { label: 'Furniture', icon: LuSofa },
+  { label: 'Beauty', icon: LuTag },
 ];
 
 const ADS = [
   { id: 1, title: "Watch & Earn", caption: "Watch short brand ads and unlock reward points." },
   { id: 2, title: "Banner Ad", caption: "Fashion offers and nearby deals for your selected area." },
   { id: 3, title: "Banner Ad", caption: "Furniture and appliance launches from local businesses." },
+];
+
+const ONLINE_B2B_ADS = [
+  { id: 1, title: "Wholesale Grocery Supply", offer: "Bulk orders for local stores", image: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=700&q=80" },
+  { id: 2, title: "Fashion Distributor Deals", offer: "New stock for retailers", image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=700&q=80" },
+  { id: 3, title: "Furniture Trade Offers", offer: "Office and shop setup packages", image: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=700&q=80" },
+  { id: 4, title: "Restaurant Vendor Network", offer: "Suppliers for daily business needs", image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=700&q=80" },
 ];
 
 const PRODUCTS = [
@@ -134,10 +155,10 @@ const PRODUCTS = [
 
 const FOOTER_ITEMS = [
   { id: "home-top", label: "Home", icon: HiOutlineHome },
+  { id: "tri-zone-footer", label: "Tri Zone", icon: HiOutlineSquares2X2 },
+  { id: "scanner-section", label: "Scanner", icon: HiOutlineQrCode, raised: true },
   { id: "product-section", label: "Online", icon: HiOutlineGlobeAlt },
-  { id: "scanner-section", label: "Scanner", icon: HiOutlineQrCode },
-  { id: "tri-zone-section", label: "Tri Zone", icon: HiOutlineSquares2X2 },
-  { id: "tri-gift-section", label: "Tri Gift", icon: HiOutlineGift },
+  { id: "city-search-section", label: "Nearby", icon: HiOutlineBuildingStorefront },
 ];
 
 const DRAWER_ITEMS = [
@@ -149,7 +170,7 @@ const DRAWER_ITEMS = [
 
 function sectionCardStyles() {
   return {
-    borderRadius: 4,
+    borderRadius: 3,
     bgcolor: UI.surface,
     border: `1px solid ${alpha(UI.text, 0.05)}`,
     boxShadow: "0 4px 12px rgba(15, 23, 42, 0.06)",
@@ -161,20 +182,20 @@ function sectionCardStyles() {
 function SectionShell({ title, subtitle, action, children }) {
   return (
     <Card sx={sectionCardStyles()}>
-      <CardContent sx={{ p: { xs: 1.75, sm: 2.25 } }}>
+      <CardContent sx={{ p: { xs: 1.35, sm: 1.8 }, "&:last-child": { pb: { xs: 1.35, sm: 1.8 } } }}>
         <Stack
           direction={{ xs: "column", sm: "row" }}
           alignItems={{ xs: "flex-start", sm: "center" }}
           justifyContent="space-between"
-          spacing={0.8}
-          sx={{ mb: 1.6 }}
+          spacing={0.55}
+          sx={{ mb: 1.15 }}
         >
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: 14, fontWeight: 800, color: UI.text }}>
+            <Typography sx={{ fontSize: 13.5, fontWeight: 850, color: UI.text, lineHeight: 1.25 }}>
               {title}
             </Typography>
             {subtitle ? (
-              <Typography sx={{ fontSize: 11.5, color: UI.textMuted, mt: 0.45, lineHeight: 1.45 }}>
+              <Typography sx={{ fontSize: 11, color: UI.textMuted, mt: 0.25, lineHeight: 1.35 }}>
                 {subtitle}
               </Typography>
             ) : null}
@@ -187,7 +208,7 @@ function SectionShell({ title, subtitle, action, children }) {
   );
 }
 
-function ScrollRow({ children, gap = 1.25, pb = 0.5 }) {
+function ScrollRow({ children, gap = 1, pb = 0.35 }) {
   return (
     <Box
       sx={{
@@ -253,63 +274,84 @@ function PlaceholderImage({ label, minHeight = 104 }) {
   );
 }
 
-function SearchBarCard({ onSearchClick, onJoinPrimeClick }) {
+function SearchBarCard({ selectedLocation, onSearchClick, onJoinPrimeClick }) {
   return (
-    <Card sx={{ ...sectionCardStyles(), borderRadius: 999 }}>
-      <CardContent sx={{ p: 0.75 }}>
-        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
+    <Box
+      sx={{
+        px: { xs: 1.1, sm: 1.3 },
+        pb: { xs: 1, sm: 1.15 },
+      }}
+    >
+      <Stack direction="row" spacing={0.85} alignItems="center" sx={{ minWidth: 0 }}>
           <Button
-            fullWidth
             onClick={onSearchClick}
             sx={{
+              flex: 1,
               justifyContent: "flex-start",
               textTransform: "none",
               borderRadius: 999,
-              minHeight: 44,
-              px: 1.1,
+              minHeight: { xs: 36, sm: 40 },
+              px: { xs: 1.05, sm: 1.3 },
               color: UI.text,
               minWidth: 0,
+              bgcolor: alpha(UI.primary, 0.08),
+              border: `1px solid ${alpha(UI.primary, 0.16)}`,
+              boxShadow: "none",
+              "&:hover": {
+                bgcolor: alpha(UI.primary, 0.1),
+              },
             }}
           >
-            <Stack direction="row" spacing={0.95} alignItems="center" sx={{ minWidth: 0 }}>
-              <SearchRoundedIcon sx={{ color: UI.textMuted, fontSize: 20 }} />
+            <Stack direction="row" spacing={0.55} alignItems="center" sx={{ minWidth: 0, width: "100%" }}>
+              <HiOutlineMapPin style={{ fontSize: 19, color: UI.primary, flexShrink: 0 }} />
               <Typography
                 sx={{
-                  fontSize: 12.5,
-                  fontWeight: 700,
-                  color: UI.textMuted,
+                  color: UI.text,
+                  fontSize: { xs: 13.5, sm: 14.5 },
+                  fontWeight: 600,
+                  fontFamily: "Poppins",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
+                  minWidth: 0,
                 }}
               >
-                Search for your city
+                Deliver to {selectedLocation || "560091"}
               </Typography>
+              <HiOutlineChevronRight
+                style={{
+                  fontSize: 16,
+                  color: UI.textMuted,
+                  flexShrink: 0,
+                  transform: "rotate(90deg)",
+                }}
+              />
             </Stack>
           </Button>
+
           <Button
             variant="contained"
             onClick={onJoinPrimeClick}
             sx={{
               flexShrink: 0,
               borderRadius: 999,
-              px: { xs: 1.3, sm: 1.8 },
-              py: 1.05,
-              minWidth: { xs: 92, sm: 108 },
+              px: { xs: 1.45, sm: 2 },
+              py: 0,
+              minWidth: { xs: 90, sm: 106 },
+              minHeight: { xs: 32, sm: 36 },
               textTransform: "none",
               fontWeight: 800,
-              fontSize: 12.5,
-              bgcolor: UI.primary,
+              fontSize: 12,
+              bgcolor: UI.secondary,
               color: UI.onPrimary,
-              boxShadow: "0 8px 18px rgba(15,82,186,0.22)",
-              "&:hover": { bgcolor: UI.secondary, boxShadow: "0 8px 18px rgba(15,82,186,0.22)" },
+              boxShadow: "0 2px 8px rgba(27, 77, 62, 0.22)",
+              "&:hover": { bgcolor: UI.secondary, boxShadow: "0 2px 8px rgba(27, 77, 62, 0.22)" },
             }}
           >
             Join Prime
           </Button>
-        </Stack>
-      </CardContent>
-    </Card>
+      </Stack>
+    </Box>
   );
 }
 
@@ -350,114 +392,151 @@ function QuickLocationCard({ item }) {
   );
 }
 
-function SearchCityModal({ open, onClose }) {
-  return (
-    <Dialog open={open} onClose={onClose} fullScreen>
-      <Box sx={{ minHeight: "100vh", bgcolor: UI.surface, overflowX: "hidden" }}>
-        <Box
-          sx={{
-            position: "sticky",
-            top: 0,
-            zIndex: 2,
-            bgcolor: UI.surface,
-            borderBottom: `1px solid ${UI.border}`,
-            px: 2,
-            py: 1.6,
-          }}
-        >
-          <Stack spacing={1.25}>
-            <Stack direction="row" spacing={0.75} alignItems="center">
-              <Card sx={{ ...sectionCardStyles(), borderRadius: 999, flex: 1, boxShadow: "0 6px 20px rgba(17,24,39,0.06)" }}>
-                <CardContent sx={{ px: 1.25, py: 0.95 }}>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <SearchRoundedIcon sx={{ color: UI.textMuted, fontSize: 20 }} />
-                    <Typography sx={{ color: UI.textMuted, fontSize: 13, fontWeight: 600 }}>
-                      Search for your city
-                    </Typography>
-                  </Stack>
-                </CardContent>
-              </Card>
-              <IconButton onClick={onClose} sx={{ color: UI.text }}>
-                <CloseRoundedIcon />
-              </IconButton>
-            </Stack>
+function SearchCityModal({ open, onClose, onSelectCity }) {
+  const [query, setQuery] = useState("");
+  const filteredCities = TOP_CITIES.filter((city) => city.name.toLowerCase().includes(query.toLowerCase()));
 
-            <Button
-              sx={{
-                justifyContent: "flex-start",
-                textTransform: "none",
-                color: UI.primary,
-                fontWeight: 800,
-                px: 0.5,
-              }}
-            >
-              <Stack direction="row" spacing={1} alignItems="center">
-                <MyLocationOutlinedIcon sx={{ fontSize: 20 }} />
-                <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: UI.primary }}>
-                  Detect my location
-                </Typography>
-              </Stack>
-            </Button>
+  return (
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      fullScreen
+      TransitionProps={{ unmountOnExit: true }}
+    >
+      <Box sx={{ height: "100vh", bgcolor: "#fff", display: "flex", flexDirection: "column" }}>
+        {/* Header */}
+        <Box sx={{ p: 2, borderBottom: "1px solid #f1f5f9" }}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <IconButton onClick={onClose} sx={{ color: UI.text }}>
+              <HiOutlineXMark fontSize={24} />
+            </IconButton>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="h6" fontWeight={900}>Select City</Typography>
+              <Typography variant="body2" color={UI.textMuted} sx={{ mt: 0.25 }}>Choose a city from the submenu below</Typography>
+            </Box>
           </Stack>
         </Box>
 
-        <Box sx={{ px: 2, py: 2 }}>
-          <Typography sx={{ fontSize: 15, fontWeight: 800, color: UI.text, mb: 1.8 }}>
-            Popular Cities
-          </Typography>
-          <Box
+        {/* Search Input */}
+        <Box sx={{ p: 2 }}>
+          <Paper
+            elevation={0}
             sx={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gap: 1.5,
-              width: "100%",
+              p: "10px 16px",
+              display: "flex",
+              alignItems: "center",
+              borderRadius: 3,
+              bgcolor: "#f8fafc",
+              border: "1px solid #e2e8f0"
             }}
           >
-            {POPULAR_CITIES.map((city, index) => (
-              <Stack key={city} spacing={0.7} alignItems="center" sx={{ minWidth: 0 }}>
-                <Avatar
-                  sx={{
-                    width: 56,
-                    height: 56,
-                    bgcolor: index % 2 === 0 ? alpha(UI.primary, 0.12) : alpha(UI.secondary, 0.12),
-                    color: UI.primary,
-                    border: `1px solid ${alpha(UI.primary, 0.1)}`,
-                  }}
-                >
-                  <LocationCityRoundedIcon sx={{ fontSize: 24 }} />
-                </Avatar>
-                <Typography
-                  sx={{
-                    fontSize: 10.5,
-                    fontWeight: 700,
-                    color: UI.text,
-                    textAlign: "center",
-                    lineHeight: 1.2,
-                    wordBreak: "break-word",
-                  }}
-                >
-                  {city}
-                </Typography>
-              </Stack>
-            ))}
-          </Box>
+            <SearchRoundedIcon sx={{ color: UI.textMuted, mr: 1.5 }} />
+            <InputBase
+              autoFocus
+              fullWidth
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search city, area or landmark..."
+              sx={{ fontWeight: 600, fontSize: 16 }}
+            />
+          </Paper>
+        </Box>
 
+        {/* Action List */}
+        <Box sx={{ flex: 1, overflowY: "auto" }}>
           <Button
             fullWidth
-            variant="outlined"
             sx={{
-              mt: 2.5,
-              borderRadius: 2.5,
-              py: 1.2,
+              justifyContent: "flex-start",
               textTransform: "none",
-              fontWeight: 800,
-              fontSize: 12.5,
-              borderColor: alpha(UI.text, 0.22),
-              color: UI.text,
+              py: 2,
+              px: 3,
+              color: UI.primary,
+              borderBottom: "1px solid #f8fafc"
             }}
           >
-            View All Cities
+            <Stack direction="row" spacing={2} alignItems="center">
+              <MyLocationOutlinedIcon />
+              <Typography fontWeight={800}>Nearby / Detect my location</Typography>
+            </Stack>
           </Button>
+
+          <Box sx={{ p: 3 }}>
+            <Typography variant="subtitle2" fontWeight={900} color={UI.textMuted} sx={{ mb: 2.5, letterSpacing: 1, textTransform: 'uppercase', fontSize: 11 }}>
+              City Menu
+            </Typography>
+            <Stack spacing={1}>
+              {filteredCities.length > 0 ? (
+                filteredCities.map((city) => (
+                  <Button
+                    key={city.id}
+                    fullWidth
+                    onClick={() => {
+                      onSelectCity(city.name);
+                    }}
+                    sx={{
+                      justifyContent: "space-between",
+                      textTransform: "none",
+                      borderRadius: 2,
+                      border: "1px solid #e5e7eb",
+                      color: UI.text,
+                      px: 3,
+                      py: 1.75,
+                      bgcolor: "#fff",
+                    }}
+                  >
+                    <Typography sx={{ fontWeight: 800 }}>{city.name}</Typography>
+                    <HiOutlineChevronRight style={{ fontSize: 18, color: UI.textMuted }} />
+                  </Button>
+                ))
+              ) : (
+                <Typography color={UI.textMuted} sx={{ fontSize: 13, mt: 1 }}>
+                  No matching cities found.
+                </Typography>
+              )}
+            </Stack>
+
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="subtitle2" fontWeight={900} color={UI.textMuted} sx={{ mb: 2.5, letterSpacing: 1, textTransform: 'uppercase', fontSize: 11 }}>
+                Popular Cities
+              </Typography>
+              <Box sx={{ 
+                display: "grid", 
+                gridTemplateColumns: "repeat(4, 1fr)", 
+                gap: 3 
+              }}>
+                {TOP_CITIES.map((city) => (
+                  <Stack 
+                    key={city.id} 
+                    spacing={1} 
+                    alignItems="center" 
+                    onClick={() => onSelectCity(city.name)}
+                    sx={{ cursor: 'pointer' }}
+                  >
+                    <Avatar
+                      src={city.image}
+                      sx={{
+                        width: 64,
+                        height: 64,
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                        border: "2px solid #fff"
+                      }}
+                    />
+                    <Typography
+                      sx={{
+                        fontSize: 12,
+                        fontWeight: 800,
+                        color: UI.text,
+                        textAlign: "center"
+                      }}
+                    >
+                      {city.name}
+                    </Typography>
+                  </Stack>
+                ))}
+              </Box>
+            </Box>
+          </Box>
         </Box>
       </Box>
     </Dialog>
@@ -469,33 +548,46 @@ function ShopCard({ shop }) {
     <Card
       sx={{
         ...sectionCardStyles(),
-        minWidth: { xs: "76vw", sm: 250 },
-        width: { xs: "76vw", sm: 250 },
-        maxWidth: 250,
+        minWidth: { xs: "72vw", sm: 236 },
+        width: { xs: "72vw", sm: 236 },
+        maxWidth: 236,
         flexShrink: 0,
         scrollSnapAlign: "start",
       }}
     >
-      <CardContent sx={{ p: 1.5 }}>
-        <Stack spacing={1.15}>
-          <PlaceholderImage label="Shop Image Placeholder" minHeight={118} />
+      <CardContent sx={{ p: 1.2, "&:last-child": { pb: 1.2 } }}>
+        <Stack spacing={0.95}>
+          <Box
+            component="img"
+            src={shop.image}
+            alt={shop.name}
+            sx={{
+              width: "100%",
+              height: 108,
+              objectFit: "cover",
+              borderRadius: 1.8,
+              display: "block",
+              bgcolor: alpha(UI.primary, 0.05),
+            }}
+          />
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: 13, fontWeight: 800, color: UI.text, lineHeight: 1.3 }}>
+            <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: UI.text, lineHeight: 1.25 }}>
               {shop.name}
             </Typography>
-            <Typography sx={{ fontSize: 11, color: UI.textMuted, mt: 0.35, lineHeight: 1.35 }}>
+            <Typography sx={{ fontSize: 10.8, color: UI.textMuted, mt: 0.25, lineHeight: 1.3 }}>
               {shop.place}
             </Typography>
           </Box>
-          <Stack direction="row" spacing={0.9}>
+          <Stack direction="row" spacing={0.75}>
             <Button
               fullWidth
               variant="contained"
               sx={{
-                borderRadius: 1.8,
+                borderRadius: 1.6,
                 textTransform: "none",
                 fontWeight: 700,
-                fontSize: 11.5,
+                fontSize: 11,
+                minHeight: 34,
                 bgcolor: UI.primary,
                 color: UI.onPrimary,
                 boxShadow: "none",
@@ -509,10 +601,11 @@ function ShopCard({ shop }) {
               variant="outlined"
               startIcon={<FlagOutlinedIcon sx={{ fontSize: 16 }} />}
               sx={{
-                borderRadius: 1.8,
+                borderRadius: 1.6,
                 textTransform: "none",
                 fontWeight: 700,
-                fontSize: 11.5,
+                fontSize: 11,
+                minHeight: 34,
                 borderColor: UI.border,
                 color: UI.text,
                 minWidth: 0,
@@ -528,26 +621,68 @@ function ShopCard({ shop }) {
   );
 }
 
-function CategoryCard({ title }) {
+function CategoryCard({ item }) {
+  const Icon = item.icon;
   return (
     <Card
       sx={{
-        ...sectionCardStyles(),
-        minWidth: 126,
-        width: 126,
+        minWidth: { xs: 112, sm: 134 },
+        width: { xs: 112, sm: 134 },
+        height: { xs: 118, sm: 140 },
         flexShrink: 0,
         scrollSnapAlign: "start",
+        border: `1px solid ${alpha("#dbe3ee", 0.74)}`,
+        borderRadius: 4,
+        boxShadow: "0 8px 18px rgba(15, 23, 42, 0.04)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: "#ffffff",
+        overflow: "visible",
       }}
     >
-      <CardContent sx={{ p: 1.5 }}>
-        <Stack spacing={1}>
-          <PlaceholderImage label="Category Image" minHeight={76} />
-          <Typography sx={{ fontSize: 11.5, fontWeight: 800, color: UI.text, lineHeight: 1.25 }}>
-            {title}
-          </Typography>
-        </Stack>
-      </CardContent>
+      <Icon style={{ fontSize: 38, color: UI.primary, marginBottom: 10, strokeWidth: 2.1 }} />
+      <Typography sx={{ fontSize: { xs: 15.5, sm: 18 }, fontWeight: 900, color: UI.text, textAlign: "center", lineHeight: 1.1 }}>
+        {item.label}
+      </Typography>
     </Card>
+  );
+}
+
+function AllCategoriesSection() {
+  return (
+    <Box
+      id="categories-section"
+      sx={{
+        borderRadius: { xs: 4, sm: 4.5 },
+        bgcolor: UI.surface,
+        border: `1px solid ${alpha(UI.text, 0.04)}`,
+        boxShadow: "0 8px 20px rgba(15, 23, 42, 0.04)",
+        px: { xs: 2, sm: 2.7 },
+        py: { xs: 2.1, sm: 2.5 },
+        mt: 1.15,
+        mb: 1.25,
+      }}
+    >
+      <Typography
+        component="h2"
+        sx={{
+          color: "#031933",
+          fontSize: { xs: 25, sm: 31 },
+          fontWeight: 900,
+          lineHeight: 1.08,
+          mb: { xs: 2, sm: 2.2 },
+        }}
+      >
+        All Categories
+      </Typography>
+      <ScrollRow gap={{ xs: 1.3, sm: 2 }} pb={0.15}>
+        {ALL_CATEGORIES.map((cat) => (
+          <CategoryCard key={cat.label} item={cat} />
+        ))}
+      </ScrollRow>
+    </Box>
   );
 }
 
@@ -556,23 +691,23 @@ function AdBannerCard({ item }) {
     <Card
       sx={{
         ...sectionCardStyles(),
-        minWidth: { xs: "86vw", sm: 320 },
-        width: { xs: "86vw", sm: 320 },
-        maxWidth: 320,
+        minWidth: { xs: "80vw", sm: 300 },
+        width: { xs: "80vw", sm: 300 },
+        maxWidth: 300,
         flexShrink: 0,
         scrollSnapAlign: "start",
         bgcolor: alpha(UI.primary, 0.08),
         overflow: "hidden",
       }}
     >
-      <CardContent sx={{ p: 1.6 }}>
-        <Stack spacing={1.15}>
-          <PlaceholderImage label="Ads Banner Placeholder" minHeight={132} />
+      <CardContent sx={{ p: 1.25, "&:last-child": { pb: 1.25 } }}>
+        <Stack spacing={0.95}>
+          <PlaceholderImage label="Ads Banner Placeholder" minHeight={112} />
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: 13, fontWeight: 800, color: UI.text, lineHeight: 1.3 }}>
+            <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: UI.text, lineHeight: 1.25 }}>
               {item.title}
             </Typography>
-            <Typography sx={{ fontSize: 11, color: UI.textMuted, lineHeight: 1.5, mt: 0.35 }}>
+            <Typography sx={{ fontSize: 10.8, color: UI.textMuted, lineHeight: 1.38, mt: 0.25 }}>
               {item.caption}
             </Typography>
           </Box>
@@ -581,10 +716,11 @@ function AdBannerCard({ item }) {
             startIcon={<PlayCircleOutlineRoundedIcon sx={{ fontSize: 17 }} />}
             sx={{
               alignSelf: "flex-start",
-              borderRadius: 1.8,
+              borderRadius: 1.6,
               textTransform: "none",
               fontWeight: 800,
-              fontSize: 11.5,
+              fontSize: 11,
+              minHeight: 34,
               bgcolor: UI.primary,
               color: UI.onPrimary,
               boxShadow: "none",
@@ -599,40 +735,121 @@ function AdBannerCard({ item }) {
   );
 }
 
+function OnlineB2BAdCard({ item }) {
+  return (
+    <Card
+      sx={{
+        minWidth: { xs: "76vw", sm: 292 },
+        width: { xs: "76vw", sm: 292 },
+        maxWidth: 292,
+        height: 136,
+        flexShrink: 0,
+        scrollSnapAlign: "start",
+        borderRadius: 3,
+        border: 0,
+        overflow: "hidden",
+        position: "relative",
+        bgcolor: UI.surface,
+        boxShadow: "0 4px 12px rgba(15, 23, 42, 0.08)",
+        backgroundImage: `linear-gradient(90deg, rgba(15, 23, 42, 0.78) 0%, rgba(15, 23, 42, 0.38) 58%, rgba(15, 23, 42, 0.08) 100%), url("${item.image}")`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          p: 1.55,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+        }}
+      >
+        <Box sx={{ alignSelf: "flex-start", px: 0.9, py: 0.35, borderRadius: 999, bgcolor: alpha(UI.primary, 0.92), color: UI.onPrimary, fontSize: 10, fontWeight: 900, lineHeight: 1.2 }}>
+          Online B2B Ads
+        </Box>
+        <Box sx={{ maxWidth: "72%" }}>
+          <Typography sx={{ color: "#fff", fontSize: 15, fontWeight: 900, lineHeight: 1.15 }}>
+            {item.title}
+          </Typography>
+          <Typography sx={{ color: alpha("#fff", 0.88), fontSize: 11.5, fontWeight: 700, mt: 0.45 }}>
+            {item.offer}
+          </Typography>
+        </Box>
+      </Box>
+    </Card>
+  );
+}
+
+function CityCard({ city }) {
+  return (
+    <Card
+      sx={{
+        ...sectionCardStyles(),
+        minWidth: 148,
+        width: 148,
+        height: 166,
+        flexShrink: 0,
+        scrollSnapAlign: "start",
+        position: 'relative',
+        overflow: 'hidden',
+        border: 'none',
+        borderRadius: 3,
+        backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%), url("${city.image}")`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        cursor: 'pointer',
+        transition: 'transform 0.2s',
+        '&:hover': { transform: 'scale(1.02)' }
+      }}
+    >
+      <Box sx={{ position: 'absolute', bottom: 13, left: 13, right: 13 }}>
+        <Typography sx={{ color: '#fff', fontSize: 15, fontWeight: 900, mb: 0.2, lineHeight: 1.15 }}>
+          {city.name}
+        </Typography>
+        <Typography sx={{ color: 'rgba(255,255,255,0.8)', fontSize: 10.5, fontWeight: 700 }}>
+          {city.businesses} businesses
+        </Typography>
+      </Box>
+    </Card>
+  );
+}
+
 function ProductCard({ product }) {
   return (
     <Card sx={{ ...sectionCardStyles(), height: "100%" }}>
-      <CardContent sx={{ p: 1.5 }}>
-        <Stack spacing={1.15} height="100%">
-          <PlaceholderImage label="Product Image" minHeight={118} />
-          <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: UI.text, lineHeight: 1.3 }}>
+      <CardContent sx={{ p: 1.15, height: "100%", "&:last-child": { pb: 1.15 } }}>
+        <Stack spacing={0.85} height="100%">
+          <PlaceholderImage label="Product Image" minHeight={104} />
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography sx={{ fontSize: 12, fontWeight: 800, color: UI.text, lineHeight: 1.25, minHeight: 30 }}>
               {product.name}
             </Typography>
             <Typography
               sx={{
-                fontSize: 10.5,
+                fontSize: 10,
                 color: UI.textMuted,
                 textDecoration: "line-through",
-                mt: 0.5,
+                mt: 0.35,
               }}
             >
               {product.mrp}
             </Typography>
-            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.45, flexWrap: "wrap" }}>
-              <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: UI.primary }}>
+            <Stack direction="row" spacing={0.55} alignItems="center" sx={{ mt: 0.35, flexWrap: "wrap" }}>
+              <Typography sx={{ fontSize: 12.2, fontWeight: 850, color: UI.primary, lineHeight: 1.2 }}>
                 {product.price}
               </Typography>
               <Box
                 sx={{
-                  height: 20,
-                  px: 0.8,
+                  height: 18,
+                  px: 0.65,
                   borderRadius: 999,
                   bgcolor: alpha(UI.primary, 0.12),
                   color: UI.primary,
                   display: "grid",
                   placeItems: "center",
-                  fontSize: 10,
+                  fontSize: 9.5,
                   fontWeight: 800,
                 }}
               >
@@ -640,21 +857,23 @@ function ProductCard({ product }) {
               </Box>
             </Stack>
           </Box>
-          <Stack direction="row" spacing={0.8} sx={{ mt: "auto" }}>
+          <Stack direction="row" spacing={0.65} sx={{ mt: "auto" }}>
             <Button
               fullWidth
               variant="contained"
-              startIcon={<AddShoppingCartRoundedIcon sx={{ fontSize: 16 }} />}
+              startIcon={<AddShoppingCartRoundedIcon sx={{ fontSize: 15 }} />}
               sx={{
-                borderRadius: 1.8,
+                borderRadius: 1.5,
                 textTransform: "none",
                 fontWeight: 700,
-                fontSize: 11,
+                fontSize: 10.5,
                 bgcolor: UI.primary,
                 color: UI.onPrimary,
                 boxShadow: "none",
                 minWidth: 0,
-                px: 0.8,
+                minHeight: 32,
+                px: 0.65,
+                "& .MuiButton-startIcon": { mr: 0.45 },
                 "&:hover": { bgcolor: UI.secondary, boxShadow: "none" },
               }}
             >
@@ -663,61 +882,23 @@ function ProductCard({ product }) {
             <Button
               fullWidth
               variant="outlined"
-              startIcon={<FavoriteBorderRoundedIcon sx={{ fontSize: 16 }} />}
+              startIcon={<FavoriteBorderRoundedIcon sx={{ fontSize: 15 }} />}
               sx={{
-                borderRadius: 1.8,
+                borderRadius: 1.5,
                 textTransform: "none",
                 fontWeight: 700,
-                fontSize: 11,
+                fontSize: 10.5,
                 borderColor: UI.border,
                 color: UI.text,
                 minWidth: 0,
-                px: 0.8,
+                minHeight: 32,
+                px: 0.65,
+                "& .MuiButton-startIcon": { mr: 0.45 },
               }}
             >
               Wish
             </Button>
           </Stack>
-        </Stack>
-      </CardContent>
-    </Card>
-  );
-}
-
-function QuickAccessCard({ title, description, buttonLabel }) {
-  return (
-    <Card
-      sx={{
-        borderRadius: 3,
-        border: `1px solid ${UI.border}`,
-        boxShadow: "none",
-        bgcolor: alpha(UI.primary, 0.05),
-      }}
-    >
-      <CardContent sx={{ p: 1.8 }}>
-        <Stack spacing={1}>
-          <Typography sx={{ fontSize: 13, fontWeight: 800, color: UI.text }}>
-            {title}
-          </Typography>
-          <Typography sx={{ fontSize: 11, color: UI.textMuted, lineHeight: 1.55 }}>
-            {description}
-          </Typography>
-          <Button
-            variant="contained"
-            sx={{
-              alignSelf: "flex-start",
-              textTransform: "none",
-              fontWeight: 700,
-              fontSize: 11.5,
-              borderRadius: 1.8,
-              bgcolor: UI.primary,
-              color: UI.onPrimary,
-              boxShadow: "none",
-              "&:hover": { bgcolor: UI.secondary, boxShadow: "none" },
-            }}
-          >
-            {buttonLabel}
-          </Button>
         </Stack>
       </CardContent>
     </Card>
@@ -733,8 +914,8 @@ function StickyDeliveryButton({ onClick }) {
         zIndex: 20,
         mb: 1.35,
         mx: -0.25,
-        pt: 0.2,
-        pb: 0.85,
+        pt: 0.1,
+        pb: 0.65,
         bgcolor: UI.surface,
       }}
     >
@@ -743,17 +924,17 @@ function StickyDeliveryButton({ onClick }) {
         variant="contained"
         onClick={onClick}
         sx={{
-          minHeight: 44,
+          minHeight: 40,
           borderRadius: 999,
           textTransform: "none",
           fontWeight: 900,
-          fontSize: 12.5,
+          fontSize: 12,
           bgcolor: UI.primary,
           color: UI.onPrimary,
-          boxShadow: "0 10px 22px rgba(15,82,186,0.20)",
+          boxShadow: "0 10px 22px rgba(34,139,34,0.20)",
           "&:hover": {
             bgcolor: UI.secondary,
-            boxShadow: "0 10px 22px rgba(15,82,186,0.20)",
+            boxShadow: "0 10px 22px rgba(34,139,34,0.20)",
           },
         }}
       >
@@ -910,32 +1091,45 @@ function MobileFooterNav({ activeItem, onNavigate }) {
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 1200,
-        display: { xs: "block", md: "none" },
-        px: 0.8,
-        pb: 0.8,
+        width: "100vw",
+        zIndex: 1300,
+        display: "block",
+        px: { xs: 1.5, sm: 3 },
+        pt: 2,
+        pb: 0,
+        bgcolor: "rgba(246, 238, 226, 0.88)",
+        boxShadow: "0 -18px 34px rgba(120, 84, 43, 0.12)",
       }}
     >
       <Card
         sx={{
-          borderRadius: 4,
-          border: `1px solid ${alpha(UI.primary, 0.14)}`,
-          bgcolor: alpha(UI.surface, 0.98),
-          backdropFilter: "blur(10px)",
-          boxShadow: "0 -8px 30px rgba(15,82,186,0.12)",
-          overflow: "hidden",
+          maxWidth: 820,
+          mx: "auto",
+          height: { xs: 86, sm: 96 },
+          borderRadius: 0,
+          borderTopLeftRadius: { xs: 36, sm: 42 },
+          borderTopRightRadius: { xs: 36, sm: 42 },
+          border: 0,
+          bgcolor: UI.surface,
+          boxShadow: "0 -10px 28px rgba(15, 23, 42, 0.08)",
+          overflow: "visible",
         }}
       >
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-            p: 0.55,
+            gridTemplateColumns: `repeat(${FOOTER_ITEMS.length}, minmax(0, 1fr))`,
+            alignItems: "center",
+            height: "100%",
+            px: { xs: 0.25, sm: 2 },
+            width: "100%",
           }}
         >
           {FOOTER_ITEMS.map((item) => {
             const Icon = item.icon;
             const selected = activeItem === item.id;
+            const scanner = item.raised;
+            const textColor = selected ? UI.primary : UI.textMuted;
 
             return (
               <Button
@@ -943,25 +1137,67 @@ function MobileFooterNav({ activeItem, onNavigate }) {
                 onClick={() => onNavigate(item.id)}
                 sx={{
                   minWidth: 0,
-                  px: 0.2,
-                  py: 0.75,
-                  borderRadius: 2,
+                  px: 0,
+                  py: 0,
+                  height: "100%",
+                  borderRadius: 0,
                   textTransform: "none",
-                  color: selected ? UI.primary : UI.textMuted,
-                  bgcolor: selected ? alpha(UI.primary, 0.1) : "transparent",
+                  color: scanner ? UI.textMuted : textColor,
+                  bgcolor: "transparent",
                   display: "flex",
                   flexDirection: "column",
-                  gap: 0.25,
-                  lineHeight: 1.05,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 0.65,
+                  lineHeight: 1.1,
+                  width: "100%",
+                  transform: scanner ? "translateY(-25px)" : "none",
+                  "&:hover": {
+                    bgcolor: "transparent",
+                  },
                 }}
               >
-                <Icon sx={{ fontSize: 19 }} />
+                {scanner ? (
+                  <Box
+                    sx={{
+                      width: { xs: 82, sm: 100 },
+                      height: { xs: 82, sm: 100 },
+                      borderRadius: "50%",
+                      bgcolor: alpha(UI.primary, 0.14),
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: -0.5,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: { xs: 62, sm: 76 },
+                        height: { xs: 62, sm: 76 },
+                        borderRadius: "50%",
+                        bgcolor: UI.primary,
+                        color: "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: `0 10px 22px ${alpha(UI.primary, 0.34)}`,
+                      }}
+                    >
+                      <Icon style={{ fontSize: 34, strokeWidth: 2.1 }} />
+                    </Box>
+                  </Box>
+                ) : (
+                  <Icon style={{ fontSize: 30, strokeWidth: 1.9 }} />
+                )}
                 <Typography
                   sx={{
-                    fontSize: 8.8,
-                    fontWeight: selected ? 800 : 700,
+                    fontSize: { xs: 12.5, sm: 16 },
+                    fontWeight: 800,
                     textAlign: "center",
-                    color: "inherit",
+                    color: scanner ? UI.textMuted : textColor,
+                    fontFamily: "Poppins",
+                    lineHeight: 1.1,
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {item.label}
@@ -978,6 +1214,7 @@ function MobileFooterNav({ activeItem, onNavigate }) {
 function BusinessDashboard() {
   const navigate = useNavigate();
   const [activeFooterItem, setActiveFooterItem] = useState("home-top");
+  const [selectedCity, setSelectedCity] = useState("560091");
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const joinPrimePath = "/demo/join-prime";
@@ -992,6 +1229,10 @@ function BusinessDashboard() {
   const handleFooterNavigate = (targetId) => {
     if (targetId === "scanner-section") {
       navigate("/demo/scanner");
+      return;
+    }
+    if (targetId === "tri-zone-footer") {
+      navigate("/product-registration");
       return;
     }
     setActiveFooterItem(targetId);
@@ -1055,74 +1296,70 @@ function BusinessDashboard() {
           maxWidth: 640, 
           margin: '0 auto',
           paddingTop: '74px',
-          paddingBottom: '88px'
+          paddingBottom: '132px'
         }}
       >
-        <Stack spacing={1.5}>
+        <Stack spacing={1.15}>
           <Box id="home-top">
-            <SectionShell title="Search & Location" subtitle="Search-driven city selection with quick location access">
-              <Stack spacing={1.5}>
+            <Box sx={{ px: { xs: 0, sm: 0 }, mt: -2 }}>
+              <SearchBar
+                onClick={() => setSearchModalOpen(true)}
+                topCities={TOP_CITIES}
+                onCitySelect={(cityName) => setSelectedCity(cityName)}
+              />
+              <AllCategoriesSection />
+              <Box id="city-search-section" sx={{ px: { xs: 0, sm: 0 } }}>
                 <SearchBarCard
+                  selectedLocation={selectedCity}
                   onSearchClick={() => setSearchModalOpen(true)}
                   onJoinPrimeClick={() => navigate(joinPrimePath)}
                 />
-
-                <ScrollRow gap={1.1} pb={0.2}>
-                  {QUICK_LOCATIONS.map((item) => (
-                    <QuickLocationCard key={item.id} item={item} />
-                  ))}
-                </ScrollRow>
-
-
-              </Stack>
-            </SectionShell>
+              </Box>
+            </Box>
           </Box>
 
+          <Box id="online-b2b-ads-section" sx={{ mt: -0.25 }}>
+            <ScrollRow gap={1} pb={0.15}>
+              {ONLINE_B2B_ADS.map((item) => (
+                <OnlineB2BAdCard key={item.id} item={item} />
+              ))}
+            </ScrollRow>
+          </Box>
+
+          {/*
           <Box id="business-shops">
             <SectionShell
               title="Business / Shop"
               subtitle="Nearby business listings with follow and report actions"
             >
-              <ScrollRow>
+              <ScrollRow gap={0.9}>
                 {SHOPS.map((shop) => (
                   <ShopCard key={shop.id} shop={shop} />
                 ))}
               </ScrollRow>
             </SectionShell>
           </Box>
-
-          <Box id="categories-section">
-            <SectionShell
-              title="Categories"
-              subtitle="Horizontal category strip from the sketch"
-            >
-              <ScrollRow>
-                {CATEGORIES.map((category) => (
-                  <CategoryCard key={category} title={category} />
-                ))}
-              </ScrollRow>
-            </SectionShell>
-          </Box>
+          */}
 
           <Box id="ads-section">
-            <ScrollRow gap={1.2}>
+            <ScrollRow gap={1}>
               {ADS.map((item) => (
                 <AdBannerCard key={item.id} item={item} />
               ))}
             </ScrollRow>
           </Box>
 
-          <Stack direction="row" spacing={1.5} sx={{ px: 0.2 }}>
+          <Stack direction="row" spacing={1} sx={{ px: 0.15 }}>
             <Button
               fullWidth
-              onClick={() => navigate("/consumer-ecommerce/society")}
+              onClick={() => navigate("/business/for-better-society")}
               sx={{
-                borderRadius: 3,
-                py: 2.25,
+                borderRadius: 2.5,
+                py: 1.55,
                 textTransform: "none",
                 display: "flex",
                 flexDirection: "column",
-                gap: 1,
+                gap: 0.55,
                 bgcolor: alpha("#8b5cf6", 0.08),
                 color: "#6d28d9",
                 boxShadow: "none",
@@ -1131,18 +1368,18 @@ function BusinessDashboard() {
               }}
             >
               <span style={{ fontSize: "24px" }}>🤝</span>
-              <Typography sx={{ fontWeight: 800, fontSize: 13 }}>For Better Society</Typography>
+              <Typography sx={{ fontWeight: 800, fontSize: 12.2, lineHeight: 1.2, textAlign: "center" }}>For Better Society</Typography>
             </Button>
             <Button
               fullWidth
               onClick={() => navigate("/business/inventory-billing")}
               sx={{
-                borderRadius: 3,
-                py: 2.25,
+                borderRadius: 2.5,
+                py: 1.55,
                 textTransform: "none",
                 display: "flex",
                 flexDirection: "column",
-                gap: 1,
+                gap: 0.55,
                 bgcolor: alpha("#10b981", 0.08),
                 color: "#047857",
                 boxShadow: "none",
@@ -1151,7 +1388,7 @@ function BusinessDashboard() {
               }}
             >
               <span style={{ fontSize: "24px" }}>📑</span>
-              <Typography sx={{ fontWeight: 800, fontSize: 13 }}>Tri Inventory & Billing</Typography>
+              <Typography sx={{ fontWeight: 800, fontSize: 12.2, lineHeight: 1.2, textAlign: "center" }}>Tri Inventory & Billing</Typography>
             </Button>
           </Stack>
 
@@ -1165,7 +1402,7 @@ function BusinessDashboard() {
                 sx={{
                   display: "grid",
                   gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                  gap: 1.2,
+                  gap: 0.9,
                   width: "100%",
                 }}
               >
@@ -1176,44 +1413,17 @@ function BusinessDashboard() {
             </SectionShell>
           </Box>
 
-          <Box id="scanner-section">
-            <SectionShell
-              title="Scanner"
-              subtitle="Quick access area from the mobile footer"
-            >
-              <QuickAccessCard
-                title="Scanner Access"
-                description="Use this area as the landing point for scanner-related actions from the footer."
-                buttonLabel="Open Scanner"
-              />
-            </SectionShell>
-          </Box>
-
-          <Box id="tri-zone-section">
-            <SectionShell
-              title="Tri Zone Product Add Form"
-              subtitle="Footer-linked access point for Tri Zone"
-            >
-              <QuickAccessCard
-                title="Tri Zone"
-                description="This section is reachable from the footer and can be expanded later into a full product add form."
-                buttonLabel="Open Tri Zone"
-              />
-            </SectionShell>
-          </Box>
-
-          <Box id="tri-gift-section">
-            <SectionShell
-              title="Tri Gift Card"
-              subtitle="Purchase digital gift cards from top brands"
-            >
-              <GiftCardCarousel />
-            </SectionShell>
-          </Box>
         </Stack>
       </main>
 
-      <SearchCityModal open={searchModalOpen} onClose={() => setSearchModalOpen(false)} />
+      <SearchCityModal
+        open={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+        onSelectCity={(cityName) => {
+          setSelectedCity(cityName);
+          setSearchModalOpen(false);
+        }}
+      />
       <AppDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onAction={handleDrawerAction} />
       <MobileFooterNav activeItem={activeFooterItem} onNavigate={handleFooterNavigate} />
     </div>

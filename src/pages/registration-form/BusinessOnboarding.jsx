@@ -1,0 +1,985 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  IconButton,
+  InputAdornment,
+  Stack,
+  Alert,
+  Fade,
+  CircularProgress,
+  Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Chip
+} from '@mui/material';
+import {
+  Visibility,
+  VisibilityOff,
+  ArrowBack,
+  ArrowForward,
+  CheckCircle,
+  CloudUpload,
+  Delete,
+  Person,
+  Business,
+  Lock,
+  Email,
+  Phone,
+  LocationOn,
+  Storefront,
+  Language,
+  Hub,
+  ShoppingCart,
+  LocalShipping,
+  DirectionsBus,
+  Agriculture,
+  Work,
+  Home,
+  Restaurant,
+  ShoppingBag,
+  Sell,
+  Verified,
+  Description,
+  Badge,
+  Map,
+  Launch,
+  EmojiPeople,
+  BusinessCenter,
+  ChevronRight
+} from '@mui/icons-material';
+import { motion, AnimatePresence } from 'framer-motion';
+
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+   ═══════════════════════════════════════════ */
+const T = {
+  primary: '#0d9488',
+  primaryDark: '#0f766e',
+  primaryLight: '#ccfbf1',
+  accent: '#06b6d4',
+  bg: '#f8fafc',
+  surface: '#ffffff',
+  text: '#0f172a',
+  textSecondary: '#475569',
+  textMuted: '#94a3b8',
+  border: '#e2e8f0',
+  borderHover: '#cbd5e1',
+  error: '#ef4444',
+  success: '#10b981',
+  warning: '#f59e0b',
+  gradient: 'linear-gradient(135deg, #0d9488 0%, #06b6d4 100%)',
+  cardShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06)',
+  cardShadowHover: '0 10px 25px rgba(0,0,0,0.08)',
+  cardShadowSelected: '0 0 0 2px #0d9488, 0 10px 25px rgba(13,148,136,0.15)',
+  radius: '16px',
+};
+
+/* ═══════════════════════════════════════════
+   ANIMATION VARIANTS
+   ═══════════════════════════════════════════ */
+const pageVariants = {
+  enter: (dir) => ({ x: dir > 0 ? 120 : -120, opacity: 0 }),
+  center: { x: 0, opacity: 1, transition: { duration: 0.35, ease: [0.25, 1, 0.5, 1] } },
+  exit: (dir) => ({ x: dir < 0 ? 120 : -120, opacity: 0, transition: { duration: 0.25 } }),
+};
+
+const cardPop = {
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
+  visible: (i) => ({
+    opacity: 1, y: 0, scale: 1,
+    transition: { delay: i * 0.06, duration: 0.35, ease: [0.25, 1, 0.5, 1] }
+  })
+};
+
+/* ═══════════════════════════════════════════
+   SUB-CATEGORY DATA
+   ═══════════════════════════════════════════ */
+const TRIZONE_OPTIONS = [
+  { value: 'Tri Eat', label: 'Tri Eat', icon: <Restaurant />, desc: 'Food & Restaurants' },
+  { value: 'Tri Basket', label: 'Tri Basket', icon: <ShoppingBag />, desc: 'Groceries & Shopping' },
+  { value: 'Tri Rides', label: 'Tri Rides', icon: <LocalShipping />, desc: 'Ride Sharing & Transport' },
+  { value: 'Tri Buy & Sell', label: 'Tri Buy & Sell', icon: <Sell />, desc: 'Classifieds Marketplace' },
+  { value: 'Tri Bus', label: 'Tri Bus', icon: <DirectionsBus />, desc: 'Bus & Transit' },
+  { value: 'Tri Agri Farmer', label: 'Tri Agri Farmer', icon: <Agriculture />, desc: 'Agriculture & Farming' },
+  { value: 'Tri Jobs', label: 'Tri Jobs', icon: <Work />, desc: 'Local Job Listings' },
+  { value: 'Tri House Help', label: 'Tri House Help', icon: <Home />, desc: 'Household Services' },
+];
+
+/* ═══════════════════════════════════════════
+   MAIN COMPONENT
+   ═══════════════════════════════════════════ */
+const BusinessOnboarding = () => {
+  const navigate = useNavigate();
+  const logoRef = useRef(null);
+  const docsRef = useRef(null);
+  const TOTAL_STEPS = 7;
+
+  const [step, setStep] = useState(1);
+  const [dir, setDir] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [alert, setAlert] = useState({ show: false, type: 'success', msg: '' });
+  const [showPwd, setShowPwd] = useState(false);
+  const [showConfPwd, setShowConfPwd] = useState(false);
+  const [logoDrag, setLogoDrag] = useState(false);
+
+  const [form, setForm] = useState({
+    userType: '',
+    businessCategory: '',
+    subCategories: [],
+    fullName: '',
+    businessName: '',
+    mobile: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    address: '',
+    landmark: '',
+    city: '',
+    state: '',
+    pincode: '',
+    gstNumber: '',
+    panNumber: '',
+    businessRegNumber: '',
+    logo: null,
+    logoName: '',
+    documents: [],
+    termsAccepted: false,
+    privacyAccepted: false,
+  });
+
+  /* ── Auto-save on step change ── */
+  useEffect(() => {
+    const saved = { ...form, logo: null, documents: [] };
+    localStorage.setItem('trikonext_onboarding', JSON.stringify({ data: saved, step }));
+  }, [step, form]);
+
+  /* ── Restore saved progress ── */
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('trikonext_onboarding');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.data && parsed.data.userType) {
+          setForm(prev => ({ ...prev, ...parsed.data }));
+          setStep(parsed.step || 1);
+        }
+      }
+    } catch (e) { /* ignore */ }
+  }, []);
+
+  /* ── Alert auto-dismiss ── */
+  useEffect(() => {
+    if (alert.show) {
+      const t = setTimeout(() => setAlert(p => ({ ...p, show: false })), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [alert.show]);
+
+  /* ── Pincode lookup ── */
+  const handlePincode = async (e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+    setForm(prev => ({ ...prev, pincode: val }));
+    clearErr('pincode');
+    if (val.length === 6) {
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${val}`);
+        const data = await res.json();
+        if (data[0].Status === 'Success') {
+          const po = data[0].PostOffice[0];
+          setForm(prev => ({ ...prev, city: po.District || '', state: po.State || '' }));
+        }
+      } catch (e) { /* ignore */ }
+    }
+  };
+
+  /* ── Helpers ── */
+  const clearErr = (f) => { if (errors[f]) setErrors(p => ({ ...p, [f]: '' })); };
+  const onChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    clearErr(name);
+  };
+
+  /* ── File handlers ── */
+  const processLogo = (file) => {
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 5 * 1024 * 1024) { setErrors(p => ({ ...p, logo: 'Max 5MB' })); return; }
+    const reader = new FileReader();
+    reader.onload = () => setForm(p => ({ ...p, logo: reader.result, logoName: file.name }));
+    reader.readAsDataURL(file);
+    clearErr('logo');
+  };
+
+  const handleDocs = (e) => {
+    const files = Array.from(e.target.files || []);
+    const valid = files.filter(f => f.size <= 10 * 1024 * 1024).slice(0, 5);
+    const readers = valid.map(f => new Promise(res => {
+      const r = new FileReader();
+      r.onload = () => res({ name: f.name, size: (f.size / 1024).toFixed(1) + ' KB', data: r.result });
+      r.readAsDataURL(f);
+    }));
+    Promise.all(readers).then(results => setForm(p => ({ ...p, documents: [...p.documents, ...results].slice(0, 5) })));
+  };
+
+  const removeDoc = (idx) => setForm(p => ({ ...p, documents: p.documents.filter((_, i) => i !== idx) }));
+
+  /* ── Validation per step ── */
+  const validate = (s) => {
+    const e = {};
+    switch (s) {
+      case 1:
+        if (!form.userType) e.userType = 'Please select how you want to join';
+        break;
+      case 2:
+        if (!form.businessCategory) e.businessCategory = 'Please select a category';
+        break;
+      case 3:
+        if (form.subCategories.length === 0) e.subCategories = 'Please select at least one option';
+        break;
+      case 4:
+        if (!form.fullName.trim()) e.fullName = 'Full name is required';
+        if (!form.businessName.trim()) e.businessName = 'Business name is required';
+        if (!form.mobile.trim()) e.mobile = 'Mobile number is required';
+        else if (!/^\d{10}$/.test(form.mobile)) e.mobile = 'Enter valid 10-digit number';
+        if (!form.email.trim()) e.email = 'Email is required';
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Enter valid email';
+        if (!form.password) e.password = 'Password is required';
+        else if (form.password.length < 8) e.password = 'Minimum 8 characters';
+        if (!form.confirmPassword) e.confirmPassword = 'Confirm password is required';
+        else if (form.confirmPassword !== form.password) e.confirmPassword = 'Passwords do not match';
+        break;
+      case 5:
+        if (!form.address.trim()) e.address = 'Address is required';
+        if (!form.city.trim()) e.city = 'City is required';
+        if (!form.pincode.trim()) e.pincode = 'Pincode is required';
+        else if (!/^\d{6}$/.test(form.pincode)) e.pincode = 'Enter valid 6-digit pincode';
+        break;
+      case 6:
+        if (form.gstNumber && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i.test(form.gstNumber))
+          e.gstNumber = 'Invalid GST format';
+        if (form.panNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(form.panNumber))
+          e.panNumber = 'Invalid PAN format';
+        break;
+      case 7:
+        if (!form.termsAccepted) e.termsAccepted = 'You must accept the Terms & Conditions';
+        if (!form.privacyAccepted) e.privacyAccepted = 'You must accept the Privacy Policy';
+        break;
+      default: break;
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  /* ── Navigation ── */
+  const next = () => { if (validate(step)) { setDir(1); setStep(s => s + 1); } };
+  const back = () => { setDir(-1); setStep(s => s - 1); };
+
+  /* ── Submit ── */
+  const handleSubmit = () => {
+    if (!validate(7)) return;
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setSubmitted(true);
+      localStorage.removeItem('trikonext_onboarding');
+    }, 2500);
+  };
+
+  /* ── Selection Card ── */
+  const SelectionCard = ({ icon, title, desc, selected, onClick, index, size = 'compact', colorTheme }) => {
+    const theme = colorTheme || {
+      main: T.primary,
+      bg: 'rgba(13,148,136,0.08)',
+    };
+
+    const isLarge = size === 'large';
+    const isMedium = size === 'medium';
+    
+    return (
+      <Box
+        onClick={onClick}
+        sx={{
+          p: isLarge ? { xs: 2.5, md: 3.5 } : isMedium ? { xs: 2, md: 2.5 } : { xs: 1.25, md: 1.5 },
+          borderRadius: isLarge ? '16px' : isMedium ? '14px' : '10px',
+          border: '1.5px solid',
+          borderColor: selected ? theme.main : T.border,
+          bgcolor: selected ? 'rgba(255,255,255,1)' : T.surface,
+          boxShadow: selected ? '0 4px 12px rgba(0,0,0,0.05)' : 'none',
+          cursor: 'pointer',
+          transition: 'all 0.15s ease',
+          position: 'relative',
+          overflow: 'hidden',
+          width: '100%',
+          minHeight: isLarge ? 110 : isMedium ? 96 : 76,
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexGrow: 1, // Allows it to stretch vertically if needed
+          '&:hover': {
+            borderColor: selected ? theme.main : theme.main,
+            bgcolor: selected ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.6)',
+          },
+        }}
+      >
+        <Stack direction="row" spacing={isLarge ? 3 : isMedium ? 2 : 1.5} alignItems="center" textAlign="left" sx={{ width: '100%' }}>
+          <Box sx={{
+            width: isLarge ? 56 : isMedium ? 48 : 36,
+            height: isLarge ? 56 : isMedium ? 48 : 36,
+            minWidth: isLarge ? 56 : isMedium ? 48 : 36,
+            borderRadius: isLarge ? '14px' : isMedium ? '12px' : '8px',
+            background: theme.bg,
+            display: 'grid',
+            placeItems: 'center',
+            color: theme.main,
+            transition: 'all 0.15s ease',
+            flexShrink: 0,
+          }}>
+            {React.cloneElement(icon, { sx: { fontSize: isLarge ? 28 : isMedium ? 24 : 20 } })}
+          </Box>
+          <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+            <Typography sx={{ fontWeight: 700, fontSize: isLarge ? '1.25rem' : isMedium ? '1.1rem' : '0.9rem', color: '#111827', lineHeight: 1.2 }}>
+              {title}
+            </Typography>
+            {desc && (
+              <Typography sx={{ 
+                color: '#6B7280', 
+                fontSize: isLarge ? '0.95rem' : isMedium ? '0.85rem' : '0.75rem', 
+                mt: 0.5, 
+                fontWeight: 500, 
+                lineHeight: 1.3,
+                display: '-webkit-box',
+                WebkitLineClamp: isLarge ? 3 : isMedium ? 2 : 1,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden'
+              }}>
+                {desc}
+              </Typography>
+            )}
+          </Box>
+          <Box sx={{ color: selected ? theme.main : '#D1D5DB', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            {selected ? (
+              <CheckCircle sx={{ fontSize: isLarge ? 32 : isMedium ? 28 : 24 }} />
+            ) : (
+              <ChevronRight sx={{ fontSize: isLarge ? 32 : isMedium ? 28 : 24 }} />
+            )}
+          </Box>
+        </Stack>
+      </Box>
+    );
+  };
+
+  /* ── Step Header ── */
+  const StepHeader = ({ title, subtitle }) => (
+    <Box sx={{ mb: 1.5, textAlign: 'center' }}>
+      <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.25rem', md: '1.5rem' }, color: T.text, letterSpacing: '-0.02em', lineHeight: 1.2, mb: 0.5 }}>
+        {title}
+      </Typography>
+      {subtitle && (
+        <Typography sx={{ color: T.textSecondary, fontSize: { xs: '0.8rem', md: '0.9rem' }, fontWeight: 500, maxWidth: 500, mx: 'auto' }}>
+          {subtitle}
+        </Typography>
+      )}
+    </Box>
+  );
+
+  /* ── Input field styling ── */
+  const inputSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '12px', bgcolor: '#fff',
+      '& fieldset': { borderColor: T.border },
+      '&:hover fieldset': { borderColor: T.borderHover },
+      '&.Mui-focused fieldset': { borderColor: T.primary, borderWidth: 2 },
+    },
+    '& .MuiInputLabel-root': { color: T.textMuted, '&.Mui-focused': { color: T.primary } },
+    '& .MuiInputBase-input': { fontWeight: 600, color: T.text },
+  };
+
+  /* ═══════════════════════════════════════════
+     RENDER
+     ═══════════════════════════════════════════ */
+  return (
+    <Box sx={{ 
+      bgcolor: T.bg, 
+      height: '100vh', 
+      position: 'relative', 
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      {/* Background decorations */}
+      <Box sx={{ position: 'absolute', width: 500, height: 500, top: -200, right: -200, background: 'radial-gradient(circle, rgba(13,148,136,0.08) 0%, transparent 70%)', borderRadius: '50%' }} />
+      <Box sx={{ position: 'absolute', width: 400, height: 400, bottom: -150, left: -150, background: 'radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 70%)', borderRadius: '50%' }} />
+
+      {/* Alert Toast */}
+      <Fade in={alert.show}>
+        <Box sx={{ position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, width: '92%', maxWidth: 440 }}>
+          <Alert severity={alert.type} variant="filled" sx={{ borderRadius: 3, fontWeight: 600 }}>{alert.msg}</Alert>
+        </Box>
+      </Fade>
+
+      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', py: { xs: 2, md: 4 } }}>
+        <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
+          <AnimatePresence mode="wait">
+            {!submitted ? (
+            <motion.div key="onboarding" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+
+              {/* ── Logo & Brand ── */}
+              <Box textAlign="center" mb={2}>
+                <Typography sx={{ fontWeight: 900, fontSize: '1.3rem', color: T.primary, letterSpacing: '-0.02em' }}>
+                  TriKonext
+                </Typography>
+              </Box>
+
+              {/* ── Progress Bar ── */}
+              <Box sx={{ mb: 2, px: 1 }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    Step {step} of {TOTAL_STEPS}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: T.primary }}>
+                    {Math.round((step / TOTAL_STEPS) * 100)}%
+                  </Typography>
+                </Stack>
+                <Box sx={{ height: 4, borderRadius: 2, bgcolor: 'rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+                  <motion.div
+                    animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
+                    transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                    style={{ height: '100%', background: T.gradient, borderRadius: 4 }}
+                  />
+                </Box>
+              </Box>
+
+              {/* ── Step Content Card ── */}
+              <Box sx={{
+                bgcolor: 'rgba(255,255,255,0.95)',
+                backdropFilter: 'blur(20px)',
+                borderRadius: '16px',
+                border: '1px solid rgba(255,255,255,0.8)',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+                p: { xs: 1.5, sm: 2.5 },
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative',
+                maxHeight: '80vh',
+              }}>
+                <AnimatePresence mode="wait" custom={dir}>
+                  <motion.div key={step} custom={dir} variants={pageVariants} initial="enter" animate="center" exit="exit" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+
+                    <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', px: 0.5, pb: 1, '::-webkit-scrollbar': { display: 'none' } }}>
+                      {/* ═══ STEP 1: User Type ═══ */}
+                      {step === 1 && (
+                        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                          <StepHeader title="How would you like to join TriKonext?" subtitle="Select the role that best describes you" />
+                          <Stack spacing={2} sx={{ flexGrow: 1, justifyContent: 'center' }}>
+                          {[
+                            { value: 'Captain', icon: <EmojiPeople />, desc: 'Join as a delivery or service captain' },
+                            { value: 'Business', icon: <BusinessCenter />, desc: 'Register your business or store' },
+                          ].map((item, i) => (
+                            <Box key={item.value} sx={{ display: 'flex', flex: 1 }}>
+                              <SelectionCard
+                                size="large"
+                                index={i}
+                                icon={item.icon}
+                                title={item.value}
+                                desc={item.desc}
+                                selected={form.userType === item.value}
+                                onClick={() => { setForm(p => ({ ...p, userType: item.value })); clearErr('userType'); }}
+                              />
+                            </Box>
+                          ))}
+                          </Stack>
+                        {errors.userType && <Typography color="error" variant="caption" sx={{ mt: 2, display: 'block', textAlign: 'center', fontWeight: 600 }}>{errors.userType}</Typography>}
+                      </Box>
+                    )}
+
+                    {/* ═══ STEP 2: Business Category / Coming Soon ═══ */}
+                      {step === 2 && form.userType === 'Captain' && (
+                        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', py: 4 }}>
+                          <Box sx={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(13,148,136,0.1)', display: 'grid', placeItems: 'center', mb: 3 }}>
+                            <EmojiPeople sx={{ fontSize: 40, color: T.primary }} />
+                          </Box>
+                          <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.25rem', md: '1.5rem' }, color: T.text, mb: 1, letterSpacing: '-0.02em' }}>Captain Onboarding</Typography>
+                          <Typography sx={{ color: T.textSecondary, fontWeight: 500, fontSize: '0.95rem', maxWidth: 300 }}>
+                            We are currently rolling out our business platform. Captain registrations will open very soon!
+                          </Typography>
+                        </Box>
+                      )}
+
+                      {step === 2 && form.userType !== 'Captain' && (
+                        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                          <StepHeader title="Choose your business category" subtitle="Pick the type that matches your business model" />
+                          <Stack spacing={2} sx={{ flexGrow: 1, justifyContent: 'center' }}>
+                          {[
+                            { value: 'Nearby Store (Offline)', icon: <Storefront />, desc: 'Operate a physical store or local shop', colorTheme: { main: '#0D9488', bg: '#E6F4F1' } },
+                            { value: 'Online Business', icon: <Language />, desc: 'E-commerce or digital services', colorTheme: { main: '#2563EB', bg: '#EBF3FF' } },
+                            { value: 'TriZone Services', icon: <Hub />, desc: 'On-demand marketplace services', colorTheme: { main: '#7C3AED', bg: '#F3E8FF' } },
+                          ].map((item, i) => (
+                            <Box key={item.value} sx={{ display: 'flex', flex: 1 }}>
+                              <SelectionCard
+                                size="medium"
+                                index={i}
+                                icon={item.icon}
+                                title={item.value}
+                                desc={item.desc}
+                                colorTheme={item.colorTheme}
+                                selected={form.businessCategory === item.value}
+                                onClick={() => { setForm(p => ({ ...p, businessCategory: item.value, subCategories: [] })); clearErr('businessCategory'); }}
+                              />
+                            </Box>
+                          ))}
+                          </Stack>
+                        {errors.businessCategory && <Typography color="error" variant="caption" sx={{ mt: 2, display: 'block', textAlign: 'center', fontWeight: 600 }}>{errors.businessCategory}</Typography>}
+                      </Box>
+                    )}
+
+                    {/* ═══ STEP 3: Dynamic Sub-Category ═══ */}
+                    {step === 3 && (
+                      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                        <StepHeader
+                          title={
+                            form.businessCategory === 'TriZone Services'
+                              ? 'Select your TriZone services'
+                              : form.businessCategory === 'Nearby Store (Offline)'
+                                ? 'Choose your store type'
+                                : 'Choose your business model'
+                          }
+                          subtitle={form.businessCategory === 'TriZone Services' ? 'You can select multiple services' : 'Select one option'}
+                        />
+
+                        {form.businessCategory === 'Nearby Store (Offline)' && (
+                            <Stack spacing={2} sx={{ flexGrow: 1, justifyContent: 'center' }}>
+                            {[
+                              { value: 'Consumer (B2C)', label: 'B2C', icon: <ShoppingCart />, desc: 'Consumer' },
+                              { value: 'Merchant (B2B)', label: 'B2B', icon: <Business />, desc: 'Merchant' },
+                            ].map((item, i) => (
+                              <Box key={item.value} sx={{ display: 'flex', flex: 1 }}>
+                                <SelectionCard
+                                  size="large"
+                                  index={i}
+                                  icon={item.icon}
+                                  title={item.label}
+                                  desc={item.desc}
+                                  selected={form.subCategories.includes(item.value)}
+                                  onClick={() => { setForm(p => ({ ...p, subCategories: [item.value] })); clearErr('subCategories'); }}
+                                />
+                              </Box>
+                            ))}
+                            </Stack>
+                        )}
+
+                        {form.businessCategory === 'Online Business' && (
+                            <Stack spacing={2} sx={{ flexGrow: 1, justifyContent: 'center' }}>
+                            {[
+                              { value: 'B2C', icon: <ShoppingCart />, desc: 'Consumer' },
+                              { value: 'B2B', icon: <Business />, desc: 'Merchant' },
+                            ].map((item, i) => (
+                              <Box key={item.value} sx={{ display: 'flex', flex: 1 }}>
+                                <SelectionCard
+                                  size="large"
+                                  index={i}
+                                  icon={item.icon}
+                                  title={item.value}
+                                  desc={item.desc}
+                                  selected={form.subCategories.includes(item.value)}
+                                  onClick={() => { setForm(p => ({ ...p, subCategories: [item.value] })); clearErr('subCategories'); }}
+                                />
+                              </Box>
+                            ))}
+                            </Stack>
+                        )}
+
+                        {form.businessCategory === 'TriZone Services' && (
+                            <Stack spacing={1.25}>
+                              {TRIZONE_OPTIONS.map((item, i) => (
+                                <Box key={item.value} sx={{ display: 'flex' }}>
+                                  <SelectionCard
+                                    size="compact"
+                                    index={i}
+                                    icon={item.icon}
+                                    title={item.label}
+                                    desc={item.desc}
+                                    selected={form.subCategories.includes(item.value)}
+                                    onClick={() => {
+                                      setForm(p => ({
+                                        ...p,
+                                        subCategories: p.subCategories.includes(item.value)
+                                          ? p.subCategories.filter(v => v !== item.value)
+                                          : [...p.subCategories, item.value]
+                                      }));
+                                      clearErr('subCategories');
+                                    }}
+                                  />
+                                </Box>
+                              ))}
+                            </Stack>
+                        )}
+
+                        {errors.subCategories && <Typography color="error" variant="caption" sx={{ mt: 2, display: 'block', textAlign: 'center', fontWeight: 600 }}>{errors.subCategories}</Typography>}
+                      </Box>
+                    )}
+
+                    {/* ═══ STEP 4: Business Details ═══ */}
+                    {step === 4 && (
+                      <Box>
+                        <StepHeader title="Tell us about your business" subtitle="Enter your personal and business information" />
+                        <Stack spacing={3}>
+                          <TextField fullWidth label="Full Name" name="fullName" value={form.fullName} onChange={onChange}
+                            error={!!errors.fullName} helperText={errors.fullName} placeholder="Owner's full name"
+                            InputProps={{ startAdornment: <InputAdornment position="start"><Person sx={{ color: T.textMuted, fontSize: 20 }} /></InputAdornment> }}
+                            sx={inputSx} />
+
+                          <TextField fullWidth label="Business Name" name="businessName" value={form.businessName} onChange={onChange}
+                            error={!!errors.businessName} helperText={errors.businessName} placeholder="Your business or trade name"
+                            InputProps={{ startAdornment: <InputAdornment position="start"><Storefront sx={{ color: T.textMuted, fontSize: 20 }} /></InputAdornment> }}
+                            sx={inputSx} />
+
+                          <TextField fullWidth label="Mobile Number" name="mobile" value={form.mobile}
+                            onChange={(e) => { setForm(p => ({ ...p, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })); clearErr('mobile'); }}
+                            error={!!errors.mobile} helperText={errors.mobile} placeholder="10-digit mobile number"
+                            InputProps={{ startAdornment: <InputAdornment position="start"><Phone sx={{ color: T.textMuted, fontSize: 20 }} /></InputAdornment> }}
+                            sx={inputSx} />
+
+                          <TextField fullWidth label="Email Address" name="email" type="email" value={form.email} onChange={onChange}
+                            error={!!errors.email} helperText={errors.email} placeholder="you@business.com"
+                            InputProps={{ startAdornment: <InputAdornment position="start"><Email sx={{ color: T.textMuted, fontSize: 20 }} /></InputAdornment> }}
+                            sx={inputSx} />
+
+                          <TextField fullWidth label="Password" name="password" type={showPwd ? 'text' : 'password'} value={form.password} onChange={onChange}
+                            error={!!errors.password} helperText={errors.password} placeholder="Minimum 8 characters"
+                            InputProps={{
+                              startAdornment: <InputAdornment position="start"><Lock sx={{ color: T.textMuted, fontSize: 20 }} /></InputAdornment>,
+                              endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPwd(!showPwd)} edge="end">{showPwd ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>
+                            }}
+                            sx={inputSx} />
+
+                          <TextField fullWidth label="Confirm Password" name="confirmPassword" type={showConfPwd ? 'text' : 'password'} value={form.confirmPassword} onChange={onChange}
+                            error={!!errors.confirmPassword} helperText={errors.confirmPassword} placeholder="Re-enter password"
+                            InputProps={{
+                              startAdornment: <InputAdornment position="start"><Lock sx={{ color: T.textMuted, fontSize: 20 }} /></InputAdornment>,
+                              endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowConfPwd(!showConfPwd)} edge="end">{showConfPwd ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>
+                            }}
+                            sx={inputSx} />
+                        </Stack>
+                      </Box>
+                    )}
+
+                    {/* ═══ STEP 5: Location ═══ */}
+                    {step === 5 && (
+                      <Box>
+                        <StepHeader title="Business Location" subtitle="Help customers find your business" />
+                        <Stack spacing={3}>
+                          <TextField fullWidth multiline rows={2} label="Address" name="address" value={form.address} onChange={onChange}
+                            error={!!errors.address} helperText={errors.address} placeholder="Building, Street, Area" sx={inputSx} />
+
+                          <TextField fullWidth label="Landmark" name="landmark" value={form.landmark} onChange={onChange}
+                            placeholder="Nearby landmark (optional)" sx={inputSx} />
+
+                          <Grid container spacing={2}>
+                            <Grid item xs={6}>
+                              <TextField fullWidth label="Pincode" name="pincode" value={form.pincode} onChange={handlePincode}
+                                error={!!errors.pincode} helperText={errors.pincode} placeholder="6 digits" sx={inputSx} />
+                            </Grid>
+                            <Grid item xs={6}>
+                              <TextField fullWidth label="City" name="city" value={form.city} onChange={onChange}
+                                error={!!errors.city} helperText={errors.city} placeholder="City" sx={inputSx} />
+                            </Grid>
+                          </Grid>
+
+                          <TextField fullWidth label="State" name="state" value={form.state} onChange={onChange} placeholder="State" sx={inputSx} />
+
+                          {/* Map Placeholder */}
+                          <Box sx={{
+                            border: `2px dashed ${T.border}`, borderRadius: T.radius, bgcolor: '#f1f5f9',
+                            height: 180, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
+                            cursor: 'pointer', transition: 'all 0.2s', '&:hover': { borderColor: T.primary, bgcolor: 'rgba(13,148,136,0.03)' }
+                          }}>
+                            <Map sx={{ fontSize: 40, color: T.textMuted }} />
+                            <Typography sx={{ color: T.textMuted, fontWeight: 600, fontSize: '0.85rem' }}>Google Maps Location Picker</Typography>
+                            <Typography sx={{ color: T.textMuted, fontSize: '0.75rem' }}>Tap to pin your business location</Typography>
+                          </Box>
+                        </Stack>
+                      </Box>
+                    )}
+
+                    {/* ═══ STEP 6: Verification & Uploads ═══ */}
+                    {step === 6 && (
+                      <Box>
+                        <StepHeader title="Business Verification" subtitle="Optional documents to verify your business" />
+                        <Stack spacing={3}>
+                          <TextField fullWidth label="GST Number (Optional)" name="gstNumber" value={form.gstNumber} onChange={onChange}
+                            error={!!errors.gstNumber} helperText={errors.gstNumber || 'e.g. 22AAAAA1111A1Z1'}
+                            inputProps={{ style: { textTransform: 'uppercase' } }} sx={inputSx} />
+
+                          <TextField fullWidth label="PAN Number (Optional)" name="panNumber" value={form.panNumber} onChange={onChange}
+                            error={!!errors.panNumber} helperText={errors.panNumber || 'e.g. ABCDE1234F'}
+                            inputProps={{ style: { textTransform: 'uppercase' } }} sx={inputSx} />
+
+                          <TextField fullWidth label="Business Registration Number (Optional)" name="businessRegNumber" value={form.businessRegNumber} onChange={onChange}
+                            placeholder="CIN / LLPIN / Registration ID" sx={inputSx} />
+
+                          {/* Logo Upload */}
+                          <Box>
+                            <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: T.text, mb: 1 }}>Business Logo</Typography>
+                            <Box
+                              onDragOver={(e) => { e.preventDefault(); setLogoDrag(true); }}
+                              onDragLeave={() => setLogoDrag(false)}
+                              onDrop={(e) => { e.preventDefault(); setLogoDrag(false); if (e.dataTransfer.files[0]) processLogo(e.dataTransfer.files[0]); }}
+                              onClick={() => logoRef.current?.click()}
+                              sx={{
+                                border: `2px dashed ${logoDrag ? T.primary : T.border}`,
+                                borderRadius: T.radius, bgcolor: logoDrag ? 'rgba(13,148,136,0.04)' : '#f8fafc',
+                                p: 3, textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s',
+                                '&:hover': { borderColor: T.primary }
+                              }}
+                            >
+                              <input type="file" ref={logoRef} onChange={(e) => e.target.files[0] && processLogo(e.target.files[0])} accept="image/*" style={{ display: 'none' }} />
+                              {!form.logo ? (
+                                <Stack spacing={0.5} alignItems="center">
+                                  <CloudUpload sx={{ fontSize: 32, color: T.primary }} />
+                                  <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: T.text }}>
+                                    Drop logo here or <Box component="span" sx={{ color: T.primary, textDecoration: 'underline' }}>browse</Box>
+                                  </Typography>
+                                  <Typography sx={{ fontSize: '0.7rem', color: T.textMuted }}>PNG, JPG, WEBP (Max 5MB)</Typography>
+                                </Stack>
+                              ) : (
+                                <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+                                  <Box component="img" src={form.logo} alt="Logo" sx={{ width: 60, height: 60, borderRadius: 2, objectFit: 'cover', border: `1px solid ${T.border}` }} />
+                                  <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: T.text }}>{form.logoName}</Typography>
+                                  <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); setForm(p => ({ ...p, logo: null, logoName: '' })); }}>
+                                    <Delete fontSize="small" />
+                                  </IconButton>
+                                </Stack>
+                              )}
+                            </Box>
+                          </Box>
+
+                          {/* Document Upload */}
+                          <Box>
+                            <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: T.text, mb: 1 }}>Business Documents</Typography>
+                            <Box
+                              onClick={() => docsRef.current?.click()}
+                              sx={{
+                                border: `2px dashed ${T.border}`, borderRadius: T.radius, bgcolor: '#f8fafc',
+                                p: 3, textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s',
+                                '&:hover': { borderColor: T.primary }
+                              }}
+                            >
+                              <input type="file" ref={docsRef} onChange={handleDocs} multiple accept=".pdf,.jpg,.jpeg,.png" style={{ display: 'none' }} />
+                              <Stack spacing={0.5} alignItems="center">
+                                <Description sx={{ fontSize: 32, color: T.primary }} />
+                                <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: T.text }}>
+                                  Upload documents (up to 5)
+                                </Typography>
+                                <Typography sx={{ fontSize: '0.7rem', color: T.textMuted }}>PDF, JPG, PNG (Max 10MB each)</Typography>
+                              </Stack>
+                            </Box>
+                            {form.documents.length > 0 && (
+                              <Stack spacing={1} sx={{ mt: 2 }}>
+                                {form.documents.map((doc, i) => (
+                                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1.5, bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${T.border}` }}>
+                                    <Stack direction="row" spacing={1} alignItems="center">
+                                      <Description sx={{ fontSize: 18, color: T.primary }} />
+                                      <Box>
+                                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: T.text }}>{doc.name}</Typography>
+                                        <Typography sx={{ fontSize: '0.7rem', color: T.textMuted }}>{doc.size}</Typography>
+                                      </Box>
+                                    </Stack>
+                                    <IconButton size="small" color="error" onClick={() => removeDoc(i)}><Delete fontSize="small" /></IconButton>
+                                  </Box>
+                                ))}
+                              </Stack>
+                            )}
+                          </Box>
+                        </Stack>
+                      </Box>
+                    )}
+
+                    {/* ═══ STEP 7: Review & Submit ═══ */}
+                    {step === 7 && (
+                      <Box>
+                        <StepHeader title="Review & Submit" subtitle="Verify your information before submitting" />
+
+                        <Stack spacing={3}>
+                          {/* Summary Sections */}
+                          <ReviewSection title="User Type" items={[{ label: 'Role', value: form.userType }]} />
+                          <ReviewSection title="Business Category" items={[
+                            { label: 'Category', value: form.businessCategory },
+                            { label: form.businessCategory === 'TriZone Services' ? 'Services' : 'Type', value: form.subCategories.join(', ') },
+                          ]} />
+                          <ReviewSection title="Business Information" items={[
+                            { label: 'Full Name', value: form.fullName },
+                            { label: 'Business Name', value: form.businessName },
+                            { label: 'Mobile', value: form.mobile },
+                            { label: 'Email', value: form.email },
+                          ]} />
+                          <ReviewSection title="Address" items={[
+                            { label: 'Address', value: form.address },
+                            { label: 'Landmark', value: form.landmark || '—' },
+                            { label: 'City', value: form.city },
+                            { label: 'State', value: form.state || '—' },
+                            { label: 'Pincode', value: form.pincode },
+                          ]} />
+                          <ReviewSection title="Documents" items={[
+                            { label: 'GST', value: form.gstNumber || 'Not provided' },
+                            { label: 'PAN', value: form.panNumber || 'Not provided' },
+                            { label: 'Logo', value: form.logoName || 'Not uploaded' },
+                            { label: 'Documents', value: form.documents.length > 0 ? `${form.documents.length} file(s)` : 'None' },
+                          ]} />
+
+                          {/* Terms */}
+                          <Box sx={{ bgcolor: '#f8fafc', borderRadius: T.radius, p: 2.5, border: `1px solid ${T.border}` }}>
+                            <FormControlLabel
+                              control={<Checkbox checked={form.termsAccepted} onChange={onChange} name="termsAccepted"
+                                sx={{ color: errors.termsAccepted ? T.error : T.primary, '&.Mui-checked': { color: T.primary } }} />}
+                              label={<Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: T.text }}>
+                                I agree to the <Box component="span" sx={{ color: T.primary, fontWeight: 800, cursor: 'pointer', textDecoration: 'underline' }}>Terms & Conditions</Box>
+                              </Typography>}
+                            />
+                            {errors.termsAccepted && <Typography color="error" variant="caption" sx={{ ml: 4, fontWeight: 600 }}>{errors.termsAccepted}</Typography>}
+
+                            <FormControlLabel sx={{ mt: 1 }}
+                              control={<Checkbox checked={form.privacyAccepted} onChange={onChange} name="privacyAccepted"
+                                sx={{ color: errors.privacyAccepted ? T.error : T.primary, '&.Mui-checked': { color: T.primary } }} />}
+                              label={<Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: T.text }}>
+                                I agree to the <Box component="span" sx={{ color: T.primary, fontWeight: 800, cursor: 'pointer', textDecoration: 'underline' }}>Privacy Policy</Box>
+                              </Typography>}
+                            />
+                            {errors.privacyAccepted && <Typography color="error" variant="caption" sx={{ ml: 4, fontWeight: 600 }}>{errors.privacyAccepted}</Typography>}
+                          </Box>
+                        </Stack>
+                      </Box>
+                    )}
+                    </Box>
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* ── Footer Navigation ── */}
+                <Box sx={{ mt: 'auto', pt: 2, borderTop: `1px solid ${T.border}`, bgcolor: 'rgba(255,255,255,0.95)' }}>
+                  <Stack direction="row" justifyContent="space-between" spacing={2}>
+                    {step > 1 ? (
+                      <Button onClick={back} sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, px: 3, py: 1.25, fontSize: '0.9rem', color: T.textSecondary, border: `1.5px solid ${T.border}` }}>Back</Button>
+                    ) : <Box />}
+
+                    {step < TOTAL_STEPS && !(step === 2 && form.userType === 'Captain') ? (
+                      <Button onClick={next} variant="contained" sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 800, px: 3, py: 1.25, fontSize: '0.9rem', background: T.gradient }}>Continue</Button>
+                    ) : step === TOTAL_STEPS ? (
+                      <Button
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        variant="contained"
+                        sx={{
+                          borderRadius: '12px', textTransform: 'none', fontWeight: 800, px: 4, py: 1.5,
+                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                          boxShadow: '0 4px 14px rgba(16,185,129,0.25)',
+                          '&:hover': { background: '#059669', transform: 'translateY(-1px)' },
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        {loading ? <CircularProgress size={22} color="inherit" /> : 'Submit Registration'}
+                      </Button>
+                    ) : <Box />}
+                  </Stack>
+                </Box>
+              </Box>
+
+            </motion.div>
+          ) : (
+            /* ═══ SUCCESS SCREEN ═══ */
+            <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 20, stiffness: 100 }}>
+              <Box sx={{
+                bgcolor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', borderRadius: '24px',
+                border: '1px solid rgba(255,255,255,0.8)', p: { xs: 4, md: 6 }, textAlign: 'center',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.04)'
+              }}>
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 12 }}>
+                  <Box sx={{
+                    width: 100, height: 100, borderRadius: '50%', mx: 'auto', mb: 3,
+                    background: 'linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(5,150,105,0.1) 100%)',
+                    display: 'grid', placeItems: 'center',
+                  }}>
+                    <CheckCircle sx={{ fontSize: 56, color: T.success }} />
+                  </Box>
+                </motion.div>
+                <Typography sx={{ fontWeight: 900, fontSize: '1.75rem', color: T.text, mb: 1, letterSpacing: '-0.02em' }}>
+                  Registration Submitted!
+                </Typography>
+                <Typography sx={{ color: T.textSecondary, maxWidth: 400, mx: 'auto', mb: 4, fontSize: '0.95rem', fontWeight: 500, lineHeight: 1.6 }}>
+                  Thank you for registering with TriKonext. Our team will verify your details and activate your account within 24-48 hours.
+                </Typography>
+
+                <Box sx={{ bgcolor: '#f8fafc', border: `1px solid ${T.border}`, borderRadius: T.radius, p: 3, mb: 4, textAlign: 'left', maxWidth: 420, mx: 'auto' }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: T.text, mb: 2, pb: 1, borderBottom: `2px solid ${T.primaryLight}`, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Summary
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    {[
+                      ['Role', form.userType],
+                      ['Category', form.businessCategory],
+                      ['Business', form.businessName],
+                      ['Owner', form.fullName],
+                      ['Mobile', form.mobile],
+                      ['City', form.city],
+                    ].map(([l, v]) => (
+                      <Stack direction="row" justifyContent="space-between" key={l}>
+                        <Typography sx={{ fontSize: '0.8rem', color: T.textMuted, fontWeight: 600 }}>{l}</Typography>
+                        <Typography sx={{ fontSize: '0.8rem', color: T.text, fontWeight: 700 }}>{v || '—'}</Typography>
+                      </Stack>
+                    ))}
+                  </Stack>
+                </Box>
+
+                <Button
+                  onClick={() => navigate('/')}
+                  endIcon={<Launch />}
+                  variant="contained"
+                  sx={{
+                    borderRadius: '12px', textTransform: 'none', fontWeight: 800, px: 4, py: 1.75,
+                    background: T.gradient, boxShadow: '0 4px 14px rgba(13,148,136,0.25)',
+                    '&:hover': { background: T.primaryDark }
+                  }}
+                >
+                  Go to Home
+                </Button>
+              </Box>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Container>
+      </Box>
+    </Box>
+  );
+};
+
+/* ── Review Section Component ── */
+const ReviewSection = ({ title, items }) => (
+  <Box sx={{ bgcolor: '#f8fafc', borderRadius: T.radius, p: 2.5, border: `1px solid ${T.border}` }}>
+    <Typography sx={{ fontWeight: 800, fontSize: '0.8rem', color: T.primary, mb: 1.5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+      {title}
+    </Typography>
+    <Stack spacing={1}>
+      {items.map((item, i) => (
+        <Stack direction="row" justifyContent="space-between" key={i}>
+          <Typography sx={{ fontSize: '0.8rem', color: T.textMuted, fontWeight: 600 }}>{item.label}</Typography>
+          <Typography sx={{ fontSize: '0.8rem', color: T.text, fontWeight: 700, textAlign: 'right', maxWidth: '60%', wordBreak: 'break-word' }}>
+            {item.value || '—'}
+          </Typography>
+        </Stack>
+      ))}
+    </Stack>
+  </Box>
+);
+
+export default BusinessOnboarding;
