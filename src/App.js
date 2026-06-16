@@ -22,11 +22,27 @@ import CaptainKyc from './pages/captain/CaptainKyc';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 
+import { Navigate } from 'react-router-dom';
+
+function RootRedirect() {
+  const isCaptain = !!localStorage.getItem('captain_access_token');
+  const isBusiness = !!localStorage.getItem('access_token_business');
+
+  if (isCaptain) {
+    return <Navigate to="/captain/home" replace />;
+  } else if (isBusiness) {
+    return <Navigate to="/merchant" replace />;
+  } else {
+    return <Navigate to="/onboarding" replace />;
+  }
+}
+
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<BusinessDashboardConsumer />} />
+        <Route path="/" element={<RootRedirect />} />
+
         <Route path="/demo/budiness-dashboard" element={<BusinessDashboardConsumer />} />
         <Route path="/demo/scanner" element={<ScannerPage />} />
         <Route path="/merchant" element={<BusinessDashboardMerchant />} />

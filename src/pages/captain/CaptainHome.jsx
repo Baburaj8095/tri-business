@@ -58,7 +58,7 @@ export default function CaptainHome() {
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
 
-  const API_URL = window.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
+  const API_URL = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
 
   useEffect(() => {
     // Fetch profile

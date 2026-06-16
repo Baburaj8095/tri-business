@@ -89,7 +89,7 @@ export default function AdminDashboard() {
 
   const [toast, setToast] = useState({ open: false, type: 'success', message: '' });
 
-  const API_URL = window.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
+  const API_URL = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
   const role = localStorage.getItem('admin_role') || 'SUB_ADMIN';
   const myModules = localStorage.getItem('admin_modules') || 'all';
 

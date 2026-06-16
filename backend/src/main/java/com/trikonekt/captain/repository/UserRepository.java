@@ -90,14 +90,14 @@ public class UserRepository {
                 "  sponsor_id, prefix_code, prefixed_id, " +
                 "  account_active, autopool_enabled, rewards_enabled, " +
                 "  is_agency_unlocked, can_create_self_accounts, " +
-                "  address, depth" +
+                "  address, depth, identity_type" +
                 ") VALUES (" +
                 "  ?, ?, ?, '', '', " +
                 "  true, false, false, NOW(), " +
                 "  'agency', 'agency_sub_franchise', ?, ?, ?, " +
                 "  ?, 'CB', ?, " +
                 "  false, false, false, false, false, " +
-                "  '', 0" +
+                "  '', 0, 'END_USER'" +
                 ") RETURNING id",
                 Statement.RETURN_GENERATED_KEYS
             );

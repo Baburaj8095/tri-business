@@ -48,7 +48,7 @@ export default function CaptainProfile() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  const API_URL = window.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
+  const API_URL = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
 
   useEffect(() => {
     const fetchProfile = async () => {
