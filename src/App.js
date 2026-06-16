@@ -13,6 +13,14 @@ import BusinessRegistrationWizard from './pages/registration-form/BusinessRegist
 import BusinessOnboarding from './pages/registration-form/BusinessOnboarding';
 import ProductAddition from './pages/registration-form/ProductAddition';
 import ProductRegistration from './pages/ProductRegistration/ProductRegistration.jsx';
+import CaptainRegister from './pages/captain/CaptainRegister';
+import CaptainLogin from './pages/captain/CaptainLogin';
+import CaptainLayout from './pages/captain/layout/CaptainLayout';
+import CaptainHome from './pages/captain/CaptainHome';
+import CaptainProfile from './pages/captain/CaptainProfile';
+import CaptainKyc from './pages/captain/CaptainKyc';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
 
 function App() {
   return (
@@ -32,6 +40,20 @@ function App() {
         <Route path="/onboarding" element={<BusinessOnboarding />} />
         <Route path="/registration/add-products" element={<ProductAddition />} />
         <Route path="/product-registration" element={<ProductRegistration />} />
+        {/* Captain Routes */}
+        <Route path="/captain/register" element={<CaptainRegister />} />
+        <Route path="/captain/login" element={<CaptainLogin />} />
+        
+        {/* Protected Captain Routes wrapped in CaptainLayout */}
+        <Route path="/captain" element={<CaptainLayout />}>
+          <Route path="home" element={<CaptainHome />} />
+          <Route path="profile" element={<CaptainProfile />} />
+          <Route path="kyc" element={<CaptainKyc />} />
+        </Route>
+
+        {/* Admin Routes */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
       </Routes>
     </Router>
   );

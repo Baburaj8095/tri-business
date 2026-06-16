@@ -485,7 +485,7 @@ const BusinessOnboarding = () => {
                           <StepHeader title="How would you like to join TriKonext?" subtitle="Select the role that best describes you" />
                           <Stack spacing={2} sx={{ flexGrow: 1, justifyContent: 'center' }}>
                           {[
-                            { value: 'Captain', icon: <EmojiPeople />, desc: 'Join as a delivery or service captain' },
+                            { value: 'Captain', icon: <EmojiPeople />, desc: 'Join service captain' },
                             { value: 'Business', icon: <BusinessCenter />, desc: 'Register your business or store' },
                           ].map((item, i) => (
                             <Box key={item.value} sx={{ display: 'flex', flex: 1 }}>
@@ -505,16 +505,40 @@ const BusinessOnboarding = () => {
                       </Box>
                     )}
 
-                    {/* ═══ STEP 2: Business Category / Coming Soon ═══ */}
+                    {/* ═══ STEP 2: Captain → redirect to dedicated registration ═══ */}
                       {step === 2 && form.userType === 'Captain' && (
                         <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', py: 4 }}>
-                          <Box sx={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(13,148,136,0.1)', display: 'grid', placeItems: 'center', mb: 3 }}>
-                            <EmojiPeople sx={{ fontSize: 40, color: T.primary }} />
-                          </Box>
-                          <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.25rem', md: '1.5rem' }, color: T.text, mb: 1, letterSpacing: '-0.02em' }}>Captain Onboarding</Typography>
-                          <Typography sx={{ color: T.textSecondary, fontWeight: 500, fontSize: '0.95rem', maxWidth: 300 }}>
-                            We are currently rolling out our business platform. Captain registrations will open very soon!
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                          >
+                            <Box sx={{
+                              width: 90, height: 90, borderRadius: '50%',
+                              background: 'linear-gradient(135deg, rgba(13,148,136,0.15) 0%, rgba(6,182,212,0.15) 100%)',
+                              display: 'grid', placeItems: 'center', mb: 3, mx: 'auto',
+                              border: '2px solid rgba(13,148,136,0.3)',
+                            }}>
+                              <EmojiPeople sx={{ fontSize: 44, color: T.primary }} />
+                            </Box>
+                          </motion.div>
+                          <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.25rem', md: '1.5rem' }, color: T.text, mb: 1, letterSpacing: '-0.02em' }}>
+                            Captain Registration
                           </Typography>
+                          <Typography sx={{ color: T.textSecondary, fontWeight: 500, fontSize: '0.9rem', maxWidth: 320, lineHeight: 1.6, mb: 3 }}>
+                            You&apos;ll be redirected to the Captain onboarding portal. Get your unique <strong>CB ID</strong> and join the Trikonekt network.
+                          </Typography>
+                          <Box sx={{
+                            bgcolor: 'rgba(13,148,136,0.06)', border: '1.5px solid rgba(13,148,136,0.2)',
+                            borderRadius: '12px', p: 2, mb: 2, width: '100%', maxWidth: 300,
+                          }}>
+                            {[{ label: 'Role', value: 'Captain (CB Prefix)' }, { label: 'Commission', value: '₹15 per referral' }, { label: 'Pincode', value: 'Any valid pincode' }].map(({ label, value }) => (
+                              <Box key={label} sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.75 }}>
+                                <Typography sx={{ fontSize: '0.78rem', color: T.textMuted, fontWeight: 600 }}>{label}</Typography>
+                                <Typography sx={{ fontSize: '0.78rem', color: T.primary, fontWeight: 700 }}>{value}</Typography>
+                              </Box>
+                            ))}
+                          </Box>
                         </Box>
                       )}
 
@@ -875,6 +899,24 @@ const BusinessOnboarding = () => {
 
                     {step < TOTAL_STEPS && !(step === 2 && form.userType === 'Captain') ? (
                       <Button onClick={next} variant="contained" sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 800, px: 3, py: 1.25, fontSize: '0.9rem', background: T.gradient }}>Continue</Button>
+                    ) : step === 1 && form.userType === 'Captain' ? (
+                      <Button
+                        onClick={() => navigate('/captain/register')}
+                        variant="contained"
+                        endIcon={<ChevronRight />}
+                        sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 800, px: 3, py: 1.25, fontSize: '0.9rem', background: T.gradient }}
+                      >
+                        Go to Captain Registration
+                      </Button>
+                    ) : step === 2 && form.userType === 'Captain' ? (
+                      <Button
+                        onClick={() => navigate('/captain/register')}
+                        variant="contained"
+                        endIcon={<ChevronRight />}
+                        sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 800, px: 3, py: 1.25, fontSize: '0.9rem', background: T.gradient }}
+                      >
+                        Start Captain Registration
+                      </Button>
                     ) : step === TOTAL_STEPS ? (
                       <Button
                         onClick={handleSubmit}

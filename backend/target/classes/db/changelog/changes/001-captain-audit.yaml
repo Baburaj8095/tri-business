@@ -1,0 +1,51 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-captain-registrations
+      author: trikonekt
+      changes:
+        - createTable:
+            tableName: captain_registrations
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: captain_username
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: phone
+                  type: VARCHAR(20)
+              - column:
+                  name: full_name
+                  type: VARCHAR(150)
+              - column:
+                  name: email
+                  type: VARCHAR(254)
+              - column:
+                  name: pincode
+                  type: VARCHAR(10)
+              - column:
+                  name: district
+                  type: VARCHAR(100)
+              - column:
+                  name: state_name
+                  type: VARCHAR(100)
+              - column:
+                  name: sponsor_id
+                  type: VARCHAR(64)
+              - column:
+                  name: user_id
+                  type: BIGINT
+              - column:
+                  name: registered_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: NOW()
+              - column:
+                  name: registration_source
+                  type: VARCHAR(20)
+                  defaultValue: CAPTAIN_APP

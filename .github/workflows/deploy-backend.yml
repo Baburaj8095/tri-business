@@ -1,0 +1,60 @@
+name: Deploy Captain Backend to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-captain-backend
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+          cache: "maven"
+          cache-dependency-path: backend/pom.xml
+
+      - name: Build with Maven
+        working-directory: backend
+        run: mvn -DskipTests clean package
+
+      - name: Prepare SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.AWS_EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.AWS_EC2_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Upload JAR to EC2
+        run: |
+          scp -i ~/.ssh/deploy_key backend/target/captain-service-1.0.0.jar ubuntu@${{ secrets.AWS_EC2_HOST }}:/tmp/captain-service.jar
+
+      - name: Activate and Restart Service on EC2
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.AWS_EC2_HOST }} "bash -s" <<'EOF'
+          set -euo pipefail
+
+          # Move new JAR to destination
+          sudo mkdir -p /srv/trikonekt
+          sudo mv /tmp/captain-service.jar /srv/trikonekt/captain-service.jar
+          sudo chown -R ubuntu:ubuntu /srv/trikonekt
+
+          # Restart the systemd service to apply changes
+          sudo systemctl restart captain-service
+          sudo systemctl status captain-service --no-pager
+          EOF
