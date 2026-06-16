@@ -33,7 +33,14 @@ import {
   Snackbar,
   Alert,
   Avatar,
-  Divider
+  Divider,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  CssBaseline
 } from '@mui/material';
 import {
   AdminPanelSettings as ShieldIcon,
@@ -47,7 +54,10 @@ import {
   Delete as DeleteIcon,
   Edit as EditIcon,
   ExitToApp as LogoutIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  Dashboard as DashboardIcon,
+  Menu as MenuIcon,
+  SupervisorAccount as AdminSettingsIcon
 } from '@mui/icons-material';
 
 const T = {
@@ -67,6 +77,7 @@ const T = {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [stats, setStats] = useState({ totalCaptains: 0, activeCaptains: 0, pendingKyc: 0, registeredThisMonth: 0 });
   const [captains, setCaptains] = useState([]);
   const [totalCaptains, setTotalCaptains] = useState(0);
@@ -408,460 +419,636 @@ export default function AdminDashboard() {
     }
   };
 
-  return (
-    <Box sx={{ minHeight: '100vh', bgcolor: T.bg }}>
-      {/* Top Admin Header */}
-      <Box
-        sx={{
-          background: T.headerGradient,
-          color: 'white',
-          px: { xs: 2.5, md: 4 },
-          py: { xs: 2, md: 3 },
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          justifyContent: 'space-between',
-          alignItems: { xs: 'flex-start', sm: 'center' },
-          gap: 2,
-          boxShadow: '0 4px 20px rgba(15,23,42,0.08)'
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Avatar sx={{ bgcolor: 'white', color: T.primary, width: 44, height: 44 }}>
-            <ShieldIcon />
+  const drawerWidth = 260;
+
+  const sidebarContent = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: '#0f172a', color: '#94a3b8' }}>
+      {/* Brand Header */}
+      <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 1.5, bgcolor: '#1e293b' }}>
+        <ShieldIcon sx={{ color: T.primaryLight, fontSize: 24 }} />
+        <Typography variant="subtitle1" sx={{ fontWeight: '900', color: 'white', letterSpacing: 0.5 }}>
+          TRIKONEKT ADMIN
+        </Typography>
+      </Box>
+
+      {/* Navigation List */}
+      <List sx={{ px: 1.5, py: 2, flexGrow: 1 }}>
+        <ListItem disablePadding sx={{ mb: 0.5 }}>
+          <ListItemButton
+            selected={activeTab === 0}
+            onClick={() => { setActiveTab(0); setMobileOpen(false); }}
+            sx={{
+              borderRadius: '8px',
+              color: activeTab === 0 ? 'white' : '#94a3b8',
+              bgcolor: activeTab === 0 ? 'rgba(59,130,246,0.15) !important' : 'transparent',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
+              '& .MuiListItemIcon-root': { color: activeTab === 0 ? 'white' : '#64748b' }
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}><DashboardIcon /></ListItemIcon>
+            <ListItemText primary="Overview" primaryTypographyProps={{ fontWeight: activeTab === 0 ? '800' : '500', fontSize: '0.85rem' }} />
+          </ListItemButton>
+        </ListItem>
+
+        <ListItem disablePadding sx={{ mb: 0.5 }}>
+          <ListItemButton
+            selected={activeTab === 1}
+            onClick={() => { setActiveTab(1); setMobileOpen(false); }}
+            sx={{
+              borderRadius: '8px',
+              color: activeTab === 1 ? 'white' : '#94a3b8',
+              bgcolor: activeTab === 1 ? 'rgba(59,130,246,0.15) !important' : 'transparent',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
+              '& .MuiListItemIcon-root': { color: activeTab === 1 ? 'white' : '#64748b' }
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}><PeopleIcon /></ListItemIcon>
+            <ListItemText primary="Captains List" primaryTypographyProps={{ fontWeight: activeTab === 1 ? '800' : '500', fontSize: '0.85rem' }} />
+          </ListItemButton>
+        </ListItem>
+
+        {role === 'SUPER_ADMIN' && (
+          <ListItem disablePadding sx={{ mb: 0.5 }}>
+            <ListItemButton
+              selected={activeTab === 2}
+              onClick={() => { setActiveTab(2); setMobileOpen(false); }}
+              sx={{
+                borderRadius: '8px',
+                color: activeTab === 2 ? 'white' : '#94a3b8',
+                bgcolor: activeTab === 2 ? 'rgba(59,130,246,0.15) !important' : 'transparent',
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
+                '& .MuiListItemIcon-root': { color: activeTab === 2 ? 'white' : '#64748b' }
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}><AdminSettingsIcon /></ListItemIcon>
+              <ListItemText primary="Sub-Admins Setup" primaryTypographyProps={{ fontWeight: activeTab === 2 ? '800' : '500', fontSize: '0.85rem' }} />
+            </ListItemButton>
+          </ListItem>
+        )}
+      </List>
+
+      <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)' }} />
+
+      {/* Admin User Footer info */}
+      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1.5, bgcolor: '#1e293b' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Avatar sx={{ bgcolor: T.primaryLight, width: 32, height: 32, fontWeight: 'bold', fontSize: '0.8rem', color: 'white' }}>
+            {localStorage.getItem('admin_username')?.charAt(0).toUpperCase()}
           </Avatar>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: '900', fontSize: { xs: '1.1rem', sm: '1.25rem' }, letterSpacing: 0.5 }}>
-              Trikonekt Business Administration
+          <Box sx={{ overflow: 'hidden' }}>
+            <Typography variant="subtitle2" sx={{ color: 'white', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+              {localStorage.getItem('admin_username')}
             </Typography>
-            <Typography variant="caption" sx={{ opacity: 0.8, fontWeight: 'medium' }}>
-              Logged in as: <b>{localStorage.getItem('admin_username')}</b> ({role})
+            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.7rem', textTransform: 'capitalize' }}>
+              {role.toLowerCase().replace('_', ' ')}
             </Typography>
           </Box>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, alignSelf: { xs: 'flex-end', sm: 'auto' } }}>
-          <IconButton onClick={fetchData} color="inherit" title="Refresh Data" sx={{ bgcolor: 'rgba(255,255,255,0.08)', '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}>
-            <RefreshIcon />
-          </IconButton>
-          <Button
-            startIcon={<LogoutIcon />}
-            onClick={handleLogout}
-            color="inherit"
-            variant="outlined"
-            sx={{
-              textTransform: 'none',
-              borderRadius: '12px',
-              border: '1px solid rgba(255,255,255,0.3)',
-              fontWeight: 'bold',
-              px: 2,
-              '&:hover': { bgcolor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.5)' }
-            }}
-          >
-            Logout
-          </Button>
+        <Button
+          fullWidth
+          variant="outlined"
+          color="error"
+          size="small"
+          startIcon={<LogoutIcon />}
+          onClick={handleLogout}
+          sx={{
+            textTransform: 'none',
+            borderRadius: '8px',
+            borderColor: 'rgba(239, 68, 68, 0.3)',
+            color: '#ef4444',
+            fontWeight: 'bold',
+            fontSize: '0.75rem',
+            '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.08)', borderColor: '#ef4444' }
+          }}
+        >
+          Logout
+        </Button>
+      </Box>
+    </Box>
+  );
+
+  return (
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: T.bg, width: '100vw', overflowX: 'hidden' }}>
+      <CssBaseline />
+      {/* Sidebar - Drawer for mobile viewports */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth }
+        }}
+      >
+        {sidebarContent}
+      </Drawer>
+
+      {/* Sidebar - Fixed for desktop viewports */}
+      <Box
+        component="nav"
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          display: { xs: 'none', md: 'block' }
+        }}
+      >
+        <Box sx={{ position: 'fixed', top: 0, bottom: 0, left: 0, width: drawerWidth }}>
+          {sidebarContent}
         </Box>
       </Box>
 
-      <Box sx={{ p: { xs: 2.5, md: 4 } }}>
-        {/* Dashboard Stats Row */}
-        <Grid container spacing={2} sx={{ mb: 4 }}>
-          <Grid item xs={6} md={3}>
-            <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, height: '100%' }}>
-              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
-                <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(30, 58, 138, 0.06)', color: T.primary, display: 'flex' }}>
-                  <PeopleIcon />
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.7rem' }}>
-                    Total Captains
-                  </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: '900', mt: 0.2 }}>
-                    {stats.totalCaptains}
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={6} md={3}>
-            <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, height: '100%' }}>
-              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
-                <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(16, 185, 129, 0.06)', color: T.success, display: 'flex' }}>
-                  <ActiveIcon />
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.7rem' }}>
-                    Active Captains
-                  </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: '900', mt: 0.2 }}>
-                    {stats.activeCaptains}
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={6} md={3}>
-            <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, height: '100%' }}>
-              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
-                <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(245, 158, 11, 0.06)', color: T.warning, display: 'flex' }}>
-                  <PendingIcon />
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.7rem' }}>
-                    Pending KYC
-                  </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: '900', mt: 0.2 }}>
-                    {stats.pendingKyc}
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={6} md={3}>
-            <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, height: '100%' }}>
-              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
-                <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(59, 130, 246, 0.06)', color: T.primaryLight, display: 'flex' }}>
-                  <PeopleIcon />
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.7rem' }}>
-                    Registered This Month
-                  </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: '900', mt: 0.2 }}>
-                    {stats.registeredThisMonth}
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+      {/* Right Content Panel */}
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
+          width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` },
+          overflowX: 'hidden'
+        }}
+      >
+        {/* Top Clean Header */}
+        <Box
+          sx={{
+            bgcolor: 'white',
+            borderBottom: `1px solid ${T.border}`,
+            px: { xs: 2.5, md: 4 },
+            py: 1.5,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            height: 64,
+            boxSizing: 'border-box'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <IconButton
+              onClick={() => setMobileOpen(true)}
+              sx={{ display: { xs: 'inline-flex', md: 'none' }, color: T.text }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="subtitle1" sx={{ fontWeight: '800', color: T.text, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+              {activeTab === 0 ? 'Dashboard Overview' : activeTab === 1 ? 'Captain Registrations' : 'Sub-Admin User Management'}
+            </Typography>
+          </Box>
 
-        <Box sx={{ borderBottom: 1, borderColor: T.border, mb: 3 }}>
-          <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)} variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile>
-            <Tab label="Captain Registrations" sx={{ fontWeight: 'bold', textTransform: 'none' }} />
-            {role === 'SUPER_ADMIN' && <Tab label="Sub-Admin User Management" sx={{ fontWeight: 'bold', textTransform: 'none' }} />}
-          </Tabs>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconButton onClick={fetchData} size="small" sx={{ border: `1px solid ${T.border}`, p: 0.8 }}>
+              <RefreshIcon sx={{ fontSize: 18, color: T.textSecondary }} />
+            </IconButton>
+            <Chip
+              avatar={
+                <Avatar sx={{ bgcolor: T.primary, color: 'white !important', fontWeight: 'bold' }}>
+                  {localStorage.getItem('admin_username')?.charAt(0).toUpperCase()}
+                </Avatar>
+              }
+              label={localStorage.getItem('admin_username')}
+              variant="outlined"
+              sx={{ fontWeight: 'semibold', borderColor: T.border, display: { xs: 'none', sm: 'inline-flex' } }}
+            />
+          </Box>
         </Box>
 
-        {/* Tab 1: Captain Registrations Table */}
-        {activeTab === 0 && (
-          <Paper sx={{ p: 3, borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}` }}>
-            {/* Filters Row */}
-            <Grid container spacing={2} sx={{ mb: 3 }} alignItems="center">
-              <Grid item xs={12} sm={6} md={4}>
-                <TextField
-                  placeholder="Search by ID, name or phone..."
-                  fullWidth
-                  size="small"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  InputProps={{ startAdornment: <SearchIcon sx={{ color: T.textSecondary, mr: 1 }} /> }}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-                />
+        {/* Content Body */}
+        <Box sx={{ p: { xs: 2, sm: 3 }, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+          {/* VIEW 0: Dashboard Overview */}
+          {activeTab === 0 && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {/* Dashboard Stats Row */}
+              <Grid container spacing={2}>
+                <Grid item xs={6} md={3}>
+                  <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, height: '100%' }}>
+                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
+                      <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(30, 58, 138, 0.06)', color: T.primary, display: 'flex' }}>
+                        <PeopleIcon />
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.7rem' }}>
+                          Total Captains
+                        </Typography>
+                        <Typography variant="h5" sx={{ fontWeight: '900', mt: 0.2 }}>
+                          {stats.totalCaptains}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={6} md={3}>
+                  <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, height: '100%' }}>
+                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
+                      <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(16, 185, 129, 0.06)', color: T.success, display: 'flex' }}>
+                        <ActiveIcon />
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.7rem' }}>
+                          Active Captains
+                        </Typography>
+                        <Typography variant="h5" sx={{ fontWeight: '900', mt: 0.2 }}>
+                          {stats.activeCaptains}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={6} md={3}>
+                  <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, height: '100%' }}>
+                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
+                      <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(245, 158, 11, 0.06)', color: T.warning, display: 'flex' }}>
+                        <PendingIcon />
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.7rem' }}>
+                          Pending KYC
+                        </Typography>
+                        <Typography variant="h5" sx={{ fontWeight: '900', mt: 0.2 }}>
+                          {stats.pendingKyc}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={6} md={3}>
+                  <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, height: '100%' }}>
+                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
+                      <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(59, 130, 246, 0.06)', color: T.primaryLight, display: 'flex' }}>
+                        <PeopleIcon />
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.7rem' }}>
+                          Registered This Month
+                        </Typography>
+                        <Typography variant="h5" sx={{ fontWeight: '900', mt: 0.2 }}>
+                          {stats.registeredThisMonth}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
               </Grid>
-              <Grid item xs={6} sm={3} md={3}>
-                <TextField
-                  select
-                  label="KYC Status"
-                  fullWidth
-                  size="small"
-                  value={kycFilter}
-                  onChange={(e) => setKycFilter(e.target.value)}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-                >
-                  <MenuItem value="">All Statuses</MenuItem>
-                  <MenuItem value="PENDING">Pending Review</MenuItem>
-                  <MenuItem value="APPROVED">Approved</MenuItem>
-                  <MenuItem value="REJECTED">Rejected</MenuItem>
-                </TextField>
-              </Grid>
-              <Grid item xs={6} sm={3} md={3}>
-                <TextField
-                  select
-                  label="Account Status"
-                  fullWidth
-                  size="small"
-                  value={activeFilter}
-                  onChange={(e) => setActiveFilter(e.target.value)}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-                >
-                  <MenuItem value="">All Accounts</MenuItem>
-                  <MenuItem value="true">Active Only</MenuItem>
-                  <MenuItem value="false">Inactive Only</MenuItem>
-                </TextField>
-              </Grid>
-            </Grid>
 
-            {loading ? (
-              <Box sx={{ display: 'flex', py: 5, justifyContent: 'center' }}><CircularProgress /></Box>
-            ) : (
-              <>
-                {/* Mobile View Card List */}
-                <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 2 }}>
-                  {captains.length === 0 ? (
-                    <Typography variant="body2" sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>
-                      No Captain registrations found.
+              {/* Extra visual summary widgets */}
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, p: 3, bgcolor: '#ffffff' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: '800', color: T.text, mb: 2 }}>
+                      KYC Verification Summary
                     </Typography>
-                  ) : (
-                    captains.map((cap) => (
-                      <Card
-                        key={cap.id}
-                        sx={{
-                          borderRadius: '16px',
-                          border: `1px solid ${T.border}`,
-                          boxShadow: 'none',
-                          bgcolor: '#ffffff',
-                          p: 2
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-                          <Box>
-                            <Typography variant="subtitle2" sx={{ fontWeight: '800', color: T.text }}>
-                              {cap.username}
-                            </Typography>
-                            <Typography variant="caption" color="textSecondary">
-                              Registered: {new Date(cap.date_joined).toLocaleDateString()}
-                            </Typography>
-                          </Box>
-                          <Chip
-                            label={cap.kyc_status}
-                            size="small"
-                            sx={{
-                              bgcolor: getKycChipColor(cap.kyc_status) + '15',
-                              color: getKycChipColor(cap.kyc_status),
-                              fontWeight: 'bold',
-                              fontSize: '0.7rem'
-                            }}
-                          />
-                        </Box>
-
-                        <Grid container spacing={1} sx={{ mb: 2 }}>
-                          <Grid item xs={6}>
-                            <Typography variant="caption" color="textSecondary" display="block">Full Name</Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 'semibold', color: T.text, fontSize: '0.85rem' }}>{cap.full_name}</Typography>
-                          </Grid>
-                          <Grid item xs={6}>
-                            <Typography variant="caption" color="textSecondary" display="block">Phone Number</Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 'semibold', color: T.text, fontSize: '0.85rem' }}>{cap.phone}</Typography>
-                          </Grid>
-                          <Grid item xs={6}>
-                            <Typography variant="caption" color="textSecondary" display="block">Pincode</Typography>
-                            <Typography variant="body2" sx={{ color: T.text, fontSize: '0.85rem' }}>{cap.pincode}</Typography>
-                          </Grid>
-                          <Grid item xs={6}>
-                            <Typography variant="caption" color="textSecondary" display="block">Sponsor ID</Typography>
-                            <Typography variant="body2" sx={{ color: T.text, fontSize: '0.85rem' }}>{cap.sponsor_id}</Typography>
-                          </Grid>
-                        </Grid>
-
-                        <Divider sx={{ mb: 1.5 }} />
-
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="caption" color="textSecondary">Active</Typography>
-                            <Switch
-                              checked={cap.is_active}
-                              onChange={() => handleStatusToggle(cap.id, cap.is_active)}
-                              color="primary"
-                              size="small"
-                            />
-                          </Box>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={() => handleCaptainClick(cap.username)}
-                            startIcon={<ViewIcon />}
-                            sx={{
-                              textTransform: 'none',
-                              borderRadius: '8px',
-                              fontWeight: 'bold',
-                              borderColor: T.primary,
-                              color: T.primary
-                            }}
-                          >
-                            View Profile
-                          </Button>
-                        </Box>
-                      </Card>
-                    ))
-                  )}
-                </Box>
-
-                {/* Desktop View Table */}
-                <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-                  <TableContainer component={Box}>
-                    <Table>
-                      <TableHead sx={{ bgcolor: '#f1f5f9' }}>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Captain ID</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Full Name</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Phone Number</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Pincode</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Sponsor ID</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Registered On</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>KYC Status</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Account Active</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }} align="center">Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {captains.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={9} align="center">No Captain registrations found.</TableCell>
-                          </TableRow>
-                        ) : (
-                          captains.map((cap) => (
-                            <TableRow key={cap.id} hover>
-                              <TableCell sx={{ fontWeight: 'semibold' }}>{cap.username}</TableCell>
-                              <TableCell>{cap.full_name}</TableCell>
-                              <TableCell>{cap.phone}</TableCell>
-                              <TableCell>{cap.pincode}</TableCell>
-                              <TableCell>{cap.sponsor_id}</TableCell>
-                              <TableCell>{new Date(cap.date_joined).toLocaleDateString()}</TableCell>
-                              <TableCell>
-                                <Chip
-                                  label={cap.kyc_status}
-                                  size="small"
-                                  sx={{
-                                    bgcolor: getKycChipColor(cap.kyc_status) + '15',
-                                    color: getKycChipColor(cap.kyc_status),
-                                    fontWeight: 'bold'
-                                  }}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <Switch
-                                  checked={cap.is_active}
-                                  onChange={() => handleStatusToggle(cap.id, cap.is_active)}
-                                  color="primary"
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <Tooltip title="View Profile & Documents">
-                                  <IconButton onClick={() => handleCaptainClick(cap.username)} color="primary">
-                                    <ViewIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Box>
-              </>
-            )}
-          </Paper>
-        )}
-
-        {/* Tab 2: Sub-Admin Setup */}
-        {activeTab === 1 && role === 'SUPER_ADMIN' && (
-          <Paper sx={{ p: 3, borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}` }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: { xs: '1.05rem', sm: '1.25rem' } }}>Sub-Admin User Management</Typography>
-              <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenSubAdminModal()} sx={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)', textTransform: 'none', borderRadius: '10px', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                Add Sub-Admin
-              </Button>
-            </Box>
-
-            {/* Mobile View Card List */}
-            <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 2 }}>
-              {subAdmins.length === 0 ? (
-                <Typography variant="body2" sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>
-                  No sub-admin users configured.
-                </Typography>
-              ) : (
-                subAdmins.map((sub) => (
-                  <Card
-                    key={sub.id}
-                    sx={{
-                      borderRadius: '16px',
-                      border: `1px solid ${T.border}`,
-                      boxShadow: 'none',
-                      bgcolor: '#ffffff',
-                      p: 2
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: '800', color: T.text }}>
-                        {sub.username}
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
-                        <IconButton onClick={() => handleOpenSubAdminModal(sub)} color="primary" size="small" sx={{ bgcolor: 'rgba(59,130,246,0.06)' }}>
-                          <EditIcon sx={{ fontSize: 16 }} />
-                        </IconButton>
-                        <IconButton onClick={() => handleDeleteSubAdmin(sub.id)} color="error" size="small" sx={{ bgcolor: 'rgba(239,68,68,0.06)' }}>
-                          <DeleteIcon sx={{ fontSize: 16 }} />
-                        </IconButton>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="body2" color="textSecondary">Approved Captains</Typography>
+                        <Chip label={`${stats.activeCaptains} Verified`} color="success" size="small" sx={{ fontWeight: 'bold' }} />
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="body2" color="textSecondary">Pending Review</Typography>
+                        <Chip label={`${stats.pendingKyc} Awaiting`} color="warning" size="small" sx={{ fontWeight: 'bold' }} />
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="body2" color="textSecondary">Rejected Submissions</Typography>
+                        <Chip label="Requires Re-upload" color="error" size="small" variant="outlined" sx={{ fontWeight: 'bold' }} />
                       </Box>
                     </Box>
+                  </Card>
+                </Grid>
 
-                    <Typography variant="caption" color="textSecondary" display="block">Email Address</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 'semibold', color: T.text, mb: 1.5, fontSize: '0.85rem' }}>{sub.email}</Typography>
-
-                    <Typography variant="caption" color="textSecondary" display="block">Module Permissions</Typography>
-                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5, mb: 1.5 }}>
-                      {sub.modules ? sub.modules.split(',').map((mod) => (
-                        <Chip key={mod} label={mod} size="small" sx={{ fontSize: '0.65rem', fontWeight: 'bold' }} />
-                      )) : <Chip label="none" size="small" color="default" sx={{ fontSize: '0.65rem' }} />}
-                    </Box>
-
-                    <Divider sx={{ mb: 1 }} />
-                    <Typography variant="caption" color="textSecondary" display="block">
-                      Created: {new Date(sub.created_at).toLocaleDateString()}
+                <Grid item xs={12} md={6}>
+                  <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, p: 3, bgcolor: '#ffffff', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: '800', color: T.text, mb: 1.5 }}>
+                      System Administration Notice
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary" sx={{ lineHeight: 1.5 }}>
+                      You are logged in as a <b>{role}</b>. Ensure you review all Aadhaar and PAN documents closely before marking KYC as Approved. Sub-admins are restricted to the modules assigned to them by a Super Admin.
                     </Typography>
                   </Card>
-                ))
-              )}
+                </Grid>
+              </Grid>
             </Box>
+          )}
 
-            {/* Desktop View Table */}
-            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-              <TableContainer component={Box}>
-                <Table>
-                  <TableHead sx={{ bgcolor: '#f1f5f9' }}>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Username</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Module Permissions</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Created On</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }} align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {subAdmins.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} align="center">No sub-admin users configured.</TableCell>
-                      </TableRow>
+          {/* VIEW 1: Captain Registrations */}
+          {activeTab === 1 && (
+            <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+              {/* Filters Row */}
+              <Grid container spacing={2} sx={{ mb: 3 }} alignItems="center">
+                <Grid item xs={12} sm={6} md={4}>
+                  <TextField
+                    placeholder="Search by ID, name or phone..."
+                    fullWidth
+                    size="small"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    InputProps={{ startAdornment: <SearchIcon sx={{ color: T.textSecondary, mr: 1 }} /> }}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                  />
+                </Grid>
+                <Grid item xs={6} sm={3} md={3}>
+                  <TextField
+                    select
+                    label="KYC Status"
+                    fullWidth
+                    size="small"
+                    value={kycFilter}
+                    onChange={(e) => setKycFilter(e.target.value)}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                  >
+                    <MenuItem value="">All Statuses</MenuItem>
+                    <MenuItem value="PENDING">Pending Review</MenuItem>
+                    <MenuItem value="APPROVED">Approved</MenuItem>
+                    <MenuItem value="REJECTED">Rejected</MenuItem>
+                  </TextField>
+                </Grid>
+                <Grid item xs={6} sm={3} md={3}>
+                  <TextField
+                    select
+                    label="Account Status"
+                    fullWidth
+                    size="small"
+                    value={activeFilter}
+                    onChange={(e) => setActiveFilter(e.target.value)}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                  >
+                    <MenuItem value="">All Accounts</MenuItem>
+                    <MenuItem value="true">Active Only</MenuItem>
+                    <MenuItem value="false">Inactive Only</MenuItem>
+                  </TextField>
+                </Grid>
+              </Grid>
+
+              {loading ? (
+                <Box sx={{ display: 'flex', py: 5, justifyContent: 'center' }}><CircularProgress /></Box>
+              ) : (
+                <>
+                  {/* Mobile View Card List */}
+                  <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 2 }}>
+                    {captains.length === 0 ? (
+                      <Typography variant="body2" sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>
+                        No Captain registrations found.
+                      </Typography>
                     ) : (
-                      subAdmins.map((sub) => (
-                        <TableRow key={sub.id} hover>
-                          <TableCell sx={{ fontWeight: 'semibold' }}>{sub.username}</TableCell>
-                          <TableCell>{sub.email}</TableCell>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                              {sub.modules ? sub.modules.split(',').map((mod) => (
-                                <Chip key={mod} label={mod} size="small" />
-                              )) : <Chip label="none" size="small" color="default" />}
+                      captains.map((cap) => (
+                        <Card
+                          key={cap.id}
+                          sx={{
+                            borderRadius: '16px',
+                            border: `1px solid ${T.border}`,
+                            boxShadow: 'none',
+                            bgcolor: '#ffffff',
+                            p: 2
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ fontWeight: '800', color: T.text }}>
+                                {cap.username}
+                              </Typography>
+                              <Typography variant="caption" color="textSecondary">
+                                Registered: {new Date(cap.date_joined).toLocaleDateString()}
+                              </Typography>
                             </Box>
-                          </TableCell>
-                          <TableCell>{new Date(sub.created_at).toLocaleDateString()}</TableCell>
-                          <TableCell align="right">
-                            <IconButton onClick={() => handleOpenSubAdminModal(sub)} color="primary" size="small">
-                              <EditIcon />
-                            </IconButton>
-                            <IconButton onClick={() => handleDeleteSubAdmin(sub.id)} color="error" size="small">
-                              <DeleteIcon />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
+                            <Chip
+                              label={cap.kyc_status}
+                              size="small"
+                              sx={{
+                                bgcolor: getKycChipColor(cap.kyc_status) + '15',
+                                color: getKycChipColor(cap.kyc_status),
+                                fontWeight: 'bold',
+                                fontSize: '0.7rem'
+                              }}
+                            />
+                          </Box>
+
+                          <Grid container spacing={1} sx={{ mb: 2 }}>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" color="textSecondary" display="block">Full Name</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 'semibold', color: T.text, fontSize: '0.85rem' }}>{cap.full_name}</Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" color="textSecondary" display="block">Phone Number</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 'semibold', color: T.text, fontSize: '0.85rem' }}>{cap.phone}</Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" color="textSecondary" display="block">Pincode</Typography>
+                              <Typography variant="body2" sx={{ color: T.text, fontSize: '0.85rem' }}>{cap.pincode}</Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" color="textSecondary" display="block">Sponsor ID</Typography>
+                              <Typography variant="body2" sx={{ color: T.text, fontSize: '0.85rem' }}>{cap.sponsor_id}</Typography>
+                            </Grid>
+                          </Grid>
+
+                          <Divider sx={{ mb: 1.5 }} />
+
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="caption" color="textSecondary">Active</Typography>
+                              <Switch
+                                checked={cap.is_active}
+                                onChange={() => handleStatusToggle(cap.id, cap.is_active)}
+                                color="primary"
+                                size="small"
+                              />
+                            </Box>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              onClick={() => handleCaptainClick(cap.username)}
+                              startIcon={<ViewIcon />}
+                              sx={{
+                                textTransform: 'none',
+                                borderRadius: '8px',
+                                fontWeight: 'bold',
+                                borderColor: T.primary,
+                                color: T.primary
+                              }}
+                            >
+                              View Profile
+                            </Button>
+                          </Box>
+                        </Card>
                       ))
                     )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Box>
-          </Paper>
-        )}
+                  </Box>
+
+                  {/* Desktop View Table */}
+                  <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                    <TableContainer component={Box}>
+                      <Table>
+                        <TableHead sx={{ bgcolor: '#f1f5f9' }}>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Captain ID</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Full Name</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Phone Number</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Pincode</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Sponsor ID</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Registered On</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>KYC Status</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Account Active</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }} align="center">Actions</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {captains.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={9} align="center">No Captain registrations found.</TableCell>
+                            </TableRow>
+                          ) : (
+                            captains.map((cap) => (
+                              <TableRow key={cap.id} hover>
+                                <TableCell sx={{ fontWeight: 'semibold' }}>{cap.username}</TableCell>
+                                <TableCell>{cap.full_name}</TableCell>
+                                <TableCell>{cap.phone}</TableCell>
+                                <TableCell>{cap.pincode}</TableCell>
+                                <TableCell>{cap.sponsor_id}</TableCell>
+                                <TableCell>{new Date(cap.date_joined).toLocaleDateString()}</TableCell>
+                                <TableCell>
+                                  <Chip
+                                    label={cap.kyc_status}
+                                    size="small"
+                                    sx={{
+                                      bgcolor: getKycChipColor(cap.kyc_status) + '15',
+                                      color: getKycChipColor(cap.kyc_status),
+                                      fontWeight: 'bold'
+                                    }}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Switch
+                                    checked={cap.is_active}
+                                    onChange={() => handleStatusToggle(cap.id, cap.is_active)}
+                                    color="primary"
+                                  />
+                                </TableCell>
+                                <TableCell align="center">
+                                  <Tooltip title="View Profile & Documents">
+                                    <IconButton onClick={() => handleCaptainClick(cap.username)} color="primary">
+                                      <ViewIcon />
+                                    </IconButton>
+                                  </Tooltip>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Box>
+                </>
+              )}
+            </Paper>
+          )}
+
+          {/* VIEW 2: Sub-Admin Setup */}
+          {activeTab === 2 && role === 'SUPER_ADMIN' && (
+            <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: { xs: '1.05rem', sm: '1.25rem' } }}>Sub-Admin User Management</Typography>
+                <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenSubAdminModal()} sx={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)', textTransform: 'none', borderRadius: '10px', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
+                  Add Sub-Admin
+                </Button>
+              </Box>
+
+              {/* Mobile View Card List */}
+              <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 2 }}>
+                {subAdmins.length === 0 ? (
+                  <Typography variant="body2" sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>
+                    No sub-admin users configured.
+                  </Typography>
+                ) : (
+                  subAdmins.map((sub) => (
+                    <Card
+                      key={sub.id}
+                      sx={{
+                        borderRadius: '16px',
+                        border: `1px solid ${T.border}`,
+                        boxShadow: 'none',
+                        bgcolor: '#ffffff',
+                        p: 2
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: '800', color: T.text }}>
+                          {sub.username}
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                          <IconButton onClick={() => handleOpenSubAdminModal(sub)} color="primary" size="small" sx={{ bgcolor: 'rgba(59,130,246,0.06)' }}>
+                            <EditIcon sx={{ fontSize: 16 }} />
+                          </IconButton>
+                          <IconButton onClick={() => handleDeleteSubAdmin(sub.id)} color="error" size="small" sx={{ bgcolor: 'rgba(239,68,68,0.06)' }}>
+                            <DeleteIcon sx={{ fontSize: 16 }} />
+                          </IconButton>
+                        </Box>
+                      </Box>
+
+                      <Typography variant="caption" color="textSecondary" display="block">Email Address</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 'semibold', color: T.text, mb: 1.5, fontSize: '0.85rem' }}>{sub.email}</Typography>
+
+                      <Typography variant="caption" color="textSecondary" display="block">Module Permissions</Typography>
+                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5, mb: 1.5 }}>
+                        {sub.modules ? sub.modules.split(',').map((mod) => (
+                          <Chip key={mod} label={mod} size="small" sx={{ fontSize: '0.65rem', fontWeight: 'bold' }} />
+                        )) : <Chip label="none" size="small" color="default" sx={{ fontSize: '0.65rem' }} />}
+                      </Box>
+
+                      <Divider sx={{ mb: 1 }} />
+                      <Typography variant="caption" color="textSecondary" display="block">
+                        Created: {new Date(sub.created_at).toLocaleDateString()}
+                      </Typography>
+                    </Card>
+                  ))
+                )}
+              </Box>
+
+              {/* Desktop View Table */}
+              <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                <TableContainer component={Box}>
+                  <Table>
+                    <TableHead sx={{ bgcolor: '#f1f5f9' }}>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Username</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Module Permissions</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Created On</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }} align="right">Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {subAdmins.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} align="center">No sub-admin users configured.</TableCell>
+                        </TableRow>
+                      ) : (
+                        subAdmins.map((sub) => (
+                          <TableRow key={sub.id} hover>
+                            <TableCell sx={{ fontWeight: 'semibold' }}>{sub.username}</TableCell>
+                            <TableCell>{sub.email}</TableCell>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                                {sub.modules ? sub.modules.split(',').map((mod) => (
+                                  <Chip key={mod} label={mod} size="small" />
+                                )) : <Chip label="none" size="small" color="default" />}
+                              </Box>
+                            </TableCell>
+                            <TableCell>{new Date(sub.created_at).toLocaleDateString()}</TableCell>
+                            <TableCell align="right">
+                              <IconButton onClick={() => handleOpenSubAdminModal(sub)} color="primary" size="small">
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton onClick={() => handleDeleteSubAdmin(sub.id)} color="error" size="small">
+                                <DeleteIcon />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            </Paper>
+          )}
+        </Box>
       </Box>
 
       {/* Sub-Admin Form Modal */}
