@@ -21,6 +21,7 @@ import CaptainProfile from './pages/captain/CaptainProfile';
 import CaptainKyc from './pages/captain/CaptainKyc';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import CssBaseline from '@mui/material/CssBaseline';
 
 import { Navigate } from 'react-router-dom';
 
@@ -40,6 +41,7 @@ function RootRedirect() {
 function App() {
   return (
     <Router>
+      <CssBaseline />
       <Routes>
         <Route path="/" element={<RootRedirect />} />
 
