@@ -32,21 +32,20 @@ public class AuthService {
         String identifier = req.getIdentifier().trim().toUpperCase();
         Optional<Map<String, Object>> userOpt;
 
-        // Resolve identifier: CB prefix → find by username; 10 digits → find by phone
-        if (identifier.startsWith("CB")) {
-            userOpt = userRepository.findByUsername(identifier);
-        } else if (identifier.matches("\\d{10}")) {
+        // Resolve identifier: 10 digits → find by phone, else find by username
+        if (identifier.matches("\\d{10}")) {
             // Try phone directly, then try CB+phone
             userOpt = userRepository.findByPhone(identifier);
             if (userOpt.isEmpty()) {
                 userOpt = userRepository.findByUsername("CB" + identifier);
             }
         } else {
-            throw new RuntimeException("Invalid format. Enter your CB ID (e.g. CB9876543210) or 10-digit phone.");
+            // Any alphanumeric user ID (CB, NSB2B, etc.)
+            userOpt = userRepository.findByUsername(identifier);
         }
 
         Map<String, Object> user = userOpt.orElseThrow(() ->
-            new RuntimeException("No Captain account found for: " + req.getIdentifier())
+            new RuntimeException("No account found for: " + req.getIdentifier())
         );
 
         // Ensure this is a Captain or Business account
