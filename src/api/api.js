@@ -1,4 +1,4 @@
-﻿import axios from "axios";
+import axios from "axios";
 import { incrementLoading, decrementLoading } from "../hooks/loadingStore";
 import { deepFixMojibake, fixMojibakeString } from "../utils/encodingFix";
 
@@ -797,8 +797,14 @@ export async function getMyECoupons(params = {}) {
   const res = await API.get("/coupons/codes/mine-consumer/", { params, dedupe: "cancelPrevious" });
   return res?.data || res;
 }
+
 export async function getMyECouponSummary() {
   const res = await API.get("/coupons/codes/consumer-summary/", { cacheTTL: 10_000, dedupe: "cancelPrevious" });
+  return res?.data || res;
+}
+
+export async function getPublicB2bMerchants() {
+  const res = await API.get("/captain/merchants/b2b");
   return res?.data || res;
 }
 export async function transferECoupon(codeId, { to_username, pincode = "", notes = "" }) {

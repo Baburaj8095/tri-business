@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import BusinessDashboardConsumer from './pages/budinessdashboard/BusinessDashboard';
 import ScannerPage from './pages/budinessdashboard/ScannerPage';
 import BusinessDashboardMerchant from './pages/business/BusinessDashboard';
-import BusinessProfile from './pages/business/BusinessProfile';
+import BusinessProfilePage from './pages/business/BusinessProfilePage';
 import BusinessShops from './pages/business/BusinessShops';
 import BusinessShopProducts from './pages/business/BusinessShopProducts';
 import InventoryPage from './pages/business/InventoryPage';
@@ -32,7 +32,7 @@ function RootRedirect() {
   if (isCaptain) {
     return <Navigate to="/captain/home" replace />;
   } else if (isBusiness) {
-    return <Navigate to="/merchant" replace />;
+    return <Navigate to="/business-dashboard" replace />;
   } else {
     return <Navigate to="/onboarding" replace />;
   }
@@ -45,10 +45,10 @@ function App() {
       <Routes>
         <Route path="/" element={<RootRedirect />} />
 
-        <Route path="/demo/budiness-dashboard" element={<BusinessDashboardConsumer />} />
-        <Route path="/demo/scanner" element={<ScannerPage />} />
+        <Route path="/business-dashboard" element={<BusinessDashboardConsumer />} />
+        <Route path="/scanner" element={<ScannerPage />} />
         <Route path="/merchant" element={<BusinessDashboardMerchant />} />
-        <Route path="/business/profile" element={<BusinessProfile />} />
+        <Route path="/business/profile" element={<BusinessProfilePage />} />
         <Route path="/business/shops" element={<BusinessShops />} />
         <Route path="/business/shops/:id/products" element={<BusinessShopProducts />} />
         <Route path="/business/inventory" element={<InventoryPage />} />
@@ -60,7 +60,7 @@ function App() {
         <Route path="/product-registration" element={<ProductRegistration />} />
         {/* Captain Routes */}
         <Route path="/captain/register" element={<CaptainRegister />} />
-        <Route path="/captain/login" element={<CaptainLogin />} />
+        <Route path="/login" element={<CaptainLogin />} />
         
         {/* Protected Captain Routes wrapped in CaptainLayout */}
         <Route path="/captain" element={<CaptainLayout />}>

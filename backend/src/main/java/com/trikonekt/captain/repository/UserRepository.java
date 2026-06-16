@@ -40,6 +40,28 @@ public class UserRepository {
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }
 
+    public List<Map<String, Object>> findPublicB2bMerchants() {
+        return jdbc.queryForList(
+            "SELECT u.id, u.full_name, u.phone, u.pincode, " +
+            "       s.shop_name, s.address, s.city " +
+            "FROM accounts_customuser u " +
+            "LEFT JOIN market_shop s ON u.id = s.merchant_id " +
+            "WHERE u.category = 'merchant' AND u.is_active = true " +
+            "LIMIT 50"
+        );
+    }
+
+    public List<Map<String, Object>> findPublicB2cMerchants() {
+        return jdbc.queryForList(
+            "SELECT u.id, u.full_name, u.phone, u.pincode, " +
+            "       s.shop_name, s.address, s.city " +
+            "FROM accounts_customuser u " +
+            "LEFT JOIN market_shop s ON u.id = s.merchant_id " +
+            "WHERE u.category = 'business' AND u.is_active = true " +
+            "LIMIT 50"
+        );
+    }
+
     /**
      * Searches for a sponsor by username or prefixed_id (case-insensitive).
      * Returns TRPN (agency_pincode) or Captain (agency_sub_franchise) sponsors,

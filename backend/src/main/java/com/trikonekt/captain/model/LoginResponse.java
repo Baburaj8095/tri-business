@@ -11,6 +11,8 @@ public class LoginResponse {
     private String username;
     private String captainId;
     private String fullName;
+    private String role;
+    private String category;
     private String pincode;
     private String district;
     private String state;

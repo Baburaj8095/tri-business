@@ -15,6 +15,8 @@ import {
   Paper,
   Stack,
   Typography,
+  Snackbar,
+  Alert
 } from "@mui/material";
 import {
   HiOutlineBars3BottomLeft,
@@ -35,7 +37,8 @@ import {
   HiOutlineHeart,
   HiOutlineFlag,
   HiOutlinePlayCircle,
-  HiOutlineShoppingCart
+  HiOutlineShoppingCart,
+  HiOutlineUser
 } from 'react-icons/hi2';
 import { LuGift, LuSmartphone, LuShirt, LuSofa, LuTag } from 'react-icons/lu';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
@@ -52,6 +55,7 @@ import ArrowForwardIosRoundedIcon from '@mui/icons-material/ArrowForwardIosRound
 import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import SearchBar from "../../components/business/SearchBar";
+import { getPublicB2bMerchants } from "../../api/api";
 import "../consumer-ecommerce/consumerEcommerce.css";
 
 const UI = {
@@ -162,6 +166,7 @@ const FOOTER_ITEMS = [
 ];
 
 const DRAWER_ITEMS = [
+  { label: "Profile", action: "profile", icon: HiOutlineUser },
   { label: "Wallet", action: "wallet", icon: HiOutlineWallet },
   { label: "Business / Shop", action: "business-shops", icon: HiOutlineBuildingStorefront },
   { label: "Products", action: "product-section", icon: HiOutlineBuildingOffice2 },
@@ -194,17 +199,42 @@ function SectionShell({ title, subtitle, action, children }) {
             <Typography sx={{ fontSize: 13.5, fontWeight: 850, color: UI.text, lineHeight: 1.25 }}>
               {title}
             </Typography>
-            {subtitle ? (
-              <Typography sx={{ fontSize: 11, color: UI.textMuted, mt: 0.25, lineHeight: 1.35 }}>
+            {subtitle && (
+              <Typography sx={{ fontSize: 11.5, color: UI.textMuted, lineHeight: 1.3, mt: 0.15 }}>
                 {subtitle}
               </Typography>
-            ) : null}
+            )}
           </Box>
-          {action || null}
+          {action && action}
         </Stack>
         {children}
       </CardContent>
     </Card>
+  );
+}
+
+function ComingSoonOverlay({ children, label = "Coming Soon" }) {
+  return (
+    <Box sx={{ position: 'relative' }}>
+      <Box sx={{ opacity: 0.5, pointerEvents: 'none', filter: 'blur(1.5px)' }}>
+        {children}
+      </Box>
+      <Box sx={{ 
+        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, 
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 10
+      }}>
+        <Box sx={{ 
+          bgcolor: 'rgba(0,0,0,0.75)', color: '#fff', 
+          px: 3, py: 1.2, borderRadius: 3, 
+          fontWeight: 800, fontSize: 14,
+          backdropFilter: 'blur(4px)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+        }}>
+          {label}
+        </Box>
+      </Box>
+    </Box>
   );
 }
 
@@ -572,10 +602,10 @@ function ShopCard({ shop }) {
           />
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: UI.text, lineHeight: 1.25 }}>
-              {shop.name}
+              {shop.shop_name || shop.business_name || shop.full_name || "Merchant Shop"}
             </Typography>
             <Typography sx={{ fontSize: 10.8, color: UI.textMuted, mt: 0.25, lineHeight: 1.3 }}>
-              {shop.place}
+              {shop.city || shop.address || "Local Area"}
             </Typography>
           </Box>
           <Stack direction="row" spacing={0.75}>
@@ -1217,7 +1247,15 @@ function BusinessDashboard() {
   const [selectedCity, setSelectedCity] = useState("560091");
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [b2bShops, setB2bShops] = useState([]);
+  const [toastMsg, setToastMsg] = useState("");
   const joinPrimePath = "/demo/join-prime";
+
+  React.useEffect(() => {
+    getPublicB2bMerchants()
+      .then((data) => setB2bShops(data || []))
+      .catch((err) => console.error("Failed to load B2B merchants:", err));
+  }, []);
 
   const handleScrollTo = (targetId) => {
     const target = document.getElementById(targetId);
@@ -1226,27 +1264,41 @@ function BusinessDashboard() {
     }
   };
 
-  const handleFooterNavigate = (targetId) => {
-    if (targetId === "scanner-section") {
+  const handleFooterNavigate = (action) => {
+    if (action === "tri-zone-footer" || action === "product-section") {
+      setToastMsg("This feature is coming soon!");
+      return;
+    }
+    setActiveFooterItem(action);
+    if (action === "home-top") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (action === "scanner-section") {
       navigate("/demo/scanner");
-      return;
+    } else {
+      handleScrollTo(action);
     }
-    if (targetId === "tri-zone-footer") {
-      navigate("/product-registration");
-      return;
-    }
-    setActiveFooterItem(targetId);
-    handleScrollTo(targetId);
   };
 
   const handleDrawerAction = (action) => {
     setDrawerOpen(false);
+    if (action === "product-section") {
+      setToastMsg("Online feature is coming soon!");
+      return;
+    }
+    if (action === "profile") {
+      navigate("/business/profile");
+      return;
+    }
     if (action === "wallet") {
       navigate("/user/franchise-wallet");
       return;
     }
     if (action === "scanner-section") {
       navigate("/demo/scanner");
+      return;
+    }
+    if (action === "business-shops") {
+      navigate("/business/shops");
       return;
     }
     handleScrollTo(action);
@@ -1319,27 +1371,33 @@ function BusinessDashboard() {
           </Box>
 
           <Box id="online-b2b-ads-section" sx={{ mt: -0.25 }}>
-            <ScrollRow gap={1} pb={0.15}>
-              {ONLINE_B2B_ADS.map((item) => (
-                <OnlineB2BAdCard key={item.id} item={item} />
-              ))}
-            </ScrollRow>
-          </Box>
-
-          {/*
-          <Box id="business-shops">
-            <SectionShell
-              title="Business / Shop"
-              subtitle="Nearby business listings with follow and report actions"
-            >
-              <ScrollRow gap={0.9}>
-                {SHOPS.map((shop) => (
-                  <ShopCard key={shop.id} shop={shop} />
+            <ComingSoonOverlay label="Online Coming Soon">
+              <ScrollRow gap={1} pb={0.15}>
+                {ONLINE_B2B_ADS.map((item) => (
+                  <OnlineB2BAdCard key={item.id} item={item} />
                 ))}
               </ScrollRow>
+            </ComingSoonOverlay>
+          </Box>
+
+          <Box id="business-shops">
+            <SectionShell
+              title="Nearby Stores"
+              subtitle="Browse B2B merchants in your area"
+            >
+              {b2bShops.length > 0 ? (
+                <ScrollRow gap={0.9}>
+                  {b2bShops.map((shop) => (
+                    <ShopCard key={shop.id} shop={shop} />
+                  ))}
+                </ScrollRow>
+              ) : (
+                <Typography sx={{ p: 2, fontSize: 13, color: UI.textMuted, textAlign: "center" }}>
+                  No nearby stores found right now.
+                </Typography>
+              )}
             </SectionShell>
           </Box>
-          */}
 
           <Box id="ads-section">
             <ScrollRow gap={1}>
@@ -1393,24 +1451,26 @@ function BusinessDashboard() {
           </Stack>
 
           <Box id="product-section">
-            <SectionShell
-              title="Deals for You"
-              subtitle="Discounted products picked for your account"
-            >
-              <StickyDeliveryButton onClick={() => navigate("/business/tri-sarathi-delivery")} />
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                  gap: 0.9,
-                  width: "100%",
-                }}
+            <ComingSoonOverlay label="Online Products Coming Soon">
+              <SectionShell
+                title="Deals for You"
+                subtitle="Discounted products picked for your account"
               >
-                {PRODUCTS.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </Box>
-            </SectionShell>
+                <StickyDeliveryButton onClick={() => navigate("/business/tri-sarathi-delivery")} />
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                    gap: 0.9,
+                    width: "100%",
+                  }}
+                >
+                  {PRODUCTS.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </Box>
+              </SectionShell>
+            </ComingSoonOverlay>
           </Box>
 
         </Stack>
@@ -1426,6 +1486,18 @@ function BusinessDashboard() {
       />
       <AppDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onAction={handleDrawerAction} />
       <MobileFooterNav activeItem={activeFooterItem} onNavigate={handleFooterNavigate} />
+
+      <Snackbar
+        open={!!toastMsg}
+        autoHideDuration={3000}
+        onClose={() => setToastMsg("")}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        sx={{ bottom: { xs: 80, sm: 24 } }}
+      >
+        <Alert onClose={() => setToastMsg("")} severity="info" sx={{ width: "100%", bgcolor: UI.primary, color: "#fff", "& .MuiAlert-icon": { color: "#fff" } }}>
+          {toastMsg}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

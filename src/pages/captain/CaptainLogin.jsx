@@ -44,7 +44,7 @@ const inputSx = (hasError) => ({
   '& .MuiInputAdornment-root svg': { color: 'rgba(255,255,255,0.5)' },
 });
 
-const CaptainLogin = () => {
+const UnifiedLogin = () => {
   const navigate = useNavigate();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -56,7 +56,7 @@ const CaptainLogin = () => {
     e.preventDefault();
     setError('');
 
-    if (!identifier.trim()) { setError('Enter your Captain ID or phone number'); return; }
+    if (!identifier.trim()) { setError('Enter your ID or phone number'); return; }
     if (!password) { setError('Enter your password'); return; }
 
     setLoading(true);
@@ -69,11 +69,21 @@ const CaptainLogin = () => {
 
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem('captain_access_token', data.access);
-        localStorage.setItem('captain_refresh_token', data.refresh);
-        localStorage.setItem('captain_username', data.username || identifier);
-        localStorage.setItem('captain_full_name', data.fullName || '');
-        navigate('/captain/home');
+        const role = data.role;
+        const category = data.category;
+        
+        if (role === 'agency' || category === 'agency_sub_franchise') {
+          localStorage.setItem('captain_access_token', data.access);
+          localStorage.setItem('captain_refresh_token', data.refresh);
+          localStorage.setItem('captain_username', data.username || identifier);
+          localStorage.setItem('captain_full_name', data.fullName || '');
+          navigate('/captain/home');
+        } else {
+          localStorage.setItem('access_token_business', data.access);
+          localStorage.setItem('refresh_token_business', data.refresh);
+          localStorage.setItem('business_id', data.username || identifier);
+          navigate('/merchant');
+        }
       } else {
         const err = await res.json().catch(() => ({}));
         setError(err.message || err.detail || 'Invalid credentials. Please check your ID and password.');
@@ -141,12 +151,12 @@ const CaptainLogin = () => {
                 <Shield sx={{ fontSize: 36, color: '#fff' }} />
               </Box>
             </motion.div>
-            <Typography sx={{ fontWeight: 900, fontSize: '1.6rem', color: '#fff', letterSpacing: '-0.02em', mb: 0.5 }}>
-              Captain Login
-            </Typography>
-            <Typography sx={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.88rem', fontWeight: 500 }}>
-              Trikonekt Captain Portal
-            </Typography>
+                <Typography variant="h4" sx={{ color: '#fff', fontWeight: 800, letterSpacing: '-0.5px' }}>
+                  Login to Trikonekt
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', mt: 1, fontSize: '0.95rem' }}>
+                  Enter your credentials to access your dashboard
+                </Typography>
           </Box>
 
           {/* Login Card */}
@@ -179,21 +189,19 @@ const CaptainLogin = () => {
                   Captain ID or Phone
                 </Typography>
                 <TextField
-                  fullWidth
-                  value={identifier}
-                  onChange={e => setIdentifier(e.target.value.toUpperCase().trim())}
-                  placeholder="CB1234567890 or 9876543210"
-                  autoComplete="username"
-                  size="small"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Phone sx={{ fontSize: 18 }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={inputSx(false)}
-                />
+                    fullWidth
+                    placeholder="Enter ID or Phone Number"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    sx={inputSx(!!error)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <EmojiPeople fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
               </Box>
 
               {/* Password */}
@@ -282,4 +290,4 @@ const CaptainLogin = () => {
   );
 };
 
-export default CaptainLogin;
+export default UnifiedLogin;

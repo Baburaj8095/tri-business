@@ -49,10 +49,11 @@ public class AuthService {
             new RuntimeException("No Captain account found for: " + req.getIdentifier())
         );
 
-        // Ensure this is a Captain account
+        // Ensure this is a Captain or Business account
         String category = (String) user.getOrDefault("category", "");
-        if (!"agency_sub_franchise".equals(category)) {
-            throw new RuntimeException("This account is not a Captain account. Please use the correct login portal.");
+        String role = (String) user.getOrDefault("role", "");
+        if (!"agency_sub_franchise".equals(category) && !"business".equals(category) && !"merchant".equals(category)) {
+            throw new RuntimeException("This account is not authorized for the Business/Captain portal.");
         }
 
         // Verify account is active
@@ -79,8 +80,10 @@ public class AuthService {
             .refresh(refreshToken)
             .username(username)
             .captainId(username)
-            .fullName(fullName)
-            .pincode(pincode)
+            .fullName((String) user.get("full_name"))
+            .role(role)
+            .category(category)
+            .pincode((String) user.get("pincode"))
             .build();
     }
 

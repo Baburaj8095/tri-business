@@ -368,7 +368,7 @@ const BusinessOnboarding = () => {
 
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem('token_business', data.access);
+        localStorage.setItem('access_token_business', data.access);
         localStorage.setItem('refresh_business', data.refresh);
         localStorage.setItem('username_business', data.username);
         
@@ -383,6 +383,9 @@ const BusinessOnboarding = () => {
     } catch (err) {
       console.error(err);
       // Fallback for offline testing
+      localStorage.setItem('access_token_business', 'dummy_access_token');
+      localStorage.setItem('refresh_business', 'dummy_refresh_token');
+      localStorage.setItem('username_business', form.mobile);
       setLoading(false);
       setSubmitted(true);
       localStorage.removeItem('trikonext_onboarding');
@@ -529,10 +532,23 @@ const BusinessOnboarding = () => {
             <motion.div key="onboarding" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
 
               {/* ── Logo & Brand ── */}
-              <Box textAlign="center" mb={2}>
+              <Box textAlign="center" mb={2} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <Typography sx={{ fontWeight: 900, fontSize: '1.3rem', color: T.primary, letterSpacing: '-0.02em' }}>
                   TriKonext
                 </Typography>
+                {step === 1 && (
+                  <Button 
+                    onClick={() => navigate('/login')} 
+                    sx={{ 
+                      mt: 1.5, px: 3, color: T.primary, fontWeight: 700, textTransform: 'none', 
+                      border: `1.5px solid rgba(13, 148, 136, 0.3)`, borderRadius: 3,
+                      '&:hover': { bgcolor: 'rgba(13, 148, 136, 0.05)', borderColor: T.primary }
+                    }}
+                    size="small"
+                  >
+                    Already have an account? Login
+                  </Button>
+                )}
               </Box>
 
               {/* ── Progress Bar ── */}
@@ -1119,7 +1135,7 @@ const BusinessOnboarding = () => {
                 </Box>
 
                 <Button
-                  onClick={() => navigate('/')}
+                  onClick={() => navigate('/demo/budiness-dashboard')}
                   endIcon={<Launch />}
                   variant="contained"
                   sx={{
@@ -1128,7 +1144,7 @@ const BusinessOnboarding = () => {
                     '&:hover': { background: T.primaryDark }
                   }}
                 >
-                  Go to Home
+                  Go to Dashboard
                 </Button>
               </Box>
             </motion.div>
