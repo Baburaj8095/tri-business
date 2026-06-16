@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 002-create-captain-kyc-and-admins
       author: trikonekt
+      validCheckSum: ANY
       changes:
         - createTable:
             tableName: business_admins
