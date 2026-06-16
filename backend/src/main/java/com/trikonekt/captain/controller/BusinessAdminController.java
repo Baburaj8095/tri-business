@@ -81,6 +81,36 @@ public class BusinessAdminController {
     }
 
     /**
+     * GET /api/admin/merchants
+     */
+    @GetMapping("/merchants")
+    public ResponseEntity<Map<String, Object>> getMerchants(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam String category,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Map<String, Object> res = adminService.getMerchants(authHeader, category, search, page, size);
+        return ResponseEntity.ok(res);
+    }
+
+    /**
+     * PATCH /api/admin/merchants/{id}/status
+     */
+    @PatchMapping("/merchants/{id}/status")
+    public ResponseEntity<Map<String, String>> updateMerchantStatus(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable long id,
+            @RequestBody Map<String, Boolean> body) {
+        Boolean active = body.get("active");
+        if (active == null) {
+            throw new IllegalArgumentException("Field 'active' is required.");
+        }
+        adminService.updateUserStatus(authHeader, id, active);
+        return ResponseEntity.ok(Map.of("message", "Merchant account status updated successfully."));
+    }
+
+    /**
      * PATCH /api/admin/captains/{id}/kyc
      */
     @PatchMapping("/captains/{id}/kyc")

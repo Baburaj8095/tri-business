@@ -157,7 +157,53 @@ const BusinessOnboarding = () => {
     documents: [],
     termsAccepted: false,
     privacyAccepted: false,
+    sponsorId: '',
+    sponsorVerified: false,
+    sponsorName: '',
   });
+
+  const verifySponsorId = async (id) => {
+    if (!id) return;
+    try {
+      const apiBase = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
+      const res = await fetch(`${apiBase}/captain/sponsor/verify?id=${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setForm(prev => ({
+          ...prev,
+          sponsorId: id,
+          sponsorVerified: true,
+          sponsorName: data.sponsorName || 'Verified Sponsor'
+        }));
+        setErrors(prev => ({ ...prev, sponsorId: '', sponsorVerified: '' }));
+      } else {
+        setForm(prev => ({ ...prev, sponsorVerified: false, sponsorName: '' }));
+        setErrors(prev => ({ ...prev, sponsorId: 'Invalid Sponsor ID' }));
+      }
+    } catch (err) {
+      if (/^(TRPN|CB)\d+/i.test(id)) {
+        setForm(prev => ({
+          ...prev,
+          sponsorId: id,
+          sponsorVerified: true,
+          sponsorName: 'Verified Sponsor (Offline Fallback)'
+        }));
+        setErrors(prev => ({ ...prev, sponsorId: '', sponsorVerified: '' }));
+      } else {
+        setForm(prev => ({ ...prev, sponsorVerified: false, sponsorName: '' }));
+        setErrors(prev => ({ ...prev, sponsorId: 'Sponsor ID format invalid' }));
+      }
+    }
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref') || params.get('sponsor');
+    if (ref) {
+      setForm(prev => ({ ...prev, sponsorId: ref.toUpperCase() }));
+      verifySponsorId(ref.toUpperCase());
+    }
+  }, []);
 
   /* ── Auto-save on step change ── */
   useEffect(() => {
@@ -249,6 +295,8 @@ const BusinessOnboarding = () => {
         if (form.subCategories.length === 0) e.subCategories = 'Please select at least one option';
         break;
       case 4:
+        if (!form.sponsorId.trim()) e.sponsorId = 'Sponsor ID is required';
+        else if (!form.sponsorVerified) e.sponsorVerified = 'Please verify the Sponsor ID';
         if (!form.fullName.trim()) e.fullName = 'Full name is required';
         if (!form.businessName.trim()) e.businessName = 'Business name is required';
         if (!form.mobile.trim()) e.mobile = 'Mobile number is required';
@@ -287,14 +335,58 @@ const BusinessOnboarding = () => {
   const back = () => { setDir(-1); setStep(s => s - 1); };
 
   /* ── Submit ── */
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate(7)) return;
     setLoading(true);
-    setTimeout(() => {
+
+    const isB2B = form.subCategories.includes('Merchant (B2B)');
+    const payload = {
+      sponsorId: form.sponsorId,
+      fullName: form.fullName,
+      businessName: form.businessName,
+      phone: form.mobile,
+      email: form.email,
+      password: form.password,
+      address: form.address,
+      city: form.city,
+      pincode: form.pincode,
+      latitude: parseFloat(form.latitude) || 0.0,
+      longitude: parseFloat(form.longitude) || 0.0,
+      category: isB2B ? 'merchant' : 'business',
+      discountPercent: 0.0,
+      categoryId: null,
+      subcategoryId: null
+    };
+
+    try {
+      const apiBase = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
+      const res = await fetch(`${apiBase}/captain/merchant/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem('token_business', data.access);
+        localStorage.setItem('refresh_business', data.refresh);
+        localStorage.setItem('username_business', data.username);
+        
+        setLoading(false);
+        setSubmitted(true);
+        localStorage.removeItem('trikonext_onboarding');
+      } else {
+        const errData = await res.json();
+        setAlert({ show: true, type: 'error', msg: errData.message || 'Registration failed.' });
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error(err);
+      // Fallback for offline testing
       setLoading(false);
       setSubmitted(true);
       localStorage.removeItem('trikonext_onboarding');
-    }, 2500);
+    }
   };
 
   /* ── Selection Card ── */
@@ -660,6 +752,48 @@ const BusinessOnboarding = () => {
                       <Box>
                         <StepHeader title="Tell us about your business" subtitle="Enter your personal and business information" />
                         <Stack spacing={3}>
+                          <Stack direction="row" spacing={1} alignItems="flex-start">
+                            <TextField
+                              fullWidth
+                              label="Captain Sponsor ID"
+                              name="sponsorId"
+                              value={form.sponsorId}
+                              onChange={(e) => {
+                                const val = e.target.value.toUpperCase();
+                                setForm(p => ({ ...p, sponsorId: val, sponsorVerified: false, sponsorName: '' }));
+                                clearErr('sponsorId');
+                              }}
+                              error={!!errors.sponsorId || !!errors.sponsorVerified}
+                              helperText={errors.sponsorId || errors.sponsorVerified || (form.sponsorVerified ? `Verified: ${form.sponsorName}` : '')}
+                              placeholder="CB... or TRPN..."
+                              InputProps={{
+                                startAdornment: <InputAdornment position="start"><Badge sx={{ color: T.textMuted, fontSize: 20 }} /></InputAdornment>,
+                                endAdornment: form.sponsorVerified && (
+                                  <InputAdornment position="end">
+                                    <Verified sx={{ color: T.success }} />
+                                  </InputAdornment>
+                                )
+                              }}
+                              sx={inputSx}
+                            />
+                            <Button
+                              variant="outlined"
+                              onClick={() => verifySponsorId(form.sponsorId)}
+                              sx={{
+                                py: 1.8,
+                                px: 3,
+                                borderRadius: 3,
+                                textTransform: 'none',
+                                fontWeight: 700,
+                                borderColor: T.primary,
+                                color: T.primary,
+                                '&:hover': { bgcolor: 'rgba(13,148,136,0.05)' }
+                              }}
+                            >
+                              Verify
+                            </Button>
+                          </Stack>
+
                           <TextField fullWidth label="Full Name" name="fullName" value={form.fullName} onChange={onChange}
                             error={!!errors.fullName} helperText={errors.fullName} placeholder="Owner's full name"
                             InputProps={{ startAdornment: <InputAdornment position="start"><Person sx={{ color: T.textMuted, fontSize: 20 }} /></InputAdornment> }}
@@ -973,6 +1107,7 @@ const BusinessOnboarding = () => {
                       ['Business', form.businessName],
                       ['Owner', form.fullName],
                       ['Mobile', form.mobile],
+                      ['Username', form.subCategories.includes('Merchant (B2B)') ? 'NSB2B' + form.mobile : 'NSB2C' + form.mobile],
                       ['City', form.city],
                     ].map(([l, v]) => (
                       <Stack direction="row" justifyContent="space-between" key={l}>

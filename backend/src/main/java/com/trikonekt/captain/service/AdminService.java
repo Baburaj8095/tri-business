@@ -87,7 +87,26 @@ public class AdminService {
 
     public void updateCaptainStatus(String token, long captainId, boolean active) {
         verifyAdminToken(token, "captains");
-        adminRepository.updateCaptainAccountStatus(captainId, active);
+        adminRepository.updateUserAccountStatus(captainId, active);
+    }
+
+    public void updateUserStatus(String token, long userId, boolean active) {
+        verifyAdminToken(token, "captains");
+        adminRepository.updateUserAccountStatus(userId, active);
+    }
+
+    public Map<String, Object> getMerchants(String token, String category, String search, int page, int size) {
+        verifyAdminToken(token, "captains");
+        int offset = (page - 1) * size;
+        List<Map<String, Object>> merchants = adminRepository.listMerchants(category, search, size, offset);
+        int total = adminRepository.countMerchants(category, search);
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("merchants", merchants);
+        res.put("total", total);
+        res.put("page", page);
+        res.put("size", size);
+        return res;
     }
 
     public void updateCaptainKyc(String token, long captainId, String status, String reason) {

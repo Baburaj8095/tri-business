@@ -57,7 +57,8 @@ import {
   Refresh as RefreshIcon,
   Dashboard as DashboardIcon,
   Menu as MenuIcon,
-  SupervisorAccount as AdminSettingsIcon
+  SupervisorAccount as AdminSettingsIcon,
+  Storefront as StoreIcon
 } from '@mui/icons-material';
 
 const T = {
@@ -78,9 +79,11 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [stats, setStats] = useState({ totalCaptains: 0, activeCaptains: 0, pendingKyc: 0, registeredThisMonth: 0 });
+  const [stats, setStats] = useState({ totalCaptains: 0, activeCaptains: 0, pendingKyc: 0, registeredThisMonth: 0, totalB2B: 0, totalB2C: 0 });
   const [captains, setCaptains] = useState([]);
   const [totalCaptains, setTotalCaptains] = useState(0);
+  const [merchants, setMerchants] = useState([]);
+  const [totalMerchants, setTotalMerchants] = useState(0);
   const [search, setSearch] = useState('');
   const [kycFilter, setKycFilter] = useState('');
   const [activeFilter, setActiveFilter] = useState('');
@@ -102,6 +105,15 @@ export default function AdminDashboard() {
 
   const [toast, setToast] = useState({ open: false, type: 'success', message: '' });
 
+  const handleTabChange = (tabIndex) => {
+    setActiveTab(tabIndex);
+    setPage(1);
+    setSearch('');
+    setKycFilter('');
+    setActiveFilter('');
+    setMobileOpen(false);
+  };
+
   const API_URL = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
   const role = localStorage.getItem('admin_role') || 'SUB_ADMIN';
   const myModules = localStorage.getItem('admin_modules') || 'all';
@@ -113,7 +125,7 @@ export default function AdminDashboard() {
     } else {
       fetchData();
     }
-  }, [navigate, search, kycFilter, activeFilter, page]);
+  }, [navigate, search, kycFilter, activeFilter, page, activeTab]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -129,22 +141,40 @@ export default function AdminDashboard() {
       }
 
       // 2. Fetch Captains List
-      let queryParams = `?page=${page}&size=${size}`;
-      if (search.trim()) queryParams += `&search=${encodeURIComponent(search)}`;
-      if (kycFilter) queryParams += `&kycStatus=${kycFilter}`;
-      if (activeFilter !== '') queryParams += `&isActive=${activeFilter}`;
+      if (activeTab === 1) {
+        let queryParams = `?page=${page}&size=${size}`;
+        if (search.trim()) queryParams += `&search=${encodeURIComponent(search)}`;
+        if (kycFilter) queryParams += `&kycStatus=${kycFilter}`;
+        if (activeFilter !== '') queryParams += `&isActive=${activeFilter}`;
 
-      const capRes = await fetch(`${API_URL}/admin/captains${queryParams}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (capRes.ok) {
-        const capData = await capRes.json();
-        setCaptains(capData.captains || []);
-        setTotalCaptains(capData.total || 0);
+        const capRes = await fetch(`${API_URL}/admin/captains${queryParams}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (capRes.ok) {
+          const capData = await capRes.json();
+          setCaptains(capData.captains || []);
+          setTotalCaptains(capData.total || 0);
+        }
       }
 
-      // 3. Fetch Sub Admins if SUPER_ADMIN
-      if (role === 'SUPER_ADMIN') {
+      // 3. Fetch Merchants List (B2B = tab 2, B2C = tab 3)
+      if (activeTab === 2 || activeTab === 3) {
+        const cat = activeTab === 2 ? 'merchant' : 'business';
+        let mercQueryParams = `?category=${cat}&page=${page}&size=${size}`;
+        if (search.trim()) mercQueryParams += `&search=${encodeURIComponent(search)}`;
+
+        const mercRes = await fetch(`${API_URL}/admin/merchants${mercQueryParams}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (mercRes.ok) {
+          const mercData = await mercRes.json();
+          setMerchants(mercData.merchants || []);
+          setTotalMerchants(mercData.total || 0);
+        }
+      }
+
+      // 4. Fetch Sub Admins if SUPER_ADMIN
+      if (role === 'SUPER_ADMIN' && activeTab === 4) {
         const subRes = await fetch(`${API_URL}/admin/sub-admins`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -155,15 +185,41 @@ export default function AdminDashboard() {
       }
     } catch (err) {
       console.error("Dashboard fetch error:", err);
-      // Fallback mocks for demo if backend is offline
       generateMockData();
     } finally {
       setLoading(false);
     }
   };
 
+  const handleMerchantStatusToggle = async (userId, currentStatus) => {
+    if (!checkModulePermission('captains')) return;
+    const token = localStorage.getItem('admin_token');
+    const newStatus = !currentStatus;
+
+    try {
+      const res = await fetch(`${API_URL}/admin/merchants/${userId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ active: newStatus })
+      });
+
+      if (res.ok) {
+        setToast({ open: true, type: 'success', message: 'Account status updated successfully.' });
+        fetchData();
+      } else {
+        throw new Error('Update failed');
+      }
+    } catch (e) {
+      setMerchants(prev => prev.map(m => m.id === userId ? { ...m, is_active: newStatus } : m));
+      setToast({ open: true, type: 'success', message: '[Mock] Account status toggled.' });
+    }
+  };
+
   const generateMockData = () => {
-    setStats({ totalCaptains: 4, activeCaptains: 2, pendingKyc: 2, registeredThisMonth: 4 });
+    setStats({ totalCaptains: 4, activeCaptains: 2, pendingKyc: 2, registeredThisMonth: 4, totalB2B: 3, totalB2C: 2 });
     setCaptains([
       { id: 1, username: 'CB9876543210', full_name: 'Baburaj Balaji', phone: '9876543210', pincode: '600001', sponsor_id: 'TRPN8095809500', is_active: true, date_joined: new Date().toISOString(), kyc_status: 'APPROVED' },
       { id: 2, username: 'CB9876543211', full_name: 'Anish Kumar', phone: '9876543211', pincode: '600002', sponsor_id: 'CB9876543210', is_active: false, date_joined: new Date().toISOString(), kyc_status: 'PENDING' },
@@ -171,6 +227,12 @@ export default function AdminDashboard() {
       { id: 4, username: 'CB9876543213', full_name: 'Suresh Raina', phone: '9876543213', pincode: '600004', sponsor_id: 'CB9876543210', is_active: true, date_joined: new Date().toISOString(), kyc_status: 'PENDING' }
     ]);
     setTotalCaptains(4);
+
+    setMerchants([
+      { id: 101, username: 'NSB2B9876543210', full_name: 'Baburaj Balaji B2B', phone: '9876543210', pincode: '600001', shop_name: 'Baburaj Wholesale Store', address: '456 Market Lane', city: 'Chennai', is_active: true, discount_percent: 10.0, date_joined: new Date().toISOString() },
+      { id: 102, username: 'NSB2C9876543210', full_name: 'Baburaj Balaji B2C', phone: '9876543210', pincode: '600001', shop_name: 'Baburaj Retail Shop', address: '123 Retail Road', city: 'Chennai', is_active: true, discount_percent: 5.0, date_joined: new Date().toISOString() }
+    ]);
+    setTotalMerchants(2);
 
     if (role === 'SUPER_ADMIN') {
       setSubAdmins([
@@ -436,7 +498,7 @@ export default function AdminDashboard() {
         <ListItem disablePadding sx={{ mb: 0.5 }}>
           <ListItemButton
             selected={activeTab === 0}
-            onClick={() => { setActiveTab(0); setMobileOpen(false); }}
+            onClick={() => handleTabChange(0)}
             sx={{
               borderRadius: '8px',
               color: activeTab === 0 ? 'white' : '#94a3b8',
@@ -453,7 +515,7 @@ export default function AdminDashboard() {
         <ListItem disablePadding sx={{ mb: 0.5 }}>
           <ListItemButton
             selected={activeTab === 1}
-            onClick={() => { setActiveTab(1); setMobileOpen(false); }}
+            onClick={() => handleTabChange(1)}
             sx={{
               borderRadius: '8px',
               color: activeTab === 1 ? 'white' : '#94a3b8',
@@ -467,21 +529,55 @@ export default function AdminDashboard() {
           </ListItemButton>
         </ListItem>
 
+        <ListItem disablePadding sx={{ mb: 0.5 }}>
+          <ListItemButton
+            selected={activeTab === 2}
+            onClick={() => handleTabChange(2)}
+            sx={{
+              borderRadius: '8px',
+              color: activeTab === 2 ? 'white' : '#94a3b8',
+              bgcolor: activeTab === 2 ? 'rgba(59,130,246,0.15) !important' : 'transparent',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
+              '& .MuiListItemIcon-root': { color: activeTab === 2 ? 'white' : '#64748b' }
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}><StoreIcon /></ListItemIcon>
+            <ListItemText primary="B2B Merchants" primaryTypographyProps={{ fontWeight: activeTab === 2 ? '800' : '500', fontSize: '0.85rem' }} />
+          </ListItemButton>
+        </ListItem>
+
+        <ListItem disablePadding sx={{ mb: 0.5 }}>
+          <ListItemButton
+            selected={activeTab === 3}
+            onClick={() => handleTabChange(3)}
+            sx={{
+              borderRadius: '8px',
+              color: activeTab === 3 ? 'white' : '#94a3b8',
+              bgcolor: activeTab === 3 ? 'rgba(59,130,246,0.15) !important' : 'transparent',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
+              '& .MuiListItemIcon-root': { color: activeTab === 3 ? 'white' : '#64748b' }
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}><StoreIcon /></ListItemIcon>
+            <ListItemText primary="B2C Merchants" primaryTypographyProps={{ fontWeight: activeTab === 3 ? '800' : '500', fontSize: '0.85rem' }} />
+          </ListItemButton>
+        </ListItem>
+
         {role === 'SUPER_ADMIN' && (
           <ListItem disablePadding sx={{ mb: 0.5 }}>
             <ListItemButton
-              selected={activeTab === 2}
-              onClick={() => { setActiveTab(2); setMobileOpen(false); }}
+              selected={activeTab === 4}
+              onClick={() => handleTabChange(4)}
               sx={{
                 borderRadius: '8px',
-                color: activeTab === 2 ? 'white' : '#94a3b8',
-                bgcolor: activeTab === 2 ? 'rgba(59,130,246,0.15) !important' : 'transparent',
+                color: activeTab === 4 ? 'white' : '#94a3b8',
+                bgcolor: activeTab === 4 ? 'rgba(59,130,246,0.15) !important' : 'transparent',
                 '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
-                '& .MuiListItemIcon-root': { color: activeTab === 2 ? 'white' : '#64748b' }
+                '& .MuiListItemIcon-root': { color: activeTab === 4 ? 'white' : '#64748b' }
               }}
             >
               <ListItemIcon sx={{ minWidth: 40 }}><AdminSettingsIcon /></ListItemIcon>
-              <ListItemText primary="Sub-Admins Setup" primaryTypographyProps={{ fontWeight: activeTab === 2 ? '800' : '500', fontSize: '0.85rem' }} />
+              <ListItemText primary="Sub-Admins Setup" primaryTypographyProps={{ fontWeight: activeTab === 4 ? '800' : '500', fontSize: '0.85rem' }} />
             </ListItemButton>
           </ListItem>
         )}
@@ -591,7 +687,7 @@ export default function AdminDashboard() {
               <MenuIcon />
             </IconButton>
             <Typography variant="subtitle1" sx={{ fontWeight: '800', color: T.text, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
-              {activeTab === 0 ? 'Dashboard Overview' : activeTab === 1 ? 'Captain Registrations' : 'Sub-Admin User Management'}
+              {activeTab === 0 ? 'Dashboard Overview' : activeTab === 1 ? 'Captain Registrations' : activeTab === 2 ? 'B2B Merchants' : activeTab === 3 ? 'B2C Merchants' : 'Sub-Admin User Management'}
             </Typography>
           </Box>
 
@@ -619,69 +715,103 @@ export default function AdminDashboard() {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               {/* Dashboard Stats Row */}
               <Grid container spacing={2}>
-                <Grid item xs={6} md={3}>
+                <Grid item xs={6} sm={4} md={2}>
                   <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, height: '100%' }}>
-                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
-                      <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(30, 58, 138, 0.06)', color: T.primary, display: 'flex' }}>
-                        <PeopleIcon />
+                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 2 }}>
+                      <Box sx={{ p: 1.2, borderRadius: '10px', bgcolor: 'rgba(30, 58, 138, 0.06)', color: T.primary, display: 'flex' }}>
+                        <PeopleIcon sx={{ fontSize: 20 }} />
                       </Box>
                       <Box>
-                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.7rem' }}>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.65rem', lineHeight: 1.2 }}>
                           Total Captains
                         </Typography>
-                        <Typography variant="h5" sx={{ fontWeight: '900', mt: 0.2 }}>
+                        <Typography variant="h6" sx={{ fontWeight: '900', mt: 0.2 }}>
                           {stats.totalCaptains}
                         </Typography>
                       </Box>
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={6} md={3}>
+                <Grid item xs={6} sm={4} md={2}>
                   <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, height: '100%' }}>
-                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
-                      <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(16, 185, 129, 0.06)', color: T.success, display: 'flex' }}>
-                        <ActiveIcon />
+                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 2 }}>
+                      <Box sx={{ p: 1.2, borderRadius: '10px', bgcolor: 'rgba(16, 185, 129, 0.06)', color: T.success, display: 'flex' }}>
+                        <ActiveIcon sx={{ fontSize: 20 }} />
                       </Box>
                       <Box>
-                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.7rem' }}>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.65rem', lineHeight: 1.2 }}>
                           Active Captains
                         </Typography>
-                        <Typography variant="h5" sx={{ fontWeight: '900', mt: 0.2 }}>
+                        <Typography variant="h6" sx={{ fontWeight: '900', mt: 0.2 }}>
                           {stats.activeCaptains}
                         </Typography>
                       </Box>
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={6} md={3}>
+                <Grid item xs={6} sm={4} md={2}>
                   <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, height: '100%' }}>
-                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
-                      <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(245, 158, 11, 0.06)', color: T.warning, display: 'flex' }}>
-                        <PendingIcon />
+                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 2 }}>
+                      <Box sx={{ p: 1.2, borderRadius: '10px', bgcolor: 'rgba(245, 158, 11, 0.06)', color: T.warning, display: 'flex' }}>
+                        <PendingIcon sx={{ fontSize: 20 }} />
                       </Box>
                       <Box>
-                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.7rem' }}>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.65rem', lineHeight: 1.2 }}>
                           Pending KYC
                         </Typography>
-                        <Typography variant="h5" sx={{ fontWeight: '900', mt: 0.2 }}>
+                        <Typography variant="h6" sx={{ fontWeight: '900', mt: 0.2 }}>
                           {stats.pendingKyc}
                         </Typography>
                       </Box>
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={6} md={3}>
+                <Grid item xs={6} sm={4} md={2}>
                   <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, height: '100%' }}>
-                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
-                      <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(59, 130, 246, 0.06)', color: T.primaryLight, display: 'flex' }}>
-                        <PeopleIcon />
+                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 2 }}>
+                      <Box sx={{ p: 1.2, borderRadius: '10px', bgcolor: 'rgba(59, 130, 246, 0.06)', color: T.primaryLight, display: 'flex' }}>
+                        <PeopleIcon sx={{ fontSize: 20 }} />
                       </Box>
                       <Box>
-                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.7rem' }}>
-                          Registered This Month
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.65rem', lineHeight: 1.2 }}>
+                          Registered Month
                         </Typography>
-                        <Typography variant="h5" sx={{ fontWeight: '900', mt: 0.2 }}>
+                        <Typography variant="h6" sx={{ fontWeight: '900', mt: 0.2 }}>
                           {stats.registeredThisMonth}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={6} sm={4} md={2}>
+                  <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, height: '100%' }}>
+                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 2 }}>
+                      <Box sx={{ p: 1.2, borderRadius: '10px', bgcolor: 'rgba(13, 148, 136, 0.06)', color: '#0d9488', display: 'flex' }}>
+                        <StoreIcon sx={{ fontSize: 20 }} />
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.65rem', lineHeight: 1.2 }}>
+                          B2B Merchants
+                        </Typography>
+                        <Typography variant="h6" sx={{ fontWeight: '900', mt: 0.2 }}>
+                          {stats.totalB2B || 0}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={6} sm={4} md={2}>
+                  <Card sx={{ borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, height: '100%' }}>
+                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 2 }}>
+                      <Box sx={{ p: 1.2, borderRadius: '10px', bgcolor: 'rgba(6, 182, 212, 0.06)', color: '#06b6d4', display: 'flex' }}>
+                        <StoreIcon sx={{ fontSize: 20 }} />
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 700, display: 'block', fontSize: '0.65rem', lineHeight: 1.2 }}>
+                          B2C Merchants
+                        </Typography>
+                        <Typography variant="h6" sx={{ fontWeight: '900', mt: 0.2 }}>
+                          {stats.totalB2C || 0}
                         </Typography>
                       </Box>
                     </CardContent>
@@ -939,8 +1069,171 @@ export default function AdminDashboard() {
             </Paper>
           )}
 
-          {/* VIEW 2: Sub-Admin Setup */}
-          {activeTab === 2 && role === 'SUPER_ADMIN' && (
+          {/* VIEW 2 & 3: B2B/B2C Merchants */}
+          {(activeTab === 2 || activeTab === 3) && (
+            <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+              {/* Filters Row */}
+              <Grid container spacing={2} sx={{ mb: 3 }} alignItems="center">
+                <Grid item xs={12} sm={6} md={4}>
+                  <TextField
+                    placeholder={`Search ${activeTab === 2 ? 'B2B' : 'B2C'} by name, shop, or phone...`}
+                    fullWidth
+                    size="small"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    InputProps={{ startAdornment: <SearchIcon sx={{ color: T.textSecondary, mr: 1 }} /> }}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                  />
+                </Grid>
+              </Grid>
+
+              {loading ? (
+                <Box sx={{ display: 'flex', py: 5, justifyContent: 'center' }}><CircularProgress /></Box>
+              ) : (
+                <>
+                  {/* Mobile View Card List */}
+                  <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 2 }}>
+                    {merchants.length === 0 ? (
+                      <Typography variant="body2" sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>
+                        No merchants found.
+                      </Typography>
+                    ) : (
+                      merchants.map((m) => (
+                        <Card
+                          key={m.id}
+                          sx={{
+                            borderRadius: '16px',
+                            border: `1px solid ${T.border}`,
+                            boxShadow: 'none',
+                            bgcolor: '#ffffff',
+                            p: 2
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ fontWeight: '800', color: T.text }}>
+                                {m.shop_name || 'N/A'}
+                              </Typography>
+                              <Typography variant="caption" color="textSecondary">
+                                Registered: {new Date(m.date_joined).toLocaleDateString()}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="caption" color="textSecondary">Active</Typography>
+                              <Switch
+                                checked={m.is_active}
+                                onChange={() => handleMerchantStatusToggle(m.id, m.is_active)}
+                                color="primary"
+                                size="small"
+                              />
+                            </Box>
+                          </Box>
+
+                          <Grid container spacing={1.5} sx={{ mb: 1.5 }}>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" color="textSecondary" display="block">Owner ID</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 'semibold', color: T.text, fontSize: '0.85rem' }}>{m.username}</Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" color="textSecondary" display="block">Owner Name</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 'semibold', color: T.text, fontSize: '0.85rem' }}>{m.full_name}</Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" color="textSecondary" display="block">Phone Number</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 'semibold', color: T.text, fontSize: '0.85rem' }}>{m.phone}</Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="caption" color="textSecondary" display="block">Discount (%)</Typography>
+                              <Chip
+                                label={`${m.discount_percent || 0}% Off`}
+                                size="small"
+                                color="success"
+                                variant="outlined"
+                                sx={{ fontWeight: 'bold', fontSize: '0.75rem', height: 20 }}
+                              />
+                            </Grid>
+                            <Grid item xs={12}>
+                              <Typography variant="caption" color="textSecondary" display="block">Address</Typography>
+                              <Typography variant="body2" sx={{ color: T.text, fontSize: '0.85rem' }}>
+                                {m.address ? `${m.address}, ` : ''}{m.city || ''} {m.pincode ? `(${m.pincode})` : ''}
+                              </Typography>
+                            </Grid>
+                          </Grid>
+                        </Card>
+                      ))
+                    )}
+                  </Box>
+
+                  {/* Desktop View Table */}
+                  <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                    <TableContainer component={Box}>
+                      <Table>
+                        <TableHead sx={{ bgcolor: '#f1f5f9' }}>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Shop Details</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Owner Details</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Contact Phone</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Discount %</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Registered On</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {merchants.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={6} align="center">No merchants found.</TableCell>
+                            </TableRow>
+                          ) : (
+                            merchants.map((m) => (
+                              <TableRow key={m.id} hover>
+                                <TableCell>
+                                  <Typography variant="body2" sx={{ fontWeight: 'semibold', color: T.text }}>
+                                    {m.shop_name || 'N/A'}
+                                  </Typography>
+                                  <Typography variant="caption" color="textSecondary" display="block">
+                                    {m.address ? `${m.address}, ` : ''}{m.city || ''} {m.pincode ? `- ${m.pincode}` : ''}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Typography variant="body2" sx={{ fontWeight: 'semibold' }}>
+                                    {m.full_name}
+                                  </Typography>
+                                  <Typography variant="caption" color="textSecondary" display="block">
+                                    ID: {m.username}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>{m.phone}</TableCell>
+                                <TableCell>
+                                  <Chip
+                                    label={`${m.discount_percent || 0}% Off`}
+                                    size="small"
+                                    color="success"
+                                    variant="outlined"
+                                    sx={{ fontWeight: 'bold' }}
+                                  />
+                                </TableCell>
+                                <TableCell>{new Date(m.date_joined).toLocaleDateString()}</TableCell>
+                                <TableCell>
+                                  <Switch
+                                    checked={m.is_active}
+                                    onChange={() => handleMerchantStatusToggle(m.id, m.is_active)}
+                                    color="primary"
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Box>
+                </>
+              )}
+            </Paper>
+          )}
+
+          {/* VIEW 4: Sub-Admin Setup */}
+          {activeTab === 4 && role === 'SUPER_ADMIN' && (
             <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: { xs: '1.05rem', sm: '1.25rem' } }}>Sub-Admin User Management</Typography>

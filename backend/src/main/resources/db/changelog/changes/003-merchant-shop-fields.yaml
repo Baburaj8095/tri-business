@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-merchant-shop-fields
+      author: antigravity
+      validCheckSum: ANY
+      changes:
+        - addColumn:
+            tableName: market_shop
+            columns:
+              - column:
+                  name: discount_percent
+                  type: numeric(5, 2)
+                  defaultValue: 0.00
+              - column:
+                  name: category_id
+                  type: integer
+              - column:
+                  name: subcategory_id
+                  type: integer
+              - column:
+                  name: additional_images
+                  type: text
+                  defaultValue: '[]'

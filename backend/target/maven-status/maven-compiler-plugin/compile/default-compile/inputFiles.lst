@@ -5,6 +5,7 @@ C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\CaptainApplication.java
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\model\CaptainProfileResponse.java
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\model\LoginResponse.java
+C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\model\MerchantRegisterRequest.java
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\service\AuthService.java
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\model\LoginRequest.java
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\controller\AuthController.java
@@ -17,7 +18,6 @@ C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\model\AdminLoginRequest.java
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\model\SponsorInfo.java
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\controller\LocationController.java
-C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\service\BcryptTest.java
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\config\CorsConfig.java
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\controller\CaptainProfileController.java
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\service\RegisterService.java

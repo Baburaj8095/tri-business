@@ -131,4 +131,83 @@ public class UserRepository {
             captainUsername, phone, fullName, email, pincode, district, stateName, sponsorId, userId
         );
     }
+
+    /**
+     * Inserts a new B2B or B2C merchant user into accounts_customuser.
+     */
+    public long insertMerchantUser(String username, String hashedPassword, String email,
+                                    String fullName, String phone, String pincode,
+                                    String sponsorId, String prefixedId, String prefixCode,
+                                    String category) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbc.update(con -> {
+            PreparedStatement ps = con.prepareStatement(
+                "INSERT INTO accounts_customuser (" +
+                "  username, password, email, first_name, last_name, " +
+                "  is_active, is_staff, is_superuser, date_joined, " +
+                "  role, category, full_name, phone, pincode, " +
+                "  sponsor_id, prefix_code, prefixed_id, " +
+                "  account_active, autopool_enabled, rewards_enabled, " +
+                "  is_agency_unlocked, can_create_self_accounts, " +
+                "  address, depth, identity_type" +
+                ") VALUES (" +
+                "  ?, ?, ?, '', '', " +
+                "  true, false, false, NOW(), " +
+                "  'user', ?, ?, ?, ?, " +
+                "  ?, ?, ?, " +
+                "  true, false, false, false, false, " +
+                "  '', 0, 'END_USER'" +
+                ") RETURNING id",
+                Statement.RETURN_GENERATED_KEYS
+            );
+            ps.setString(1, username);
+            ps.setString(2, hashedPassword);
+            ps.setString(3, email != null ? email : "");
+            ps.setString(4, category);
+            ps.setString(5, fullName);
+            ps.setString(6, phone);
+            ps.setString(7, pincode);
+            ps.setString(8, sponsorId != null ? sponsorId : "");
+            ps.setString(9, prefixCode);
+            ps.setString(10, prefixedId);
+            return ps;
+        }, keyHolder);
+
+        if (keyHolder.getKeys() != null && keyHolder.getKeys().containsKey("id")) {
+            return ((Number) keyHolder.getKeys().get("id")).longValue();
+        }
+        throw new RuntimeException("Failed to get generated user ID after insert");
+    }
+
+    /**
+     * Inserts a merchant profile in market_merchantprofile.
+     */
+    public void insertMerchantProfile(long userId, String businessName, String mobile, String address, String businessCategory) {
+        jdbc.update(
+            "INSERT INTO market_merchantprofile " +
+            "(user_id, business_name, mobile_number, commission_percent, service_mode, address, business_category, is_verified, created_at) " +
+            "VALUES (?, ?, ?, 0.00, 'BOTH', ?, ?, true, NOW()) " +
+            "ON CONFLICT (user_id) DO NOTHING",
+            userId, businessName, mobile, address != null ? address : "", businessCategory != null ? businessCategory : ""
+        );
+    }
+
+    /**
+     * Inserts a baseline shop in market_shop.
+     */
+    public void insertShop(long merchantId, String shopName, String address, String city, String pincode,
+                           Double latitude, Double longitude, String contactNumber, Double discountPercent,
+                           Integer categoryId, Integer subcategoryId, String additionalImages) {
+        jdbc.update(
+            "INSERT INTO market_shop " +
+            "(merchant_id, shop_name, address, city, pincode, latitude, longitude, contact_number, status, created_at, " +
+            " discount_percent, category_id, subcategory_id, additional_images) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', NOW(), ?, ?, ?, ?)",
+            merchantId, shopName, address != null ? address : "", city != null ? city : "", pincode != null ? pincode : "",
+            latitude, longitude, contactNumber != null ? contactNumber : "",
+            discountPercent != null ? discountPercent : 0.00,
+            categoryId, subcategoryId,
+            additionalImages != null ? additionalImages : "[]"
+        );
+    }
 }

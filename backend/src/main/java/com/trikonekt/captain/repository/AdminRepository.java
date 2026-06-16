@@ -84,11 +84,23 @@ public class AdminRepository {
             "AND date_joined >= date_trunc('month', NOW())", Integer.class
         );
 
+        // Total B2B (merchant)
+        Integer totalB2B = jdbc.queryForObject(
+            "SELECT COUNT(*) FROM accounts_customuser WHERE category = 'merchant'", Integer.class
+        );
+
+        // Total B2C (business)
+        Integer totalB2C = jdbc.queryForObject(
+            "SELECT COUNT(*) FROM accounts_customuser WHERE category = 'business'", Integer.class
+        );
+
         return Map.of(
             "totalCaptains", totalCaptains != null ? totalCaptains : 0,
             "activeCaptains", activeCaptains != null ? activeCaptains : 0,
             "pendingKyc", pendingKyc != null ? pendingKyc : 0,
-            "registeredThisMonth", monthCaptains != null ? monthCaptains : 0
+            "registeredThisMonth", monthCaptains != null ? monthCaptains : 0,
+            "totalB2B", totalB2B != null ? totalB2B : 0,
+            "totalB2C", totalB2C != null ? totalB2C : 0
         );
     }
 
@@ -172,6 +184,10 @@ public class AdminRepository {
         jdbc.update("UPDATE accounts_customuser SET is_active = ?, account_active = ? WHERE id = ? AND category = 'agency_sub_franchise'", active, active, id);
     }
 
+    public void updateUserAccountStatus(long id, boolean active) {
+        jdbc.update("UPDATE accounts_customuser SET is_active = ?, account_active = ? WHERE id = ?", active, active, id);
+    }
+
     public void updateCaptainKycStatus(long id, String status, String reason, long verifiedByAdminId) {
         // Verify if detail record exists first
         Integer count = jdbc.queryForObject(
@@ -194,5 +210,57 @@ public class AdminRepository {
                 id, status.toUpperCase(), reason, verifiedByAdminId
             );
         }
+    }
+
+    public List<Map<String, Object>> listMerchants(String category, String search, int limit, int offset) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT u.id, u.username, u.full_name, u.phone, u.pincode, u.sponsor_id, u.is_active, u.date_joined, " +
+            "       s.shop_name, s.address, s.city, s.contact_number, s.status AS shop_status, s.discount_percent " +
+            "FROM accounts_customuser u " +
+            "LEFT JOIN market_shop s ON u.id = s.merchant_id " +
+            "WHERE u.category = ? "
+        );
+
+        List<Object> params = new ArrayList<>();
+        params.add(category);
+
+        if (search != null && !search.isBlank()) {
+            sql.append("AND (UPPER(u.username) LIKE ? OR UPPER(u.full_name) LIKE ? OR u.phone LIKE ? OR UPPER(s.shop_name) LIKE ?) ");
+            String term = "%" + search.trim().toUpperCase() + "%";
+            params.add(term);
+            params.add(term);
+            params.add(term);
+            params.add(term);
+        }
+
+        sql.append("ORDER BY u.date_joined DESC LIMIT ? OFFSET ?");
+        params.add(limit);
+        params.add(offset);
+
+        return jdbc.queryForList(sql.toString(), params.toArray());
+    }
+
+    public int countMerchants(String category, String search) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(*) " +
+            "FROM accounts_customuser u " +
+            "LEFT JOIN market_shop s ON u.id = s.merchant_id " +
+            "WHERE u.category = ? "
+        );
+
+        List<Object> params = new ArrayList<>();
+        params.add(category);
+
+        if (search != null && !search.isBlank()) {
+            sql.append("AND (UPPER(u.username) LIKE ? OR UPPER(u.full_name) LIKE ? OR u.phone LIKE ? OR UPPER(s.shop_name) LIKE ?) ");
+            String term = "%" + search.trim().toUpperCase() + "%";
+            params.add(term);
+            params.add(term);
+            params.add(term);
+            params.add(term);
+        }
+
+        Integer count = jdbc.queryForObject(sql.toString(), Integer.class, params.toArray());
+        return count != null ? count : 0;
     }
 }

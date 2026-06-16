@@ -2,6 +2,7 @@ package com.trikonekt.captain.controller;
 
 import com.trikonekt.captain.model.LoginResponse;
 import com.trikonekt.captain.model.RegisterRequest;
+import com.trikonekt.captain.model.MerchantRegisterRequest;
 import com.trikonekt.captain.model.SponsorInfo;
 import com.trikonekt.captain.service.RegisterService;
 import com.trikonekt.captain.service.SponsorService;
@@ -29,6 +30,16 @@ public class RegisterController {
     @PostMapping("/register")
     public ResponseEntity<LoginResponse> register(@Valid @RequestBody RegisterRequest req) {
         LoginResponse response = registerService.register(req);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * POST /api/captain/merchant/register
+     * Registers a new B2B or B2C merchant and returns JWT tokens.
+     */
+    @PostMapping("/merchant/register")
+    public ResponseEntity<LoginResponse> registerMerchant(@Valid @RequestBody MerchantRegisterRequest req) {
+        LoginResponse response = registerService.registerMerchant(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
