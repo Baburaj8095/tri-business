@@ -159,7 +159,7 @@ databaseChangeLog:
                   value: admin
               - column:
                   name: password
-                  value: "$2a$10$83f2/9bZl/u18f5p8uJ6eexPz2oKkGgQ.5mF1x1m8P5d1YyK8iJtG"
+                  value: "$2a$10$.AkTk1dLgnwkL7wNdTZWmelhj99hMAgx4LBeEFXzTbxKTcgpDntSK"
               - column:
                   name: email
                   value: "admin@trikonekt.com"

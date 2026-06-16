@@ -25,6 +25,7 @@ com\trikonekt\captain\service\SponsorService.class
 com\trikonekt\captain\controller\AuthController.class
 com\trikonekt\captain\service\JwtService.class
 com\trikonekt\captain\controller\RegisterController.class
+com\trikonekt\captain\service\BcryptTest.class
 com\trikonekt\captain\service\CloudinaryService.class
 com\trikonekt\captain\service\AuthService.class
 com\trikonekt\captain\repository\UserRepository.class

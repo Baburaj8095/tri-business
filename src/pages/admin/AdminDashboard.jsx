@@ -31,7 +31,9 @@ import {
   Tooltip,
   CircularProgress,
   Snackbar,
-  Alert
+  Alert,
+  Avatar,
+  Divider
 } from '@mui/material';
 import {
   AdminPanelSettings as ShieldIcon,

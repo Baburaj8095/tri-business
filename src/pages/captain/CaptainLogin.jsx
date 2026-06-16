@@ -73,7 +73,7 @@ const CaptainLogin = () => {
         localStorage.setItem('captain_refresh_token', data.refresh);
         localStorage.setItem('captain_username', data.username || identifier);
         localStorage.setItem('captain_full_name', data.fullName || '');
-        navigate('/merchant');
+        navigate('/captain/home');
       } else {
         const err = await res.json().catch(() => ({}));
         setError(err.message || err.detail || 'Invalid credentials. Please check your ID and password.');
