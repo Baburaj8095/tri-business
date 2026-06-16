@@ -186,11 +186,11 @@ const UnifiedLogin = () => {
               {/* Identifier */}
               <Box>
                 <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.6)', mb: 0.75, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Captain ID or Phone
+                  User ID
                 </Typography>
                 <TextField
                     fullWidth
-                    placeholder="Enter ID or Phone Number"
+                    placeholder="Enter User ID"
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     sx={inputSx(!!error)}
@@ -260,10 +260,10 @@ const UnifiedLogin = () => {
             {/* Register link */}
             <Box sx={{ textAlign: 'center' }}>
               <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', fontWeight: 500 }}>
-                Don&apos;t have a Captain account?{' '}
+                Don&apos;t have an account?{' '}
                 <Box
                   component="span"
-                  onClick={() => navigate('/captain/register')}
+                  onClick={() => navigate('/register')}
                   sx={{ color: T.accent, fontWeight: 800, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
                 >
                   Register Now

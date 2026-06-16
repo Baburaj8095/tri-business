@@ -69,7 +69,7 @@ export default function CaptainHome() {
       try {
         const token = localStorage.getItem('captain_access_token');
         if (!token) {
-          navigate('/captain/login');
+          navigate('/login');
           return;
         }
 

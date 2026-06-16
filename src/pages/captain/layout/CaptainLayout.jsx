@@ -86,7 +86,7 @@ export default function CaptainLayout() {
     localStorage.removeItem('captain_refresh_token');
     localStorage.removeItem('captain_username');
     localStorage.removeItem('captain_full_name');
-    navigate('/captain/login');
+    navigate('/login', { replace: true });
   };
 
   if (loading) {

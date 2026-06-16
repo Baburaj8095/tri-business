@@ -1385,7 +1385,7 @@ function BusinessDashboard() {
               title="Nearby Stores"
               subtitle="Browse B2B merchants in your area"
             >
-              {b2bShops.length > 0 ? (
+              {Array.isArray(b2bShops) && b2bShops.length > 0 ? (
                 <ScrollRow gap={0.9}>
                   {b2bShops.map((shop) => (
                     <ShopCard key={shop.id} shop={shop} />
