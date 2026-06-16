@@ -50,9 +50,9 @@ jobs:
           set -euo pipefail
 
           # Move new JAR to destination
-          sudo mkdir -p /srv/trikonekt
-          sudo mv /tmp/captain-service.jar /srv/trikonekt/captain-service.jar
-          sudo chown -R ubuntu:ubuntu /srv/trikonekt
+          sudo mkdir -p /srv/captain
+          sudo mv /tmp/captain-service.jar /srv/captain/captain-service.jar
+          sudo chown -R ubuntu:ubuntu /srv/captain
 
           # Restart the systemd service to apply changes
           sudo systemctl restart captain-service
