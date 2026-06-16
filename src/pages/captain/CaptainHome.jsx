@@ -12,7 +12,10 @@ import {
   Tooltip,
   Snackbar,
   Alert,
-  Skeleton
+  Skeleton,
+  Avatar,
+  Divider,
+  Paper
 } from '@mui/material';
 import {
   ContentCopy as CopyIcon,
@@ -176,235 +179,363 @@ export default function CaptainHome() {
   }
 
   return (
-    <Box sx={{ py: 2 }}>
-      {/* Header Profile Greeting */}
+    <Box sx={{ py: 1 }}>
+      {/* Unified Fintech Dashboard Card */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.5 }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-          <Box>
-            <Typography variant="body2" color={T.textSecondary} sx={{ fontWeight: 'medium' }}>
-              {getGreeting()},
-            </Typography>
-            <Typography variant="h5" sx={{ fontWeight: '800', color: T.text }}>
-              {profile?.fullName}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5, gap: 1 }}>
-              <Chip
-                label={profile?.username}
-                size="small"
-                onClick={handleCopyId}
-                onDelete={handleCopyId}
-                deleteIcon={
-                  <Tooltip title={copied ? "Copied!" : "Copy ID"}>
-                    <CopyIcon style={{ fontSize: '0.9rem', color: T.primary }} />
-                  </Tooltip>
-                }
-                sx={{ 
-                  bgcolor: T.primaryLight, 
-                  color: T.primaryDark, 
-                  fontWeight: 'bold',
-                  border: `1px solid ${T.primary}22`,
-                  cursor: 'pointer'
-                }}
-              />
-            </Box>
-          </Box>
-          <IconButton sx={{ bgcolor: 'white', border: `1px solid ${T.border}`, p: 1.2 }}>
-            <AlertIcon sx={{ color: T.primary }} />
-          </IconButton>
-        </Box>
-      </motion.div>
+        <Card
+          sx={{
+            background: 'linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #0891b2 100%)',
+            color: 'white',
+            borderRadius: '24px',
+            boxShadow: '0 12px 30px rgba(13,148,136,0.22)',
+            p: 3,
+            mb: 3,
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          {/* Background decorative glow circles */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '-50px',
+              right: '-50px',
+              width: '150px',
+              height: '150px',
+              borderRadius: '999px',
+              background: 'rgba(255, 255, 255, 0.05)',
+              filter: 'blur(20px)',
+              pointerEvents: 'none'
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: '-30px',
+              left: '-30px',
+              width: '100px',
+              height: '100px',
+              borderRadius: '999px',
+              background: 'rgba(255, 255, 255, 0.05)',
+              filter: 'blur(15px)',
+              pointerEvents: 'none'
+            }}
+          />
 
-      {/* Auto Sliding Banner */}
-      <Box sx={{ mb: 4, position: 'relative', overflow: 'hidden', borderRadius: '16px' }}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeBanner}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.4 }}
-          >
-            <Card sx={{ background: BANNERS[activeBanner].bg, color: 'white', minHeight: 150, borderRadius: '16px', display: 'flex', alignItems: 'center' }}>
-              <CardContent sx={{ p: 3, width: '100%' }}>
-                <Typography variant="body1" sx={{ fontWeight: 'medium', mb: 2, fontSize: '0.95rem', lineHeight: 1.4 }}>
-                  {BANNERS[activeBanner].text}
-                </Typography>
-                {BANNERS[activeBanner].actionText && (
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => handleActionClick(BANNERS[activeBanner].actionPath, BANNERS[activeBanner].actionText)}
-                    sx={{
-                      bgcolor: 'white',
-                      color: T.primaryDark,
-                      fontWeight: 'bold',
-                      borderRadius: '8px',
-                      textTransform: 'none',
-                      boxShadow: 'none',
-                      '&:hover': { bgcolor: '#f8fafc', boxShadow: 'none' }
-                    }}
-                  >
-                    {BANNERS[activeBanner].actionText}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        </AnimatePresence>
-        {/* Carousel Dots */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 1.5 }}>
-          {BANNERS.map((_, idx) => (
-            <Box
-              key={idx}
+          {/* Row 1: Greetings & Profile Info */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box>
+              <Typography variant="caption" sx={{ opacity: 0.8, fontWeight: 600, letterSpacing: 0.5 }}>
+                {getGreeting().toUpperCase()}
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5 }}>
+                {profile?.fullName}
+              </Typography>
+            </Box>
+            <Avatar
               sx={{
-                width: idx === activeBanner ? 20 : 6,
-                height: 6,
-                borderRadius: 3,
-                bgcolor: idx === activeBanner ? T.primary : T.border,
-                transition: 'all 0.3s ease'
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                color: 'white',
+                fontWeight: 'bold',
+                width: 44,
+                height: 44,
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+              }}
+            >
+              {profile?.fullName?.charAt(0).toUpperCase()}
+            </Avatar>
+          </Box>
+
+          {/* Row 2: Captain ID Chip */}
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <Chip
+              label={profile?.username}
+              onClick={handleCopyId}
+              onDelete={handleCopyId}
+              deleteIcon={
+                <Tooltip title={copied ? "Copied!" : "Copy ID"}>
+                  <CopyIcon style={{ fontSize: '0.85rem', color: 'white' }} />
+                </Tooltip>
+              }
+              sx={{
+                bgcolor: 'rgba(255, 255, 255, 0.15)',
+                color: 'white',
+                fontWeight: 'bold',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                cursor: 'pointer',
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.25)' },
+                '& .MuiChip-deleteIcon': { color: 'white', '&:hover': { color: '#e2e8f0' } }
               }}
             />
-          ))}
-        </Box>
-      </Box>
+          </Box>
 
-      {/* Quick Stats Grid */}
-      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: T.text, mb: 1.5 }}>
-        Quick Overview
-      </Typography>
-      <Grid container spacing={2} sx={{ mb: 4 }}>
-        <Grid item xs={4}>
-          <Card sx={{ borderRadius: '12px', border: `1px solid ${T.border}`, boxShadow: 'none', textAlign: 'center', p: 1.5, bgcolor: '#ffffff' }}>
-            <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 'medium' }}>Referrals</Typography>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', color: T.text, mt: 0.5 }}>0</Typography>
-          </Card>
-        </Grid>
-        <Grid item xs={4}>
-          <Card sx={{ borderRadius: '12px', border: `1px solid ${T.border}`, boxShadow: 'none', textAlign: 'center', p: 1.5, bgcolor: '#ffffff' }}>
-            <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 'medium' }}>Earnings</Typography>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', color: T.text, mt: 0.5 }}>₹0.00</Typography>
-          </Card>
-        </Grid>
-        <Grid item xs={4}>
-          <Card sx={{ borderRadius: '12px', border: `1px solid ${T.border}`, boxShadow: 'none', textAlign: 'center', p: 1.5, bgcolor: '#ffffff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyItems: 'center' }}>
-            <Typography variant="caption" color="textSecondary" sx={{ fontWeight: 'medium', mb: 0.5 }}>KYC Status</Typography>
-            <Box sx={{ transform: 'scale(0.85)', mt: -0.5 }}>
-              {getKycChip(profile?.kycStatus)}
+          <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.15)', mb: 2.5 }} />
+
+          {/* Row 3: Integrated Metrics */}
+          <Grid container spacing={1}>
+            <Grid item xs={4}>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="caption" sx={{ opacity: 0.75, display: 'block', fontSize: '0.75rem', fontWeight: 500 }}>
+                  Referrals
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: '800', mt: 0.5 }}>
+                  0
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={4} sx={{ borderLeft: '1px solid rgba(255,255,255,0.15)', borderRight: '1px solid rgba(255,255,255,0.15)' }}>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="caption" sx={{ opacity: 0.75, display: 'block', fontSize: '0.75rem', fontWeight: 500 }}>
+                  Earnings
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: '800', mt: 0.5 }}>
+                  ₹0.00
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={4}>
+              <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Typography variant="caption" sx={{ opacity: 0.75, display: 'block', fontSize: '0.75rem', fontWeight: 500, mb: 0.5 }}>
+                  KYC Status
+                </Typography>
+                {/* Beautiful custom inline chip */}
+                {profile?.kycStatus?.toUpperCase() === 'APPROVED' ? (
+                  <Box sx={{ bgcolor: T.success, color: 'white', px: 1.2, py: 0.3, borderRadius: '20px', fontSize: '0.7rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <ApprovedIcon style={{ fontSize: '0.85rem' }} /> Approved
+                  </Box>
+                ) : profile?.kycStatus?.toUpperCase() === 'REJECTED' ? (
+                  <Box sx={{ bgcolor: T.danger, color: 'white', px: 1.2, py: 0.3, borderRadius: '20px', fontSize: '0.7rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <RejectedIcon style={{ fontSize: '0.85rem' }} /> Rejected
+                  </Box>
+                ) : (
+                  <Box sx={{ bgcolor: '#f59e0b', color: 'white', px: 1.2, py: 0.3, borderRadius: '20px', fontSize: '0.7rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <PendingIcon style={{ fontSize: '0.85rem' }} /> Pending
+                  </Box>
+                )}
+              </Box>
+            </Grid>
+          </Grid>
+        </Card>
+      </motion.div>
+
+      {/* Contextual Action Notification Alert if KYC is not Approved */}
+      {profile?.kycStatus !== 'APPROVED' && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          <Card
+            sx={{
+              borderRadius: '20px',
+              border: `1px dashed ${profile?.kycStatus === 'REJECTED' ? T.danger : '#f59e0b'}`,
+              bgcolor: profile?.kycStatus === 'REJECTED' ? '#fef2f2' : '#fffbeb',
+              boxShadow: 'none',
+              mb: 3,
+              p: 2.5
+            }}
+          >
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+              <Box
+                sx={{
+                  p: 1,
+                  borderRadius: '12px',
+                  bgcolor: profile?.kycStatus === 'REJECTED' ? '#fee2e2' : '#fef3c7',
+                  color: profile?.kycStatus === 'REJECTED' ? T.danger : '#d97706',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <AlertIcon />
+              </Box>
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: '800', color: '#0f172a' }}>
+                  {profile?.kycStatus === 'REJECTED' ? 'KYC Verification Rejected' : 'KYC Verification Required'}
+                </Typography>
+                <Typography variant="caption" sx={{ color: T.textSecondary, mt: 0.5, display: 'block', lineHeight: 1.4 }}>
+                  {profile?.kycStatus === 'REJECTED'
+                    ? 'Your documents were rejected. Please click here to upload valid documents and bank details.'
+                    : 'Complete your profile, nominee details, and bank account information to activate payouts and assignments.'}
+                </Typography>
+                <Button
+                  onClick={() => navigate('/captain/kyc')}
+                  variant="contained"
+                  size="small"
+                  sx={{
+                    mt: 1.5,
+                    bgcolor: profile?.kycStatus === 'REJECTED' ? T.danger : '#d97706',
+                    '&:hover': { bgcolor: profile?.kycStatus === 'REJECTED' ? '#dc2626' : '#b45309' },
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    fontWeight: 'bold',
+                    boxShadow: 'none'
+                  }}
+                >
+                  Verify Documents
+                </Button>
+              </Box>
             </Box>
           </Card>
-        </Grid>
-      </Grid>
+        </motion.div>
+      )}
 
-      {/* Action Grid */}
-      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: T.text, mb: 1.5 }}>
-        Quick Links
+      {/* Quick Links Circular Grid */}
+      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: T.text, mb: 1.5, px: 0.5 }}>
+        Quick Services
       </Typography>
-      <Grid container spacing={2}>
-        <Grid item xs={6}>
-          <Card 
-            onClick={() => navigate('/captain/kyc')}
-            sx={{ 
-              borderRadius: '16px', 
-              border: `1px solid ${T.border}`, 
-              boxShadow: 'none', 
-              cursor: 'pointer',
-              bgcolor: 'white',
-              '&:hover': { border: `1px solid ${T.primary}` }
-            }}
-          >
-            <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>
-              <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: T.primaryLight, color: T.primary, mb: 1.5 }}>
-                <KycIcon />
-              </Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: T.text }}>
-                Complete KYC
-              </Typography>
-              <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, textAlign: 'center' }}>
-                Nominee & bank details
-              </Typography>
-            </CardContent>
-          </Card>
+      <Paper
+        sx={{
+          borderRadius: '20px',
+          p: 2.5,
+          mb: 3,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.01)',
+          border: `1px solid ${T.border}`,
+          background: '#ffffff'
+        }}
+      >
+        <Grid container spacing={2} justifyContent="space-around">
+          {/* Service 1: KYC */}
+          <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <IconButton
+              onClick={() => navigate('/captain/kyc')}
+              sx={{
+                width: 52,
+                height: 52,
+                bgcolor: T.primaryLight,
+                color: T.primary,
+                mb: 1,
+                boxShadow: '0 8px 16px rgba(13,148,136,0.06)',
+                transition: 'all 0.2s ease',
+                '&:hover': { bgcolor: '#ccfbf1', transform: 'translateY(-2px)' }
+              }}
+            >
+              <KycIcon sx={{ fontSize: 22 }} />
+            </IconButton>
+            <Typography variant="caption" sx={{ fontWeight: '700', color: T.text, fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
+              Complete KYC
+            </Typography>
+          </Grid>
+
+          {/* Service 2: Profile */}
+          <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <IconButton
+              onClick={() => navigate('/captain/profile')}
+              sx={{
+                width: 52,
+                height: 52,
+                bgcolor: T.primaryLight,
+                color: T.primary,
+                mb: 1,
+                boxShadow: '0 8px 16px rgba(13,148,136,0.06)',
+                transition: 'all 0.2s ease',
+                '&:hover': { bgcolor: '#ccfbf1', transform: 'translateY(-2px)' }
+              }}
+            >
+              <ProfileIcon sx={{ fontSize: 22 }} />
+            </IconButton>
+            <Typography variant="caption" sx={{ fontWeight: '700', color: T.text, fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
+              My Profile
+            </Typography>
+          </Grid>
+
+          {/* Service 3: Merchants */}
+          <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <IconButton
+              onClick={() => handleActionClick(null, 'Merchant List')}
+              sx={{
+                width: 52,
+                height: 52,
+                bgcolor: '#f1f5f9',
+                color: '#64748b',
+                mb: 1,
+                boxShadow: '0 8px 16px rgba(0,0,0,0.01)',
+                transition: 'all 0.2s ease',
+                '&:hover': { bgcolor: '#e2e8f0', transform: 'translateY(-2px)' }
+              }}
+            >
+              <StoreIcon sx={{ fontSize: 22 }} />
+            </IconButton>
+            <Typography variant="caption" sx={{ fontWeight: '700', color: '#64748b', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
+              Merchants
+            </Typography>
+          </Grid>
+
+          {/* Service 4: Trizones */}
+          <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <IconButton
+              onClick={() => handleActionClick(null, 'Trizone List')}
+              sx={{
+                width: 52,
+                height: 52,
+                bgcolor: '#f1f5f9',
+                color: '#64748b',
+                mb: 1,
+                boxShadow: '0 8px 16px rgba(0,0,0,0.01)',
+                transition: 'all 0.2s ease',
+                '&:hover': { bgcolor: '#e2e8f0', transform: 'translateY(-2px)' }
+              }}
+            >
+              <GridIcon sx={{ fontSize: 22 }} />
+            </IconButton>
+            <Typography variant="caption" sx={{ fontWeight: '700', color: '#64748b', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
+              Trizones
+            </Typography>
+          </Grid>
         </Grid>
-        <Grid item xs={6}>
-          <Card 
-            onClick={() => navigate('/captain/profile')}
-            sx={{ 
-              borderRadius: '16px', 
-              border: `1px solid ${T.border}`, 
-              boxShadow: 'none', 
-              cursor: 'pointer',
-              bgcolor: 'white',
-              '&:hover': { border: `1px solid ${T.primary}` }
-            }}
-          >
-            <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>
-              <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: T.primaryLight, color: T.primary, mb: 1.5 }}>
-                <ProfileIcon />
-              </Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: T.text }}>
-                My Profile
-              </Typography>
-              <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, textAlign: 'center' }}>
-                View account info
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={6}>
-          <Card 
-            onClick={() => handleActionClick(null, 'Merchant List')}
-            sx={{ 
-              borderRadius: '16px', 
-              border: `1px solid ${T.border}`, 
-              boxShadow: 'none', 
-              cursor: 'pointer',
-              bgcolor: 'white',
-              '&:hover': { border: `1px solid ${T.primary}` }
-            }}
-          >
-            <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>
-              <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: '#f1f5f9', color: '#64748b', mb: 1.5 }}>
-                <StoreIcon />
-              </Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: T.text }}>
-                Merchants
-              </Typography>
-              <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, textAlign: 'center' }}>
-                Coming soon
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={6}>
-          <Card 
-            onClick={() => handleActionClick(null, 'Trizone List')}
-            sx={{ 
-              borderRadius: '16px', 
-              border: `1px solid ${T.border}`, 
-              boxShadow: 'none', 
-              cursor: 'pointer',
-              bgcolor: 'white',
-              '&:hover': { border: `1px solid ${T.primary}` }
-            }}
-          >
-            <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>
-              <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: '#f1f5f9', color: '#64748b', mb: 1.5 }}>
-                <GridIcon />
-              </Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: T.text }}>
-                Trizones
-              </Typography>
-              <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, textAlign: 'center' }}>
-                Coming soon
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      </Paper>
+
+      {/* Promo Card: Refer & Earn */}
+      <Card
+        sx={{
+          borderRadius: '20px',
+          background: 'linear-gradient(135deg, #0e7490 0%, #155e75 100%)',
+          color: 'white',
+          p: 2.5,
+          boxShadow: 'none',
+          mb: 3,
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            right: -20,
+            bottom: -20,
+            width: 100,
+            height: 100,
+            borderRadius: '999px',
+            background: 'rgba(255,255,255,0.08)'
+          }}
+        />
+        <Typography variant="subtitle2" sx={{ fontWeight: '800', mb: 0.5 }}>
+          Refer & Earn Payouts!
+        </Typography>
+        <Typography variant="caption" sx={{ opacity: 0.9, display: 'block', mb: 1.5, lineHeight: 1.35 }}>
+          Refer new captains using your Sponsor ID and earn ₹15 cash directly into your wallet upon their successful registration.
+        </Typography>
+        <Button
+          size="small"
+          onClick={handleCopyId}
+          sx={{
+            bgcolor: 'white',
+            color: '#0e7490',
+            fontWeight: 'bold',
+            borderRadius: '8px',
+            textTransform: 'none',
+            '&:hover': { bgcolor: '#f8fafc' }
+          }}
+        >
+          {copied ? 'Sponsor ID Copied!' : 'Copy Sponsor ID'}
+        </Button>
+      </Card>
 
       {/* Snackbar alerts */}
       <Snackbar
