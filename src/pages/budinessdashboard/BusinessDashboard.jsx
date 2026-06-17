@@ -1224,7 +1224,7 @@ function MobileFooterNav({ activeItem, onNavigate }) {
         backdropFilter: "blur(12px)",
         borderTop: "1px solid #e2e8f0",
         boxShadow: "0 -4px 16px rgba(0, 0, 0, 0.03)",
-        pb: "env(safe-area-inset-bottom, 12px)",
+        pb: "calc(12px + env(safe-area-inset-bottom, 0px))",
         pt: 1,
       }}
     >

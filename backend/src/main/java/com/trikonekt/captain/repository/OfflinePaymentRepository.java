@@ -50,7 +50,7 @@ public class OfflinePaymentRepository {
             "       u.full_name as consumer_name, u.phone as consumer_phone, s.shop_name, s.discount_percent " +
             "FROM offline_payments p " +
             "JOIN accounts_customuser u ON p.consumer_id = u.id " +
-            "JOIN market_shop s ON p.shop_id = s.id " +
+            "JOIN market_shop s ON p.shop_id = s.merchant_id " +
             "WHERE p.id = ? LIMIT 1",
             id
         );
@@ -63,7 +63,7 @@ public class OfflinePaymentRepository {
             "       u.full_name as consumer_name, u.phone as consumer_phone, s.shop_name " +
             "FROM offline_payments p " +
             "JOIN accounts_customuser u ON p.consumer_id = u.id " +
-            "JOIN market_shop s ON p.shop_id = s.id " +
+            "JOIN market_shop s ON p.shop_id = s.merchant_id " +
             "WHERE p.consumer_id = ? " +
             "ORDER BY p.created_at DESC",
             consumerId
@@ -76,7 +76,7 @@ public class OfflinePaymentRepository {
             "       u.full_name as consumer_name, u.phone as consumer_phone, s.shop_name " +
             "FROM offline_payments p " +
             "JOIN accounts_customuser u ON p.consumer_id = u.id " +
-            "JOIN market_shop s ON p.shop_id = s.id " +
+            "JOIN market_shop s ON p.shop_id = s.merchant_id " +
             "WHERE s.merchant_id = ? AND p.status = 'PENDING' " +
             "ORDER BY p.created_at DESC",
             merchantId
