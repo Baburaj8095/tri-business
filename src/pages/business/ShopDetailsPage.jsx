@@ -5,7 +5,7 @@ import {
   LuChevronLeft, LuPhone, LuMessageCircle, 
   LuMessageSquare, LuInfo, LuMapPin, LuStar, LuShare2 
 } from 'react-icons/lu';
-import { getPublicB2cMerchants } from '../../api/api';
+import { getPublicB2bMerchants } from '../../api/api';
 
 export default function ShopDetailsPage() {
   const { id } = useParams();
@@ -15,7 +15,7 @@ export default function ShopDetailsPage() {
 
   useEffect(() => {
     setLoading(true);
-    getPublicB2cMerchants()
+    getPublicB2bMerchants()
       .then(res => {
         const found = res?.find(s => s.id.toString() === id);
         if (found) {

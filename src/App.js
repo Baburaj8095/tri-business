@@ -50,7 +50,7 @@ function App() {
         <Route path="/business-dashboard" element={<BusinessDashboardConsumer />} />
         <Route path="/scanner" element={<ScannerPage />} />
         <Route path="/merchant" element={<BusinessDashboardMerchant />} />
-        <Route path="/business/profile" element={<BusinessProfilePage />} />
+        <Route path="/business/profile" element={<Navigate to="/business-dashboard" replace />} />
         <Route path="/business/shops" element={<BusinessShops />} />
         <Route path="/business/shops/:id/products" element={<BusinessShopProducts />} />
         <Route path="/business/nearby-stores" element={<NearbyStoresPage />} />

@@ -11,7 +11,7 @@ import {
   LuZap 
 } from 'react-icons/lu';
 import NearbyStoreCard from './NearbyStoreCard.jsx';
-import { getPublicB2cMerchants } from '../../api/api';
+import { getPublicB2bMerchants } from '../../api/api';
 
 const categories = [
   { name: 'All Stores', icon: <LuStore size={22} /> },
@@ -31,12 +31,12 @@ export default function NearbyStoresPage() {
 
   useEffect(() => {
     setLoading(true);
-    getPublicB2cMerchants()
+    getPublicB2bMerchants()
       .then(res => {
         const data = res || [];
         const mapped = data.map(shop => ({
           id: shop.id,
-          name: shop.shop_name || shop.business_name || shop.full_name || 'B2C Merchant',
+          name: shop.shop_name || shop.business_name || shop.full_name || 'B2B Merchant',
           category: shop.category || 'Retail Store',
           rating: '4.5',
           location: shop.city || shop.address || 'Local Area',
@@ -98,7 +98,7 @@ export default function NearbyStoresPage() {
                   Near Store
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>
-                  Explore B2C stores nearby
+                  Explore B2B stores nearby
                 </Typography>
               </Box>
             </Stack>

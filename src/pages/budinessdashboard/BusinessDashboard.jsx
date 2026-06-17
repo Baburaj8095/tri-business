@@ -40,7 +40,24 @@ import {
   HiOutlineShoppingCart,
   HiOutlineUser
 } from 'react-icons/hi2';
-import { LuGift, LuSmartphone, LuShirt, LuSofa, LuTag } from 'react-icons/lu';
+import { 
+  LuGift, 
+  LuSmartphone, 
+  LuShirt, 
+  LuSofa, 
+  LuTag, 
+  LuLock, 
+  LuShieldCheck, 
+  LuFileText, 
+  LuBookOpen, 
+  LuInfo, 
+  LuLogOut, 
+  LuStore, 
+  LuWallet,
+  LuPercent,
+  LuPhone,
+  LuCircleHelp
+} from 'react-icons/lu';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import MyLocationOutlinedIcon from '@mui/icons-material/MyLocationOutlined';
@@ -55,7 +72,7 @@ import ArrowForwardIosRoundedIcon from '@mui/icons-material/ArrowForwardIosRound
 import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import SearchBar from "../../components/business/SearchBar";
-import { getPublicB2bMerchants, getMerchantProfile } from "../../api/api";
+import { getPublicB2bMerchants, getMerchantProfile, updateMerchantProfile } from "../../api/api";
 import "../consumer-ecommerce/consumerEcommerce.css";
 
 const UI = {
@@ -166,11 +183,15 @@ const FOOTER_ITEMS = [
 ];
 
 const DRAWER_ITEMS = [
-  { label: "Profile", action: "profile", icon: HiOutlineUser },
-  { label: "Wallet", action: "wallet", icon: HiOutlineWallet },
-  { label: "Business / Shop", action: "business-shops", icon: HiOutlineBuildingStorefront },
-  { label: "Products", action: "product-section", icon: HiOutlineBuildingOffice2 },
-  { label: "Scanner", action: "scanner-section", icon: HiOutlineQrCode },
+  { label: "Wallet", action: "wallet", icon: LuWallet },
+  { label: "Orders", action: "orders", icon: HiOutlineBuildingStorefront },
+  { label: "Password Reset", action: "passwordReset", icon: LuLock },
+  { label: "Add Shop", action: "addShop", icon: LuStore },
+  { label: "kyc", action: "kyc", icon: LuShieldCheck },
+  { label: "Completed Orders", action: "completedOrders", icon: LuFileText },
+  { label: "Terms & Condition", action: "terms", icon: LuBookOpen },
+  { label: "Refund Policy", action: "refund", icon: LuInfo },
+  { label: "Refer Frendiends", action: "refer", icon: LuGift },
 ];
 
 function sectionCardStyles() {
@@ -977,6 +998,7 @@ function StickyDeliveryButton({ onClick }) {
 function AppDrawer({ open, onClose, onAction, profile }) {
   const displayName = profile?.business_name || profile?.full_name || localStorage.getItem('business_full_name') || 'Business User';
   const displayPhone = profile?.mobile_number || profile?.username || localStorage.getItem('business_phone') || '';
+  const username = profile?.username || localStorage.getItem('username_business') || '';
   const initials = displayName
     ? displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : 'BU';
@@ -1032,7 +1054,12 @@ function AppDrawer({ open, onClose, onAction, profile }) {
                 <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: UI.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {displayName}
                 </Typography>
-                <Typography sx={{ fontSize: 11, color: UI.textMuted }}>
+                {username && (
+                  <Typography sx={{ fontSize: 11, color: UI.primary, fontWeight: 700 }}>
+                    @{username}
+                  </Typography>
+                )}
+                <Typography sx={{ fontSize: 10.5, color: UI.textMuted }}>
                   {displayPhone || 'Business Account'}
                 </Typography>
               </Box>
@@ -1056,33 +1083,39 @@ function AppDrawer({ open, onClose, onAction, profile }) {
                 '&:hover': { bgcolor: 'transparent', color: UI.secondary }
               }}
             >
-              Check Business Profile →
+              Edit Business Profile →
             </Button>
           </CardContent>
         </Card>
 
-        <Card sx={{ ...sectionCardStyles(), mt: 1.5 }}>
-          <CardContent sx={{ p: 1.2 }}>
-            <Button
-              fullWidth
-              onClick={() => onAction("wallet")}
-              sx={{
-                justifyContent: "space-between",
-                textTransform: "none",
-                color: UI.text,
-                borderRadius: 2,
-                px: 1,
-                py: 1,
-              }}
-            >
-              <Stack direction="row" spacing={1} alignItems="center">
-                <AccountBalanceWalletOutlinedIcon sx={{ color: UI.primary, fontSize: 20 }} />
-                <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: UI.text }}>
-                  Wallet
-                </Typography>
-              </Stack>
-              <ArrowForwardIosRoundedIcon sx={{ fontSize: 14, color: UI.textMuted }} />
-            </Button>
+        {/* Wallet Balance Card with Premium Gradient */}
+        <Card
+          sx={{
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #1B4D3E 0%, #228B22 100%)',
+            color: '#fff',
+            boxShadow: '0 8px 24px rgba(34, 139, 34, 0.18)',
+            border: 0,
+            mt: 1.5,
+            cursor: 'pointer'
+          }}
+          onClick={() => {
+            onClose();
+            onAction("wallet");
+          }}
+        >
+          <CardContent sx={{ p: 1.6, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(255,255,255,0.15)', p: 1, borderRadius: '8px' }}>
+              <AccountBalanceWalletOutlinedIcon sx={{ color: '#fff', fontSize: 20 }} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255, 255, 255, 0.85)', mb: 0.1 }}>
+                Wallet Balance
+              </Typography>
+              <Typography sx={{ fontSize: '1.2rem', fontWeight: 900, lineHeight: 1.1 }}>
+                ₹ {Number(profile?.walletBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              </Typography>
+            </Box>
           </CardContent>
         </Card>
 
@@ -1121,7 +1154,7 @@ function AppDrawer({ open, onClose, onAction, profile }) {
           <Button
             fullWidth
             variant="outlined"
-            onClick={onClose}
+            onClick={() => onAction("logout")}
             sx={{
               borderRadius: 2.2,
               py: 1.1,
@@ -1277,6 +1310,15 @@ function BusinessDashboard() {
   const [b2bShops, setB2bShops] = useState([]);
   const [profile, setProfile] = useState(null);
   const [toastMsg, setToastMsg] = useState("");
+  const [activeModal, setActiveModal] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [editForm, setEditForm] = useState({
+    business_name: '',
+    mobile_number: '',
+    address: '',
+    commission_percent: '',
+    service_mode: 'BOTH'
+  });
   const joinPrimePath = "/demo/join-prime";
 
   React.useEffect(() => {
@@ -1290,6 +1332,13 @@ function BusinessDashboard() {
           setProfile(data);
           localStorage.setItem('business_full_name', data.business_name || data.full_name || '');
           localStorage.setItem('business_phone', data.mobile_number || data.username || '');
+          setEditForm({
+            business_name: data.business_name || '',
+            mobile_number: data.mobile_number || '',
+            address: data.address || '',
+            commission_percent: data.commission_percent || '',
+            service_mode: data.service_mode || 'BOTH',
+          });
         }
       })
       .catch((err) => console.error("Failed to load merchant profile:", err));
@@ -1323,27 +1372,89 @@ function BusinessDashboard() {
 
   const handleDrawerAction = (action) => {
     setDrawerOpen(false);
-    if (action === "product-section") {
-      setToastMsg("Online feature is coming soon!");
-      return;
-    }
     if (action === "profile") {
-      navigate("/business/profile");
+      setActiveModal("edit");
       return;
     }
     if (action === "wallet") {
-      navigate("/user/franchise-wallet");
+      setActiveModal("wallet");
       return;
     }
-    if (action === "scanner-section") {
-      navigate("/demo/scanner");
-      return;
-    }
-    if (action === "business-shops") {
+    if (action === "orders") {
       navigate("/business/shops");
       return;
     }
+    if (action === "passwordReset") {
+      setActiveModal("passwordReset");
+      return;
+    }
+    if (action === "addShop") {
+      navigate("/business/shops");
+      return;
+    }
+    if (action === "kyc") {
+      setActiveModal("kyc");
+      return;
+    }
+    if (action === "completedOrders") {
+      setActiveModal("completedOrders");
+      return;
+    }
+    if (action === "terms") {
+      setActiveModal("terms");
+      return;
+    }
+    if (action === "refund") {
+      setActiveModal("refund");
+      return;
+    }
+    if (action === "refer") {
+      setActiveModal("refer");
+      return;
+    }
+    if (action === "logout") {
+      setActiveModal("logout");
+      return;
+    }
     handleScrollTo(action);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setToastMsg('');
+    setLoading(true);
+    try {
+      const p = await updateMerchantProfile({
+        ...editForm,
+        commission_percent: editForm.commission_percent ? parseFloat(editForm.commission_percent) : 0,
+      });
+      if (p) {
+        setProfile(p);
+        localStorage.setItem('triBusinessUser', JSON.stringify(p));
+        localStorage.setItem('business_full_name', p.business_name || p.full_name || '');
+        localStorage.setItem('business_phone', p.mobile_number || p.username || '');
+        setToastMsg("Profile updated successfully!");
+        setActiveModal(null);
+      }
+    } catch (err) {
+      setToastMsg(err.response?.data?.message || err.response?.data?.detail || err.message || 'Failed to update profile.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogoutConfirm = () => {
+    localStorage.removeItem('access_token_business');
+    localStorage.removeItem('refresh_business');
+    localStorage.removeItem('refresh_token_business');
+    localStorage.removeItem('username_business');
+    localStorage.removeItem('business_id');
+    localStorage.removeItem('business_full_name');
+    localStorage.removeItem('business_phone');
+    localStorage.removeItem('triBusinessUser');
+    localStorage.removeItem('triBusinessProfilePic');
+    setActiveModal(null);
+    navigate('/login');
   };
 
   return (
@@ -1528,6 +1639,246 @@ function BusinessDashboard() {
       />
       <AppDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onAction={handleDrawerAction} profile={profile} />
       <MobileFooterNav activeItem={activeFooterItem} onNavigate={handleFooterNavigate} />
+
+      {/* Edit Profile Modal */}
+      <Dialog open={activeModal === 'edit'} onClose={() => setActiveModal(null)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '16px' } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: UI.text, pb: 1 }}>Edit Business Profile</DialogTitle>
+        <Box component="form" onSubmit={handleEditSubmit}>
+          <DialogContent sx={{ pt: 1 }}>
+            <Stack spacing={2.5}>
+              <TextField
+                label="Business Name"
+                fullWidth
+                value={editForm.business_name}
+                onChange={(e) => setEditForm(p => ({ ...p, business_name: e.target.value }))}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    bgcolor: '#fff',
+                    '& fieldset': { borderColor: alpha(UI.text, 0.15) },
+                    '&:hover fieldset': { borderColor: UI.primary },
+                    '&.Mui-focused fieldset': { borderColor: UI.primary, borderWidth: 2 },
+                  },
+                  '& .MuiInputLabel-root': { color: UI.textMuted, '&.Mui-focused': { color: UI.primary } },
+                  '& .MuiInputBase-input': { fontWeight: 600, color: UI.text },
+                }}
+              />
+              <TextField
+                label="Contact Number"
+                fullWidth
+                value={editForm.mobile_number}
+                onChange={(e) => setEditForm(p => ({ ...p, mobile_number: e.target.value }))}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    bgcolor: '#fff',
+                    '& fieldset': { borderColor: alpha(UI.text, 0.15) },
+                    '&:hover fieldset': { borderColor: UI.primary },
+                    '&.Mui-focused fieldset': { borderColor: UI.primary, borderWidth: 2 },
+                  },
+                  '& .MuiInputLabel-root': { color: UI.textMuted, '&.Mui-focused': { color: UI.primary } },
+                  '& .MuiInputBase-input': { fontWeight: 600, color: UI.text },
+                }}
+              />
+              <TextField
+                label="Business Address"
+                fullWidth
+                multiline
+                rows={2}
+                value={editForm.address}
+                onChange={(e) => setEditForm(p => ({ ...p, address: e.target.value }))}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    bgcolor: '#fff',
+                    '& fieldset': { borderColor: alpha(UI.text, 0.15) },
+                    '&:hover fieldset': { borderColor: UI.primary },
+                    '&.Mui-focused fieldset': { borderColor: UI.primary, borderWidth: 2 },
+                  },
+                  '& .MuiInputLabel-root': { color: UI.textMuted, '&.Mui-focused': { color: UI.primary } },
+                  '& .MuiInputBase-input': { fontWeight: 600, color: UI.text },
+                }}
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 3, pt: 1 }}>
+            <Button onClick={() => setActiveModal(null)} sx={{ textTransform: 'none', color: UI.textMuted, fontWeight: 700 }}>Cancel</Button>
+            <Button type="submit" disabled={loading} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
+              Save Changes
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
+
+      {/* Wallet Dialog */}
+      <Dialog open={activeModal === 'wallet'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>Wallet Balance</DialogTitle>
+        <DialogContent>
+          <Box sx={{ 
+            background: 'linear-gradient(135deg, #1B4D3E 0%, #228B22 100%)', 
+            color: '#fff', 
+            borderRadius: 3, 
+            p: 3, 
+            textAlign: 'center',
+            boxShadow: '0 8px 24px rgba(34, 139, 34, 0.18)',
+            mb: 2,
+            minWidth: 240
+          }}>
+            <Typography sx={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.85)', mb: 1, fontWeight: 700 }}>Wallet Balance</Typography>
+            <Typography sx={{ fontSize: '1.8rem', fontWeight: 900 }}>₹ {Number(profile?.walletBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setActiveModal(null)} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Password Reset Dialog */}
+      <Dialog open={activeModal === 'passwordReset'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>Reset Password</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1, minWidth: 260 }}>
+            <TextField label="Current Password" type="password" fullWidth size="small" />
+            <TextField label="New Password" type="password" fullWidth size="small" />
+            <TextField label="Confirm New Password" type="password" fullWidth size="small" />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setActiveModal(null)} sx={{ textTransform: 'none', color: UI.textMuted }}>Cancel</Button>
+          <Button 
+            onClick={() => {
+              setActiveModal(null);
+              setToastMsg("Password reset request submitted successfully!");
+            }} 
+            variant="contained" 
+            sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}
+          >
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* KYC Dialog */}
+      <Dialog open={activeModal === 'kyc'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>KYC Verification Details</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: UI.textMuted, fontSize: 14, whiteSpace: 'pre-line', lineHeight: 1.6 }}>
+            Your business profile registration is active.
+            
+            To upgrade your account limits, verify or submit verification documents (GSTIN, PAN, and Shop Registration certificate), please navigate to the Shop Registration dashboard or contact support.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setActiveModal(null)} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Completed Orders Dialog */}
+      <Dialog open={activeModal === 'completedOrders'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>Completed Orders</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: UI.textMuted, fontSize: 14, whiteSpace: 'pre-line', lineHeight: 1.6 }}>
+            Detailed summaries, transaction receipts, and order histories are available under the Store Management panel.
+            
+            Tap on "Shops" on the bottom navigation bar to view your store orders and sales reporting.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => { setActiveModal(null); navigate("/business/shops"); }} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
+            Go to Shops
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Terms Dialog */}
+      <Dialog open={activeModal === 'terms'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>Terms & Conditions</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: UI.textMuted, fontSize: 14, whiteSpace: 'pre-line', lineHeight: 1.6 }}>
+            Welcome to Trikonekt Business. By enabling store integration, you agree to:
+            
+            1. Deliver genuine products to customers.
+            2. Maintain correct store locations and GPS coordinates.
+            3. Process eligible customer refunds in accordance with standard return windows.
+            
+            Trikonekt reserves the right to suspend store profiles that violate local trade guidelines.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setActiveModal(null)} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Refund Policy Dialog */}
+      <Dialog open={activeModal === 'refund'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>Refund Policy</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: UI.textMuted, fontSize: 14, whiteSpace: 'pre-line', lineHeight: 1.6 }}>
+            Standard Refund Processing:
+            
+            Refunds for cancelled or returned customer orders are credited back to their wallet or bank accounts within 3 to 5 business days. Merchants are requested to verify return items before approving refund requests via the Shop dashboard.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setActiveModal(null)} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Refer Friends Dialog */}
+      <Dialog open={activeModal === 'refer'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>Refer Friends</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: UI.textMuted, fontSize: 14, mb: 2 }}>
+            Share the joy of growing business together! Invite your friends to join Trikonekt Business using your Sponsor ID.
+          </Typography>
+          <Box sx={{ p: 2, bgcolor: alpha(UI.primary, 0.05), borderRadius: 2, border: `1px dashed ${UI.primary}`, textAlign: 'center', mb: 2 }}>
+            <Typography variant="caption" sx={{ color: UI.textMuted, fontWeight: 700 }}>YOUR SPONSOR ID</Typography>
+            <Typography variant="h6" sx={{ color: UI.primary, fontWeight: 900, mt: 0.5 }}>
+              {profile?.username || localStorage.getItem('username_business') || 'TRPN8095809500'}
+            </Typography>
+          </Box>
+          <Button 
+            fullWidth 
+            variant="outlined" 
+            onClick={() => {
+              navigator.clipboard.writeText(profile?.username || localStorage.getItem('username_business') || 'TRPN8095809500');
+              setToastMsg("Referral code copied to clipboard!");
+            }}
+            sx={{ textTransform: 'none', fontWeight: 800, borderRadius: 2 }}
+          >
+            Copy Code
+          </Button>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setActiveModal(null)} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Logout Confirmation */}
+      <Dialog open={activeModal === 'logout'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>Confirm Logout</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: UI.textMuted, fontSize: 14 }}>
+            Are you sure you want to log out of your business account? This will end your current session.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setActiveModal(null)} sx={{ textTransform: 'none', color: UI.textMuted, fontWeight: 700 }}>Cancel</Button>
+          <Button onClick={handleLogoutConfirm} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: 'error.main', color: '#fff' }}>
+            Log Out
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={!!toastMsg}
