@@ -14,7 +14,7 @@ export default function MerchantOrdersPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const token = localStorage.getItem('captain_access_token');
+  const token = localStorage.getItem('access_token_business') || localStorage.getItem('captain_access_token');
 
   const fetchPendingPayments = () => {
     if (!token) {

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { alpha } from "@mui/material/styles";
+import { alpha, createTheme, ThemeProvider } from "@mui/material/styles";
 import {
   Avatar,
   Box,
@@ -80,17 +80,43 @@ import { getPublicB2bMerchants, getMerchantProfile, updateMerchantProfile } from
 import "../consumer-ecommerce/consumerEcommerce.css";
 
 const UI = {
-  bg: "#f1f1f1",
+  bg: "#f8fafc",
   surface: "#ffffff",
   card: "#ffffff",
   border: "#e2e8f0",
-  text: "#1e293b",
+  text: "#0f172a",
   textMuted: "#64748b",
   primary: "#228B22",
   secondary: "#1B4D3E",
   onPrimary: "#ffffff",
   headerGradient: "linear-gradient(135deg, #1B4D3E 0%, #228B22 100%)",
 };
+
+const dashboardTheme = createTheme({
+  typography: {
+    fontFamily: [
+      'Plus Jakarta Sans',
+      'Inter',
+      '-apple-system',
+      'BlinkMacSystemFont',
+      '"Segoe UI"',
+      'Roboto',
+      '"Helvetica Neue"',
+      'Arial',
+      'sans-serif',
+    ].join(','),
+  },
+  palette: {
+    primary: {
+      main: '#228B22',
+      dark: '#1B4D3E',
+    },
+    text: {
+      primary: '#0f172a',
+      secondary: '#475569',
+    },
+  },
+});
 
 const QUICK_LOCATIONS = [
   {
@@ -200,10 +226,10 @@ const DRAWER_ITEMS = [
 
 function sectionCardStyles() {
   return {
-    borderRadius: 3,
+    borderRadius: '16px',
     bgcolor: UI.surface,
-    border: `1px solid ${alpha(UI.text, 0.05)}`,
-    boxShadow: "0 4px 12px rgba(15, 23, 42, 0.06)",
+    border: `1px solid ${UI.border}`,
+    boxShadow: "0 4px 12px rgba(15, 23, 42, 0.02)",
     width: "100%",
     minWidth: 0,
   };
@@ -212,20 +238,20 @@ function sectionCardStyles() {
 function SectionShell({ title, subtitle, action, children }) {
   return (
     <Card sx={sectionCardStyles()}>
-      <CardContent sx={{ p: { xs: 1.35, sm: 1.8 }, "&:last-child": { pb: { xs: 1.35, sm: 1.8 } } }}>
+      <CardContent sx={{ p: { xs: 1.5, sm: 2 }, "&:last-child": { pb: { xs: 1.5, sm: 2 } } }}>
         <Stack
           direction={{ xs: "column", sm: "row" }}
           alignItems={{ xs: "flex-start", sm: "center" }}
           justifyContent="space-between"
           spacing={0.55}
-          sx={{ mb: 1.15 }}
+          sx={{ mb: 1.5 }}
         >
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: 13.5, fontWeight: 850, color: UI.text, lineHeight: 1.25 }}>
+            <Typography sx={{ fontSize: 15, fontWeight: 800, color: UI.text, lineHeight: 1.25 }}>
               {title}
             </Typography>
             {subtitle && (
-              <Typography sx={{ fontSize: 11.5, color: UI.textMuted, lineHeight: 1.3, mt: 0.15 }}>
+              <Typography sx={{ fontSize: 12, color: UI.textMuted, lineHeight: 1.3, mt: 0.25 }}>
                 {subtitle}
               </Typography>
             )}
@@ -349,11 +375,12 @@ function SearchBarCard({ selectedLocation, onSearchClick, onJoinPrimeClick }) {
               px: { xs: 1.05, sm: 1.3 },
               color: UI.text,
               minWidth: 0,
-              bgcolor: alpha(UI.primary, 0.08),
-              border: `1px solid ${alpha(UI.primary, 0.16)}`,
+              bgcolor: "#f1f5f9",
+              border: "1px solid #e2e8f0",
               boxShadow: "none",
               "&:hover": {
-                bgcolor: alpha(UI.primary, 0.1),
+                bgcolor: "#e2e8f0",
+                borderColor: "#cbd5e1"
               },
             }}
           >
@@ -364,7 +391,6 @@ function SearchBarCard({ selectedLocation, onSearchClick, onJoinPrimeClick }) {
                   color: UI.text,
                   fontSize: { xs: 13.5, sm: 14.5 },
                   fontWeight: 600,
-                  fontFamily: "Poppins",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -393,14 +419,17 @@ function SearchBarCard({ selectedLocation, onSearchClick, onJoinPrimeClick }) {
               px: { xs: 1.45, sm: 2 },
               py: 0,
               minWidth: { xs: 90, sm: 106 },
-              minHeight: { xs: 32, sm: 36 },
+              minHeight: { xs: 36, sm: 40 },
               textTransform: "none",
               fontWeight: 800,
               fontSize: 12,
-              bgcolor: UI.secondary,
+              background: "linear-gradient(135deg, #1B4D3E 0%, #228B22 100%)",
               color: UI.onPrimary,
-              boxShadow: "0 2px 8px rgba(27, 77, 62, 0.22)",
-              "&:hover": { bgcolor: UI.secondary, boxShadow: "0 2px 8px rgba(27, 77, 62, 0.22)" },
+              boxShadow: "0 4px 12px rgba(34, 139, 34, 0.15)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #153c30 0%, #1a6d1a 100%)",
+                boxShadow: "0 4px 12px rgba(34, 139, 34, 0.25)"
+              },
             }}
           >
             Join Prime
@@ -681,24 +710,28 @@ function CategoryCard({ item }) {
   return (
     <Card
       sx={{
-        minWidth: { xs: 80, sm: 100 },
-        width: { xs: 80, sm: 100 },
-        height: { xs: 86, sm: 106 },
+        minWidth: { xs: 80, sm: 96 },
+        width: { xs: 80, sm: 96 },
+        height: { xs: 80, sm: 96 },
         flexShrink: 0,
         scrollSnapAlign: "start",
-        border: `1px solid ${alpha("#dbe3ee", 0.74)}`,
-        borderRadius: 3,
-        boxShadow: "0 8px 18px rgba(15, 23, 42, 0.04)",
+        border: `1px solid #e2e8f0`,
+        borderRadius: '16px',
+        boxShadow: "0 4px 12px rgba(15, 23, 42, 0.02)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         bgcolor: "#ffffff",
-        overflow: "visible",
+        transition: 'all 0.2s',
+        '&:hover': {
+          borderColor: UI.primary,
+          boxShadow: "0 8px 16px rgba(34, 139, 34, 0.08)",
+        }
       }}
     >
-      <Icon style={{ fontSize: 26, color: UI.primary, marginBottom: 6, strokeWidth: 2.1 }} />
-      <Typography sx={{ fontSize: { xs: 11, sm: 13 }, fontWeight: 700, color: UI.text, textAlign: "center", lineHeight: 1.1 }}>
+      <Icon style={{ fontSize: 24, color: UI.primary, marginBottom: 8 }} />
+      <Typography sx={{ fontSize: { xs: 11, sm: 12 }, fontWeight: 700, color: '#475569', textAlign: "center", lineHeight: 1.2 }}>
         {item.label}
       </Typography>
     </Card>
@@ -710,29 +743,29 @@ function AllCategoriesSection() {
     <Box
       id="categories-section"
       sx={{
-        borderRadius: { xs: 4, sm: 4.5 },
+        borderRadius: '20px',
         bgcolor: UI.surface,
-        border: `1px solid ${alpha(UI.text, 0.04)}`,
-        boxShadow: "0 8px 20px rgba(15, 23, 42, 0.04)",
-        px: { xs: 2, sm: 2.7 },
-        py: { xs: 2.1, sm: 2.5 },
-        mt: 1.15,
-        mb: 1.25,
+        border: `1px solid #e2e8f0`,
+        boxShadow: "0 4px 12px rgba(15, 23, 42, 0.03)",
+        px: 2,
+        py: 2.5,
+        mt: 2,
+        mb: 2.5,
       }}
     >
       <Typography
         component="h2"
         sx={{
-          color: "#031933",
-          fontSize: { xs: 25, sm: 31 },
-          fontWeight: 900,
-          lineHeight: 1.08,
-          mb: { xs: 2, sm: 2.2 },
+          color: "#0f172a",
+          fontSize: '1.2rem',
+          fontWeight: 800,
+          lineHeight: 1.2,
+          mb: 2,
         }}
       >
         All Categories
       </Typography>
-      <ScrollRow gap={{ xs: 1.3, sm: 2 }} pb={0.15}>
+      <ScrollRow gap={1.5} pb={0.5}>
         {ALL_CATEGORIES.map((cat) => (
           <CategoryCard key={cat.label} item={cat} />
         ))}
@@ -800,7 +833,7 @@ function OnlineB2BAdCard({ item }) {
         height: 136,
         flexShrink: 0,
         scrollSnapAlign: "start",
-        borderRadius: 3,
+        borderRadius: '16px',
         border: 0,
         overflow: "hidden",
         position: "relative",
@@ -821,14 +854,14 @@ function OnlineB2BAdCard({ item }) {
           justifyContent: "space-between",
         }}
       >
-        <Box sx={{ alignSelf: "flex-start", px: 0.9, py: 0.35, borderRadius: 999, bgcolor: alpha(UI.primary, 0.92), color: UI.onPrimary, fontSize: 10, fontWeight: 900, lineHeight: 1.2 }}>
+        <Box sx={{ alignSelf: "flex-start", px: 0.9, py: 0.35, borderRadius: 999, bgcolor: alpha(UI.primary, 0.92), color: UI.onPrimary, fontSize: 10, fontWeight: 700, lineHeight: 1.2 }}>
           Online B2B Ads
         </Box>
         <Box sx={{ maxWidth: "72%" }}>
-          <Typography sx={{ color: "#fff", fontSize: 15, fontWeight: 900, lineHeight: 1.15 }}>
+          <Typography sx={{ color: "#fff", fontSize: 15, fontWeight: 800, lineHeight: 1.15 }}>
             {item.title}
           </Typography>
-          <Typography sx={{ color: alpha("#fff", 0.88), fontSize: 11.5, fontWeight: 700, mt: 0.45 }}>
+          <Typography sx={{ color: alpha("#fff", 0.88), fontSize: 11.5, fontWeight: 600, mt: 0.45 }}>
             {item.offer}
           </Typography>
         </Box>
@@ -850,7 +883,7 @@ function CityCard({ city }) {
         position: 'relative',
         overflow: 'hidden',
         border: 'none',
-        borderRadius: 3,
+        borderRadius: '16px',
         backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%), url("${city.image}")`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -860,10 +893,10 @@ function CityCard({ city }) {
       }}
     >
       <Box sx={{ position: 'absolute', bottom: 13, left: 13, right: 13 }}>
-        <Typography sx={{ color: '#fff', fontSize: 15, fontWeight: 900, mb: 0.2, lineHeight: 1.15 }}>
+        <Typography sx={{ color: '#fff', fontSize: 15, fontWeight: 800, mb: 0.2, lineHeight: 1.15 }}>
           {city.name}
         </Typography>
-        <Typography sx={{ color: 'rgba(255,255,255,0.8)', fontSize: 10.5, fontWeight: 700 }}>
+        <Typography sx={{ color: 'rgba(255,255,255,0.8)', fontSize: 10.5, fontWeight: 600 }}>
           {city.businesses} businesses
         </Typography>
       </Box>
@@ -1185,122 +1218,106 @@ function MobileFooterNav({ activeItem, onNavigate }) {
         left: 0,
         right: 0,
         bottom: 0,
-        width: "100vw",
+        width: "100%",
         zIndex: 1300,
-        display: "block",
-        px: { xs: 1.5, sm: 3 },
-        pt: 2,
-        pb: 0,
-        bgcolor: "rgba(246, 238, 226, 0.88)",
-        boxShadow: "0 -18px 34px rgba(120, 84, 43, 0.12)",
+        bgcolor: "rgba(255, 255, 255, 0.96)",
+        backdropFilter: "blur(12px)",
+        borderTop: "1px solid #e2e8f0",
+        boxShadow: "0 -4px 16px rgba(0, 0, 0, 0.03)",
+        pb: "env(safe-area-inset-bottom, 12px)",
+        pt: 1,
       }}
     >
-      <Card
+      <Box
         sx={{
-          maxWidth: 820,
+          maxWidth: 640,
           mx: "auto",
-          height: { xs: 64, sm: 74 },
-          borderRadius: 0,
-          borderTopLeftRadius: { xs: 24, sm: 30 },
-          borderTopRightRadius: { xs: 24, sm: 30 },
-          border: 0,
-          bgcolor: UI.surface,
-          boxShadow: "0 -10px 28px rgba(15, 23, 42, 0.08)",
-          overflow: "visible",
+          display: "grid",
+          gridTemplateColumns: `repeat(${FOOTER_ITEMS.length}, minmax(0, 1fr))`,
+          alignItems: "center",
+          height: 56,
+          px: 1,
         }}
       >
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${FOOTER_ITEMS.length}, minmax(0, 1fr))`,
-            alignItems: "center",
-            height: "100%",
-            px: { xs: 0.25, sm: 2 },
-            width: "100%",
-          }}
-        >
-          {FOOTER_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const selected = activeItem === item.id;
-            const scanner = item.raised;
-            const textColor = selected ? UI.primary : UI.textMuted;
+        {FOOTER_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const selected = activeItem === item.id;
+          const scanner = item.raised;
+          const textColor = selected ? UI.primary : UI.textMuted;
 
-            return (
-              <Button
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
-                sx={{
-                  minWidth: 0,
-                  px: 0,
-                  py: 0,
-                  height: "100%",
-                  borderRadius: 0,
-                  textTransform: "none",
-                  color: scanner ? UI.textMuted : textColor,
+          return (
+            <Button
+              key={item.id}
+              onClick={() => onNavigate(item.id)}
+              sx={{
+                minWidth: 0,
+                px: 0,
+                py: 0.5,
+                height: "100%",
+                borderRadius: 0,
+                textTransform: "none",
+                color: scanner ? UI.textMuted : textColor,
+                bgcolor: "transparent",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 0.5,
+                lineHeight: 1,
+                width: "100%",
+                transform: scanner ? "translateY(-10px)" : "none",
+                "&:hover": {
                   bgcolor: "transparent",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 0.35,
-                  lineHeight: 1.1,
-                  width: "100%",
-                  transform: scanner ? "translateY(-16px)" : "none",
-                  "&:hover": {
-                    bgcolor: "transparent",
-                  },
-                }}
-              >
-                {scanner ? (
+                },
+              }}
+            >
+              {scanner ? (
+                <Box
+                  sx={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: "50%",
+                    bgcolor: alpha(UI.primary, 0.1),
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   <Box
                     sx={{
-                      width: { xs: 58, sm: 68 },
-                      height: { xs: 58, sm: 68 },
+                      width: 40,
+                      height: 40,
                       borderRadius: "50%",
-                      bgcolor: alpha(UI.primary, 0.14),
+                      bgcolor: UI.primary,
+                      color: "#fff",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      mb: -0.25,
+                      boxShadow: `0 4px 12px ${alpha(UI.primary, 0.3)}`,
                     }}
                   >
-                    <Box
-                      sx={{
-                        width: { xs: 44, sm: 52 },
-                        height: { xs: 44, sm: 52 },
-                        borderRadius: "50%",
-                        bgcolor: UI.primary,
-                        color: "#fff",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: `0 8px 18px ${alpha(UI.primary, 0.34)}`,
-                      }}
-                    >
-                      <Icon style={{ fontSize: 24, strokeWidth: 2.1 }} />
-                    </Box>
+                    <Icon style={{ fontSize: 22, strokeWidth: 2 }} />
                   </Box>
-                ) : (
-                  <Icon style={{ fontSize: 22, strokeWidth: 1.9 }} />
-                )}
-                <Typography
-                  sx={{
-                    fontSize: { xs: 10.5, sm: 12.5 },
-                    fontWeight: 700,
-                    textAlign: "center",
-                    color: scanner ? UI.textMuted : textColor,
-                    fontFamily: "Poppins",
-                    lineHeight: 1.1,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {item.label}
-                </Typography>
-              </Button>
-            );
-          })}
-        </Box>
-      </Card>
+                </Box>
+              ) : (
+                <Icon style={{ fontSize: 20, strokeWidth: 2, color: selected ? UI.primary : '#64748b' }} />
+              )}
+              <Typography
+                sx={{
+                  fontSize: 10,
+                  fontWeight: selected ? 800 : 600,
+                  textAlign: "center",
+                  color: selected ? UI.primary : '#64748b',
+                  lineHeight: 1.1,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {item.label}
+              </Typography>
+            </Button>
+          );
+        })}
+      </Box>
     </Box>
   );
 }
@@ -1385,7 +1402,7 @@ function BusinessDashboard() {
       return;
     }
     if (action === "orders") {
-      navigate("/business/shops");
+      navigate("/business/orders");
       return;
     }
     if (action === "passwordReset") {
@@ -1462,49 +1479,72 @@ function BusinessDashboard() {
   };
 
   return (
-    <div className="ce-app">
-      <header className="ce-header">
-        <div className="ce-header-inner">
-          <IconButton
-            onClick={() => setDrawerOpen(true)}
-            sx={{
-              width: 44,
-              height: 44,
-              color: "#ffffff",
-              p: 0,
-              minWidth: 0,
-              borderRadius: "50%",
-              "&:hover": { bgcolor: "rgba(255,255,255,0.1)" }
-            }}
+    <ThemeProvider theme={dashboardTheme}>
+      <div className="ce-app" style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+      {/* Header */}
+      <Box 
+        sx={{ 
+          position: 'fixed', 
+          top: 0, 
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '100%', 
+          maxWidth: 640,
+          height: 64, 
+          bgcolor: '#ffffff', 
+          borderBottom: '1px solid #e2e8f0', 
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          px: 2,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+        }}
+      >
+        <IconButton
+          onClick={() => setDrawerOpen(true)}
+          sx={{
+            width: 40,
+            height: 40,
+            color: "#0f172a",
+            "&:hover": { bgcolor: "rgba(15,23,42,0.05)" }
+          }}
+        >
+          <MenuRoundedIcon sx={{ fontSize: 24 }} />
+        </IconButton>
+        
+        <Typography sx={{ ml: 1.5, fontWeight: 900, fontSize: '1.2rem', color: '#0f172a', flexGrow: 1 }}>
+          Business Dashboard
+        </Typography>
+        
+        <Stack direction="row" spacing={0.5}>
+          <IconButton 
+            aria-label="Notifications" 
+            sx={{ color: '#475569', "&:hover": { bgcolor: "rgba(15,23,42,0.05)" } }}
           >
-            <MenuRoundedIcon sx={{ fontSize: 24 }} />
+            <NotificationsNoneRoundedIcon sx={{ fontSize: 22 }} />
           </IconButton>
-          
-          <h1 className="ce-title" style={{ marginLeft: '6px' }}>Business Dashboard</h1>
-          
-          <div className="ce-header-actions">
-            <HeaderActionButton ariaLabel="Notifications">
-              <NotificationsNoneRoundedIcon sx={{ fontSize: 20 }} />
-            </HeaderActionButton>
-            <HeaderActionButton
-              ariaLabel="Wallet"
-              onClick={() => navigate("/user/franchise-wallet")}
-            >
-              <AccountBalanceWalletOutlinedIcon sx={{ fontSize: 20 }} />
-            </HeaderActionButton>
-            <HeaderActionButton ariaLabel="Location">
-              <LocationOnOutlinedIcon sx={{ fontSize: 20 }} />
-            </HeaderActionButton>
-          </div>
-        </div>
-      </header>
+          <IconButton
+            aria-label="Wallet"
+            onClick={() => navigate("/user/franchise-wallet")}
+            sx={{ color: '#475569', "&:hover": { bgcolor: "rgba(15,23,42,0.05)" } }}
+          >
+            <AccountBalanceWalletOutlinedIcon sx={{ fontSize: 22 }} />
+          </IconButton>
+          <IconButton 
+            aria-label="Location" 
+            sx={{ color: '#475569', "&:hover": { bgcolor: "rgba(15,23,42,0.05)" } }}
+          >
+            <LocationOnOutlinedIcon sx={{ fontSize: 22 }} />
+          </IconButton>
+        </Stack>
+      </Box>
 
       <main 
         className="ce-container"
         style={{ 
           maxWidth: 640, 
           margin: '0 auto',
-          paddingTop: '74px',
+          paddingTop: '80px',
           paddingBottom: '132px'
         }}
       >
@@ -1786,14 +1826,15 @@ function BusinessDashboard() {
         <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>Completed Orders</DialogTitle>
         <DialogContent>
           <Typography sx={{ color: UI.textMuted, fontSize: 14, whiteSpace: 'pre-line', lineHeight: 1.6 }}>
-            Detailed summaries, transaction receipts, and order histories are available under the Store Management panel.
+            Detailed summaries, transaction receipts, and pending customer payments are available under the Orders panel.
             
-            Tap on "Shops" on the bottom navigation bar to view your store orders and sales reporting.
+            Tap on "Go to Orders" below to view and manage customer payments.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => { setActiveModal(null); navigate("/business/shops"); }} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
-            Go to Shops
+        <DialogActions sx={{ px: 3, pb: 3, pt: 1 }}>
+          <Button onClick={() => setActiveModal(null)} sx={{ textTransform: 'none', color: UI.textMuted, fontWeight: 700 }}>Close</Button>
+          <Button onClick={() => { setActiveModal(null); navigate("/business/orders"); }} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
+            Go to Orders
           </Button>
         </DialogActions>
       </Dialog>
@@ -1895,7 +1936,8 @@ function BusinessDashboard() {
           {toastMsg}
         </Alert>
       </Snackbar>
-    </div>
+      </div>
+    </ThemeProvider>
   );
 }
 

@@ -477,14 +477,15 @@ export default function BusinessProfilePage() {
         <DialogTitle sx={{ fontWeight: 800, color: T.text }}>Completed Orders</DialogTitle>
         <DialogContent>
           <Typography sx={{ color: T.textSecondary, fontSize: 14, whiteSpace: 'pre-line', lineHeight: 1.6 }}>
-            Detailed summaries, transaction receipts, and order histories are available under the Store Management panel.
+            Detailed summaries, transaction receipts, and pending customer payments are available under the Orders panel.
             
-            Tap on "Shops" on the bottom navigation bar to view your store orders and sales reporting.
+            Tap on "Go to Orders" below to view and manage customer payments.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setActiveModal(null)} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: T.primary, color: '#fff', '&:hover': { bgcolor: T.primaryDark } }}>
-            Close
+        <DialogActions sx={{ px: 3, pb: 3, pt: 1 }}>
+          <Button onClick={() => setActiveModal(null)} sx={{ textTransform: 'none', color: T.textSecondary, fontWeight: 700 }}>Close</Button>
+          <Button onClick={() => { setActiveModal(null); navigate("/business/orders"); }} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: T.primary, color: '#fff', '&:hover': { bgcolor: T.primaryDark } }}>
+            Go to Orders
           </Button>
         </DialogActions>
       </Dialog>
