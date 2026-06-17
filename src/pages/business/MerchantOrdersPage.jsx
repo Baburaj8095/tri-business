@@ -30,6 +30,12 @@ export default function MerchantOrdersPage() {
         setLoading(false);
       })
       .catch(err => {
+        if (err.response?.status === 401) {
+          localStorage.removeItem('access_token_business');
+          localStorage.removeItem('captain_access_token');
+          navigate('/login');
+          return;
+        }
         console.error('Failed to load merchant pending payments:', err);
         setError('Error loading pending customer payments.');
         setLoading(false);
@@ -58,6 +64,12 @@ export default function MerchantOrdersPage() {
         fetchPendingPayments();
       })
       .catch(err => {
+        if (err.response?.status === 401) {
+          localStorage.removeItem('access_token_business');
+          localStorage.removeItem('captain_access_token');
+          navigate('/login');
+          return;
+        }
         console.error(`Failed to ${action.toLowerCase()} payment:`, err);
         setError(err.response?.data?.message || `Failed to process payment ${action.toLowerCase()} request.`);
         setActioningId(null);
@@ -93,7 +105,7 @@ export default function MerchantOrdersPage() {
       <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
         <Button 
           variant="outlined" 
-          onClick={() => navigate('/merchant')}
+          onClick={() => navigate('/business-dashboard')}
           sx={{ minWidth: 40, width: 40, height: 40, borderRadius: '50%', p: 0, color: '#475569', borderColor: '#cbd5e1' }}
         >
           <LuChevronLeft size={20} />
