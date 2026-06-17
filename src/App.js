@@ -8,6 +8,7 @@ import BusinessShops from './pages/business/BusinessShops';
 import BusinessShopProducts from './pages/business/BusinessShopProducts';
 import NearbyStoresPage from './pages/business/NearbyStoresPage';
 import ShopDetailsPage from './pages/business/ShopDetailsPage';
+import MerchantOrdersPage from './pages/business/MerchantOrdersPage';
 import InventoryPage from './pages/business/InventoryPage';
 import TriSarathiDelivery from './pages/business/TriSarathiDelivery';
 import BusinessRegistration from './pages/registration-form/BusinessRegistration';
@@ -55,6 +56,7 @@ function App() {
         <Route path="/business/shops/:id/products" element={<BusinessShopProducts />} />
         <Route path="/business/nearby-stores" element={<NearbyStoresPage />} />
         <Route path="/business/shop/:id" element={<ShopDetailsPage />} />
+        <Route path="/business/orders" element={<MerchantOrdersPage />} />
         <Route path="/business/inventory" element={<InventoryPage />} />
         <Route path="/business/delivery" element={<TriSarathiDelivery />} />
         <Route path="/registration" element={<BusinessRegistration />} />

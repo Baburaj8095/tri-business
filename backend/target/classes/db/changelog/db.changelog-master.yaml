@@ -8,4 +8,7 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/003-merchant-shop-fields.yaml
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/004-offline-payments.yaml
+      relativeToChangelogFile: false
 

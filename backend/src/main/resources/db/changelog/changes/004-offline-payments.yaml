@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-offline-payments
+      author: antigravity
+      validCheckSum: ANY
+      changes:
+        - createTable:
+            tableName: offline_payments
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: ref_id
+                  type: VARCHAR(64)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: consumer_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: shop_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: numeric(12, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: payment_method
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false

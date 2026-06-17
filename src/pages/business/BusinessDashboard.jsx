@@ -1,4 +1,5 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import {
   Box,
   Typography,
@@ -24,6 +25,20 @@ export default function BusinessDashboard() {
   const [profile, setProfile] = useState(null);
   const [shops, setShops] = useState([]);
   const [hasPrime750, setHasPrime750] = useState(false);
+  const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
+
+  useEffect(() => {
+    const token = localStorage.getItem('captain_access_token');
+    if (token) {
+      axios.get(`${process.env.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api'}/captain/offline-payments/merchant`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => {
+          setPendingPaymentsCount(res.data ? res.data.length : 0);
+        })
+        .catch(err => console.error('Failed to fetch offline payments count:', err));
+    }
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -91,6 +106,29 @@ export default function BusinessDashboard() {
       )}
 
       <Grid container spacing={2}>
+        {/* PENDING CUSTOMER OFF-LINE PAYMENTS */}
+        {pendingPaymentsCount > 0 && (
+          <Grid item xs={12}>
+            <Card sx={{ borderRadius: 3, border: '1.5px solid #228B22', bgcolor: '#f0fdf4' }}>
+              <CardContent>
+                <Typography fontWeight={850} color="#228B22">
+                  ⚠️ Pending Customer Payments ({pendingPaymentsCount})
+                </Typography>
+                <Typography variant="body2" color="text.secondary" mt={0.5}>
+                  Customers have initiated offline payments. Please verify and approve them to distribute cashback.
+                </Typography>
+                <Button
+                  variant="contained"
+                  sx={{ mt: 1.5, textTransform: 'none', fontWeight: 800, borderRadius: '8px', bgcolor: '#228B22', '&:hover': { bgcolor: '#1b4d3e' } }}
+                  onClick={() => navigate('/business/orders')}
+                >
+                  Review Payments
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
         {/* PROFILE */}
         <Grid item xs={12}>
           <Card sx={{ borderRadius: 3 }}>
