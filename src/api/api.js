@@ -807,6 +807,10 @@ export async function getPublicB2bMerchants() {
   const res = await API.get("/captain/merchants/b2b");
   return res?.data || res;
 }
+export async function getPublicB2cMerchants() {
+  const res = await API.get("/captain/merchants/b2c");
+  return res?.data || res;
+}
 export async function transferECoupon(codeId, { to_username, pincode = "", notes = "" }) {
   const res = await API.post(`/coupons/codes/${codeId}/transfer/`, { to_username, pincode, notes });
   return res?.data || res;
@@ -1201,6 +1205,18 @@ export async function createShop({
   longitude = "",
   contact_number = "",
   shop_image = null,
+  category = "",
+  business_type = "",
+  email = "",
+  state = "",
+  pincode = "",
+  description = "",
+  banner = null,
+  gst_number = "",
+  pan_number = "",
+  business_reg_number = "",
+  business_logo = null,
+  business_documents = [],
 } = {}) {
   const fd = new FormData();
   if (shop_name) fd.append("shop_name", String(shop_name));
@@ -1210,6 +1226,22 @@ export async function createShop({
   if (longitude !== "" && longitude !== null && longitude !== undefined) fd.append("longitude", String(longitude));
   if (contact_number) fd.append("contact_number", String(contact_number));
   if (shop_image) fd.append("shop_image", shop_image);
+  if (category) fd.append("category", String(category));
+  if (business_type) fd.append("business_type", String(business_type));
+  if (email) fd.append("email", String(email));
+  if (state) fd.append("state", String(state));
+  if (pincode) fd.append("pincode", String(pincode));
+  if (description) fd.append("description", String(description));
+  if (banner) fd.append("banner", banner);
+  if (gst_number) fd.append("gst_number", String(gst_number));
+  if (pan_number) fd.append("pan_number", String(pan_number));
+  if (business_reg_number) fd.append("business_reg_number", String(business_reg_number));
+  if (business_logo) fd.append("business_logo", business_logo);
+  if (Array.isArray(business_documents)) {
+    business_documents.forEach((doc, idx) => {
+      fd.append(`document_${idx}`, doc);
+    });
+  }
   const res = await API.post("/merchant/shops/", fd, { headers: { "Content-Type": "multipart/form-data" } });
   return res?.data || res;
 }
@@ -1222,6 +1254,18 @@ export async function updateShop(id, {
   longitude,
   contact_number,
   shop_image,
+  category,
+  business_type,
+  email,
+  state,
+  pincode,
+  description,
+  banner,
+  gst_number,
+  pan_number,
+  business_reg_number,
+  business_logo,
+  business_documents,
 } = {}) {
   const fd = new FormData();
   if (shop_name !== undefined) fd.append("shop_name", String(shop_name));
@@ -1231,6 +1275,22 @@ export async function updateShop(id, {
   if (longitude !== undefined) fd.append("longitude", String(longitude));
   if (contact_number !== undefined) fd.append("contact_number", String(contact_number));
   if (shop_image !== undefined && shop_image !== null) fd.append("shop_image", shop_image);
+  if (category !== undefined) fd.append("category", String(category));
+  if (business_type !== undefined) fd.append("business_type", String(business_type));
+  if (email !== undefined) fd.append("email", String(email));
+  if (state !== undefined) fd.append("state", String(state));
+  if (pincode !== undefined) fd.append("pincode", String(pincode));
+  if (description !== undefined) fd.append("description", String(description));
+  if (banner !== undefined && banner !== null) fd.append("banner", banner);
+  if (gst_number !== undefined) fd.append("gst_number", String(gst_number));
+  if (pan_number !== undefined) fd.append("pan_number", String(pan_number));
+  if (business_reg_number !== undefined) fd.append("business_reg_number", String(business_reg_number));
+  if (business_logo !== undefined && business_logo !== null) fd.append("business_logo", business_logo);
+  if (Array.isArray(business_documents)) {
+    business_documents.forEach((doc, idx) => {
+      fd.append(`document_${idx}`, doc);
+    });
+  }
   const res = await API.patch(`/merchant/shops/${encodeURIComponent(id)}/`, fd, { headers: { "Content-Type": "multipart/form-data" } });
   return res?.data || res;
 }

@@ -55,7 +55,7 @@ import ArrowForwardIosRoundedIcon from '@mui/icons-material/ArrowForwardIosRound
 import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import SearchBar from "../../components/business/SearchBar";
-import { getPublicB2bMerchants } from "../../api/api";
+import { getPublicB2bMerchants, getMerchantProfile } from "../../api/api";
 import "../consumer-ecommerce/consumerEcommerce.css";
 
 const UI = {
@@ -656,13 +656,13 @@ function CategoryCard({ item }) {
   return (
     <Card
       sx={{
-        minWidth: { xs: 112, sm: 134 },
-        width: { xs: 112, sm: 134 },
-        height: { xs: 118, sm: 140 },
+        minWidth: { xs: 80, sm: 100 },
+        width: { xs: 80, sm: 100 },
+        height: { xs: 86, sm: 106 },
         flexShrink: 0,
         scrollSnapAlign: "start",
         border: `1px solid ${alpha("#dbe3ee", 0.74)}`,
-        borderRadius: 4,
+        borderRadius: 3,
         boxShadow: "0 8px 18px rgba(15, 23, 42, 0.04)",
         display: "flex",
         flexDirection: "column",
@@ -672,8 +672,8 @@ function CategoryCard({ item }) {
         overflow: "visible",
       }}
     >
-      <Icon style={{ fontSize: 38, color: UI.primary, marginBottom: 10, strokeWidth: 2.1 }} />
-      <Typography sx={{ fontSize: { xs: 15.5, sm: 18 }, fontWeight: 900, color: UI.text, textAlign: "center", lineHeight: 1.1 }}>
+      <Icon style={{ fontSize: 26, color: UI.primary, marginBottom: 6, strokeWidth: 2.1 }} />
+      <Typography sx={{ fontSize: { xs: 11, sm: 13 }, fontWeight: 700, color: UI.text, textAlign: "center", lineHeight: 1.1 }}>
         {item.label}
       </Typography>
     </Card>
@@ -974,7 +974,13 @@ function StickyDeliveryButton({ onClick }) {
   );
 }
 
-function AppDrawer({ open, onClose, onAction }) {
+function AppDrawer({ open, onClose, onAction, profile }) {
+  const displayName = profile?.business_name || profile?.full_name || localStorage.getItem('business_full_name') || 'Business User';
+  const displayPhone = profile?.mobile_number || profile?.username || localStorage.getItem('business_phone') || '';
+  const initials = displayName
+    ? displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    : 'BU';
+
   return (
     <Drawer
       anchor="left"
@@ -1010,7 +1016,7 @@ function AppDrawer({ open, onClose, onAction }) {
           }}
         >
           <CardContent sx={{ p: 1.6 }}>
-            <Stack direction="row" spacing={1.2} alignItems="center">
+            <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1 }}>
               <Avatar
                 sx={{
                   width: 48,
@@ -1020,17 +1026,38 @@ function AppDrawer({ open, onClose, onAction }) {
                   fontWeight: 800,
                 }}
               >
-                PJ
+                {initials}
               </Avatar>
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: UI.text }}>
-                  Prakash J
+                <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: UI.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {displayName}
                 </Typography>
                 <Typography sx={{ fontSize: 11, color: UI.textMuted }}>
-                  Master Franchise
+                  {displayPhone || 'Business Account'}
                 </Typography>
               </Box>
             </Stack>
+            <Divider sx={{ my: 1, borderColor: alpha(UI.primary, 0.1) }} />
+            <Button
+              variant="text"
+              size="small"
+              onClick={() => {
+                onClose();
+                onAction("profile");
+              }}
+              sx={{
+                textTransform: 'none',
+                color: UI.primary,
+                fontWeight: 700,
+                fontSize: 11.5,
+                p: 0,
+                minHeight: 0,
+                justifyContent: 'flex-start',
+                '&:hover': { bgcolor: 'transparent', color: UI.secondary }
+              }}
+            >
+              Check Business Profile →
+            </Button>
           </CardContent>
         </Card>
 
@@ -1135,10 +1162,10 @@ function MobileFooterNav({ activeItem, onNavigate }) {
         sx={{
           maxWidth: 820,
           mx: "auto",
-          height: { xs: 86, sm: 96 },
+          height: { xs: 64, sm: 74 },
           borderRadius: 0,
-          borderTopLeftRadius: { xs: 36, sm: 42 },
-          borderTopRightRadius: { xs: 36, sm: 42 },
+          borderTopLeftRadius: { xs: 24, sm: 30 },
+          borderTopRightRadius: { xs: 24, sm: 30 },
           border: 0,
           bgcolor: UI.surface,
           boxShadow: "0 -10px 28px rgba(15, 23, 42, 0.08)",
@@ -1178,10 +1205,10 @@ function MobileFooterNav({ activeItem, onNavigate }) {
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: 0.65,
+                  gap: 0.35,
                   lineHeight: 1.1,
                   width: "100%",
-                  transform: scanner ? "translateY(-25px)" : "none",
+                  transform: scanner ? "translateY(-16px)" : "none",
                   "&:hover": {
                     bgcolor: "transparent",
                   },
@@ -1190,39 +1217,39 @@ function MobileFooterNav({ activeItem, onNavigate }) {
                 {scanner ? (
                   <Box
                     sx={{
-                      width: { xs: 82, sm: 100 },
-                      height: { xs: 82, sm: 100 },
+                      width: { xs: 58, sm: 68 },
+                      height: { xs: 58, sm: 68 },
                       borderRadius: "50%",
                       bgcolor: alpha(UI.primary, 0.14),
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      mb: -0.5,
+                      mb: -0.25,
                     }}
                   >
                     <Box
                       sx={{
-                        width: { xs: 62, sm: 76 },
-                        height: { xs: 62, sm: 76 },
+                        width: { xs: 44, sm: 52 },
+                        height: { xs: 44, sm: 52 },
                         borderRadius: "50%",
                         bgcolor: UI.primary,
                         color: "#fff",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        boxShadow: `0 10px 22px ${alpha(UI.primary, 0.34)}`,
+                        boxShadow: `0 8px 18px ${alpha(UI.primary, 0.34)}`,
                       }}
                     >
-                      <Icon style={{ fontSize: 34, strokeWidth: 2.1 }} />
+                      <Icon style={{ fontSize: 24, strokeWidth: 2.1 }} />
                     </Box>
                   </Box>
                 ) : (
-                  <Icon style={{ fontSize: 30, strokeWidth: 1.9 }} />
+                  <Icon style={{ fontSize: 22, strokeWidth: 1.9 }} />
                 )}
                 <Typography
                   sx={{
-                    fontSize: { xs: 12.5, sm: 16 },
-                    fontWeight: 800,
+                    fontSize: { xs: 10.5, sm: 12.5 },
+                    fontWeight: 700,
                     textAlign: "center",
                     color: scanner ? UI.textMuted : textColor,
                     fontFamily: "Poppins",
@@ -1248,6 +1275,7 @@ function BusinessDashboard() {
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [b2bShops, setB2bShops] = useState([]);
+  const [profile, setProfile] = useState(null);
   const [toastMsg, setToastMsg] = useState("");
   const joinPrimePath = "/demo/join-prime";
 
@@ -1255,6 +1283,16 @@ function BusinessDashboard() {
     getPublicB2bMerchants()
       .then((data) => setB2bShops(data || []))
       .catch((err) => console.error("Failed to load B2B merchants:", err));
+
+    getMerchantProfile()
+      .then((data) => {
+        if (data) {
+          setProfile(data);
+          localStorage.setItem('business_full_name', data.business_name || data.full_name || '');
+          localStorage.setItem('business_phone', data.mobile_number || data.username || '');
+        }
+      })
+      .catch((err) => console.error("Failed to load merchant profile:", err));
   }, []);
 
   const handleScrollTo = (targetId) => {
@@ -1267,6 +1305,10 @@ function BusinessDashboard() {
   const handleFooterNavigate = (action) => {
     if (action === "tri-zone-footer" || action === "product-section") {
       setToastMsg("This feature is coming soon!");
+      return;
+    }
+    if (action === "city-search-section") {
+      navigate("/business/nearby-stores");
       return;
     }
     setActiveFooterItem(action);
@@ -1484,7 +1526,7 @@ function BusinessDashboard() {
           setSearchModalOpen(false);
         }}
       />
-      <AppDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onAction={handleDrawerAction} />
+      <AppDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onAction={handleDrawerAction} profile={profile} />
       <MobileFooterNav activeItem={activeFooterItem} onNavigate={handleFooterNavigate} />
 
       <Snackbar

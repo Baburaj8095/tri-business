@@ -1,22 +1,41 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   Box,
   Typography,
-  Paper,
   Grid,
   TextField,
   Button,
   Alert,
   Card,
   CardContent,
-  CardActions,
   Chip,
   IconButton,
+  Stack,
+  Avatar,
+  Divider,
+  CircularProgress,
+  InputAdornment,
+  Container,
+  Select,
+  MenuItem,
+  ListSubheader,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { alpha } from "@mui/material/styles";
 
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import AddLocationAltOutlinedIcon from "@mui/icons-material/AddLocationAltOutlined";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import StoreIcon from "@mui/icons-material/Store";
+import PhoneIcon from "@mui/icons-material/Phone";
+import PlaceIcon from "@mui/icons-material/Place";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
+import MapIcon from "@mui/icons-material/Map";
+import GpsFixedIcon from "@mui/icons-material/GpsFixed";
+import DescriptionIcon from "@mui/icons-material/Description";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
 
 import {
   listMyShops,
@@ -25,11 +44,58 @@ import {
   deleteShop,
 } from "../../api/api";
 
-/* ---------------- STATUS CHIP ---------------- */
+/* ── Design Tokens ── */
+const T = {
+  primary: '#228B22',       // Forest Green
+  primaryDark: '#1B4D3E',   // Dark Forest Green
+  primaryLight: '#e9f5e9',
+  accent: '#f97316',        // Orange accent
+  bg: '#f8fafc',
+  surface: '#ffffff',
+  text: '#0f172a',
+  textSecondary: '#475569',
+  textMuted: '#94a3b8',
+  border: '#e2e8f0',
+  borderHover: '#cbd5e1',
+  error: '#ef4444',
+  success: '#10b981',
+  warning: '#f59e0b',
+  gradient: 'linear-gradient(135deg, #228B22 0%, #1B4D3E 100%)',
+  btnGradient: 'linear-gradient(135deg, #228B22 0%, #0d9488 100%)',
+  cardShadow: '0 10px 25px rgba(15, 23, 42, 0.05)',
+  radius: '16px',
+};
+
+const labelSx = {
+  fontSize: '0.85rem',
+  fontWeight: 800,
+  color: T.text,
+  mb: 0.75,
+  display: 'block',
+};
+
+const inputSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    bgcolor: '#fff',
+    '& fieldset': { borderColor: T.border },
+    '&:hover fieldset': { borderColor: T.borderHover },
+    '&.Mui-focused fieldset': { borderColor: T.primary, borderWidth: 2 },
+  },
+  '& .MuiInputLabel-root': { color: T.textMuted, '&.Mui-focused': { color: T.primary } },
+  '& .MuiInputBase-input': { fontWeight: 600, color: T.text, py: 1.5 },
+};
+
+const categoriesList = [
+  "KIRANA GROCERY",
+  "FANCY",
+  "MOBILE DTH RECHARGE",
+  "Pooja Store",
+  "DISPOSABLE ITEMS"
+];
 
 function StatusChip({ status }) {
   const s = String(status || "").toUpperCase();
-
   let color = "default";
   if (s === "ACTIVE") color = "success";
   if (s === "PENDING") color = "warning";
@@ -41,21 +107,25 @@ function StatusChip({ status }) {
       label={s}
       color={color}
       variant={s === "ACTIVE" ? "filled" : "outlined"}
-      sx={{ fontWeight: 600 }}
+      sx={{ fontWeight: 700, fontSize: '0.68rem', borderRadius: '6px' }}
     />
   );
 }
 
-/* ---------------- MAIN ---------------- */
-
 export default function BusinessShops() {
+  const navigate = useNavigate();
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  /* ---------------- FORM ---------------- */
+  // Search filter state for category selection
+  const [categorySearch, setCategorySearch] = useState("");
+
+  const logoRef = useRef(null);
+  const bannerRef = useRef(null);
+  const docsRef = useRef(null);
 
   const emptyForm = useMemo(
     () => ({
@@ -68,22 +138,39 @@ export default function BusinessShops() {
       contact_number: "",
       shop_image: null,
       shop_image_url: "",
+      
+      business_type: "",
+      email: "",
+      category: "",
+      state: "",
+      pincode: "",
+      description: "",
+      banner: null,
+      banner_url: "",
+      gst_number: "",
+      pan_number: "",
+      business_reg_number: "",
+      business_logo: null,
+      business_logo_url: "",
+      business_documents: [],
     }),
     []
   );
 
   const [form, setForm] = useState(emptyForm);
 
-  /* ---------------- FETCH ---------------- */
+  // Toggle state to display/hide map picker
+  const [showMapPicker, setShowMapPicker] = useState(false);
 
   async function fetchShops() {
     setLoading(true);
+    setError("");
     try {
       const res = await listMyShops();
       const data = Array.isArray(res) ? res : res?.results || [];
       setShops(data);
-    } catch {
-      setError("Failed to fetch shops.");
+    } catch (err) {
+      setError("Failed to fetch shops. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -93,33 +180,70 @@ export default function BusinessShops() {
     fetchShops();
   }, []);
 
-  /* ---------------- FORM HELPERS ---------------- */
+  const resetForm = () => {
+    setForm(emptyForm);
+    setSuccess("");
+    setError("");
+    setShowMapPicker(false);
+    setCategorySearch("");
+  };
 
-  const resetForm = () => setForm(emptyForm);
-
-  const handlePickImage = (e) => {
+  const handlePickLogo = (e) => {
     const f = e?.target?.files?.[0] || null;
-    setForm((p) => ({
+    if (f) {
+      setForm((p) => ({
+        ...p,
+        business_logo: f,
+        business_logo_url: URL.createObjectURL(f),
+      }));
+    }
+  };
+
+  const handlePickBanner = (e) => {
+    const f = e?.target?.files?.[0] || null;
+    if (f) {
+      setForm((p) => ({
+        ...p,
+        banner: f,
+        banner_url: URL.createObjectURL(f),
+      }));
+    }
+  };
+
+  const handleDocs = (e) => {
+    const files = Array.from(e.target.files || []);
+    setForm(p => ({
       ...p,
-      shop_image: f,
-      shop_image_url: f ? URL.createObjectURL(f) : "",
+      business_documents: [...p.business_documents, ...files].slice(0, 5)
+    }));
+  };
+
+  const removeDoc = (idx) => {
+    setForm(p => ({
+      ...p,
+      business_documents: p.business_documents.filter((_, i) => i !== idx)
     }));
   };
 
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) {
-      setError("Geolocation not supported.");
+      setError("Geolocation is not supported by your browser.");
       return;
     }
-
-    navigator.geolocation.getCurrentPosition((pos) => {
-      const { latitude, longitude } = pos.coords;
-      setForm((p) => ({
-        ...p,
-        latitude: String(latitude),
-        longitude: String(longitude),
-      }));
-    });
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setForm((p) => ({
+          ...p,
+          latitude: String(latitude),
+          longitude: String(longitude),
+        }));
+        setSuccess("Map coordinates fetched correctly.");
+      },
+      (err) => {
+        setError("Unable to retrieve coordinates. Please enter manually.");
+      }
+    );
   };
 
   const startEdit = (shop) => {
@@ -133,323 +257,687 @@ export default function BusinessShops() {
       contact_number: shop.contact_number || "",
       shop_image: null,
       shop_image_url: shop.shop_image || "",
+      
+      business_type: shop.business_type || "",
+      email: shop.email || "",
+      category: shop.category || "",
+      state: shop.state || "",
+      pincode: shop.pincode || "",
+      description: shop.description || "",
+      banner: null,
+      banner_url: shop.banner || "",
+      gst_number: shop.gst_number || "",
+      pan_number: shop.pan_number || "",
+      business_reg_number: shop.business_reg_number || "",
+      business_logo: null,
+      business_logo_url: shop.business_logo || "",
+      business_documents: [],
     });
-
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  /* ---------------- DELETE ---------------- */
-
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this shop?")) return;
-
+    if (!window.confirm("Are you sure you want to delete this shop?")) return;
+    setError("");
+    setSuccess("");
     try {
       await deleteShop(id);
+      setSuccess("Shop deleted successfully.");
       fetchShops();
+      if (form.id === id) {
+        resetForm();
+      }
     } catch {
-      setError("Delete failed.");
+      setError("Failed to delete shop.");
     }
   };
 
-  /* ---------------- SUBMIT ---------------- */
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.shop_name.trim()) { setError("Store Name is required."); return; }
+    if (!form.business_type) { setError("Business Type is required."); return; }
+    if (!form.contact_number.trim()) { setError("Mobile is required."); return; }
+    if (!form.email.trim()) { setError("Email is required."); return; }
+    if (!form.category) { setError("Category is required."); return; }
+    if (!form.address.trim()) { setError("Address is required."); return; }
+    if (!form.state.trim()) { setError("State is required."); return; }
+    if (!form.pincode.trim()) { setError("Pincode is required."); return; }
+    if (!form.description.trim()) { setError("Description is required."); return; }
+
     setSaving(true);
+    setError("");
+    setSuccess("");
 
     const payload = {
       shop_name: form.shop_name,
       address: form.address,
-      city: form.city,
-      latitude: form.latitude,
-      longitude: form.longitude,
+      city: form.city || "Indiranagar",
+      latitude: form.latitude || "0.0",
+      longitude: form.longitude || "0.0",
       contact_number: form.contact_number,
       shop_image: form.shop_image,
+      
+      business_type: form.business_type,
+      email: form.email,
+      category: form.category,
+      state: form.state,
+      pincode: form.pincode,
+      description: form.description,
+      banner: form.banner,
+      gst_number: form.gst_number,
+      pan_number: form.pan_number,
+      business_reg_number: form.business_reg_number,
+      business_logo: form.business_logo,
+      business_documents: form.business_documents,
     };
 
     try {
       if (form.id) {
         await updateShop(form.id, payload);
-        setSuccess("Shop updated.");
+        setSuccess("Shop details updated successfully.");
       } else {
         await createShop(payload);
-        setSuccess("Shop created.");
+        setSuccess("Shop registered successfully.");
       }
-
       resetForm();
       fetchShops();
-    } catch {
-      setError("Save failed.");
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Failed to save shop details.");
     } finally {
       setSaving(false);
     }
   };
 
-  /* ---------------- UI ---------------- */
+  const filteredCategories = categoriesList.filter(c =>
+    c.toLowerCase().includes(categorySearch.toLowerCase())
+  );
 
- return (
-  <Box
-    sx={{
-      px: 1.5,
-      pb: 4,
-      maxWidth: 520,   // Mobile-first container
-      mx: "auto",
-    }}
-  >
-    {/* TITLE */}
-    <Typography
-      variant="h5"
-      sx={{ fontWeight: 800, mb: 2 }}
-    >
-      My Shops
-    </Typography>
-
-    {/* ---------------- FORM CARD ---------------- */}
-    <Paper
-      component="form"
-      onSubmit={handleSubmit}
-      sx={{
-        p: 2,
-        mb: 3,
-        borderRadius: 4,
-        background: "#fff",
-        boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-      }}
-    >
-      <Typography fontWeight={700} mb={2}>
-        {form.id ? "Edit Shop" : "Create a New Shop"}
-      </Typography>
-
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <TextField label="Shop Name" fullWidth />
-        </Grid>
-
-        <Grid item xs={12}>
-          <TextField label="Contact Number" fullWidth />
-        </Grid>
-
-        <Grid item xs={12}>
-          <TextField
-            label="Address"
-            fullWidth
-            multiline
-            minRows={3}
-          />
-        </Grid>
-
-        <Grid item xs={12}>
-          <TextField label="City" fullWidth />
-        </Grid>
-
-        <Grid item xs={6}>
-          <TextField label="Latitude" fullWidth />
-        </Grid>
-
-        <Grid item xs={6}>
-          <TextField label="Longitude" fullWidth />
-        </Grid>
-
-        {/* LOCATION BUTTON */}
-        <Grid item xs={12}>
-          <Button
-            fullWidth
-            variant="outlined"
-            startIcon={<AddLocationAltOutlinedIcon />}
+  return (
+    <Box sx={{ bgcolor: T.bg, minHeight: "100vh", py: 4 }}>
+      <Container maxWidth="lg">
+        {/* Top Header */}
+        <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
+          <IconButton
+            onClick={() => navigate("/business-dashboard")}
             sx={{
-              py: 1.2,
-              borderRadius: 3,
-              textTransform: "none",
-              fontWeight: 600,
-            }}
-            onClick={handleUseMyLocation}
-          >
-            Use my location
-          </Button>
-        </Grid>
-
-        {/* IMAGE */}
-        <Grid item xs={12}>
-          <Button
-            fullWidth
-            component="label"
-            variant="outlined"
-            sx={{
-              py: 1.2,
-              borderRadius: 3,
-              textTransform: "none",
-              fontWeight: 600,
+              bgcolor: T.surface,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              color: T.primary,
+              "&:hover": { bgcolor: alpha(T.primary, 0.08) }
             }}
           >
-            Upload Image
-            <input hidden type="file" onChange={handlePickImage} />
-          </Button>
-        </Grid>
+            <ArrowBackIcon />
+          </IconButton>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 950, color: T.text, lineHeight: 1.2 }}>
+              Register Retail Store
+            </Typography>
+            <Typography variant="body2" sx={{ color: T.textSecondary, fontWeight: 500 }}>
+              Create shop profiles, configure locations, and submit verification documents
+            </Typography>
+          </Box>
+        </Stack>
 
-        {/* CTA */}
-        <Grid item xs={12}>
-          <Button
-            type="submit"
-            fullWidth
-            sx={{
-              py: 1.3,
-              borderRadius: 3,
-              fontWeight: 700,
-              textTransform: "none",
-              background:
-                "linear-gradient(135deg,#0ea5e9,#22c55e)",
-              color: "#fff",
-            }}
-          >
-            Create Shop
-          </Button>
-        </Grid>
-      </Grid>
-    </Paper>
+        {/* Notifications */}
+        {error && <Alert severity="error" sx={{ mb: 3, borderRadius: '12px' }} onClose={() => setError("")}>{error}</Alert>}
+        {success && <Alert severity="success" sx={{ mb: 3, borderRadius: '12px' }} onClose={() => setSuccess("")}>{success}</Alert>}
 
-    {/* ---------------- SHOPS ---------------- */}
-
-    <Typography fontWeight={700} mb={1.5}>
-      Your Shops
-    </Typography>
-
-   <Grid container spacing={1.5}>
-      {shops.map((s) => (
-        <Grid
-          item
-          key={s.id}
-          xs={6}   // 🔥 2 per row on mobile
-          sm={6}   // 2 per row tablet
-          md={4}   // 3 per row desktop
-          lg={3}   // 4 per row large
-        >
-
-        <Card
-          sx={{
-            borderRadius: 3,
-            overflow: "hidden",
-            background: "#fff",
-            boxShadow: "0 6px 16px rgba(0,0,0,0.06)",
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          {/* IMAGE */}
-          {s.shop_image && (
-            <Box
+        <Grid container spacing={4}>
+          {/* Left Side: Shop Registration Form */}
+          <Grid item xs={12} md={6}>
+            <Card
               sx={{
-                width: "100%",
-                height: 110,        // reduced for 2-col
-                overflow: "hidden",
+                borderRadius: T.radius,
+                boxShadow: T.cardShadow,
+                bgcolor: T.surface,
+                border: `1px solid ${alpha(T.border, 0.5)}`,
               }}
             >
-              <img
-                src={s.image_url || s.shop_image}
-                alt=""
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
-              />
-            </Box>
-          )}
+              <CardContent sx={{ p: 3.5 }}>
+                <Typography variant="h6" sx={{ fontWeight: 900, color: T.text, mb: 3.5 }}>
+                  {form.id ? "✏️ Edit Store Details" : "🏪 Add Store"}
+                </Typography>
 
-          {/* CONTENT */}
-          <CardContent
-            sx={{
-              p: 1.2,
-              display: "flex",
-              flexDirection: "column",
-              flexGrow: 1,
-            }}
-          >
-            {/* TITLE + STATUS */}
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              mb={0.5}
-            >
-              <Typography
-                fontWeight={700}
-                fontSize={13}
-                noWrap
-              >
-                {s.shop_name}
+                <Box component="form" onSubmit={handleSubmit}>
+                  <Stack spacing={3}>
+                    {/* Store Name */}
+                    <Box>
+                      <Typography sx={labelSx}>Store Name *</Typography>
+                      <TextField
+                        fullWidth
+                        placeholder="Enter Store Name"
+                        value={form.shop_name}
+                        onChange={(e) => setForm(p => ({ ...p, shop_name: e.target.value }))}
+                        sx={inputSx}
+                      />
+                    </Box>
+
+                    {/* Business Type Select */}
+                    <Box>
+                      <Typography sx={labelSx}>Business Type *</Typography>
+                      <Select
+                        fullWidth
+                        displayEmpty
+                        value={form.business_type}
+                        onChange={(e) => setForm(p => ({ ...p, business_type: e.target.value }))}
+                        sx={{
+                          borderRadius: '12px',
+                          bgcolor: '#fff',
+                          '& fieldset': { borderColor: T.border },
+                          '&:hover fieldset': { borderColor: T.borderHover },
+                          '&.Mui-focused fieldset': { borderColor: T.primary, borderWidth: 2 },
+                          '& .MuiSelect-select': { fontWeight: 600, color: T.text, py: 1.5 }
+                        }}
+                      >
+                        <MenuItem value="" disabled sx={{ fontWeight: 600, color: T.textMuted }}>Select Business Type</MenuItem>
+                        <MenuItem value="LLP" sx={{ fontWeight: 600 }}>LLP</MenuItem>
+                        <MenuItem value="NGO" sx={{ fontWeight: 600 }}>NGO</MenuItem>
+                        <MenuItem value="Individual" sx={{ fontWeight: 600 }}>Individual</MenuItem>
+                        <MenuItem value="Partnership" sx={{ fontWeight: 600 }}>Partnership</MenuItem>
+                        <MenuItem value="Proprietorship" sx={{ fontWeight: 600 }}>Proprietorship</MenuItem>
+                      </Select>
+                    </Box>
+
+                    {/* Mobile */}
+                    <Box>
+                      <Typography sx={labelSx}>Mobile *</Typography>
+                      <TextField
+                        fullWidth
+                        placeholder="Enter Mobile"
+                        value={form.contact_number}
+                        onChange={(e) => setForm(p => ({ ...p, contact_number: e.target.value }))}
+                        sx={inputSx}
+                      />
+                    </Box>
+
+                    {/* Email */}
+                    <Box>
+                      <Typography sx={labelSx}>Email *</Typography>
+                      <TextField
+                        fullWidth
+                        placeholder="Enter Email"
+                        type="email"
+                        value={form.email}
+                        onChange={(e) => setForm(p => ({ ...p, email: e.target.value }))}
+                        sx={inputSx}
+                      />
+                    </Box>
+
+                    {/* Category Search dropdown */}
+                    <Box>
+                      <Typography sx={labelSx}>Category *</Typography>
+                      <Select
+                        fullWidth
+                        displayEmpty
+                        value={form.category}
+                        onChange={(e) => setForm(p => ({ ...p, category: e.target.value }))}
+                        MenuProps={{
+                          autoFocus: false,
+                          PaperProps: { sx: { maxHeight: 300, borderRadius: '12px' } }
+                        }}
+                        sx={{
+                          borderRadius: '12px',
+                          bgcolor: '#fff',
+                          '& fieldset': { borderColor: T.border },
+                          '&:hover fieldset': { borderColor: T.borderHover },
+                          '&.Mui-focused fieldset': { borderColor: T.primary, borderWidth: 2 },
+                          '& .MuiSelect-select': { fontWeight: 600, color: T.text, py: 1.5 }
+                        }}
+                      >
+                        <MenuItem value="" disabled sx={{ fontWeight: 600, color: T.textMuted }}>Select Category</MenuItem>
+                        
+                        <ListSubheader disableSticky sx={{ px: 1.5, py: 1 }}>
+                          <TextField
+                            size="small"
+                            placeholder="Search Category"
+                            fullWidth
+                            value={categorySearch}
+                            onChange={(e) => setCategorySearch(e.target.value)}
+                            onKeyDown={(e) => e.stopPropagation()}
+                            sx={inputSx}
+                          />
+                        </ListSubheader>
+
+                        {filteredCategories.map(cat => (
+                          <MenuItem key={cat} value={cat} sx={{ fontWeight: 600 }}>{cat}</MenuItem>
+                        ))}
+                      </Select>
+                    </Box>
+
+                    {/* Address */}
+                    <Box>
+                      <Typography sx={labelSx}>Address *</Typography>
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={2}
+                        placeholder="Enter Address"
+                        value={form.address}
+                        onChange={(e) => setForm(p => ({ ...p, address: e.target.value }))}
+                        sx={inputSx}
+                      />
+                    </Box>
+
+                    {/* Map Address Picker */}
+                    <Box>
+                      <Typography sx={labelSx}>Map Address *</Typography>
+                      <Box
+                        onClick={() => { handleUseMyLocation(); setShowMapPicker(!showMapPicker); }}
+                        sx={{
+                          border: `1.5px solid ${T.border}`,
+                          borderRadius: '12px',
+                          bgcolor: '#fff',
+                          p: 2.5,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          '&:hover': { borderColor: T.primary, bgcolor: alpha(T.primary, 0.02) }
+                        }}
+                      >
+                        <Typography sx={{ fontSize: '0.88rem', fontWeight: 600, color: (form.latitude && form.longitude) ? T.text : T.textMuted }}>
+                          {(form.latitude && form.longitude) 
+                            ? `Lat: ${form.latitude}, Lng: ${form.longitude}` 
+                            : 'Tap to get address'
+                          }
+                        </Typography>
+                        <GpsFixedIcon sx={{ color: T.primary, fontSize: 20 }} />
+                      </Box>
+                    </Box>
+
+                    {/* Google Maps Location Picker (Moved from Onboarding) */}
+                    {showMapPicker && (
+                      <Box sx={{
+                        border: `2px dashed ${T.primary}`, borderRadius: '12px', bgcolor: alpha(T.primary, 0.03),
+                        py: 4, px: 2, textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s',
+                        position: 'relative'
+                      }}>
+                        <IconButton size="small" sx={{ position: 'absolute', top: 8, right: 8 }} onClick={(e) => { e.stopPropagation(); setShowMapPicker(false); }}>
+                          <LuX size={18} />
+                        </IconButton>
+                        <MapIcon sx={{ fontSize: 36, color: T.primary, mb: 1 }} />
+                        <Typography sx={{ color: T.text, fontWeight: 700, fontSize: '0.85rem' }}>Google Maps Location Picker</Typography>
+                        <Typography sx={{ color: T.textSecondary, fontSize: '0.75rem', mt: 0.5 }}>Business pin saved. Click again to refresh coordinates.</Typography>
+                      </Box>
+                    )}
+
+                    {/* State */}
+                    <Box>
+                      <Typography sx={labelSx}>State *</Typography>
+                      <TextField
+                        fullWidth
+                        placeholder="Enter State"
+                        value={form.state}
+                        onChange={(e) => setForm(p => ({ ...p, state: e.target.value }))}
+                        sx={inputSx}
+                      />
+                    </Box>
+
+                    {/* Pincode */}
+                    <Box>
+                      <Typography sx={labelSx}>Pincode *</Typography>
+                      <TextField
+                        fullWidth
+                        placeholder="Enter Pincode"
+                        value={form.pincode}
+                        onChange={(e) => setForm(p => ({ ...p, pincode: e.target.value }))}
+                        sx={inputSx}
+                      />
+                    </Box>
+
+                    {/* Description */}
+                    <Box>
+                      <Typography sx={labelSx}>Description *</Typography>
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={3}
+                        placeholder="Enter Store Description"
+                        value={form.description}
+                        onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))}
+                        sx={inputSx}
+                      />
+                    </Box>
+
+                    {/* Logo Select */}
+                    <Box>
+                      <Typography sx={labelSx}>Logo *</Typography>
+                      <input type="file" ref={logoRef} hidden accept="image/*" onChange={handlePickLogo} />
+                      <Box
+                        onClick={() => logoRef.current?.click()}
+                        sx={{
+                          border: `1.5px solid ${T.border}`,
+                          borderRadius: '12px',
+                          bgcolor: '#fff',
+                          p: 2.5,
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          transition: 'all 0.15s ease',
+                          '&:hover': { borderColor: T.primary, bgcolor: alpha(T.primary, 0.02) }
+                        }}
+                      >
+                        {form.business_logo_url ? (
+                          <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+                            <Avatar src={form.business_logo_url} sx={{ width: 44, height: 44, borderRadius: '8px' }} />
+                            <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: T.text }}>Logo Attached. Tap to change.</Typography>
+                          </Stack>
+                        ) : (
+                          <Typography sx={{ fontSize: '0.88rem', fontWeight: 600, color: T.textMuted }}>
+                            Tap to select logo
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+
+                    {/* Banner Select */}
+                    <Box>
+                      <Typography sx={labelSx}>Banner *</Typography>
+                      <input type="file" ref={bannerRef} hidden accept="image/*" onChange={handlePickBanner} />
+                      <Box
+                        onClick={() => bannerRef.current?.click()}
+                        sx={{
+                          border: `1.5px solid ${T.border}`,
+                          borderRadius: '12px',
+                          bgcolor: '#fff',
+                          p: 2.5,
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          transition: 'all 0.15s ease',
+                          '&:hover': { borderColor: T.primary, bgcolor: alpha(T.primary, 0.02) }
+                        }}
+                      >
+                        {form.banner_url ? (
+                          <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+                            <img src={form.banner_url} alt="Banner" style={{ width: 60, height: 36, objectFit: 'cover', borderRadius: '4px' }} />
+                            <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: T.text }}>Banner Attached. Tap to change.</Typography>
+                          </Stack>
+                        ) : (
+                          <Typography sx={{ fontSize: '0.88rem', fontWeight: 600, color: T.textMuted }}>
+                            Tap to select Banner
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+
+                    <Divider sx={{ my: 2, borderColor: T.border }} />
+
+                    {/* Business Verification Details (Moved from Onboarding) */}
+                    <Box sx={{ p: 2, bgcolor: alpha(T.primary, 0.04), borderRadius: '12px', border: `1px solid ${alpha(T.primary, 0.1)}` }}>
+                      <Typography sx={{ fontWeight: 850, fontSize: '0.92rem', color: T.primary, mb: 2 }}>
+                        Business Verification Docs (Optional)
+                      </Typography>
+
+                      <Stack spacing={2.5}>
+                        <TextField
+                          label="GST Number"
+                          fullWidth
+                          value={form.gst_number}
+                          onChange={(e) => setForm(p => ({ ...p, gst_number: e.target.value.toUpperCase() }))}
+                          placeholder="e.g. 22AAAAA1111A1Z1"
+                          sx={inputSx}
+                        />
+
+                        <TextField
+                          label="PAN Number"
+                          fullWidth
+                          value={form.pan_number}
+                          onChange={(e) => setForm(p => ({ ...p, pan_number: e.target.value.toUpperCase() }))}
+                          placeholder="e.g. ABCDE1234F"
+                          sx={inputSx}
+                        />
+
+                        <TextField
+                          label="Business Registration Number"
+                          fullWidth
+                          value={form.business_reg_number}
+                          onChange={(e) => setForm(p => ({ ...p, business_reg_number: e.target.value }))}
+                          placeholder="CIN / LLPIN / Registration ID"
+                          sx={inputSx}
+                        />
+
+                        <Box>
+                          <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: T.text, mb: 1 }}>Documents Upload</Typography>
+                          <input type="file" ref={docsRef} hidden multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handleDocs} />
+                          <Box
+                            onClick={() => docsRef.current?.click()}
+                            sx={{
+                              border: `2px dashed ${T.border}`, borderRadius: '12px', bgcolor: '#fff',
+                              p: 2.5, textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s',
+                              '&:hover': { borderColor: T.primary }
+                            }}
+                          >
+                            <CloudUploadIcon sx={{ fontSize: 24, color: T.primary, mb: 0.5 }} />
+                            <Typography sx={{ fontWeight: 700, fontSize: '0.78rem', color: T.text }}>
+                              Upload documents (up to 5)
+                            </Typography>
+                            <Typography sx={{ fontSize: '0.68rem', color: T.textMuted, mt: 0.25 }}>PDF, JPG, PNG (Max 10MB each)</Typography>
+                          </Box>
+                          {form.business_documents.length > 0 && (
+                            <Stack spacing={1} sx={{ mt: 2 }}>
+                              {form.business_documents.map((doc, idx) => (
+                                <Box key={idx} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1.25, bgcolor: '#fff', borderRadius: '8px', border: `1px solid ${T.border}` }}>
+                                  <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
+                                    <AttachFileIcon sx={{ fontSize: 16, color: T.primary, flexShrink: 0 }} />
+                                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 650, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      {doc.name}
+                                    </Typography>
+                                  </Stack>
+                                  <IconButton size="small" color="error" onClick={() => removeDoc(idx)}>
+                                    <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+                                  </IconButton>
+                                </Box>
+                              ))}
+                            </Stack>
+                          )}
+                        </Box>
+                      </Stack>
+                    </Box>
+
+                    {/* Action buttons */}
+                    <Stack direction="row" spacing={1.5} sx={{ mt: 1 }}>
+                      {form.id && (
+                        <Button
+                          variant="outlined"
+                          onClick={resetForm}
+                          sx={{
+                            flex: 1,
+                            py: 1.5,
+                            borderRadius: "12px",
+                            textTransform: "none",
+                            fontWeight: 700,
+                            color: T.textSecondary,
+                            borderColor: T.border,
+                            "&:hover": { bgcolor: alpha(T.border, 0.2) }
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      )}
+                      <Button
+                        type="submit"
+                        disabled={saving}
+                        variant="contained"
+                        sx={{
+                          flex: 2,
+                          py: 1.5,
+                          borderRadius: "12px",
+                          fontWeight: 850,
+                          textTransform: "none",
+                          bgcolor: '#3b82f6', // Match the blue header button color
+                          color: '#fff',
+                          boxShadow: 'none',
+                          "&:hover": { bgcolor: '#2563eb' }
+                        }}
+                      >
+                        {saving ? <CircularProgress size={24} color="inherit" /> : form.id ? "Save Changes" : "Add Store"}
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Right Side: Existing Shop List */}
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: T.text }}>
+                Your Shops ({shops.length})
               </Typography>
-
-              <Chip
-                label={s.status}
-                size="small"
-                color={
-                  s.status === "ACTIVE"
-                    ? "success"
-                    : "warning"
-                }
-                sx={{
-                  height: 20,
-                  fontSize: 10,
-                  fontWeight: 600,
-                }}
-              />
             </Box>
 
-            {/* CITY */}
-            <Typography
-              fontSize={12}
-              color="text.secondary"
-              noWrap
-            >
-              {s.city}
-            </Typography>
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                <CircularProgress color="success" />
+              </Box>
+            ) : shops.length === 0 ? (
+              <Card sx={{ borderRadius: T.radius, bgcolor: T.surface, border: `1px solid ${T.border}`, p: 4, textAlign: 'center' }}>
+                <Typography sx={{ color: T.textSecondary, fontWeight: 700 }}>
+                  No shops created yet.
+                </Typography>
+                <Typography variant="body2" sx={{ color: T.textMuted, mt: 0.5 }}>
+                  Fill out the form on the left to add your first storefront.
+                </Typography>
+              </Card>
+            ) : (
+              <Stack spacing={3}>
+                {shops.map((s) => (
+                  <Card
+                    key={s.id}
+                    sx={{
+                      borderRadius: T.radius,
+                      boxShadow: T.cardShadow,
+                      bgcolor: T.surface,
+                      border: `1px solid ${alpha(T.border, 0.6)}`,
+                      overflow: "hidden",
+                      transition: "transform 0.2s, box-shadow 0.2s",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        boxShadow: "0 12px 30px rgba(15, 23, 42, 0.08)",
+                        borderColor: alpha(T.primary, 0.3)
+                      }
+                    }}
+                  >
+                    <Grid container>
+                      {/* Left: Image banner inside the card */}
+                      <Grid item xs={12} sm={4}>
+                        <Box sx={{ height: { xs: 150, sm: "100%" }, minHeight: { sm: 180 }, position: 'relative', bgcolor: alpha(T.primary, 0.05) }}>
+                          {s.shop_image ? (
+                            <img
+                              src={s.shop_image}
+                              alt={s.shop_name}
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            />
+                          ) : (
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: T.textMuted }}>
+                              <StoreIcon sx={{ fontSize: 44 }} />
+                            </Box>
+                          )}
+                          <Box sx={{ position: 'absolute', top: 10, left: 10 }}>
+                            <StatusChip status={s.status} />
+                          </Box>
+                        </Box>
+                      </Grid>
 
-            {/* CONTACT */}
-            <Typography
-              fontSize={12}
-              fontWeight={600}
-              noWrap
-            >
-              {s.contact_number}
-            </Typography>
+                      {/* Right: Info */}
+                      <Grid item xs={12} sm={8}>
+                        <CardContent sx={{ p: 2.5, display: "flex", flexDirection: "column", height: "100%" }}>
+                          <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", color: T.text, mb: 0.5 }}>
+                            {s.shop_name}
+                          </Typography>
 
-            {/* ACTIONS — anchored bottom */}
-            <Box
-              mt="auto"
-              display="flex"
-              justifyContent="space-between"
-              pt={1}
-            >
-              <IconButton
-                size="small"
-                onClick={() => startEdit(s)}
-                sx={{
-                  background: "#f1f5f9",
-                  width: 32,
-                  height: 32,
-                }}
-              >
-                <EditOutlinedIcon fontSize="small" />
-              </IconButton>
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: T.primary, mb: 1.5, display: 'block' }}>
+                            {s.category || 'RETAIL STORE'}
+                          </Typography>
 
-              <IconButton
-                size="small"
-                onClick={() => handleDelete(s.id)}
-                sx={{
-                  background: "#f1f5f9",
-                  width: 32,
-                  height: 32,
-                }}
-              >
-                <DeleteOutlineIcon fontSize="small" />
-              </IconButton>
-            </Box>
-          </CardContent>
-        </Card>
-      </Grid>
-      ))}
-    </Grid>
-  </Box>
-);
+                          <Stack spacing={0.75} sx={{ mb: 2 }}>
+                            <Stack direction="row" spacing={1} alignItems="center" sx={{ color: T.textSecondary }}>
+                              <PlaceIcon sx={{ fontSize: 15, color: T.textMuted }} />
+                              <Typography sx={{ fontSize: '0.8rem', fontWeight: 600 }}>
+                                {s.city} (Pincode: {s.pincode || '—'})
+                              </Typography>
+                            </Stack>
+
+                            <Stack direction="row" spacing={1} alignItems="center" sx={{ color: T.textSecondary }}>
+                              <PhoneIcon sx={{ fontSize: 15, color: T.textMuted }} />
+                              <Typography sx={{ fontSize: '0.8rem', fontWeight: 600 }}>
+                                {s.contact_number}
+                              </Typography>
+                            </Stack>
+                          </Stack>
+
+                          {s.description && (
+                            <Typography variant="caption" sx={{ color: T.textMuted, mb: 2, display: '-webkit-box', overflow: 'hidden', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, minHeight: 32 }}>
+                              {s.description}
+                            </Typography>
+                          )}
+
+                          <Divider sx={{ my: 1.5, borderColor: T.border }} />
+
+                          {/* Actions */}
+                          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: "auto" }}>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              startIcon={<ShoppingBagIcon sx={{ fontSize: 14 }} />}
+                              onClick={() => navigate(`/business/shops/${s.id}/products`)}
+                              sx={{
+                                flexGrow: 1,
+                                borderRadius: '8px',
+                                textTransform: 'none',
+                                fontSize: '0.75rem',
+                                fontWeight: 800,
+                                borderColor: T.primary,
+                                color: T.primary,
+                                "&:hover": { bgcolor: alpha(T.primary, 0.05), borderColor: T.primaryDark }
+                              }}
+                            >
+                              Manage Products
+                            </Button>
+
+                            <IconButton
+                              size="small"
+                              onClick={() => startEdit(s)}
+                              sx={{
+                                bgcolor: alpha(T.primary, 0.05),
+                                color: T.primary,
+                                borderRadius: '8px',
+                                width: 32,
+                                height: 32,
+                                "&:hover": { bgcolor: alpha(T.primary, 0.15) }
+                              }}
+                              title="Edit Shop"
+                            >
+                              <EditOutlinedIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDelete(s.id)}
+                              sx={{
+                                bgcolor: alpha(T.error, 0.05),
+                                color: T.error,
+                                borderRadius: '8px',
+                                width: 32,
+                                height: 32,
+                                "&:hover": { bgcolor: alpha(T.error, 0.15) }
+                              }}
+                              title="Delete Shop"
+                            >
+                              <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                          </Stack>
+                        </CardContent>
+                      </Grid>
+                    </Grid>
+                  </Card>
+                ))}
+              </Stack>
+            )}
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
+  );
 }

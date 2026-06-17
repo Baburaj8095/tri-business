@@ -122,7 +122,7 @@ const BusinessOnboarding = () => {
   const navigate = useNavigate();
   const logoRef = useRef(null);
   const docsRef = useRef(null);
-  const TOTAL_STEPS = 7;
+  const TOTAL_STEPS = 6;
 
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
@@ -315,12 +315,6 @@ const BusinessOnboarding = () => {
         else if (!/^\d{6}$/.test(form.pincode)) e.pincode = 'Enter valid 6-digit pincode';
         break;
       case 6:
-        if (form.gstNumber && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i.test(form.gstNumber))
-          e.gstNumber = 'Invalid GST format';
-        if (form.panNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(form.panNumber))
-          e.panNumber = 'Invalid PAN format';
-        break;
-      case 7:
         if (!form.termsAccepted) e.termsAccepted = 'You must accept the Terms & Conditions';
         if (!form.privacyAccepted) e.privacyAccepted = 'You must accept the Privacy Policy';
         break;
@@ -393,7 +387,7 @@ const BusinessOnboarding = () => {
   };
 
   /* ── Selection Card ── */
-  const SelectionCard = ({ icon, title, desc, selected, onClick, index, size = 'compact', colorTheme }) => {
+  const SelectionCard = ({ icon, title, desc, selected, onClick, index, size = 'compact', colorTheme, disabled }) => {
     const theme = colorTheme || {
       main: T.primary,
       bg: 'rgba(13,148,136,0.08)',
@@ -404,15 +398,17 @@ const BusinessOnboarding = () => {
     
     return (
       <Box
-        onClick={onClick}
+        onClick={disabled ? null : onClick}
         sx={{
           p: isLarge ? { xs: 2.5, md: 3.5 } : isMedium ? { xs: 2, md: 2.5 } : { xs: 1.25, md: 1.5 },
           borderRadius: isLarge ? '16px' : isMedium ? '14px' : '10px',
           border: '1.5px solid',
-          borderColor: selected ? theme.main : T.border,
-          bgcolor: selected ? 'rgba(255,255,255,1)' : T.surface,
-          boxShadow: selected ? '0 4px 12px rgba(0,0,0,0.05)' : 'none',
-          cursor: 'pointer',
+          borderColor: disabled ? T.border : (selected ? theme.main : T.border),
+          bgcolor: disabled ? '#f8fafc' : (selected ? 'rgba(255,255,255,1)' : T.surface),
+          boxShadow: selected && !disabled ? '0 4px 12px rgba(0,0,0,0.05)' : 'none',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.55 : 1,
+          pointerEvents: disabled ? 'none' : 'auto',
           transition: 'all 0.15s ease',
           position: 'relative',
           overflow: 'hidden',
@@ -424,8 +420,8 @@ const BusinessOnboarding = () => {
           justifyContent: 'space-between',
           flexGrow: 1, // Allows it to stretch vertically if needed
           '&:hover': {
-            borderColor: selected ? theme.main : theme.main,
-            bgcolor: selected ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.6)',
+            borderColor: disabled ? T.border : (selected ? theme.main : theme.main),
+            bgcolor: disabled ? '#f8fafc' : (selected ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.6)'),
           },
         }}
       >
@@ -655,9 +651,9 @@ const BusinessOnboarding = () => {
                           <StepHeader title="Choose your business category" subtitle="Pick the type that matches your business model" />
                           <Stack spacing={2} sx={{ flexGrow: 1, justifyContent: 'center' }}>
                           {[
-                            { value: 'Nearby Store (Offline)', icon: <Storefront />, desc: 'Operate a physical store or local shop', colorTheme: { main: '#0D9488', bg: '#E6F4F1' } },
-                            { value: 'Online Business', icon: <Language />, desc: 'E-commerce or digital services', colorTheme: { main: '#2563EB', bg: '#EBF3FF' } },
-                            { value: 'TriZone Services', icon: <Hub />, desc: 'On-demand marketplace services', colorTheme: { main: '#7C3AED', bg: '#F3E8FF' } },
+                            { value: 'Nearby Store (Offline)', icon: <Storefront />, desc: 'Operate a physical store or local shop', colorTheme: { main: '#0D9488', bg: '#E6F4F1' }, disabled: false },
+                            { value: 'Online Business', icon: <Language />, desc: 'E-commerce or digital services (Coming Soon)', colorTheme: { main: '#64748b', bg: '#f1f5f9' }, disabled: true },
+                            { value: 'TriZone Services', icon: <Hub />, desc: 'On-demand marketplace services (Coming Soon)', colorTheme: { main: '#64748b', bg: '#f1f5f9' }, disabled: true },
                           ].map((item, i) => (
                             <Box key={item.value} sx={{ display: 'flex', flex: 1 }}>
                               <SelectionCard
@@ -668,6 +664,7 @@ const BusinessOnboarding = () => {
                                 desc={item.desc}
                                 colorTheme={item.colorTheme}
                                 selected={form.businessCategory === item.value}
+                                disabled={item.disabled}
                                 onClick={() => { setForm(p => ({ ...p, businessCategory: item.value, subCategories: [] })); clearErr('businessCategory'); }}
                               />
                             </Box>
@@ -873,116 +870,12 @@ const BusinessOnboarding = () => {
                           </Grid>
 
                           <TextField fullWidth label="State" name="state" value={form.state} onChange={onChange} placeholder="State" sx={inputSx} />
-
-                          {/* Map Placeholder */}
-                          <Box sx={{
-                            border: `2px dashed ${T.border}`, borderRadius: T.radius, bgcolor: '#f1f5f9',
-                            height: 180, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
-                            cursor: 'pointer', transition: 'all 0.2s', '&:hover': { borderColor: T.primary, bgcolor: 'rgba(13,148,136,0.03)' }
-                          }}>
-                            <Map sx={{ fontSize: 40, color: T.textMuted }} />
-                            <Typography sx={{ color: T.textMuted, fontWeight: 600, fontSize: '0.85rem' }}>Google Maps Location Picker</Typography>
-                            <Typography sx={{ color: T.textMuted, fontSize: '0.75rem' }}>Tap to pin your business location</Typography>
-                          </Box>
                         </Stack>
                       </Box>
                     )}
 
-                    {/* ═══ STEP 6: Verification & Uploads ═══ */}
+                    {/* ═══ STEP 6: Review & Submit ═══ */}
                     {step === 6 && (
-                      <Box>
-                        <StepHeader title="Business Verification" subtitle="Optional documents to verify your business" />
-                        <Stack spacing={3}>
-                          <TextField fullWidth label="GST Number (Optional)" name="gstNumber" value={form.gstNumber} onChange={onChange}
-                            error={!!errors.gstNumber} helperText={errors.gstNumber || 'e.g. 22AAAAA1111A1Z1'}
-                            inputProps={{ style: { textTransform: 'uppercase' } }} sx={inputSx} />
-
-                          <TextField fullWidth label="PAN Number (Optional)" name="panNumber" value={form.panNumber} onChange={onChange}
-                            error={!!errors.panNumber} helperText={errors.panNumber || 'e.g. ABCDE1234F'}
-                            inputProps={{ style: { textTransform: 'uppercase' } }} sx={inputSx} />
-
-                          <TextField fullWidth label="Business Registration Number (Optional)" name="businessRegNumber" value={form.businessRegNumber} onChange={onChange}
-                            placeholder="CIN / LLPIN / Registration ID" sx={inputSx} />
-
-                          {/* Logo Upload */}
-                          <Box>
-                            <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: T.text, mb: 1 }}>Business Logo</Typography>
-                            <Box
-                              onDragOver={(e) => { e.preventDefault(); setLogoDrag(true); }}
-                              onDragLeave={() => setLogoDrag(false)}
-                              onDrop={(e) => { e.preventDefault(); setLogoDrag(false); if (e.dataTransfer.files[0]) processLogo(e.dataTransfer.files[0]); }}
-                              onClick={() => logoRef.current?.click()}
-                              sx={{
-                                border: `2px dashed ${logoDrag ? T.primary : T.border}`,
-                                borderRadius: T.radius, bgcolor: logoDrag ? 'rgba(13,148,136,0.04)' : '#f8fafc',
-                                p: 3, textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s',
-                                '&:hover': { borderColor: T.primary }
-                              }}
-                            >
-                              <input type="file" ref={logoRef} onChange={(e) => e.target.files[0] && processLogo(e.target.files[0])} accept="image/*" style={{ display: 'none' }} />
-                              {!form.logo ? (
-                                <Stack spacing={0.5} alignItems="center">
-                                  <CloudUpload sx={{ fontSize: 32, color: T.primary }} />
-                                  <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: T.text }}>
-                                    Drop logo here or <Box component="span" sx={{ color: T.primary, textDecoration: 'underline' }}>browse</Box>
-                                  </Typography>
-                                  <Typography sx={{ fontSize: '0.7rem', color: T.textMuted }}>PNG, JPG, WEBP (Max 5MB)</Typography>
-                                </Stack>
-                              ) : (
-                                <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
-                                  <Box component="img" src={form.logo} alt="Logo" sx={{ width: 60, height: 60, borderRadius: 2, objectFit: 'cover', border: `1px solid ${T.border}` }} />
-                                  <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: T.text }}>{form.logoName}</Typography>
-                                  <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); setForm(p => ({ ...p, logo: null, logoName: '' })); }}>
-                                    <Delete fontSize="small" />
-                                  </IconButton>
-                                </Stack>
-                              )}
-                            </Box>
-                          </Box>
-
-                          {/* Document Upload */}
-                          <Box>
-                            <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: T.text, mb: 1 }}>Business Documents</Typography>
-                            <Box
-                              onClick={() => docsRef.current?.click()}
-                              sx={{
-                                border: `2px dashed ${T.border}`, borderRadius: T.radius, bgcolor: '#f8fafc',
-                                p: 3, textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s',
-                                '&:hover': { borderColor: T.primary }
-                              }}
-                            >
-                              <input type="file" ref={docsRef} onChange={handleDocs} multiple accept=".pdf,.jpg,.jpeg,.png" style={{ display: 'none' }} />
-                              <Stack spacing={0.5} alignItems="center">
-                                <Description sx={{ fontSize: 32, color: T.primary }} />
-                                <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: T.text }}>
-                                  Upload documents (up to 5)
-                                </Typography>
-                                <Typography sx={{ fontSize: '0.7rem', color: T.textMuted }}>PDF, JPG, PNG (Max 10MB each)</Typography>
-                              </Stack>
-                            </Box>
-                            {form.documents.length > 0 && (
-                              <Stack spacing={1} sx={{ mt: 2 }}>
-                                {form.documents.map((doc, i) => (
-                                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1.5, bgcolor: '#f8fafc', borderRadius: 2, border: `1px solid ${T.border}` }}>
-                                    <Stack direction="row" spacing={1} alignItems="center">
-                                      <Description sx={{ fontSize: 18, color: T.primary }} />
-                                      <Box>
-                                        <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: T.text }}>{doc.name}</Typography>
-                                        <Typography sx={{ fontSize: '0.7rem', color: T.textMuted }}>{doc.size}</Typography>
-                                      </Box>
-                                    </Stack>
-                                    <IconButton size="small" color="error" onClick={() => removeDoc(i)}><Delete fontSize="small" /></IconButton>
-                                  </Box>
-                                ))}
-                              </Stack>
-                            )}
-                          </Box>
-                        </Stack>
-                      </Box>
-                    )}
-
-                    {/* ═══ STEP 7: Review & Submit ═══ */}
-                    {step === 7 && (
                       <Box>
                         <StepHeader title="Review & Submit" subtitle="Verify your information before submitting" />
 
@@ -1005,12 +898,6 @@ const BusinessOnboarding = () => {
                             { label: 'City', value: form.city },
                             { label: 'State', value: form.state || '—' },
                             { label: 'Pincode', value: form.pincode },
-                          ]} />
-                          <ReviewSection title="Documents" items={[
-                            { label: 'GST', value: form.gstNumber || 'Not provided' },
-                            { label: 'PAN', value: form.panNumber || 'Not provided' },
-                            { label: 'Logo', value: form.logoName || 'Not uploaded' },
-                            { label: 'Documents', value: form.documents.length > 0 ? `${form.documents.length} file(s)` : 'None' },
                           ]} />
 
                           {/* Terms */}

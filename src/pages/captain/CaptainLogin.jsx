@@ -82,7 +82,8 @@ const UnifiedLogin = () => {
           localStorage.setItem('access_token_business', data.access);
           localStorage.setItem('refresh_token_business', data.refresh);
           localStorage.setItem('business_id', data.username || identifier);
-          navigate('/merchant');
+          localStorage.setItem('business_full_name', data.fullName || '');
+          navigate('/business-dashboard');
         }
       } else {
         const err = await res.json().catch(() => ({}));
