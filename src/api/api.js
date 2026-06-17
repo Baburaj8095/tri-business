@@ -804,12 +804,30 @@ export async function getMyECouponSummary() {
 }
 
 export async function getPublicB2bMerchants() {
-  const res = await API.get("/captain/merchants/b2b");
-  return res?.data || res;
+  const captainApiUrl = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || "http://localhost:8081/api";
+  try {
+    const res = await fetch(`${captainApiUrl}/captain/merchants/b2b`);
+    if (!res.ok) {
+      throw new Error(`Failed to fetch B2B merchants: ${res.statusText}`);
+    }
+    return await res.json();
+  } catch (err) {
+    console.error("Error in getPublicB2bMerchants:", err);
+    return [];
+  }
 }
 export async function getPublicB2cMerchants() {
-  const res = await API.get("/captain/merchants/b2c");
-  return res?.data || res;
+  const captainApiUrl = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || "http://localhost:8081/api";
+  try {
+    const res = await fetch(`${captainApiUrl}/captain/merchants/b2c`);
+    if (!res.ok) {
+      throw new Error(`Failed to fetch B2C merchants: ${res.statusText}`);
+    }
+    return await res.json();
+  } catch (err) {
+    console.error("Error in getPublicB2cMerchants:", err);
+    return [];
+  }
 }
 export async function transferECoupon(codeId, { to_username, pincode = "", notes = "" }) {
   const res = await API.post(`/coupons/codes/${codeId}/transfer/`, { to_username, pincode, notes });
