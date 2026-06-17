@@ -90,7 +90,12 @@ public class JwtService {
     }
 
     public String extractUsername(String token) {
-        return validateToken(token).getSubject();
+        Claims claims = validateToken(token);
+        Object usernameObj = claims.get("username");
+        if (usernameObj != null) {
+            return usernameObj.toString();
+        }
+        return claims.getSubject();
     }
 
     public boolean isTokenExpired(String token) {

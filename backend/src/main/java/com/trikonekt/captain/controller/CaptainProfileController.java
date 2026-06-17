@@ -35,8 +35,7 @@ public class CaptainProfileController {
             throw new RuntimeException("Unauthorized. No token provided.");
         }
         String token = authHeader.substring(7);
-        Claims claims = jwtService.validateToken(token);
-        return claims.getSubject();
+        return jwtService.extractUsername(token);
     }
 
     /**

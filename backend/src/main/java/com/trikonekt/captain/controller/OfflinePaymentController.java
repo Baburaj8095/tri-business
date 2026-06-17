@@ -40,8 +40,7 @@ public class OfflinePaymentController {
             throw new RuntimeException("Unauthorized. No token provided.");
         }
         String token = authHeader.substring(7);
-        Claims claims = jwtService.validateToken(token);
-        return claims.getSubject();
+        return jwtService.extractUsername(token);
     }
 
     private OfflinePaymentResponse mapToResponse(Map<String, Object> row) {
