@@ -153,17 +153,17 @@ public class OfflinePaymentController {
 
     /**
      * GET /api/captain/offline-payments/merchant
-     * Lists pending offline payments for the logged-in merchant.
+     * Lists all offline payments (PENDING and past history) for the logged-in merchant.
      */
     @GetMapping("/offline-payments/merchant")
-    public ResponseEntity<List<OfflinePaymentResponse>> getMerchantPendingPayments(
+    public ResponseEntity<List<OfflinePaymentResponse>> getMerchantPayments(
             @RequestHeader("Authorization") String authHeader) {
         String username = getUsernameFromToken(authHeader);
         Map<String, Object> user = userRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
         long merchantId = ((Number) user.get("id")).longValue();
-        List<Map<String, Object>> rows = offlinePaymentRepository.getPendingPaymentsForMerchant(merchantId);
+        List<Map<String, Object>> rows = offlinePaymentRepository.getAllPaymentsForMerchant(merchantId);
         List<OfflinePaymentResponse> response = new ArrayList<>();
         for (Map<String, Object> row : rows) {
             response.add(mapToResponse(row));

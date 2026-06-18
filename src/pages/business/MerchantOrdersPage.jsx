@@ -211,7 +211,7 @@ export default function MerchantOrdersPage() {
                         </Stack>
                         <Box sx={{ textAlign: 'right' }}>
                           <Typography sx={{ fontSize: '1.4rem', fontWeight: 900, color: PRIMARY }}>
-                            ₹{pm.amount.toFixed(2)}
+                            ₹{Number(pm.amount || 0).toFixed(2)}
                           </Typography>
                           <Chip 
                             label={pm.status || 'PENDING'} 
