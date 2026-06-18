@@ -2,6 +2,7 @@ package com.trikonekt.captain.service;
 
 import com.trikonekt.captain.model.CreateShopRequest;
 import com.trikonekt.captain.model.MerchantProfileResponse;
+import com.trikonekt.captain.model.MerchantProfileUpdateRequest;
 import com.trikonekt.captain.model.ShopProductResponse;
 import com.trikonekt.captain.model.ShopResponse;
 import com.trikonekt.captain.repository.ShopRepository;
@@ -137,6 +138,22 @@ public class ShopService {
                 .orElseThrow(() -> new RuntimeException("Merchant profile not found"));
         } catch (DataAccessException e) {
             throw new RuntimeException("Failed to fetch merchant profile: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Update merchant profile (authenticated)
+     */
+    public MerchantProfileResponse updateMerchantProfile(Long userId, MerchantProfileUpdateRequest request) {
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("Invalid user ID");
+        }
+        try {
+            shopRepository.updateMerchantProfile(userId, request);
+            return shopRepository.findMerchantProfile(userId)
+                .orElseThrow(() -> new RuntimeException("Merchant profile not found after update"));
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Failed to update merchant profile: " + e.getMessage());
         }
     }
 

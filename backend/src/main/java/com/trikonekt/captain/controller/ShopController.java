@@ -2,7 +2,7 @@ package com.trikonekt.captain.controller;
 
 import com.trikonekt.captain.model.CreateShopRequest;
 import com.trikonekt.captain.model.MerchantProfileResponse;
-import com.trikonekt.captain.model.ShopProductResponse;
+import com.trikonekt.captain.model.MerchantProfileUpdateRequest;
 import com.trikonekt.captain.model.ShopResponse;
 import com.trikonekt.captain.repository.UserRepository;
 import com.trikonekt.captain.service.JwtService;
@@ -94,6 +94,20 @@ public class ShopController {
     ) {
         Long userId = extractUserIdFromToken(authHeader);
         MerchantProfileResponse profile = shopService.getMerchantProfile(userId);
+        return ResponseEntity.ok(profile);
+    }
+
+    /**
+     * PATCH /api/captain/merchant/profile/
+     * Update merchant profile info (authenticated)
+     */
+    @PatchMapping("/profile")
+    public ResponseEntity<MerchantProfileResponse> updateMerchantProfile(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody MerchantProfileUpdateRequest request
+    ) {
+        Long userId = extractUserIdFromToken(authHeader);
+        MerchantProfileResponse profile = shopService.updateMerchantProfile(userId, request);
         return ResponseEntity.ok(profile);
     }
 }

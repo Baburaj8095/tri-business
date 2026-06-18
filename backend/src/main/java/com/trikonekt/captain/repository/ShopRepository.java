@@ -1,13 +1,13 @@
 package com.trikonekt.captain.repository;
 
 import com.trikonekt.captain.model.MerchantProfileResponse;
+import com.trikonekt.captain.model.MerchantProfileUpdateRequest;
 import com.trikonekt.captain.model.ShopProductResponse;
 import com.trikonekt.captain.model.ShopResponse;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -164,7 +164,7 @@ public class ShopRepository {
      */
     public Optional<MerchantProfileResponse> findMerchantProfile(Long userId) {
         List<MerchantProfileResponse> result = jdbc.query(
-            "SELECT id, username, email, full_name, phone, pincode, role, category, is_active " +
+            "SELECT id, username, email, full_name, phone, pincode, role, category, is_active, address, age " +
             "FROM accounts_customuser WHERE id = ? AND (category = 'merchant' OR category = 'business')",
             new Object[]{userId},
             (rs, rowNum) -> {
@@ -174,21 +174,43 @@ public class ShopRepository {
                     new Object[]{userId},
                     Integer.class
                 );
+                String fullName = rs.getString("full_name");
+                String phone = rs.getString("phone");
+                int ageVal = rs.getInt("age");
+                Integer age = rs.wasNull() ? null : ageVal;
+
                 return MerchantProfileResponse.builder()
                     .id(rs.getLong("id"))
                     .username(rs.getString("username"))
                     .email(rs.getString("email"))
-                    .full_name(rs.getString("full_name"))
-                    .phone(rs.getString("phone"))
+                    .full_name(fullName)
+                    .businessName(fullName)
+                    .phone(phone)
+                    .mobileNumber(phone)
                     .pincode(rs.getString("pincode"))
                     .role(rs.getString("role"))
                     .category(rs.getString("category"))
                     .is_active(rs.getBoolean("is_active"))
                     .total_shops(shopCount != null ? shopCount : 0)
+                    .address(rs.getString("address"))
+                    .age(age)
                     .build();
             }
         );
         return result.stream().findFirst();
+    }
+
+    /**
+     * Update merchant profile
+     */
+    public void updateMerchantProfile(Long userId, MerchantProfileUpdateRequest request) {
+        String name = request.getBusinessName() != null ? request.getBusinessName() : request.getFullName();
+        String phone = request.getMobileNumber() != null ? request.getMobileNumber() : request.getPhone();
+
+        jdbc.update(
+            "UPDATE accounts_customuser SET full_name = ?, phone = ?, email = ?, address = ?, age = ? WHERE id = ?",
+            name, phone, request.getEmail(), request.getAddress(), request.getAge(), userId
+        );
     }
 
     /**

@@ -1336,6 +1336,8 @@ function BusinessDashboard() {
   const [editForm, setEditForm] = useState({
     business_name: '',
     mobile_number: '',
+    email: '',
+    age: '',
     address: '',
     commission_percent: '',
     service_mode: 'BOTH'
@@ -1356,6 +1358,8 @@ function BusinessDashboard() {
           setEditForm({
             business_name: data.business_name || '',
             mobile_number: data.mobile_number || '',
+            email: data.email || '',
+            age: data.age != null ? String(data.age) : '',
             address: data.address || '',
             commission_percent: data.commission_percent || '',
             service_mode: data.service_mode || 'BOTH',
@@ -1447,6 +1451,7 @@ function BusinessDashboard() {
     try {
       const p = await updateMerchantProfile({
         ...editForm,
+        age: editForm.age ? parseInt(editForm.age, 10) : null,
         commission_percent: editForm.commission_percent ? parseFloat(editForm.commission_percent) : 0,
       });
       if (p) {
@@ -1712,6 +1717,42 @@ function BusinessDashboard() {
                 fullWidth
                 value={editForm.mobile_number}
                 onChange={(e) => setEditForm(p => ({ ...p, mobile_number: e.target.value }))}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    bgcolor: '#fff',
+                    '& fieldset': { borderColor: alpha(UI.text, 0.15) },
+                    '&:hover fieldset': { borderColor: UI.primary },
+                    '&.Mui-focused fieldset': { borderColor: UI.primary, borderWidth: 2 },
+                  },
+                  '& .MuiInputLabel-root': { color: UI.textMuted, '&.Mui-focused': { color: UI.primary } },
+                  '& .MuiInputBase-input': { fontWeight: 600, color: UI.text },
+                }}
+              />
+              <TextField
+                label="Email Address"
+                fullWidth
+                type="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm(p => ({ ...p, email: e.target.value }))}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    bgcolor: '#fff',
+                    '& fieldset': { borderColor: alpha(UI.text, 0.15) },
+                    '&:hover fieldset': { borderColor: UI.primary },
+                    '&.Mui-focused fieldset': { borderColor: UI.primary, borderWidth: 2 },
+                  },
+                  '& .MuiInputLabel-root': { color: UI.textMuted, '&.Mui-focused': { color: UI.primary } },
+                  '& .MuiInputBase-input': { fontWeight: 600, color: UI.text },
+                }}
+              />
+              <TextField
+                label="Age"
+                fullWidth
+                type="number"
+                value={editForm.age}
+                onChange={(e) => setEditForm(p => ({ ...p, age: e.target.value }))}
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '12px',

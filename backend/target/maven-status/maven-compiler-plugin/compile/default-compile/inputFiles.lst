@@ -1,6 +1,7 @@
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\controller\RegisterController.java
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\repository\AdminRepository.java
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\model\OfflinePaymentResponse.java
+C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\model\MerchantProfileUpdateRequest.java
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\repository\KycRepository.java
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\CaptainApplication.java
 C:\Users\Baburaj\Desktop\Trikonekt\trikonekt-marketing\tri-business\backend\src\main\java\com\trikonekt\captain\controller\MerchantCategoryController.java

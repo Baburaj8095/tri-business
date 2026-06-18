@@ -11,6 +11,7 @@ com\trikonekt\captain\model\ApiError.class
 com\trikonekt\captain\service\ShopService.class
 com\trikonekt\captain\model\OfflinePaymentResponse.class
 com\trikonekt\captain\model\MerchantCategoryResponse$MerchantCategoryResponseBuilder.class
+com\trikonekt\captain\model\MerchantProfileUpdateRequest.class
 com\trikonekt\captain\model\LoginResponse.class
 com\trikonekt\captain\controller\OfflinePaymentController.class
 com\trikonekt\captain\model\ShopResponse.class
