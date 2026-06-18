@@ -43,10 +43,11 @@ public class UserRepository {
     public List<Map<String, Object>> findPublicB2bMerchants() {
         return jdbc.queryForList(
             "SELECT s.id, u.id as user_id, u.full_name, u.phone, u.pincode, " +
-            "       s.shop_name, s.address, s.city, s.contact_number, s.is_active " +
+            "       s.shop_name, s.address, s.city, s.contact_number, " +
+            "       CASE WHEN UPPER(COALESCE(s.status, '')) = 'ACTIVE' THEN true ELSE false END as is_active " +
             "FROM accounts_customuser u " +
             "JOIN market_shop s ON u.id = s.merchant_id " +
-            "WHERE u.category = 'merchant' AND u.is_active = true AND s.is_active = true " +
+            "WHERE u.category = 'merchant' AND u.is_active = true AND UPPER(COALESCE(s.status, '')) = 'ACTIVE' " +
             "LIMIT 50"
         );
     }
@@ -54,10 +55,11 @@ public class UserRepository {
     public List<Map<String, Object>> findPublicB2cMerchants() {
         return jdbc.queryForList(
             "SELECT s.id, u.id as user_id, u.full_name, u.phone, u.pincode, " +
-            "       s.shop_name, s.address, s.city, s.contact_number, s.is_active " +
+            "       s.shop_name, s.address, s.city, s.contact_number, " +
+            "       CASE WHEN UPPER(COALESCE(s.status, '')) = 'ACTIVE' THEN true ELSE false END as is_active " +
             "FROM accounts_customuser u " +
             "JOIN market_shop s ON u.id = s.merchant_id " +
-            "WHERE u.category = 'business' AND u.is_active = true AND s.is_active = true " +
+            "WHERE u.category = 'business' AND u.is_active = true AND UPPER(COALESCE(s.status, '')) = 'ACTIVE' " +
             "LIMIT 50"
         );
     }

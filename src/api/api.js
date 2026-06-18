@@ -1293,18 +1293,18 @@ export async function getNearbyShops(params = {}) {
 
 // Merchant profile (auto-created on first access)
 export async function getMerchantProfile() {
-  const res = await API.get("/merchant/profile/", { dedupe: "cancelPrevious" });
+  const res = await API.get("/captain/merchant/profile", { dedupe: "cancelPrevious" });
   return res?.data || res;
 }
 
 export async function updateMerchantProfile(payload = {}) {
-  const res = await API.patch("/merchant/profile/", payload);
+  const res = await API.patch("/captain/merchant/profile", payload);
   return res?.data || res;
 }
 
 // Merchant's own shops
 export async function listMyShops(params = {}) {
-  const res = await API.get("/merchant/shops/", { params, dedupe: "cancelPrevious" });
+  const res = await API.get("/captain/merchant/shops", { params, dedupe: "cancelPrevious" });
   return res?.data || res;
 }
 
@@ -1353,7 +1353,7 @@ export async function createShop({
       fd.append(`document_${idx}`, doc);
     });
   }
-  const res = await API.post("/merchant/shops/", fd, { headers: { "Content-Type": "multipart/form-data" } });
+  const res = await API.post("/captain/merchant/shops", fd, { headers: { "Content-Type": "multipart/form-data" } });
   return res?.data || res;
 }
 
@@ -1402,12 +1402,12 @@ export async function updateShop(id, {
       fd.append(`document_${idx}`, doc);
     });
   }
-  const res = await API.patch(`/merchant/shops/${encodeURIComponent(id)}/`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+  const res = await API.patch(`/captain/merchant/shops/${encodeURIComponent(id)}`, fd, { headers: { "Content-Type": "multipart/form-data" } });
   return res?.data || res;
 }
 
 export async function deleteShop(id) {
-  const res = await API.delete(`/merchant/shops/${encodeURIComponent(id)}/`);
+  const res = await API.delete(`/captain/merchant/shops/${encodeURIComponent(id)}`);
   return res?.data || res;
 }
 
@@ -1427,7 +1427,7 @@ export async function listShopProductsPublic(shopId, params = {}) {
 
 // Owner: list my products for a specific shop
 export async function listMyShopProducts(shopId, params = {}) {
-  const res = await API.get(`/merchant/shops/${encodeURIComponent(shopId)}/products/`, {
+  const res = await API.get(`/captain/merchant/shops/${encodeURIComponent(shopId)}/products`, {
     params,
     dedupe: "cancelPrevious",
   });
@@ -1461,7 +1461,7 @@ export async function createMyShopProduct(shopId, {
   if (image) fd.append("image", image);
 
   const res = await API.post(
-    `/merchant/shops/${encodeURIComponent(shopId)}/products/`,
+    `/captain/merchant/shops/${encodeURIComponent(shopId)}/products`,
     fd,
     { headers: { "Content-Type": "multipart/form-data" } }
   );
@@ -1489,7 +1489,7 @@ export async function updateMyShopProduct(productId, patch = {}) {
   if ("image" in patch && patch.image != null) append("image", patch.image);
 
   const res = await API.patch(
-    `/merchant/products/${encodeURIComponent(productId)}/`,
+    `/captain/merchant/products/${encodeURIComponent(productId)}`,
     fd,
     { headers: { "Content-Type": "multipart/form-data" } }
   );
@@ -1498,7 +1498,7 @@ export async function updateMyShopProduct(productId, patch = {}) {
 
 // Owner: delete a product
 export async function deleteMyShopProduct(productId) {
-  const res = await API.delete(`/merchant/products/${encodeURIComponent(productId)}/`);
+  const res = await API.delete(`/captain/merchant/products/${encodeURIComponent(productId)}`);
   return res?.data || res;
 }
 
