@@ -58,8 +58,21 @@ import {
   Dashboard as DashboardIcon,
   Menu as MenuIcon,
   SupervisorAccount as AdminSettingsIcon,
-  Storefront as StoreIcon
+  Storefront as StoreIcon,
+  Category as CategoryIcon,
+  SubdirectoryArrowRight as SubcategoryIcon
 } from '@mui/icons-material';
+
+import {
+  getMerchantCategories,
+  createMerchantCategory,
+  updateMerchantCategory,
+  deleteMerchantCategory,
+  getMerchantSubcategories,
+  createMerchantSubcategory,
+  updateMerchantSubcategory,
+  deleteMerchantSubcategory
+} from '../../api/api';
 
 const T = {
   primary: '#1e3a8a', // Dark Navy
@@ -90,6 +103,22 @@ export default function AdminDashboard() {
   const [page, setPage] = useState(1);
   const [size] = useState(10);
   const [loading, setLoading] = useState(true);
+
+  // Categories & Subcategories State
+  const [categories, setCategories] = useState([]);
+  const [selectedCatId, setSelectedCatId] = useState(null);
+  const [subcategories, setSubcategories] = useState([]);
+  const [subcategoriesLoading, setSubcategoriesLoading] = useState(false);
+
+  // Category Modals
+  const [catModalOpen, setCatModalOpen] = useState(false);
+  const [editingCat, setEditingCat] = useState(null);
+  const [catForm, setCatForm] = useState({ name: '', audience: 'MERCHANT', sortOrder: '' });
+
+  // Subcategory Modals
+  const [subModalOpen, setSubModalOpen] = useState(false);
+  const [editingSub, setEditingSub] = useState(null);
+  const [subForm, setSubForm] = useState({ name: '', audience: 'MERCHANT', sortOrder: '' });
 
   // Sub-Admins list
   const [subAdmins, setSubAdmins] = useState([]);
@@ -140,6 +169,24 @@ export default function AdminDashboard() {
         setStats(statsData);
       }
 
+      // 1.5 Fetch Categories if activeTab === 5
+      if (activeTab === 5) {
+        let aud = '';
+        if (activeFilter === 'MERCHANT') aud = 'MERCHANT';
+        if (activeFilter === 'CONSUMER') aud = 'CONSUMER';
+        const rawRes = await getMerchantCategories(aud ? { audience: aud } : {});
+        const catList = Array.isArray(rawRes) ? rawRes : rawRes?.results || [];
+        setCategories(catList);
+
+        if (catList.length > 0) {
+          const currentSelected = selectedCatId || catList[0].id;
+          setSelectedCatId(currentSelected);
+          fetchSubcategoriesList(currentSelected);
+        } else {
+          setSubcategories([]);
+        }
+      }
+
       // 2. Fetch Captains List
       if (activeTab === 1) {
         let queryParams = `?page=${page}&size=${size}`;
@@ -188,6 +235,155 @@ export default function AdminDashboard() {
       generateMockData();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSubcategoriesList = async (catId) => {
+    if (!catId) return;
+    setSubcategoriesLoading(true);
+    try {
+      const subList = await getMerchantSubcategories(catId);
+      setSubcategories(Array.isArray(subList) ? subList : subList?.results || []);
+    } catch (err) {
+      console.error("[fetchSubcategoriesList]", err);
+      setSubcategories([]);
+    } finally {
+      setSubcategoriesLoading(false);
+    }
+  };
+
+  const handleSelectCategoryRow = (catId) => {
+    setSelectedCatId(catId);
+    fetchSubcategoriesList(catId);
+  };
+
+  const handleOpenCatModal = (cat = null) => {
+    if (cat) {
+      setEditingCat(cat);
+      setCatForm({
+        name: cat.name,
+        audience: cat.audience || 'MERCHANT',
+        sortOrder: String(cat.sort_order || '')
+      });
+    } else {
+      setEditingCat(null);
+      setCatForm({ name: '', audience: 'MERCHANT', sortOrder: '' });
+    }
+    setCatModalOpen(true);
+  };
+
+  const handleSaveCategory = async () => {
+    if (!catForm.name.trim()) {
+      setToast({ open: true, type: 'error', message: 'Category Name is required.' });
+      return;
+    }
+    try {
+      const payload = {
+        name: catForm.name.trim(),
+        audience: catForm.audience,
+        sortOrder: catForm.sortOrder === '' ? null : Number(catForm.sortOrder)
+      };
+      if (editingCat) {
+        await updateMerchantCategory(editingCat.id, payload);
+        setToast({ open: true, type: 'success', message: 'Category updated successfully.' });
+      } else {
+        await createMerchantCategory(payload);
+        setToast({ open: true, type: 'success', message: 'Category created successfully.' });
+      }
+      setCatModalOpen(false);
+      fetchData();
+    } catch (err) {
+      setToast({ open: true, type: 'error', message: err?.message || 'Failed to save Category.' });
+    }
+  };
+
+  const handleDeleteCategory = async (id) => {
+    if (!window.confirm("Are you sure you want to deactivate/delete this category?")) return;
+    try {
+      await deleteMerchantCategory(id);
+      setToast({ open: true, type: 'success', message: 'Category deleted successfully.' });
+      if (selectedCatId === id) {
+        setSelectedCatId(null);
+        setSubcategories([]);
+      }
+      fetchData();
+    } catch (err) {
+      setToast({ open: true, type: 'error', message: err?.message || 'Failed to delete Category.' });
+    }
+  };
+
+  const handleOpenSubModal = (sub = null) => {
+    if (!selectedCatId) {
+      setToast({ open: true, type: 'error', message: 'Please select a parent category first.' });
+      return;
+    }
+    if (sub) {
+      setEditingSub(sub);
+      setSubForm({
+        name: sub.name,
+        audience: sub.audience || 'MERCHANT',
+        sortOrder: String(sub.sort_order || '')
+      });
+    } else {
+      setEditingSub(null);
+      setSubForm({ name: '', audience: 'MERCHANT', sortOrder: '' });
+    }
+    setSubModalOpen(true);
+  };
+
+  const handleSaveSubcategory = async () => {
+    if (!subForm.name.trim()) {
+      setToast({ open: true, type: 'error', message: 'Subcategory Name is required.' });
+      return;
+    }
+    try {
+      const payload = {
+        name: subForm.name.trim(),
+        category_id: selectedCatId,
+        audience: subForm.audience,
+        sortOrder: subForm.sortOrder === '' ? null : Number(subForm.sortOrder)
+      };
+      if (editingSub) {
+        await updateMerchantSubsubcategory(editingSub.id, payload); // legacy fallback name, check if updateMerchantSubcategory exists
+        setToast({ open: true, type: 'success', message: 'Subcategory updated successfully.' });
+      } else {
+        await createMerchantSubcategory(payload);
+        setToast({ open: true, type: 'success', message: 'Subcategory created successfully.' });
+      }
+      setSubModalOpen(false);
+      fetchSubcategoriesList(selectedCatId);
+    } catch (err) {
+      // Check if updateMerchantSubcategory was added correctly
+      try {
+        const payload = {
+          name: subForm.name.trim(),
+          category_id: selectedCatId,
+          audience: subForm.audience,
+          sortOrder: subForm.sortOrder === '' ? null : Number(subForm.sortOrder)
+        };
+        if (editingSub) {
+          await updateMerchantSubcategory(editingSub.id, payload);
+          setToast({ open: true, type: 'success', message: 'Subcategory updated successfully.' });
+        } else {
+          await createMerchantSubcategory(payload);
+          setToast({ open: true, type: 'success', message: 'Subcategory created successfully.' });
+        }
+        setSubModalOpen(false);
+        fetchSubcategoriesList(selectedCatId);
+      } catch (innerErr) {
+        setToast({ open: true, type: 'error', message: innerErr?.message || 'Failed to save Subcategory.' });
+      }
+    }
+  };
+
+  const handleDeleteSubcategory = async (id) => {
+    if (!window.confirm("Are you sure you want to deactivate/delete this subcategory?")) return;
+    try {
+      await deleteMerchantSubcategory(id);
+      setToast({ open: true, type: 'success', message: 'Subcategory deleted successfully.' });
+      fetchSubcategoriesList(selectedCatId);
+    } catch (err) {
+      setToast({ open: true, type: 'error', message: err?.message || 'Failed to delete Subcategory.' });
     }
   };
 
@@ -581,6 +777,24 @@ export default function AdminDashboard() {
             </ListItemButton>
           </ListItem>
         )}
+
+        {/* View 5: Merchant Categories Admin Panel */}
+        <ListItem disablePadding sx={{ mb: 0.5 }}>
+          <ListItemButton
+            selected={activeTab === 5}
+            onClick={() => handleTabChange(5)}
+            sx={{
+              borderRadius: '8px',
+              color: activeTab === 5 ? 'white' : '#94a3b8',
+              bgcolor: activeTab === 5 ? 'rgba(59,130,246,0.15) !important' : 'transparent',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
+              '& .MuiListItemIcon-root': { color: activeTab === 5 ? 'white' : '#64748b' }
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}><CategoryIcon /></ListItemIcon>
+            <ListItemText primary="Niches / Categories" primaryTypographyProps={{ fontWeight: activeTab === 5 ? '800' : '500', fontSize: '0.85rem' }} />
+          </ListItemButton>
+        </ListItem>
       </List>
 
       <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)' }} />
@@ -687,7 +901,7 @@ export default function AdminDashboard() {
               <MenuIcon />
             </IconButton>
             <Typography variant="subtitle1" sx={{ fontWeight: '800', color: T.text, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
-              {activeTab === 0 ? 'Dashboard Overview' : activeTab === 1 ? 'Captain Registrations' : activeTab === 2 ? 'B2B Merchants' : activeTab === 3 ? 'B2C Merchants' : 'Sub-Admin User Management'}
+              {activeTab === 0 ? 'Dashboard Overview' : activeTab === 1 ? 'Captain Registrations' : activeTab === 2 ? 'B2B Merchants' : activeTab === 3 ? 'B2C Merchants' : activeTab === 4 ? 'Sub-Admin User Management' : 'Niches, Categories & Subcategories'}
             </Typography>
           </Box>
 
@@ -1232,6 +1446,163 @@ export default function AdminDashboard() {
             </Paper>
           )}
 
+          {/* VIEW 5: Niches / Merchant Categories Admin Panel */}
+          {activeTab === 5 && (
+            <Grid container spacing={3} sx={{ flexGrow: 1 }}>
+              {/* Categories/Niche Column */}
+              <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Paper sx={{ p: 3, borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Box>
+                      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Niches / Categories</Typography>
+                      <Typography variant="caption" color="textSecondary">Manage system store categories</Typography>
+                    </Box>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={() => handleOpenCatModal()}
+                      sx={{ background: T.primaryLight, textTransform: 'none', borderRadius: '8px' }}
+                    >
+                      Add Category
+                    </Button>
+                  </Box>
+
+                  {/* Filter Audience for Categories */}
+                  <TextField
+                    select
+                    label="Filter Audience"
+                    fullWidth
+                    size="small"
+                    value={activeFilter}
+                    onChange={(e) => { setActiveFilter(e.target.value); setSelectedCatId(null); }}
+                    sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                  >
+                    <MenuItem value="">All Audiences</MenuItem>
+                    <MenuItem value="MERCHANT">Merchant Only</MenuItem>
+                    <MenuItem value="CONSUMER">Consumer Only</MenuItem>
+                  </TextField>
+
+                  <TableContainer component={Box} sx={{ flexGrow: 1, maxHeight: 400 }}>
+                    <Table stickyHeader size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Audience</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Sort</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }} align="right">Actions</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {loading ? (
+                          <TableRow>
+                            <TableCell colSpan={4} align="center"><CircularProgress size={24} /></TableCell>
+                          </TableRow>
+                        ) : categories.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={4} align="center">No Categories constructed yet.</TableCell>
+                          </TableRow>
+                        ) : (
+                          categories.map((cat) => (
+                            <TableRow
+                              key={cat.id}
+                              hover
+                              selected={selectedCatId === cat.id}
+                              onClick={() => handleSelectCategoryRow(cat.id)}
+                              sx={{ cursor: 'pointer', '&.Mui-selected': { bgcolor: 'rgba(59,130,246,0.08) !important' } }}
+                            >
+                              <TableCell sx={{ fontWeight: 'bold', color: selectedCatId === cat.id ? T.primaryLight : 'inherit' }}>
+                                {cat.name}
+                              </TableCell>
+                              <TableCell><Chip label={cat.audience} size="small" variant="outlined" sx={{ fontWeight: 'bold', fontSize: '0.65rem' }} /></TableCell>
+                              <TableCell sx={{ fontWeight: 'semibold' }}>{cat.sort_order}</TableCell>
+                              <TableCell align="right" onClick={(e) => e.stopPropagation()}>
+                                <IconButton size="small" onClick={() => handleOpenCatModal(cat)} color="primary">
+                                  <EditIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                                <IconButton size="small" onClick={() => handleDeleteCategory(cat.id)} color="error">
+                                  <DeleteIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Paper>
+              </Grid>
+
+              {/* Subcategories Column */}
+              <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Paper sx={{ p: 3, borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Box>
+                      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Subcategories</Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        {selectedCatId ? `Belonging to Selected Category (ID: ${selectedCatId})` : 'Select a Category from Left first'}
+                      </Typography>
+                    </Box>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      disabled={!selectedCatId}
+                      startIcon={<AddIcon />}
+                      onClick={() => handleOpenSubModal()}
+                      sx={{ background: T.success, textTransform: 'none', borderRadius: '8px', '&.Mui-disabled': { background: '#cbd5e1' } }}
+                    >
+                      Add Subcategory
+                    </Button>
+                  </Box>
+
+                  <TableContainer component={Box} sx={{ flexGrow: 1, maxHeight: 400 }}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Subcategory Name</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Audience</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Sort</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }} align="right">Actions</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {subcategoriesLoading ? (
+                          <TableRow>
+                            <TableCell colSpan={4} align="center"><CircularProgress size={24} /></TableCell>
+                          </TableRow>
+                        ) : !selectedCatId ? (
+                          <TableRow>
+                            <TableCell colSpan={4} align="center">Select a Niche Category from the left to view subcategories.</TableCell>
+                          </TableRow>
+                        ) : subcategories.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={4} align="center">No active subcategories constructed for this category yet.</TableCell>
+                          </TableRow>
+                        ) : (
+                          subcategories.map((sub) => (
+                            <TableRow key={sub.id} hover>
+                              <TableCell sx={{ fontWeight: 'bold' }}>{sub.name}</TableCell>
+                              <TableCell><Chip label={sub.audience} size="small" variant="outlined" sx={{ fontWeight: 'bold', fontSize: '0.65rem' }} /></TableCell>
+                              <TableCell sx={{ fontWeight: 'semibold' }}>{sub.sort_order}</TableCell>
+                              <TableCell align="right">
+                                <IconButton size="small" onClick={() => handleOpenSubModal(sub)} color="primary">
+                                  <EditIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                                <IconButton size="small" onClick={() => handleDeleteSubcategory(sub.id)} color="error">
+                                  <DeleteIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Paper>
+              </Grid>
+            </Grid>
+          )}
+
           {/* VIEW 4: Sub-Admin Setup */}
           {activeTab === 4 && role === 'SUPER_ADMIN' && (
             <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -1393,6 +1764,82 @@ export default function AdminDashboard() {
         <DialogActions sx={{ p: 3 }}>
           <Button onClick={() => setSubAdminModalOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={handleSaveSubAdmin}>Save Admin</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Category Creation/Edit Modal */}
+      <Dialog open={catModalOpen} onClose={() => setCatModalOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>{editingCat ? 'Edit Niche Category' : 'Create Niche Category'}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1.5 }}>
+            <TextField
+              label="Category Name"
+              fullWidth
+              value={catForm.name}
+              onChange={(e) => setCatForm(prev => ({ ...prev, name: e.target.value }))}
+            />
+            <TextField
+              label="Audience"
+              select
+              fullWidth
+              value={catForm.audience}
+              onChange={(e) => setCatForm(prev => ({ ...prev, audience: e.target.value }))}
+            >
+              <MenuItem value="MERCHANT">Merchant Only (B2B)</MenuItem>
+              <MenuItem value="CONSUMER">Consumer Only (B2C)</MenuItem>
+            </TextField>
+            <TextField
+              label="Sort Order"
+              type="number"
+              fullWidth
+              placeholder="e.g. 1, 2, 3"
+              value={catForm.sortOrder}
+              onChange={(e) => setCatForm(prev => ({ ...prev, sortOrder: e.target.value }))}
+              helperText="Optional - Left blank to auto-arrange"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 3 }}>
+          <Button onClick={() => setCatModalOpen(false)}>Cancel</Button>
+          <Button variant="contained" color="primary" onClick={handleSaveCategory}>Save Category</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Subcategory Creation/Edit Modal */}
+      <Dialog open={subModalOpen} onClose={() => setSubModalOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>{editingSub ? 'Edit Subcategory' : 'Create Subcategory'}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1.5 }}>
+            <TextField
+              label="Subcategory Name"
+              fullWidth
+              value={subForm.name}
+              onChange={(e) => setSubForm(prev => ({ ...prev, name: e.target.value }))}
+            />
+            <TextField
+              label="Audience"
+              select
+              fullWidth
+              value={subForm.audience}
+              onChange={(e) => setSubForm(prev => ({ ...prev, audience: e.target.value }))}
+            >
+              <MenuItem value="MERCHANT">Merchant Only (B2B)</MenuItem>
+              <MenuItem value="CONSUMER">Consumer Only (B2C)</MenuItem>
+            </TextField>
+            <TextField
+              label="Sort Order"
+              type="number"
+              fullWidth
+              placeholder="e.g. 1, 2, 3"
+              value={subForm.sortOrder}
+              onChange={(e) => setSubForm(prev => ({ ...prev, sortOrder: e.target.value }))}
+              helperText="Optional - Left blank to auto-arrange"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 3 }}>
+          <Button onClick={() => setSubModalOpen(false)}>Cancel</Button>
+          <Button variant="contained" color="success" onClick={handleSaveSubcategory}>Save Subcategory</Button>
         </DialogActions>
       </Dialog>
 

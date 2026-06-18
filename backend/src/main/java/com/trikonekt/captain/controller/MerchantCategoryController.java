@@ -1,7 +1,9 @@
 package com.trikonekt.captain.controller;
 
 import com.trikonekt.captain.model.MerchantCategoryResponse;
+import com.trikonekt.captain.model.MerchantCategoryCreateRequest;
 import com.trikonekt.captain.model.MerchantSubCategoryResponse;
+import com.trikonekt.captain.model.MerchantSubCategoryCreateRequest;
 import com.trikonekt.captain.repository.MerchantCategoryRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -63,5 +65,95 @@ public class MerchantCategoryController {
         List<MerchantSubCategoryResponse> subcategories =
                 categoryRepository.findSubcategoriesByCategoryId(categoryId);
         return ResponseEntity.ok(subcategories);
+    }
+
+    /**
+     * POST /api/captain/merchant/categories
+     * Create a new merchant category.
+     */
+    @PostMapping("/categories")
+    public ResponseEntity<MerchantCategoryResponse> createCategory(
+            @RequestBody MerchantCategoryCreateRequest request
+    ) {
+        String name = request.getName() != null ? request.getName().trim() : "";
+        if (name.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        MerchantCategoryResponse created = categoryRepository.createCategory(request);
+        return ResponseEntity.ok(created);
+    }
+
+    /**
+     * PUT /api/captain/merchant/categories/{id}
+     * Update an existing merchant category.
+     */
+    @PutMapping("/categories/{id}")
+    public ResponseEntity<MerchantCategoryResponse> updateCategory(
+            @PathVariable Long id,
+            @RequestBody MerchantCategoryCreateRequest request
+    ) {
+        String name = request.getName() != null ? request.getName().trim() : "";
+        if (name.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        MerchantCategoryResponse updated = categoryRepository.updateCategory(id, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * DELETE /api/captain/merchant/categories/{id}
+     * Deactivate a merchant category.
+     */
+    @DeleteMapping("/categories/{id}")
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+        categoryRepository.deleteCategory(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * POST /api/captain/merchant/subcategories
+     * Create a new merchant subcategory.
+     */
+    @PostMapping("/subcategories")
+    public ResponseEntity<MerchantSubCategoryResponse> createSubCategory(
+            @RequestBody MerchantSubCategoryCreateRequest request
+    ) {
+        String name = request.getName() != null ? request.getName().trim() : "";
+        if (name.isBlank() || request.getCategoryId() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        MerchantSubCategoryResponse created = categoryRepository.createSubCategory(request);
+        return ResponseEntity.ok(created);
+    }
+
+    /**
+     * PUT /api/captain/merchant/subcategories/{id}
+     * Update an existing subcategory.
+     */
+    @PutMapping("/subcategories/{id}")
+    public ResponseEntity<MerchantSubCategoryResponse> updateSubCategory(
+            @PathVariable Long id,
+            @RequestBody MerchantSubCategoryCreateRequest request
+    ) {
+        String name = request.getName() != null ? request.getName().trim() : "";
+        if (name.isBlank() || request.getCategoryId() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        MerchantSubCategoryResponse updated = categoryRepository.updateSubCategory(id, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * DELETE /api/captain/merchant/subcategories/{id}
+     * Deactivate a subcategory.
+     */
+    @DeleteMapping("/subcategories/{id}")
+    public ResponseEntity<Void> deleteSubCategory(@PathVariable Long id) {
+        categoryRepository.deleteSubCategory(id);
+        return ResponseEntity.noContent().build();
     }
 }

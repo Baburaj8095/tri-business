@@ -1276,6 +1276,121 @@ export async function getMerchantCategories(params = {}) {
   }
 }
 
+export async function createMerchantCategory(payload = {}) {
+  const captainApiUrl =
+    process.env.REACT_APP_CAPTAIN_API_URL ||
+    (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+    "https://api-captain.trikonektbusiness.com/api";
+  const res = await fetch(`${captainApiUrl}/captain/merchant/categories`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(text || `Category create failed: ${res.status}`);
+  }
+  return await res.json();
+}
+
+export async function updateMerchantCategory(id, payload = {}) {
+  const captainApiUrl =
+    process.env.REACT_APP_CAPTAIN_API_URL ||
+    (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+    "https://api-captain.trikonektbusiness.com/api";
+  const res = await fetch(`${captainApiUrl}/captain/merchant/categories/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(text || `Category update failed: ${res.status}`);
+  }
+  return await res.json();
+}
+
+export async function deleteMerchantCategory(id) {
+  const captainApiUrl =
+    process.env.REACT_APP_CAPTAIN_API_URL ||
+    (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+    "https://api-captain.trikonektbusiness.com/api";
+  const res = await fetch(`${captainApiUrl}/captain/merchant/categories/${id}`, {
+    method: "DELETE"
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(text || `Category delete failed: ${res.status}`);
+  }
+  return true;
+}
+
+export async function getMerchantSubcategories(categoryId) {
+  const captainApiUrl =
+    process.env.REACT_APP_CAPTAIN_API_URL ||
+    (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+    "https://api-captain.trikonektbusiness.com/api";
+  try {
+    const res = await fetch(`${captainApiUrl}/captain/merchant/subcategories?category_id=${categoryId}`);
+    if (!res.ok) throw new Error(`Subcategories fetch failed: ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[getMerchantSubcategories]", err);
+    }
+    return [];
+  }
+}
+
+export async function createMerchantSubcategory(payload = {}) {
+  const captainApiUrl =
+    process.env.REACT_APP_CAPTAIN_API_URL ||
+    (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+    "https://api-captain.trikonektbusiness.com/api";
+  const res = await fetch(`${captainApiUrl}/captain/merchant/subcategories`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(text || `Subcategory create failed: ${res.status}`);
+  }
+  return await res.json();
+}
+
+export async function updateMerchantSubcategory(id, payload = {}) {
+  const captainApiUrl =
+    process.env.REACT_APP_CAPTAIN_API_URL ||
+    (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+    "https://api-captain.trikonektbusiness.com/api";
+  const res = await fetch(`${captainApiUrl}/captain/merchant/subcategories/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(text || `Subcategory update failed: ${res.status}`);
+  }
+  return await res.json();
+}
+
+export async function deleteMerchantSubcategory(id) {
+  const captainApiUrl =
+    process.env.REACT_APP_CAPTAIN_API_URL ||
+    (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+    "https://api-captain.trikonektbusiness.com/api";
+  const res = await fetch(`${captainApiUrl}/captain/merchant/subcategories/${id}`, {
+    method: "DELETE"
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(text || `Subcategory delete failed: ${res.status}`);
+  }
+  return true;
+}
+
 export async function getShopDetail(id) {
   const res = await API.get(`/shops/${encodeURIComponent(id)}/`, { dedupe: "cancelPrevious" });
   return res?.data || res;

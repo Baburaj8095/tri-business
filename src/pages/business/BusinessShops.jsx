@@ -19,6 +19,10 @@ import {
   Select,
   MenuItem,
   ListSubheader,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { alpha } from "@mui/material/styles";
@@ -44,6 +48,7 @@ import {
   updateShop,
   deleteShop,
   getMerchantCategories,
+  createMerchantCategory,
 } from "../../api/api";
 
 /* ── Design Tokens ── */
@@ -113,6 +118,9 @@ export default function BusinessShops() {
   const [loading, setLoading] = useState(true);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [creatingCategory, setCreatingCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState({ name: "", audience: "MERCHANT", sortOrder: "" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -201,6 +209,41 @@ export default function BusinessShops() {
     setError("");
     setShowMapPicker(false);
     setCategorySearch("");
+  };
+
+  const resetCategoryDialog = () => {
+    setNewCategory({ name: "", audience: "MERCHANT", sortOrder: "" });
+    setError("");
+  };
+
+  const handleCreateCategory = async () => {
+    const name = String(newCategory.name || "").trim();
+    if (!name) {
+      setError("Category name is required.");
+      return;
+    }
+    setCreatingCategory(true);
+    setError("");
+    try {
+      const created = await createMerchantCategory({
+        name,
+        audience: String(newCategory.audience || "MERCHANT").toUpperCase(),
+        sortOrder: newCategory.sortOrder === "" ? null : Number(newCategory.sortOrder),
+      });
+      setSuccess(`Category \"${created?.name || name}\" created successfully.`);
+      setCategoryDialogOpen(false);
+      resetCategoryDialog();
+      setCategoriesLoading(true);
+      const res = await getMerchantCategories();
+      const data = Array.isArray(res) ? res : res?.results || [];
+      setMerchantCategories(data);
+      setCategorySearch("");
+    } catch (err) {
+      setError(err?.message || "Failed to create category.");
+    } finally {
+      setCreatingCategory(false);
+      setCategoriesLoading(false);
+    }
   };
 
   const handlePickLogo = (e) => {
@@ -459,7 +502,22 @@ export default function BusinessShops() {
 
                     {/* Category Search dropdown */}
                     <Box>
-                      <Typography sx={labelSx}>Category *</Typography>
+                      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.75 }}>
+                        <Typography sx={labelSx}>Category *</Typography>
+                        <Button
+                          size="small"
+                          onClick={() => setCategoryDialogOpen(true)}
+                          sx={{
+                            textTransform: 'none',
+                            fontWeight: 800,
+                            color: T.primary,
+                            px: 1,
+                            minWidth: 0,
+                          }}
+                        >
+                          + Add Category
+                        </Button>
+                      </Stack>
                       <Select
                         fullWidth
                         displayEmpty
@@ -965,6 +1023,57 @@ export default function BusinessShops() {
           </Grid>
         </Grid>
       </Container>
+
+      <Dialog open={categoryDialogOpen} onClose={() => { setCategoryDialogOpen(false); resetCategoryDialog(); }} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 900, color: T.text }}>Create Category</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Category Name"
+              fullWidth
+              value={newCategory.name}
+              onChange={(e) => setNewCategory((p) => ({ ...p, name: e.target.value }))}
+              sx={inputSx}
+            />
+            <TextField
+              label="Audience"
+              select
+              fullWidth
+              value={newCategory.audience}
+              onChange={(e) => setNewCategory((p) => ({ ...p, audience: e.target.value }))}
+              sx={inputSx}
+            >
+              <MenuItem value="MERCHANT">Merchant</MenuItem>
+              <MenuItem value="CONSUMER">Consumer</MenuItem>
+            </TextField>
+            <TextField
+              label="Sort Order"
+              fullWidth
+              type="number"
+              value={newCategory.sortOrder}
+              onChange={(e) => setNewCategory((p) => ({ ...p, sortOrder: e.target.value }))}
+              helperText="Optional — leave blank to auto-assign"
+              sx={inputSx}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5, pt: 1 }}>
+          <Button
+            onClick={() => { setCategoryDialogOpen(false); resetCategoryDialog(); }}
+            sx={{ textTransform: 'none', fontWeight: 800 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleCreateCategory}
+            disabled={creatingCategory}
+            sx={{ bgcolor: T.primary, textTransform: 'none', fontWeight: 800, '&:hover': { bgcolor: T.primaryDark } }}
+          >
+            {creatingCategory ? 'Creating…' : 'Create'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
