@@ -46,7 +46,7 @@ public class OfflinePaymentRepository {
 
     public boolean existsActiveShopById(long shopId) {
         Integer count = jdbc.queryForObject(
-            "SELECT COUNT(*) FROM market_shop WHERE id = ? AND is_active = TRUE",
+            "SELECT COUNT(*) FROM market_shop WHERE id = ? AND status = 'ACTIVE'",
             Integer.class,
             shopId
         );
