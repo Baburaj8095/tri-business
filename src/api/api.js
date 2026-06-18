@@ -91,6 +91,7 @@ function currentNamespace() {
     if (p.startsWith("/admin")) return "admin";
     if (p.startsWith("/agency")) return "agency";
     if (p.startsWith("/employee")) return "employee";
+    if (p.startsWith("/captain")) return "captain";
     if (p.startsWith("/business")) return "business";
     if (p.startsWith("/merchant")) return "business";
 
@@ -235,15 +236,38 @@ function getRefreshToken() {
 async function refreshAccessToken() {
   const refresh = getRefreshToken();
   if (!refresh) return null;
+
+  const ns = currentNamespace();
+  // Business and captain tokens are Spring Boot JWTs — must refresh via captain backend
+  const isCaptainToken = ns === "captain" || ns === "business";
+
   try {
-    const resp = await refreshClient.post("accounts/token/refresh/", { refresh });
-    const { access, refresh: newRefresh } = resp?.data || {};
-    if (access) {
-      writeNamespaced("token", access);
+    let access, newRefresh;
+
+    if (isCaptainToken) {
+      // Spring Boot JWT refresh
+      const captainApiUrl =
+        process.env.REACT_APP_CAPTAIN_API_URL ||
+        (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+        "https://api-captain.trikonektbusiness.com/api";
+      const resp = await fetch(`${captainApiUrl}/captain/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh }),
+      });
+      if (!resp.ok) throw new Error(`Captain refresh failed: ${resp.status}`);
+      const data = await resp.json();
+      access = data.access;
+      newRefresh = data.refresh;
+    } else {
+      // Django SimpleJWT refresh
+      const resp = await refreshClient.post("accounts/token/refresh/", { refresh });
+      access = resp?.data?.access;
+      newRefresh = resp?.data?.refresh;
     }
-    if (newRefresh) {
-      writeNamespaced("refresh", newRefresh);
-    }
+
+    if (access) writeNamespaced("token", access);
+    if (newRefresh) writeNamespaced("refresh", newRefresh);
     // On successful refresh, allow auth again for this namespace
     try { setAuthBlocked(false); } catch (_) {}
     return access || null;
@@ -445,9 +469,9 @@ API.interceptors.request.use((config) => {
 
 /* Track loading + attach JWT Authorization header from storage when available. */
 API.interceptors.request.use(async (config) => {
-  // Skip refresh endpoint to prevent recursion/deadlock
+  // Skip refresh endpoints to prevent recursion/deadlock
   const url = config?.url || "";
-  if (url.includes("/accounts/token/refresh/")) {
+  if (url.includes("/accounts/token/refresh/") || url.includes("/captain/auth/refresh")) {
     return config;
   }
 
@@ -804,7 +828,7 @@ export async function getMyECouponSummary() {
 }
 
 export async function getPublicB2bMerchants() {
-  const captainApiUrl = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || "http://localhost:8081/api";
+  const captainApiUrl = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || "https://api-captain.trikonektbusiness.com/api";
   try {
     const res = await fetch(`${captainApiUrl}/captain/merchants/b2b`);
     if (!res.ok) {
@@ -817,7 +841,7 @@ export async function getPublicB2bMerchants() {
   }
 }
 export async function getPublicB2cMerchants() {
-  const captainApiUrl = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || "http://localhost:8081/api";
+  const captainApiUrl = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || "https://api-captain.trikonektbusiness.com/api";
   try {
     const res = await fetch(`${captainApiUrl}/captain/merchants/b2c`);
     if (!res.ok) {
@@ -1181,6 +1205,27 @@ export async function adminRejectAgencyPackagePaymentRequest(id, admin_notes = "
 export async function getPublicShops(params = {}) {
   const res = await API.get("/shops/", { params, dedupe: "cancelPrevious", cacheTTL: 10_000 });
   return res?.data || res;
+}
+
+export async function getMerchantCategories(params = {}) {
+  // Served by Java captain backend — not Django
+  const captainApiUrl =
+    process.env.REACT_APP_CAPTAIN_API_URL ||
+    (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+    "https://api-captain.trikonektbusiness.com/api";
+  try {
+    const query = Object.keys(params).length
+      ? "?" + new URLSearchParams(params).toString()
+      : "";
+    const res = await fetch(`${captainApiUrl}/captain/merchant/categories${query}`);
+    if (!res.ok) throw new Error(`Categories fetch failed: ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[getMerchantCategories]", err);
+    }
+    return [];
+  }
 }
 
 export async function getShopDetail(id) {

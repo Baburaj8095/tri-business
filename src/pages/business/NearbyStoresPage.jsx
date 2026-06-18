@@ -13,13 +13,22 @@ import {
 import NearbyStoreCard from './NearbyStoreCard.jsx';
 import { getPublicB2bMerchants } from '../../api/api';
 
-const categories = [
-  { name: 'All Stores', icon: <LuStore size={22} /> },
-  { name: 'Grocery', icon: <LuShoppingCart size={22} /> },
-  { name: 'Mobile', icon: <LuSmartphone size={22} /> },
-  { name: 'Hotel', icon: <LuHotel size={22} /> },
-  { name: 'Electronics', icon: <LuZap size={22} /> }
-];
+const getCategoryIcon = (name) => {
+  const value = String(name || '').toLowerCase();
+  if (value.includes('grocery') || value.includes('kirana') || value.includes('food')) return <LuShoppingCart size={22} />;
+  if (value.includes('mobile') || value.includes('phone')) return <LuSmartphone size={22} />;
+  if (value.includes('hotel') || value.includes('restaurant') || value.includes('eat')) return <LuHotel size={22} />;
+  if (value.includes('electronics') || value.includes('appliance')) return <LuZap size={22} />;
+  return <LuStore size={22} />;
+};
+
+const resolveCategoryName = (shop) => {
+  const raw = shop?.category;
+  if (raw && typeof raw === 'object') {
+    return raw.name || raw.title || raw.label || 'Retail Store';
+  }
+  return shop?.category_name || shop?.business_category || shop?.business_type || shop?.subcategory_name || (raw ? String(raw) : 'Retail Store');
+};
 
 export default function NearbyStoresPage() {
   const navigate = useNavigate();
@@ -28,6 +37,7 @@ export default function NearbyStoresPage() {
   const [loading, setLoading] = useState(true);
   const [activeCat, setActiveCat] = useState('All Stores');
   const [searchQuery, setSearchQuery] = useState('');
+  const [categories, setCategories] = useState([{ name: 'All Stores', icon: <LuStore size={22} /> }]);
 
   useEffect(() => {
     setLoading(true);
@@ -37,7 +47,7 @@ export default function NearbyStoresPage() {
         const mapped = data.map(shop => ({
           id: shop.id,
           name: shop.shop_name || shop.business_name || shop.full_name || 'B2B Merchant',
-          category: shop.category || 'Retail Store',
+          category: resolveCategoryName(shop),
           rating: '4.5',
           location: shop.city || shop.address || 'Local Area',
           distance: 'Nearby',
@@ -46,6 +56,11 @@ export default function NearbyStoresPage() {
         }));
         setStores(mapped);
         setFilteredStores(mapped);
+        const uniq = Array.from(new Set(mapped.map(s => s.category).filter(Boolean)));
+        setCategories([
+          { name: 'All Stores', icon: <LuStore size={22} /> },
+          ...uniq.map(name => ({ name, icon: getCategoryIcon(name) }))
+        ]);
       })
       .catch(err => console.error('Failed to load B2C merchants:', err))
       .finally(() => setLoading(false));

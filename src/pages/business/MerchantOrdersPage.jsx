@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Box, Typography, Card, CardContent, Button, Stack, CircularProgress, Alert } from '@mui/material';
 import { LuStore, LuPhone, LuDollarSign, LuCalendar, LuCheck, LuX, LuChevronLeft } from 'react-icons/lu';
 
-const CAPTAIN_API_URL = process.env.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
+const CAPTAIN_API_URL = process.env.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
 
 export default function MerchantOrdersPage() {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ export default function MerchantOrdersPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const token = localStorage.getItem('access_token_business') || localStorage.getItem('captain_access_token');
+  const token = localStorage.getItem('token_business') || localStorage.getItem('token_captain');
 
   const fetchPendingPayments = () => {
     if (!token) {
@@ -31,8 +31,8 @@ export default function MerchantOrdersPage() {
       })
       .catch(err => {
         if (err.response?.status === 401) {
-          localStorage.removeItem('access_token_business');
-          localStorage.removeItem('captain_access_token');
+          localStorage.removeItem('token_business');
+          localStorage.removeItem('token_captain');
           navigate('/login');
           return;
         }
@@ -65,8 +65,8 @@ export default function MerchantOrdersPage() {
       })
       .catch(err => {
         if (err.response?.status === 401) {
-          localStorage.removeItem('access_token_business');
-          localStorage.removeItem('captain_access_token');
+          localStorage.removeItem('token_business');
+          localStorage.removeItem('token_captain');
           navigate('/login');
           return;
         }

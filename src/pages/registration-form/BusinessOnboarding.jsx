@@ -165,7 +165,7 @@ const BusinessOnboarding = () => {
   const verifySponsorId = async (id) => {
     if (!id) return;
     try {
-      const apiBase = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
+      const apiBase = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
       const res = await fetch(`${apiBase}/captain/sponsor/verify?id=${id}`);
       if (res.ok) {
         const data = await res.json();
@@ -353,7 +353,7 @@ const BusinessOnboarding = () => {
     };
 
     try {
-      const apiBase = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
+      const apiBase = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
       const res = await fetch(`${apiBase}/captain/merchant/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -362,7 +362,7 @@ const BusinessOnboarding = () => {
 
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem('access_token_business', data.access);
+        localStorage.setItem('token_business', data.access);
         localStorage.setItem('refresh_business', data.refresh);
         localStorage.setItem('username_business', data.username);
         
@@ -377,7 +377,7 @@ const BusinessOnboarding = () => {
     } catch (err) {
       console.error(err);
       // Fallback for offline testing
-      localStorage.setItem('access_token_business', 'dummy_access_token');
+      localStorage.setItem('token_business', 'dummy_access_token');
       localStorage.setItem('refresh_business', 'dummy_refresh_token');
       localStorage.setItem('username_business', form.mobile);
       setLoading(false);

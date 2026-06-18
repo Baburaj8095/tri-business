@@ -61,13 +61,13 @@ export default function CaptainHome() {
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
 
-  const API_URL = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
+  const API_URL = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
 
   useEffect(() => {
     // Fetch profile
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('captain_access_token');
+        const token = localStorage.getItem('token_captain');
         if (!token) {
           navigate('/login');
           return;
@@ -83,12 +83,12 @@ export default function CaptainHome() {
           const data = await res.json();
           setProfile(data);
           // Sync full name in local storage if updated
-          localStorage.setItem('captain_full_name', data.fullName);
+          localStorage.setItem('fullname_captain', data.fullName);
         } else {
           // Fallback to local storage values if API fails
-          const storedName = localStorage.getItem('captain_full_name') || 'Captain';
-          const storedUsername = localStorage.getItem('captain_username') || 'CB_CAPTAIN';
-          const storedPincode = localStorage.getItem('captain_pincode') || '';
+          const storedName = localStorage.getItem('fullname_captain') || 'Captain';
+          const storedUsername = localStorage.getItem('username_captain') || 'CB_CAPTAIN';
+          const storedPincode = localStorage.getItem('pincode_captain') || '';
           setProfile({
             username: storedUsername,
             fullName: storedName,
@@ -99,9 +99,9 @@ export default function CaptainHome() {
         }
       } catch (err) {
         console.error("Profile fetch failed, using fallbacks:", err);
-        const storedName = localStorage.getItem('captain_full_name') || 'Captain';
-        const storedUsername = localStorage.getItem('captain_username') || 'CB_CAPTAIN';
-        const storedPincode = localStorage.getItem('captain_pincode') || '';
+        const storedName = localStorage.getItem('fullname_captain') || 'Captain';
+        const storedUsername = localStorage.getItem('username_captain') || 'CB_CAPTAIN';
+        const storedPincode = localStorage.getItem('pincode_captain') || '';
         setProfile({
           username: storedUsername,
           fullName: storedName,

@@ -26,7 +26,7 @@ const T = {
   darkGrad: 'linear-gradient(150deg, #0f172a 0%, #0f766e 60%, #0891b2 100%)',
 };
 
-const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
+const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
 
 const inputSx = (hasError) => ({
   '& .MuiOutlinedInput-root': {
@@ -73,16 +73,18 @@ const UnifiedLogin = () => {
         const category = data.category;
         
         if (role === 'agency' || category === 'agency_sub_franchise') {
-          localStorage.setItem('captain_access_token', data.access);
-          localStorage.setItem('captain_refresh_token', data.refresh);
-          localStorage.setItem('captain_username', data.username || identifier);
-          localStorage.setItem('captain_full_name', data.fullName || '');
+          // Store using api.js namespace convention: token_captain / refresh_captain
+          localStorage.setItem('token_captain', data.access);
+          localStorage.setItem('refresh_captain', data.refresh);
+          localStorage.setItem('username_captain', data.username || identifier);
+          localStorage.setItem('fullname_captain', data.fullName || '');
           navigate('/captain/home');
         } else {
-          localStorage.setItem('access_token_business', data.access);
-          localStorage.setItem('refresh_token_business', data.refresh);
-          localStorage.setItem('business_id', data.username || identifier);
-          localStorage.setItem('business_full_name', data.fullName || '');
+          // Store using api.js namespace convention: token_business / refresh_business
+          localStorage.setItem('token_business', data.access);
+          localStorage.setItem('refresh_business', data.refresh);
+          localStorage.setItem('username_business', data.username || identifier);
+          localStorage.setItem('fullname_business', data.fullName || '');
           navigate('/business-dashboard');
         }
       } else {

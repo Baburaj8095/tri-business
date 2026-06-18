@@ -28,9 +28,10 @@ export default function BusinessDashboard() {
   const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
 
   useEffect(() => {
-    const token = localStorage.getItem('captain_access_token');
+    // Business users store their Spring JWT as token_business (api.js namespace convention)
+    const token = localStorage.getItem('token_business');
     if (token) {
-      axios.get(`${process.env.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api'}/captain/offline-payments/merchant`, {
+      axios.get(`${process.env.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api'}/captain/offline-payments/merchant`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => {

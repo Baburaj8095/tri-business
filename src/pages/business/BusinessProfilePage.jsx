@@ -151,9 +151,9 @@ export default function BusinessProfilePage() {
   };
 
   const handleLogoutConfirm = () => {
-    localStorage.removeItem('access_token_business');
+    localStorage.removeItem('token_business');
     localStorage.removeItem('refresh_business');
-    localStorage.removeItem('refresh_token_business');
+    localStorage.removeItem('refresh_business');
     localStorage.removeItem('username_business');
     localStorage.removeItem('business_id');
     localStorage.removeItem('business_full_name');

@@ -29,8 +29,8 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { Navigate } from 'react-router-dom';
 
 function RootRedirect() {
-  const isCaptain = !!localStorage.getItem('captain_access_token');
-  const isBusiness = !!localStorage.getItem('access_token_business');
+  const isCaptain = !!localStorage.getItem('token_captain');
+  const isBusiness = !!localStorage.getItem('token_business');
 
   if (isCaptain) {
     return <Navigate to="/captain/home" replace />;

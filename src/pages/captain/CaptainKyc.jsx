@@ -84,12 +84,12 @@ export default function CaptainKyc() {
     bankAccountType: 'Savings'
   });
 
-  const API_URL = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
+  const API_URL = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('captain_access_token');
+        const token = localStorage.getItem('token_captain');
         if (!token) {
           navigate('/captain/login');
           return;
@@ -179,7 +179,7 @@ export default function CaptainKyc() {
     setUploading(prev => ({ ...prev, [field]: true }));
 
     try {
-      const token = localStorage.getItem('captain_access_token');
+      const token = localStorage.getItem('token_captain');
       const uploadData = new FormData();
       uploadData.append('file', file);
 
@@ -210,7 +210,7 @@ export default function CaptainKyc() {
     setSaving(true);
 
     try {
-      const token = localStorage.getItem('captain_access_token');
+      const token = localStorage.getItem('token_captain');
       const res = await fetch(`${API_URL}/captain/profile`, {
         method: 'PUT',
         headers: {

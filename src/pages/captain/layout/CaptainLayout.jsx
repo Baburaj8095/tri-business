@@ -56,8 +56,8 @@ export default function CaptainLayout() {
   }, [location.pathname]);
 
   useEffect(() => {
-    const token = localStorage.getItem('captain_access_token');
-    const storedName = localStorage.getItem('captain_full_name');
+    const token = localStorage.getItem('token_captain');
+    const storedName = localStorage.getItem('fullname_captain');
 
     if (!token) {
       navigate('/captain/login');
@@ -82,10 +82,10 @@ export default function CaptainLayout() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('captain_access_token');
-    localStorage.removeItem('captain_refresh_token');
-    localStorage.removeItem('captain_username');
-    localStorage.removeItem('captain_full_name');
+    localStorage.removeItem('token_captain');
+    localStorage.removeItem('refresh_captain');
+    localStorage.removeItem('username_captain');
+    localStorage.removeItem('fullname_captain');
     navigate('/login', { replace: true });
   };
 

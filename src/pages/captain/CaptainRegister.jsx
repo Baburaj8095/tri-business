@@ -32,7 +32,7 @@ const T = {
   radius: '14px',
 };
 
-const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
+const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
 const TOTAL_STEPS = 5;
 const STORAGE_KEY = 'captain_registration_draft';
 

@@ -48,12 +48,12 @@ export default function CaptainProfile() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  const API_URL = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'http://localhost:8081/api';
+  const API_URL = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('captain_access_token');
+        const token = localStorage.getItem('token_captain');
         if (!token) {
           navigate('/captain/login');
           return;
@@ -71,11 +71,11 @@ export default function CaptainProfile() {
         } else {
           // Fallback to local storage values if API fails
           setProfile({
-            username: localStorage.getItem('captain_username') || 'CB_CAPTAIN',
-            fullName: localStorage.getItem('captain_full_name') || 'Captain User',
-            phone: localStorage.getItem('captain_username')?.replace('CB', '') || '9876543210',
+            username: localStorage.getItem('username_captain') || 'CB_CAPTAIN',
+            fullName: localStorage.getItem('fullname_captain') || 'Captain User',
+            phone: localStorage.getItem('username_captain')?.replace('CB', '') || '9876543210',
             email: 'captain@trikonekt.com',
-            pincode: localStorage.getItem('captain_pincode') || '',
+            pincode: localStorage.getItem('pincode_captain') || '',
             kycStatus: 'PENDING',
             active: false,
             city: 'District',
@@ -86,11 +86,11 @@ export default function CaptainProfile() {
       } catch (err) {
         console.error("Profile fetch failed, using fallbacks:", err);
         setProfile({
-          username: localStorage.getItem('captain_username') || 'CB_CAPTAIN',
-          fullName: localStorage.getItem('captain_full_name') || 'Captain User',
-          phone: localStorage.getItem('captain_username')?.replace('CB', '') || '9876543210',
+          username: localStorage.getItem('username_captain') || 'CB_CAPTAIN',
+          fullName: localStorage.getItem('fullname_captain') || 'Captain User',
+          phone: localStorage.getItem('username_captain')?.replace('CB', '') || '9876543210',
           email: 'captain@trikonekt.com',
-          pincode: localStorage.getItem('captain_pincode') || '',
+          pincode: localStorage.getItem('pincode_captain') || '',
           kycStatus: 'PENDING',
           active: false,
           city: 'District',
@@ -114,10 +114,10 @@ export default function CaptainProfile() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('captain_access_token');
-    localStorage.removeItem('captain_refresh_token');
-    localStorage.removeItem('captain_username');
-    localStorage.removeItem('captain_full_name');
+    localStorage.removeItem('token_captain');
+    localStorage.removeItem('refresh_captain');
+    localStorage.removeItem('username_captain');
+    localStorage.removeItem('fullname_captain');
     navigate('/login', { replace: true });
   };
 

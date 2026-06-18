@@ -36,12 +36,14 @@ import MapIcon from "@mui/icons-material/Map";
 import GpsFixedIcon from "@mui/icons-material/GpsFixed";
 import DescriptionIcon from "@mui/icons-material/Description";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import { LuX } from "react-icons/lu";
 
 import {
   listMyShops,
   createShop,
   updateShop,
   deleteShop,
+  getMerchantCategories,
 } from "../../api/api";
 
 /* ── Design Tokens ── */
@@ -86,14 +88,6 @@ const inputSx = {
   '& .MuiInputBase-input': { fontWeight: 600, color: T.text, py: 1.5 },
 };
 
-const categoriesList = [
-  "KIRANA GROCERY",
-  "FANCY",
-  "MOBILE DTH RECHARGE",
-  "Pooja Store",
-  "DISPOSABLE ITEMS"
-];
-
 function StatusChip({ status }) {
   const s = String(status || "").toUpperCase();
   let color = "default";
@@ -115,7 +109,9 @@ function StatusChip({ status }) {
 export default function BusinessShops() {
   const navigate = useNavigate();
   const [shops, setShops] = useState([]);
+  const [merchantCategories, setMerchantCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -138,8 +134,6 @@ export default function BusinessShops() {
       contact_number: "",
       shop_image: null,
       shop_image_url: "",
-      
-      business_type: "",
       email: "",
       category: "",
       state: "",
@@ -178,6 +172,27 @@ export default function BusinessShops() {
 
   useEffect(() => {
     fetchShops();
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    setCategoriesLoading(true);
+    getMerchantCategories()
+      .then((res) => {
+        if (!mounted) return;
+        const data = Array.isArray(res) ? res : res?.results || [];
+        setMerchantCategories(data);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setMerchantCategories([]);
+      })
+      .finally(() => {
+        if (mounted) setCategoriesLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const resetForm = () => {
@@ -239,6 +254,7 @@ export default function BusinessShops() {
           longitude: String(longitude),
         }));
         setSuccess("Map coordinates fetched correctly.");
+        setShowMapPicker(false);
       },
       (err) => {
         setError("Unable to retrieve coordinates. Please enter manually.");
@@ -257,10 +273,8 @@ export default function BusinessShops() {
       contact_number: shop.contact_number || "",
       shop_image: null,
       shop_image_url: shop.shop_image || "",
-      
-      business_type: shop.business_type || "",
       email: shop.email || "",
-      category: shop.category || "",
+      category: String(shop.category || shop.category_id || ""),
       state: shop.state || "",
       pincode: shop.pincode || "",
       description: shop.description || "",
@@ -295,7 +309,6 @@ export default function BusinessShops() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.shop_name.trim()) { setError("Store Name is required."); return; }
-    if (!form.business_type) { setError("Business Type is required."); return; }
     if (!form.contact_number.trim()) { setError("Mobile is required."); return; }
     if (!form.email.trim()) { setError("Email is required."); return; }
     if (!form.category) { setError("Category is required."); return; }
@@ -316,8 +329,6 @@ export default function BusinessShops() {
       longitude: form.longitude || "0.0",
       contact_number: form.contact_number,
       shop_image: form.shop_image,
-      
-      business_type: form.business_type,
       email: form.email,
       category: form.category,
       state: form.state,
@@ -348,9 +359,17 @@ export default function BusinessShops() {
     }
   };
 
-  const filteredCategories = categoriesList.filter(c =>
-    c.toLowerCase().includes(categorySearch.toLowerCase())
+  const filteredCategories = merchantCategories.filter((c) =>
+    String(c?.name || "").toLowerCase().includes(categorySearch.toLowerCase())
   );
+
+  const categoryLabelById = useMemo(() => {
+    const map = new Map();
+    merchantCategories.forEach((c) => {
+      map.set(String(c.id), c.name);
+    });
+    return map;
+  }, [merchantCategories]);
 
   return (
     <Box sx={{ bgcolor: T.bg, minHeight: "100vh", py: 4 }}>
@@ -413,31 +432,6 @@ export default function BusinessShops() {
                     </Box>
 
                     {/* Business Type Select */}
-                    <Box>
-                      <Typography sx={labelSx}>Business Type *</Typography>
-                      <Select
-                        fullWidth
-                        displayEmpty
-                        value={form.business_type}
-                        onChange={(e) => setForm(p => ({ ...p, business_type: e.target.value }))}
-                        sx={{
-                          borderRadius: '12px',
-                          bgcolor: '#fff',
-                          '& fieldset': { borderColor: T.border },
-                          '&:hover fieldset': { borderColor: T.borderHover },
-                          '&.Mui-focused fieldset': { borderColor: T.primary, borderWidth: 2 },
-                          '& .MuiSelect-select': { fontWeight: 600, color: T.text, py: 1.5 }
-                        }}
-                      >
-                        <MenuItem value="" disabled sx={{ fontWeight: 600, color: T.textMuted }}>Select Business Type</MenuItem>
-                        <MenuItem value="LLP" sx={{ fontWeight: 600 }}>LLP</MenuItem>
-                        <MenuItem value="NGO" sx={{ fontWeight: 600 }}>NGO</MenuItem>
-                        <MenuItem value="Individual" sx={{ fontWeight: 600 }}>Individual</MenuItem>
-                        <MenuItem value="Partnership" sx={{ fontWeight: 600 }}>Partnership</MenuItem>
-                        <MenuItem value="Proprietorship" sx={{ fontWeight: 600 }}>Proprietorship</MenuItem>
-                      </Select>
-                    </Box>
-
                     {/* Mobile */}
                     <Box>
                       <Typography sx={labelSx}>Mobile *</Typography>
@@ -471,6 +465,10 @@ export default function BusinessShops() {
                         displayEmpty
                         value={form.category}
                         onChange={(e) => setForm(p => ({ ...p, category: e.target.value }))}
+                        renderValue={(value) => {
+                          if (!value) return "Select Category";
+                          return categoryLabelById.get(String(value)) || String(value);
+                        }}
                         MenuProps={{
                           autoFocus: false,
                           PaperProps: { sx: { maxHeight: 300, borderRadius: '12px' } }
@@ -498,9 +496,17 @@ export default function BusinessShops() {
                           />
                         </ListSubheader>
 
-                        {filteredCategories.map(cat => (
-                          <MenuItem key={cat} value={cat} sx={{ fontWeight: 600 }}>{cat}</MenuItem>
-                        ))}
+                        {categoriesLoading ? (
+                          <MenuItem disabled sx={{ fontWeight: 600 }}>Loading categories...</MenuItem>
+                        ) : filteredCategories.length > 0 ? (
+                          filteredCategories.map((cat) => (
+                            <MenuItem key={cat.id} value={String(cat.id)} sx={{ fontWeight: 600 }}>
+                              {cat.name}
+                            </MenuItem>
+                          ))
+                        ) : (
+                          <MenuItem disabled sx={{ fontWeight: 600 }}>No categories available</MenuItem>
+                        )}
                       </Select>
                     </Box>
 
@@ -522,7 +528,7 @@ export default function BusinessShops() {
                     <Box>
                       <Typography sx={labelSx}>Map Address *</Typography>
                       <Box
-                        onClick={() => { handleUseMyLocation(); setShowMapPicker(!showMapPicker); }}
+                        onClick={() => setShowMapPicker(true)}
                         sx={{
                           border: `1.5px solid ${T.border}`,
                           borderRadius: '12px',
@@ -550,7 +556,7 @@ export default function BusinessShops() {
                     {showMapPicker && (
                       <Box sx={{
                         border: `2px dashed ${T.primary}`, borderRadius: '12px', bgcolor: alpha(T.primary, 0.03),
-                        py: 4, px: 2, textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s',
+                        py: 4, px: 2, textAlign: 'center', transition: 'all 0.2s',
                         position: 'relative'
                       }}>
                         <IconButton size="small" sx={{ position: 'absolute', top: 8, right: 8 }} onClick={(e) => { e.stopPropagation(); setShowMapPicker(false); }}>
@@ -558,7 +564,28 @@ export default function BusinessShops() {
                         </IconButton>
                         <MapIcon sx={{ fontSize: 36, color: T.primary, mb: 1 }} />
                         <Typography sx={{ color: T.text, fontWeight: 700, fontSize: '0.85rem' }}>Google Maps Location Picker</Typography>
-                        <Typography sx={{ color: T.textSecondary, fontSize: '0.75rem', mt: 0.5 }}>Business pin saved. Click again to refresh coordinates.</Typography>
+                        <Typography sx={{ color: T.textSecondary, fontSize: '0.75rem', mt: 0.5, mb: 2 }}>
+                          Click below to fetch and save your live location coordinates.
+                        </Typography>
+                        <Button
+                          variant="contained"
+                          onClick={handleUseMyLocation}
+                          startIcon={<GpsFixedIcon />}
+                          sx={{
+                            borderRadius: '10px',
+                            textTransform: 'none',
+                            fontWeight: 800,
+                            bgcolor: T.primary,
+                            '&:hover': { bgcolor: T.primaryDark },
+                          }}
+                        >
+                          Use Current Location
+                        </Button>
+                        {(form.latitude && form.longitude) && (
+                          <Typography sx={{ color: T.primaryDark, fontSize: '0.75rem', mt: 1.5, fontWeight: 700 }}>
+                            Saved: {form.latitude}, {form.longitude}
+                          </Typography>
+                        )}
                       </Box>
                     )}
 
