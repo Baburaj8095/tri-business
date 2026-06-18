@@ -24,10 +24,9 @@ public class ShopRepository {
      */
     public List<ShopResponse> findShopsByMerchantId(Long merchantId) {
         return jdbc.query(
-            "SELECT id, shop_name, address, city, state, pincode, latitude, longitude, " +
-            "contact_number, email, shop_image, banner, category_id, subcategory_id, " +
-            "description, gst_number, pan_number, business_reg_number, business_logo, " +
-            "is_active, created_at, updated_at " +
+            "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
+            "contact_number, shop_image, category_id, subcategory_id, " +
+            "status, created_at " +
             "FROM market_shop WHERE merchant_id = ? ORDER BY created_at DESC",
             new Object[]{merchantId},
             (rs, rowNum) -> ShopResponse.builder()
@@ -35,24 +34,24 @@ public class ShopRepository {
                 .shop_name(rs.getString("shop_name"))
                 .address(rs.getString("address"))
                 .city(rs.getString("city"))
-                .state(rs.getString("state"))
+                .state(null)
                 .pincode(rs.getString("pincode"))
                 .latitude(rs.getDouble("latitude"))
                 .longitude(rs.getDouble("longitude"))
                 .contact_number(rs.getString("contact_number"))
-                .email(rs.getString("email"))
+                .email(null)
                 .shop_image(rs.getString("shop_image"))
-                .banner(rs.getString("banner"))
+                .banner(null)
                 .category(rs.getLong("category_id"))
                 .subcategory(rs.getLong("subcategory_id"))
-                .description(rs.getString("description"))
-                .gst_number(rs.getString("gst_number"))
-                .pan_number(rs.getString("pan_number"))
-                .business_reg_number(rs.getString("business_reg_number"))
-                .business_logo(rs.getString("business_logo"))
-                .is_active(rs.getBoolean("is_active"))
+                .description(null)
+                .gst_number(null)
+                .pan_number(null)
+                .business_reg_number(null)
+                .business_logo(null)
+                .is_active("ACTIVE".equals(rs.getString("status")))
                 .createdAt(rs.getString("created_at"))
-                .updatedAt(rs.getString("updated_at"))
+                .updatedAt(rs.getString("created_at"))
                 .build()
         );
     }
@@ -62,35 +61,34 @@ public class ShopRepository {
      */
     public Optional<ShopResponse> findActiveShopById(Long shopId) {
         List<ShopResponse> result = jdbc.query(
-            "SELECT id, shop_name, address, city, state, pincode, latitude, longitude, " +
-            "contact_number, email, shop_image, banner, category_id, subcategory_id, " +
-            "description, gst_number, pan_number, business_reg_number, business_logo, " +
-            "is_active, created_at, updated_at " +
-            "FROM market_shop WHERE id = ? AND is_active = TRUE",
+            "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
+            "contact_number, shop_image, category_id, subcategory_id, " +
+            "status, created_at " +
+            "FROM market_shop WHERE id = ? AND status = 'ACTIVE'",
             new Object[]{shopId},
             (rs, rowNum) -> ShopResponse.builder()
                 .id(rs.getLong("id"))
                 .shop_name(rs.getString("shop_name"))
                 .address(rs.getString("address"))
                 .city(rs.getString("city"))
-                .state(rs.getString("state"))
+                .state(null)
                 .pincode(rs.getString("pincode"))
                 .latitude(rs.getDouble("latitude"))
                 .longitude(rs.getDouble("longitude"))
                 .contact_number(rs.getString("contact_number"))
-                .email(rs.getString("email"))
+                .email(null)
                 .shop_image(rs.getString("shop_image"))
-                .banner(rs.getString("banner"))
+                .banner(null)
                 .category(rs.getLong("category_id"))
                 .subcategory(rs.getLong("subcategory_id"))
-                .description(rs.getString("description"))
-                .gst_number(rs.getString("gst_number"))
-                .pan_number(rs.getString("pan_number"))
-                .business_reg_number(rs.getString("business_reg_number"))
-                .business_logo(rs.getString("business_logo"))
-                .is_active(rs.getBoolean("is_active"))
+                .description(null)
+                .gst_number(null)
+                .pan_number(null)
+                .business_reg_number(null)
+                .business_logo(null)
+                .is_active("ACTIVE".equals(rs.getString("status")))
                 .createdAt(rs.getString("created_at"))
-                .updatedAt(rs.getString("updated_at"))
+                .updatedAt(rs.getString("created_at"))
                 .build()
         );
         return result.stream().findFirst();
@@ -101,34 +99,33 @@ public class ShopRepository {
      */
     public List<ShopResponse> findAllActiveShops() {
         return jdbc.query(
-            "SELECT id, shop_name, address, city, state, pincode, latitude, longitude, " +
-            "contact_number, email, shop_image, banner, category_id, subcategory_id, " +
-            "description, gst_number, pan_number, business_reg_number, business_logo, " +
-            "is_active, created_at, updated_at " +
-            "FROM market_shop WHERE is_active = TRUE ORDER BY created_at DESC",
+            "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
+            "contact_number, shop_image, category_id, subcategory_id, " +
+            "status, created_at " +
+            "FROM market_shop WHERE status = 'ACTIVE' ORDER BY created_at DESC",
             (rs, rowNum) -> ShopResponse.builder()
                 .id(rs.getLong("id"))
                 .shop_name(rs.getString("shop_name"))
                 .address(rs.getString("address"))
                 .city(rs.getString("city"))
-                .state(rs.getString("state"))
+                .state(null)
                 .pincode(rs.getString("pincode"))
                 .latitude(rs.getDouble("latitude"))
                 .longitude(rs.getDouble("longitude"))
                 .contact_number(rs.getString("contact_number"))
-                .email(rs.getString("email"))
+                .email(null)
                 .shop_image(rs.getString("shop_image"))
-                .banner(rs.getString("banner"))
+                .banner(null)
                 .category(rs.getLong("category_id"))
                 .subcategory(rs.getLong("subcategory_id"))
-                .description(rs.getString("description"))
-                .gst_number(rs.getString("gst_number"))
-                .pan_number(rs.getString("pan_number"))
-                .business_reg_number(rs.getString("business_reg_number"))
-                .business_logo(rs.getString("business_logo"))
-                .is_active(rs.getBoolean("is_active"))
+                .description(null)
+                .gst_number(null)
+                .pan_number(null)
+                .business_reg_number(null)
+                .business_logo(null)
+                .is_active("ACTIVE".equals(rs.getString("status")))
                 .createdAt(rs.getString("created_at"))
-                .updatedAt(rs.getString("updated_at"))
+                .updatedAt(rs.getString("created_at"))
                 .build()
         );
     }
@@ -221,15 +218,13 @@ public class ShopRepository {
                           Long categoryId, Long subcategoryId, String gstNumber, String panNumber, String businessRegNumber,
                           String now) {
         String sql = "INSERT INTO market_shop (" +
-            "merchant_id, shop_name, address, city, state, pincode, latitude, longitude, " +
-            "contact_number, email, description, category_id, subcategory_id, " +
-            "gst_number, pan_number, business_reg_number, is_active, created_at, updated_at" +
-            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true, ?, ?)";
+            "merchant_id, shop_name, address, city, pincode, latitude, longitude, " +
+            "contact_number, category_id, subcategory_id, status, created_at" +
+            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', NOW())";
 
         return jdbc.update(sql,
-            merchantId, shopName, address, city, state, pincode, latitude, longitude,
-            contactNumber, email, description, categoryId, subcategoryId,
-            gstNumber, panNumber, businessRegNumber, now, now
+            merchantId, shopName, address, city, pincode, latitude, longitude,
+            contactNumber, categoryId, subcategoryId
         );
     }
 }

@@ -25,6 +25,8 @@ import CaptainKyc from './pages/captain/CaptainKyc';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CssBaseline from '@mui/material/CssBaseline';
+import BusinessDashboard from './pages/business/BusinessDashboard';
+import BusinessProfile from './pages/business/BusinessProfile.jsx';
 
 import { Navigate } from 'react-router-dom';
 
@@ -49,9 +51,10 @@ function App() {
         <Route path="/" element={<RootRedirect />} />
 
         <Route path="/business-dashboard" element={<BusinessDashboardConsumer />} />
+        <Route path="/v2/business-dashboard" element={<BusinessDashboard />} />
         <Route path="/scanner" element={<ScannerPage />} />
         <Route path="/merchant" element={<BusinessDashboardMerchant />} />
-        <Route path="/business/profile" element={<Navigate to="/business-dashboard" replace />} />
+        <Route path="/business/profile" element={<BusinessProfile />} />
         <Route path="/business/shops" element={<BusinessShops />} />
         <Route path="/business/shops/:id/products" element={<BusinessShopProducts />} />
         <Route path="/business/nearby-stores" element={<NearbyStoresPage />} />

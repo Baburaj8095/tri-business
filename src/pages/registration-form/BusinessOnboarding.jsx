@@ -1022,7 +1022,7 @@ const BusinessOnboarding = () => {
                 </Box>
 
                 <Button
-                  onClick={() => navigate('/demo/budiness-dashboard')}
+                  onClick={() => navigate('/login')}
                   endIcon={<Launch />}
                   variant="contained"
                   sx={{
@@ -1031,7 +1031,7 @@ const BusinessOnboarding = () => {
                     '&:hover': { background: T.primaryDark }
                   }}
                 >
-                  Go to Dashboard
+                  Go to Login
                 </Button>
               </Box>
             </motion.div>
