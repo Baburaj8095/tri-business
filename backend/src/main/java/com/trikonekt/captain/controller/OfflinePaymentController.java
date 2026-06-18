@@ -91,6 +91,25 @@ public class OfflinePaymentController {
             .orElseThrow(() -> new RuntimeException("Consumer not found: " + username));
 
         long consumerId = ((Number) consumer.get("id")).longValue();
+
+        if (req.getShopId() == null || req.getShopId() <= 0) {
+            throw new RuntimeException("Valid shop ID is required");
+        }
+        if (req.getAmount() == null || req.getAmount().compareTo(BigDecimal.TEN) < 0) {
+            throw new RuntimeException("Amount must be at least ₹10");
+        }
+        if (!offlinePaymentRepository.existsActiveShopById(req.getShopId())) {
+            throw new RuntimeException("Shop not found or inactive");
+        }
+
+        String paymentMethod = req.getPaymentMethod();
+        if (paymentMethod == null || paymentMethod.isBlank()) {
+            paymentMethod = "MANUAL";
+        }
+        paymentMethod = paymentMethod.trim().toUpperCase();
+        if (!"MANUAL".equals(paymentMethod) && !"RAZORPAY".equals(paymentMethod)) {
+            throw new RuntimeException("Invalid payment method");
+        }
         
         // Generate unique Ref ID: Payment-YYYYMMDDHHMMSS-RAND5
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -102,7 +121,7 @@ public class OfflinePaymentController {
             consumerId,
             req.getShopId(),
             req.getAmount(),
-            req.getPaymentMethod(),
+            paymentMethod,
             "PENDING"
         );
 
@@ -176,21 +195,43 @@ public class OfflinePaymentController {
 
         // Verify that the merchant owns the shop
         long shopId = ((Number) payment.get("shop_id")).longValue();
+        if (!offlinePaymentRepository.isShopOwnedByMerchant(shopId, merchantId)) {
+            return ResponseEntity.status(403).body(Map.of(
+                "message", "You are not authorized to action this payment"
+            ));
+        }
+
+        if (req.getAction() == null || req.getAction().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Action is required"));
+        }
+        String action = req.getAction().trim().toUpperCase();
         
         // Accept or Reject action
-        if ("ACCEPT".equalsIgnoreCase(req.getAction())) {
-            offlinePaymentRepository.updatePaymentStatus(id, "APPROVED");
+        if ("ACCEPT".equals(action)) {
+            int updated = offlinePaymentRepository.updatePaymentStatusIfPending(id, "APPROVED");
+            if (updated == 0) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Payment is already processed"));
+            }
 
             // Calculate cashback commission
             BigDecimal amount = (BigDecimal) payment.get("amount");
             BigDecimal discountPercent = BigDecimal.valueOf(5); // default 5%
             if (payment.get("discount_percent") != null) {
-                discountPercent = (BigDecimal) payment.get("discount_percent");
+                Object discountObj = payment.get("discount_percent");
+                if (discountObj instanceof BigDecimal) {
+                    discountPercent = (BigDecimal) discountObj;
+                } else if (discountObj instanceof Number) {
+                    discountPercent = BigDecimal.valueOf(((Number) discountObj).doubleValue());
+                }
             }
             BigDecimal cashback = amount.multiply(discountPercent).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            if (cashback.compareTo(BigDecimal.ZERO) < 0) {
+                cashback = BigDecimal.ZERO;
+            }
 
             // Credit the consumer's wallet
             long consumerId = ((Number) payment.get("consumer_id")).longValue();
+            offlinePaymentRepository.createWalletIfMissing(consumerId);
             Optional<Map<String, Object>> walletOpt = offlinePaymentRepository.getWalletByUserId(consumerId);
             if (walletOpt.isPresent()) {
                 Map<String, Object> wallet = walletOpt.get();
@@ -210,11 +251,14 @@ public class OfflinePaymentController {
             }
 
             return ResponseEntity.ok(Map.of(
-                "message", "Payment accepted successfully. Commission disbursed.",
+                "message", "Payment accepted successfully. Cashback credited.",
                 "status", "APPROVED"
             ));
-        } else if ("REJECT".equalsIgnoreCase(req.getAction())) {
-            offlinePaymentRepository.updatePaymentStatus(id, "REJECTED");
+        } else if ("REJECT".equals(action)) {
+            int updated = offlinePaymentRepository.updatePaymentStatusIfPending(id, "REJECTED");
+            if (updated == 0) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Payment is already processed"));
+            }
             return ResponseEntity.ok(Map.of(
                 "message", "Payment rejected successfully.",
                 "status", "REJECTED"

@@ -14,10 +14,6 @@
     { "src": "/manifest.json", "dest": "/manifest.json" },
     { "src": "/logo(.*)\\.png", "dest": "/logo$1.png" },
 
-    { "src": "/api/(.*)", "dest": "https://api.growth.vin/api/$1" },
-    { "src": "/media/(.*)", "dest": "https://api.growth.vin/media/$1" },
-    { "src": "/uploads/(.*)", "dest": "https://api.growth.vin/uploads/$1" },
-
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

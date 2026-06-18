@@ -31,10 +31,50 @@ if (typeof window !== "undefined") {
   }
 }
 
-const API = axios.create({ baseURL });
+// Create API client with dynamic baseURL based on namespace
+function createAPIClient() {
+  return axios.create({
+    baseURL: getBaseURLForNamespace(),
+  });
+}
+
+function getBaseURLForNamespace() {
+  try {
+    // Inline namespace detection to avoid reference issues
+    const pathLocation =
+      typeof window !== "undefined" &&
+      window.location &&
+      typeof window.location.pathname === "string"
+        ? window.location.pathname
+        : "";
+
+    // Detect namespace from pathname
+    let ns = "user";
+    if (pathLocation.startsWith("/admin")) ns = "admin";
+    else if (pathLocation.startsWith("/agency")) ns = "agency";
+    else if (pathLocation.startsWith("/employee")) ns = "employee";
+    else if (pathLocation.startsWith("/captain")) ns = "captain";
+    else if (pathLocation.startsWith("/business") || pathLocation.startsWith("/merchant")) ns = "business";
+
+    // Business and captain namespaces use captain backend directly
+    if (ns === "business" || ns === "captain") {
+      const captainApiUrl =
+        process.env.REACT_APP_CAPTAIN_API_URL ||
+        (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+        "https://api-captain.trikonektbusiness.com/api";
+      return captainApiUrl.endsWith("/") ? captainApiUrl : captainApiUrl + "/";
+    }
+    // Other namespaces use Django backend (via Vercel proxy or direct)
+    return baseURL;
+  } catch (_) {
+    return baseURL;
+  }
+}
+
+const API = createAPIClient();
 
 // Separate client without interceptors for token refresh to avoid recursion/deadlocks
-const refreshClient = axios.create({ baseURL });
+const refreshClient = createAPIClient();
 
 // Performance defaults and helpers
 const DEFAULT_TIMEOUT = 15000;
@@ -238,14 +278,12 @@ async function refreshAccessToken() {
   if (!refresh) return null;
 
   const ns = currentNamespace();
-  // Business and captain tokens are Spring Boot JWTs — must refresh via captain backend
-  const isCaptainToken = ns === "captain" || ns === "business";
 
   try {
     let access, newRefresh;
 
-    if (isCaptainToken) {
-      // Spring Boot JWT refresh
+    // All business and captain tokens use Spring Boot captain backend
+    if (ns === "captain" || ns === "business") {
       const captainApiUrl =
         process.env.REACT_APP_CAPTAIN_API_URL ||
         (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
@@ -260,10 +298,20 @@ async function refreshAccessToken() {
       access = data.access;
       newRefresh = data.refresh;
     } else {
-      // Django SimpleJWT refresh
-      const resp = await refreshClient.post("accounts/token/refresh/", { refresh });
-      access = resp?.data?.access;
-      newRefresh = resp?.data?.refresh;
+      // For other namespaces (admin, user, etc.), also use captain backend for consistency
+      const captainApiUrl =
+        process.env.REACT_APP_CAPTAIN_API_URL ||
+        (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+        "https://api-captain.trikonektbusiness.com/api";
+      const resp = await fetch(`${captainApiUrl}/captain/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh }),
+      });
+      if (!resp.ok) throw new Error(`Refresh failed: ${resp.status}`);
+      const data = await resp.json();
+      access = data.access;
+      newRefresh = data.refresh;
     }
 
     if (access) writeNamespaced("token", access);
@@ -469,9 +517,9 @@ API.interceptors.request.use((config) => {
 
 /* Track loading + attach JWT Authorization header from storage when available. */
 API.interceptors.request.use(async (config) => {
-  // Skip refresh endpoints to prevent recursion/deadlock
+  // Skip refresh endpoint to prevent recursion/deadlock
   const url = config?.url || "";
-  if (url.includes("/accounts/token/refresh/") || url.includes("/captain/auth/refresh")) {
+  if (url.includes("/captain/auth/refresh")) {
     return config;
   }
 

@@ -42,22 +42,22 @@ public class UserRepository {
 
     public List<Map<String, Object>> findPublicB2bMerchants() {
         return jdbc.queryForList(
-            "SELECT u.id, u.full_name, u.phone, u.pincode, " +
-            "       s.shop_name, s.address, s.city " +
+            "SELECT s.id, u.id as user_id, u.full_name, u.phone, u.pincode, " +
+            "       s.shop_name, s.address, s.city, s.contact_number, s.is_active " +
             "FROM accounts_customuser u " +
-            "LEFT JOIN market_shop s ON u.id = s.merchant_id " +
-            "WHERE u.category = 'merchant' AND u.is_active = true " +
+            "JOIN market_shop s ON u.id = s.merchant_id " +
+            "WHERE u.category = 'merchant' AND u.is_active = true AND s.is_active = true " +
             "LIMIT 50"
         );
     }
 
     public List<Map<String, Object>> findPublicB2cMerchants() {
         return jdbc.queryForList(
-            "SELECT u.id, u.full_name, u.phone, u.pincode, " +
-            "       s.shop_name, s.address, s.city " +
+            "SELECT s.id, u.id as user_id, u.full_name, u.phone, u.pincode, " +
+            "       s.shop_name, s.address, s.city, s.contact_number, s.is_active " +
             "FROM accounts_customuser u " +
-            "LEFT JOIN market_shop s ON u.id = s.merchant_id " +
-            "WHERE u.category = 'business' AND u.is_active = true " +
+            "JOIN market_shop s ON u.id = s.merchant_id " +
+            "WHERE u.category = 'business' AND u.is_active = true AND s.is_active = true " +
             "LIMIT 50"
         );
     }
