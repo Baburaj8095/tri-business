@@ -24,7 +24,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import { getMerchantProfile, updateMerchantProfile } from "../../api/api";
-import { LuChevronLeft, LuEdit2 } from "react-icons/lu";
+import { LuChevronLeft, LuPencil } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 
 const PRIMARY = "#228B22";
@@ -311,7 +311,7 @@ export default function BusinessProfile() {
               </Typography>
               <Button
                 size="small"
-                startIcon={<LuEdit2 size={16} />}
+                startIcon={<LuPencil size={16} />}
                 onClick={() => setEditMode(!editMode)}
                 sx={{
                   color: PRIMARY,
