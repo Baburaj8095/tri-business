@@ -227,4 +227,73 @@ public class ShopRepository {
             contactNumber, categoryId, subcategoryId
         );
     }
+
+    /**
+     * Find shop by ID and Merchant ID (authenticated)
+     */
+    public Optional<ShopResponse> findShopByIdAndMerchantId(Long shopId, Long merchantId) {
+        List<ShopResponse> result = jdbc.query(
+            "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
+            "contact_number, shop_image, category_id, subcategory_id, " +
+            "status, created_at " +
+            "FROM market_shop WHERE id = ? AND merchant_id = ?",
+            new Object[]{shopId, merchantId},
+            (rs, rowNum) -> ShopResponse.builder()
+                .id(rs.getLong("id"))
+                .shop_name(rs.getString("shop_name"))
+                .address(rs.getString("address"))
+                .city(rs.getString("city"))
+                .state(null)
+                .pincode(rs.getString("pincode"))
+                .latitude(rs.getDouble("latitude"))
+                .longitude(rs.getDouble("longitude"))
+                .contact_number(rs.getString("contact_number"))
+                .email(null)
+                .shop_image(rs.getString("shop_image"))
+                .banner(null)
+                .category(rs.getLong("category_id"))
+                .subcategory(rs.getLong("subcategory_id"))
+                .description(null)
+                .gst_number(null)
+                .pan_number(null)
+                .business_reg_number(null)
+                .business_logo(null)
+                .is_active("ACTIVE".equals(rs.getString("status")))
+                .createdAt(rs.getString("created_at"))
+                .updatedAt(rs.getString("created_at"))
+                .build()
+        );
+        return result.stream().findFirst();
+    }
+
+    /**
+     * Update shop details
+     */
+    public int updateShop(Long shopId, Long merchantId, String shopName, String address, String city, String state, String pincode,
+                          Double latitude, Double longitude, String contactNumber, Long categoryId, Long subcategoryId) {
+        String sql = "UPDATE market_shop SET " +
+            "shop_name = ?, address = ?, city = ?, pincode = ?, " +
+            "latitude = ?, longitude = ?, contact_number = ?, " +
+            "category_id = ?, subcategory_id = ? " +
+            "WHERE id = ? AND merchant_id = ?";
+
+        return jdbc.update(sql,
+            shopName, address, city, pincode,
+            latitude, longitude, contactNumber,
+            categoryId, subcategoryId,
+            shopId, merchantId
+        );
+    }
+
+    /**
+     * Delete shop by ID and Merchant ID
+     */
+    public int deleteShopByIdAndMerchantId(Long shopId, Long merchantId) {
+        // First delete referencing products (to avoid constraint violations)
+        jdbc.update("DELETE FROM market_shopproduct WHERE shop_id = ?", shopId);
+        
+        // Then delete the shop
+        String sql = "DELETE FROM market_shop WHERE id = ? AND merchant_id = ?";
+        return jdbc.update(sql, shopId, merchantId);
+    }
 }

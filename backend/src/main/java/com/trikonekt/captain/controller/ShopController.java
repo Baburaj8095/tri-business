@@ -71,16 +71,88 @@ public class ShopController {
     }
 
     /**
-     * POST /api/captain/merchant/shops/
+     * POST /api/captain/merchant/shops (JSON content-type)
      * Create a new shop (authenticated)
      */
-    @PostMapping("/shops")
-    public ResponseEntity<Map<String, Object>> createShop(
+    @PostMapping(value = "/shops", consumes = "application/json")
+    public ResponseEntity<Map<String, Object>> createShopJson(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody CreateShopRequest request
     ) {
         Long userId = extractUserIdFromToken(authHeader);
         Map<String, Object> response = shopService.createShop(userId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * POST /api/captain/merchant/shops (multipart or application/x-www-form-urlencoded content-type)
+     * Create a new shop (authenticated)
+     */
+    @PostMapping(value = "/shops", consumes = {"multipart/form-data", "application/x-www-form-urlencoded"})
+    public ResponseEntity<Map<String, Object>> createShopForm(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @ModelAttribute CreateShopRequest request
+    ) {
+        Long userId = extractUserIdFromToken(authHeader);
+        Map<String, Object> response = shopService.createShop(userId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * GET /api/captain/merchant/shops/{shopId}
+     * Get details of a specific shop owned by the merchant
+     */
+    @GetMapping("/shops/{shopId}")
+    public ResponseEntity<ShopResponse> getMyShopDetail(
+            @PathVariable Long shopId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        Long userId = extractUserIdFromToken(authHeader);
+        ShopResponse shop = shopService.getMyShopDetail(userId, shopId);
+        return ResponseEntity.ok(shop);
+    }
+
+    /**
+     * PATCH /api/captain/merchant/shops/{shopId} (JSON content-type)
+     * Update details of a specific shop owned by the merchant (authenticated)
+     */
+    @PatchMapping(value = "/shops/{shopId}", consumes = "application/json")
+    public ResponseEntity<Map<String, Object>> updateShopJson(
+            @PathVariable Long shopId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody CreateShopRequest request
+    ) {
+        Long userId = extractUserIdFromToken(authHeader);
+        Map<String, Object> response = shopService.updateShop(userId, shopId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * PATCH /api/captain/merchant/shops/{shopId} (multipart or form content-type)
+     * Update details of a specific shop owned by the merchant (authenticated)
+     */
+    @PatchMapping(value = "/shops/{shopId}", consumes = {"multipart/form-data", "application/x-www-form-urlencoded"})
+    public ResponseEntity<Map<String, Object>> updateShopForm(
+            @PathVariable Long shopId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @ModelAttribute CreateShopRequest request
+    ) {
+        Long userId = extractUserIdFromToken(authHeader);
+        Map<String, Object> response = shopService.updateShop(userId, shopId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * DELETE /api/captain/merchant/shops/{shopId}
+     * Delete a specific shop owned by the merchant (authenticated)
+     */
+    @DeleteMapping("/shops/{shopId}")
+    public ResponseEntity<Map<String, Object>> deleteShop(
+            @PathVariable Long shopId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        Long userId = extractUserIdFromToken(authHeader);
+        Map<String, Object> response = shopService.deleteShop(userId, shopId);
         return ResponseEntity.ok(response);
     }
 

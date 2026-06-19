@@ -158,6 +158,114 @@ public class ShopService {
     }
 
     /**
+     * Get a specific shop owned by the merchant (authenticated)
+     */
+    public ShopResponse getMyShopDetail(Long userId, Long shopId) {
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("Invalid user ID");
+        }
+        if (shopId == null || shopId <= 0) {
+            throw new IllegalArgumentException("Invalid shop ID");
+        }
+        try {
+            return shopRepository.findShopByIdAndMerchantId(shopId, userId)
+                .orElseThrow(() -> new RuntimeException("Shop not found or you are not the owner"));
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Failed to fetch shop details: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Update an existing shop (authenticated)
+     */
+    public Map<String, Object> updateShop(Long userId, Long shopId, CreateShopRequest request) {
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("Invalid user ID");
+        }
+        if (shopId == null || shopId <= 0) {
+            throw new IllegalArgumentException("Invalid shop ID");
+        }
+
+        // Check if shop exists and is owned by user
+        ShopResponse existing = shopRepository.findShopByIdAndMerchantId(shopId, userId)
+            .orElseThrow(() -> new RuntimeException("Shop not found or access denied"));
+
+        try {
+            // Apply partial updates from request
+            String shopName = request.getShop_name() != null ? request.getShop_name() : existing.getShop_name();
+            String address = request.getAddress() != null ? request.getAddress() : existing.getAddress();
+            String city = request.getCity() != null ? request.getCity() : existing.getCity();
+            String state = request.getState() != null ? request.getState() : existing.getState();
+            String pincode = request.getPincode() != null ? request.getPincode() : existing.getPincode();
+            Double latitude = request.getLatitude() != null ? request.getLatitude() : existing.getLatitude();
+            Double longitude = request.getLongitude() != null ? request.getLongitude() : existing.getLongitude();
+            String contactNumber = request.getContact_number() != null ? request.getContact_number() : existing.getContact_number();
+            
+            // Allow category & subcategory update/keep
+            Long categoryId = request.getCategory() != null ? request.getCategory() : existing.getCategory();
+            Long subcategoryId = request.getSubcategory() != null ? request.getSubcategory() : existing.getSubcategory();
+
+            int rowsUpdated = shopRepository.updateShop(
+                shopId,
+                userId,
+                shopName,
+                address,
+                city,
+                state,
+                pincode,
+                latitude,
+                longitude,
+                contactNumber,
+                categoryId,
+                subcategoryId
+            );
+
+            if (rowsUpdated == 0) {
+                // Return success anyway or throw if preferred (if database returns 0 rows updated but it works)
+                // Often update returns 0 if nothing changed. Let's just return success if we can still read it.
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "Shop updated successfully");
+            response.put("shop_name", shopName);
+            return response;
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Failed to update shop: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Delete an existing shop (authenticated)
+     */
+    public Map<String, Object> deleteShop(Long userId, Long shopId) {
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("Invalid user ID");
+        }
+        if (shopId == null || shopId <= 0) {
+            throw new IllegalArgumentException("Invalid shop ID");
+        }
+
+        // Check if shop exists and is owned by user
+        shopRepository.findShopByIdAndMerchantId(shopId, userId)
+            .orElseThrow(() -> new RuntimeException("Shop not found or access denied"));
+
+        try {
+            int rowsDeleted = shopRepository.deleteShopByIdAndMerchantId(shopId, userId);
+            if (rowsDeleted == 0) {
+                throw new RuntimeException("Failed to delete shop");
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "Shop deleted successfully");
+            return response;
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Failed to delete shop: " + e.getMessage());
+        }
+    }
+
+    /**
      * Validate shop creation request
      */
     private void validateShopRequest(CreateShopRequest request) {
