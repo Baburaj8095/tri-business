@@ -85,6 +85,7 @@ const UnifiedLogin = () => {
           localStorage.setItem('refresh_business', data.refresh);
           localStorage.setItem('username_business', data.username || identifier);
           localStorage.setItem('fullname_business', data.fullName || '');
+          localStorage.setItem('service_mode_business', data.serviceMode || 'OFFLINE');
           navigate('/business-dashboard');
         }
       } else {

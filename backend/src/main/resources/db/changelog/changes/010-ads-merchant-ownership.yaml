@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: 010-ads-merchant-ownership
+      author: trikonekt
+      validCheckSum: ANY
+      changes:
+
+        # ─── Add merchant ownership + display routing to marketplace_ads ─────────
+
+        # Who created/owns the ad
+        - addColumn:
+            tableName: marketplace_ads
+            columns:
+              - column:
+                  name: merchant_id
+                  type: BIGINT
+                  remarks: "Foreign key to accounts_customuser – the business user who uploaded the ad"
+
+        # Where the ad is displayed:
+        # BUSINESS_ONLINE_B2B  → Business Dashboard "Online B2B Ads" section (Online B2B merchants)
+        # CONSUMER_ONLINE_B2C  → Consumer DeliveryPage online ads/banners (Online B2C merchants)
+        # CONSUMER_NEARBY_B2C  → Consumer NearbyStoresPage sponsored row (Offline/Nearby B2C)
+        # CONSUMER_TRIZONE_B2C → Consumer TriZone section (TriZone B2C only)
+        - addColumn:
+            tableName: marketplace_ads
+            columns:
+              - column:
+                  name: display_target
+                  type: VARCHAR(32)
+                  defaultValue: 'CONSUMER_ONLINE_B2C'
+                  constraints:
+                    nullable: false
+                  remarks: "Where this ad renders: BUSINESS_ONLINE_B2B | CONSUMER_ONLINE_B2C | CONSUMER_NEARBY_B2C | CONSUMER_TRIZONE_B2C"
+
+        # ─── Index for fast lookup by target + active state ───────────────────────
+        - createIndex:
+            tableName: marketplace_ads
+            indexName: idx_ads_display_target
+            columns:
+              - column:
+                  name: display_target
+              - column:
+                  name: is_active
+
+        - createIndex:
+            tableName: marketplace_ads
+            indexName: idx_ads_merchant
+            columns:
+              - column:
+                  name: merchant_id

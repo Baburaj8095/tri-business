@@ -43,7 +43,7 @@ public class PublicShopController {
     }
 
     /**
-     * GET /api/captain/shops/{id}/products/
+     * GET /captain/shops/{id}/products/
      * Get products for a specific shop
      */
     @GetMapping("/{shopId}/products")
@@ -51,4 +51,7 @@ public class PublicShopController {
         List<ShopProductResponse> products = shopService.getShopProducts(shopId);
         return ResponseEntity.ok(products);
     }
+
+    // NOTE: /online/products and /online/categories are handled by OnlineMarketplaceController
+    // to avoid Spring ambiguous-mapping errors. Do not add them back here.
 }

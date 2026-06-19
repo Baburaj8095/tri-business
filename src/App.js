@@ -27,6 +27,8 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import CssBaseline from '@mui/material/CssBaseline';
 import BusinessDashboard from './pages/business/BusinessDashboard';
 import BusinessProfile from './pages/business/BusinessProfile.jsx';
+import AdsManagerPage from './pages/business/AdsManagerPage.jsx';
+import OnlineProductsPage from './pages/business/OnlineProductsPage.jsx';
 
 import { Navigate } from 'react-router-dom';
 
@@ -62,6 +64,8 @@ function App() {
         <Route path="/business/orders" element={<MerchantOrdersPage />} />
         <Route path="/business/inventory" element={<InventoryPage />} />
         <Route path="/business/delivery" element={<TriSarathiDelivery />} />
+        <Route path="/business/ads" element={<AdsManagerPage />} />
+        <Route path="/business/online-products" element={<OnlineProductsPage />} />
         <Route path="/registration" element={<BusinessRegistration />} />
         <Route path="/registration-wizard" element={<BusinessRegistrationWizard />} />
         <Route path="/onboarding" element={<BusinessOnboarding />} />

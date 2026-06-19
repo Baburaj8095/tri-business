@@ -43,6 +43,20 @@ public class MarketplaceAd {
     @JsonProperty("valid_to")
     private String validTo;
 
+    /**
+     * Where this ad is rendered:
+     * BUSINESS_ONLINE_B2B  → Business Dashboard Online B2B ads section
+     * CONSUMER_ONLINE_B2C  → Consumer Delivery/Online page banners & products
+     * CONSUMER_NEARBY_B2C  → Consumer NearbyStores sponsored row
+     * CONSUMER_TRIZONE_B2C → Consumer TriZone section
+     */
+    @JsonProperty("display_target")
+    private String displayTarget;
+
+    /** The business user who created this ad */
+    @JsonProperty("merchant_id")
+    private Long merchantId;
+
     // Joined fields — populated for SPONSORED_SHOP ads
     @JsonProperty("shop_name")
     private String shopName;

@@ -40,7 +40,8 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  CssBaseline
+  CssBaseline,
+  Stack
 } from '@mui/material';
 import {
   AdminPanelSettings as ShieldIcon,
@@ -125,6 +126,13 @@ export default function AdminDashboard() {
   const [subAdminModalOpen, setSubAdminModalOpen] = useState(false);
   const [editingSubAdmin, setEditingSubAdmin] = useState(null);
   const [subAdminForm, setSubAdminForm] = useState({ username: '', password: '', email: '', modules: { captains: false, kyc: false, sub_admins: false } });
+
+  // Online Categories (Tab 6)
+  const [onlineCategories, setOnlineCategories] = useState([]);
+  const [onlineCatLoading, setOnlineCatLoading] = useState(false);
+  const [onlineCatModalOpen, setOnlineCatModalOpen] = useState(false);
+  const [editingOnlineCat, setEditingOnlineCat] = useState(null);
+  const [onlineCatForm, setOnlineCatForm] = useState({ name: '', iconName: 'category', color: '#0d9488', sortOrder: '' });
 
   // Detail Modal
   const [selectedCaptain, setSelectedCaptain] = useState(null);
@@ -230,6 +238,22 @@ export default function AdminDashboard() {
           setSubAdmins(subData || []);
         }
       }
+
+      // 6. Fetch Online Categories (tab 6)
+      if (activeTab === 6) {
+        setOnlineCatLoading(true);
+        try {
+          const ocRes = await fetch(`${API_URL}/captain/admin/online-categories`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (ocRes.ok) {
+            const ocData = await ocRes.json();
+            setOnlineCategories(Array.isArray(ocData) ? ocData : ocData.categories || []);
+          }
+        } finally {
+          setOnlineCatLoading(false);
+        }
+      }
     } catch (err) {
       console.error("Dashboard fetch error:", err);
       generateMockData();
@@ -249,6 +273,69 @@ export default function AdminDashboard() {
       setSubcategories([]);
     } finally {
       setSubcategoriesLoading(false);
+    }
+  };
+
+  /* ── Online Category handlers ──────────────────────────────────────────── */
+  const handleOpenOnlineCatModal = (cat = null) => {
+    if (cat) {
+      setEditingOnlineCat(cat);
+      setOnlineCatForm({ name: cat.name, iconName: cat.icon_name || 'category', color: cat.color || '#0d9488', sortOrder: String(cat.sort_order ?? '') });
+    } else {
+      setEditingOnlineCat(null);
+      setOnlineCatForm({ name: '', iconName: 'category', color: '#0d9488', sortOrder: '' });
+    }
+    setOnlineCatModalOpen(true);
+  };
+
+  const handleSaveOnlineCategory = async () => {
+    if (!onlineCatForm.name.trim()) {
+      setToast({ open: true, type: 'error', message: 'Category name is required.' });
+      return;
+    }
+    const token = localStorage.getItem('admin_token');
+    const method = editingOnlineCat ? 'PUT' : 'POST';
+    const url = editingOnlineCat
+      ? `${API_URL}/captain/admin/online-categories/${editingOnlineCat.id}`
+      : `${API_URL}/captain/admin/online-categories`;
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: onlineCatForm.name,
+          iconName: onlineCatForm.iconName,
+          color: onlineCatForm.color,
+          sortOrder: parseInt(onlineCatForm.sortOrder, 10) || 0,
+        })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setToast({ open: true, type: 'success', message: editingOnlineCat ? 'Category updated.' : 'Category created.' });
+      setOnlineCatModalOpen(false);
+      // refresh
+      const ocRes = await fetch(`${API_URL}/captain/admin/online-categories`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (ocRes.ok) {
+        const ocData = await ocRes.json();
+        setOnlineCategories(Array.isArray(ocData) ? ocData : ocData.categories || []);
+      }
+    } catch (e) {
+      setToast({ open: true, type: 'error', message: `Save failed: ${e.message}` });
+    }
+  };
+
+  const handleDeleteOnlineCategory = async (id) => {
+    if (!window.confirm('Delete this online category?')) return;
+    const token = localStorage.getItem('admin_token');
+    try {
+      const res = await fetch(`${API_URL}/captain/admin/online-categories/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setOnlineCategories(prev => prev.filter(c => c.id !== id));
+      setToast({ open: true, type: 'success', message: 'Category deleted.' });
+    } catch (e) {
+      setToast({ open: true, type: 'error', message: `Delete failed: ${e.message}` });
     }
   };
 
@@ -793,6 +880,24 @@ export default function AdminDashboard() {
           >
             <ListItemIcon sx={{ minWidth: 40 }}><CategoryIcon /></ListItemIcon>
             <ListItemText primary="Niches / Categories" primaryTypographyProps={{ fontWeight: activeTab === 5 ? '800' : '500', fontSize: '0.85rem' }} />
+          </ListItemButton>
+        </ListItem>
+
+        {/* View 6: Online Product Categories */}
+        <ListItem disablePadding sx={{ mb: 0.5 }}>
+          <ListItemButton
+            selected={activeTab === 6}
+            onClick={() => handleTabChange(6)}
+            sx={{
+              borderRadius: '8px',
+              color: activeTab === 6 ? 'white' : '#94a3b8',
+              bgcolor: activeTab === 6 ? 'rgba(16,185,129,0.15) !important' : 'transparent',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
+              '& .MuiListItemIcon-root': { color: activeTab === 6 ? 'white' : '#64748b' }
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}><CategoryIcon /></ListItemIcon>
+            <ListItemText primary="Online Categories" primaryTypographyProps={{ fontWeight: activeTab === 6 ? '800' : '500', fontSize: '0.85rem' }} />
           </ListItemButton>
         </ListItem>
       </List>
@@ -1602,6 +1707,102 @@ export default function AdminDashboard() {
               </Grid>
             </Grid>
           )}
+
+          {/* VIEW 6: Online Product Categories */}
+          {activeTab === 6 && (
+            <Paper sx={{ p: 3, borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Online Product Categories</Typography>
+                  <Typography variant="caption" color="textSecondary">Categories displayed as pills in the consumer Online Marketplace</Typography>
+                </Box>
+                <Button variant="contained" size="small" startIcon={<AddIcon />} onClick={() => handleOpenOnlineCatModal()}
+                  sx={{ background: T.success, textTransform: 'none', borderRadius: '8px' }}>
+                  Add Category
+                </Button>
+              </Box>
+
+              <TableContainer component={Box} sx={{ maxHeight: 520 }}>
+                <Table stickyHeader size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Slug</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Icon</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Color</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Sort</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Active</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }} align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {onlineCatLoading ? (
+                      <TableRow><TableCell colSpan={8} align="center"><CircularProgress size={24} /></TableCell></TableRow>
+                    ) : onlineCategories.length === 0 ? (
+                      <TableRow><TableCell colSpan={8} align="center">No online categories yet. Click "Add Category" to create one.</TableCell></TableRow>
+                    ) : (
+                      onlineCategories.map(cat => (
+                        <TableRow key={cat.id} hover>
+                          <TableCell>{cat.id}</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>{cat.name}</TableCell>
+                          <TableCell sx={{ fontSize: '0.75rem', color: '#64748b' }}>{cat.slug}</TableCell>
+                          <TableCell sx={{ fontSize: '0.75rem' }}>{cat.icon_name}</TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Box sx={{ width: 16, height: 16, borderRadius: '50%', bgcolor: cat.color || '#0d9488', border: '1px solid #e2e8f0' }} />
+                              <Typography variant="caption">{cat.color}</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>{cat.sort_order}</TableCell>
+                          <TableCell>
+                            <Chip label={cat.is_active ? 'Active' : 'Hidden'} size="small"
+                              sx={{ bgcolor: cat.is_active ? '#ecfdf5' : '#fef2f2', color: cat.is_active ? '#059669' : '#dc2626', fontWeight: 700, fontSize: '0.65rem' }} />
+                          </TableCell>
+                          <TableCell align="right">
+                            <IconButton size="small" onClick={() => handleOpenOnlineCatModal(cat)} color="primary">
+                              <EditIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                            <IconButton size="small" onClick={() => handleDeleteOnlineCategory(cat.id)} color="error">
+                              <DeleteIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          )}
+
+          {/* Online Category Modal */}
+          <Dialog open={onlineCatModalOpen} onClose={() => setOnlineCatModalOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+            <DialogTitle sx={{ fontWeight: 'bold' }}>{editingOnlineCat ? 'Edit Online Category' : 'Add Online Category'}</DialogTitle>
+            <Divider />
+            <DialogContent sx={{ pt: 2 }}>
+              <Stack gap={2}>
+                <TextField label="Category Name" value={onlineCatForm.name} size="small" fullWidth
+                  onChange={e => setOnlineCatForm(f => ({ ...f, name: e.target.value }))} />
+                <TextField label="Icon Name (MUI icon slug)" value={onlineCatForm.iconName} size="small" fullWidth
+                  helperText="e.g. category, storefront, local_offer"
+                  onChange={e => setOnlineCatForm(f => ({ ...f, iconName: e.target.value }))} />
+                <TextField label="Color (hex)" value={onlineCatForm.color} size="small" fullWidth
+                  InputProps={{ startAdornment: <Box sx={{ width: 16, height: 16, borderRadius: '50%', bgcolor: onlineCatForm.color, border: '1px solid #e2e8f0', mr: 1 }} /> }}
+                  onChange={e => setOnlineCatForm(f => ({ ...f, color: e.target.value }))} />
+                <TextField label="Sort Order" value={onlineCatForm.sortOrder} size="small" type="number" fullWidth
+                  onChange={e => setOnlineCatForm(f => ({ ...f, sortOrder: e.target.value }))} />
+              </Stack>
+            </DialogContent>
+            <Divider />
+            <DialogActions sx={{ px: 3, py: 2 }}>
+              <Button onClick={() => setOnlineCatModalOpen(false)} sx={{ color: '#94a3b8' }}>Cancel</Button>
+              <Button variant="contained" onClick={handleSaveOnlineCategory}
+                sx={{ background: T.success, '&:hover': { background: '#059669' }, borderRadius: 2 }}>
+                {editingOnlineCat ? 'Save Changes' : 'Create'}
+              </Button>
+            </DialogActions>
+          </Dialog>
 
           {/* VIEW 4: Sub-Admin Setup */}
           {activeTab === 4 && role === 'SUPER_ADMIN' && (

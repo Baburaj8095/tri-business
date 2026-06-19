@@ -12,6 +12,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ShopProductResponse {
     private Long id;
+
+    @JsonProperty("shop_id")
+    private Long shopId;
+
+    @JsonProperty("shop_name")
+    private String shopName;
+
+    private String category;
+
     private String title;
     private String description;
     private Double mrp;

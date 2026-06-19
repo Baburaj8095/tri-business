@@ -83,6 +83,7 @@ public class AuthService {
             .role(role)
             .category(category)
             .pincode((String) user.get("pincode"))
+            .serviceMode((String) user.getOrDefault("service_mode", "OFFLINE"))
             .build();
     }
 

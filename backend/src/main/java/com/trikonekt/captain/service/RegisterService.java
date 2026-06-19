@@ -132,12 +132,20 @@ public class RegisterService {
         regionRepository.insertWallet(userId);
 
         // Insert profile in market_merchantprofile
+        // Resolve serviceMode: default to OFFLINE for Nearby Store, ONLINE for Online Business
+        String resolvedServiceMode = (req.getServiceMode() != null && !req.getServiceMode().isBlank())
+            ? req.getServiceMode().toUpperCase()
+            : ("merchant".equalsIgnoreCase(category) ? "OFFLINE" : "OFFLINE");
+        if (!resolvedServiceMode.equals("ONLINE") && !resolvedServiceMode.equals("OFFLINE") && !resolvedServiceMode.equals("BOTH")) {
+            resolvedServiceMode = "OFFLINE";
+        }
         userRepository.insertMerchantProfile(
             userId,
             req.getBusinessName(),
             req.getPhone(),
             req.getAddress(),
-            category
+            category,
+            resolvedServiceMode
         );
 
         // Insert baseline shop in market_shop
@@ -169,6 +177,7 @@ public class RegisterService {
             .pincode(req.getPincode())
             .district(req.getCity())
             .state("")
+            .serviceMode(resolvedServiceMode)
             .build();
     }
 }

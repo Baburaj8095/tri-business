@@ -22,9 +22,12 @@ public class UserRepository {
 
     public Optional<Map<String, Object>> findByUsername(String username) {
         List<Map<String, Object>> rows = jdbc.queryForList(
-            "SELECT id, username, password, email, full_name, phone, pincode, " +
-            "sponsor_id, prefixed_id, prefix_code, role, category, is_active " +
-            "FROM accounts_customuser WHERE username = ? LIMIT 1",
+            "SELECT u.id, u.username, u.password, u.email, u.full_name, u.phone, u.pincode, " +
+            "u.sponsor_id, u.prefixed_id, u.prefix_code, u.role, u.category, u.is_active, " +
+            "COALESCE(mp.service_mode, 'OFFLINE') AS service_mode " +
+            "FROM accounts_customuser u " +
+            "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
+            "WHERE u.username = ? LIMIT 1",
             username
         );
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
@@ -32,9 +35,12 @@ public class UserRepository {
 
     public Optional<Map<String, Object>> findByPhone(String phone) {
         List<Map<String, Object>> rows = jdbc.queryForList(
-            "SELECT id, username, password, email, full_name, phone, pincode, " +
-            "sponsor_id, prefixed_id, prefix_code, role, category, is_active " +
-            "FROM accounts_customuser WHERE phone = ? LIMIT 1",
+            "SELECT u.id, u.username, u.password, u.email, u.full_name, u.phone, u.pincode, " +
+            "u.sponsor_id, u.prefixed_id, u.prefix_code, u.role, u.category, u.is_active, " +
+            "COALESCE(mp.service_mode, 'OFFLINE') AS service_mode " +
+            "FROM accounts_customuser u " +
+            "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
+            "WHERE u.phone = ? LIMIT 1",
             phone
         );
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
@@ -207,13 +213,16 @@ public class UserRepository {
     /**
      * Inserts a merchant profile in market_merchantprofile.
      */
-    public void insertMerchantProfile(long userId, String businessName, String mobile, String address, String businessCategory) {
+    public void insertMerchantProfile(long userId, String businessName, String mobile, String address, String businessCategory, String serviceMode) {
         jdbc.update(
             "INSERT INTO market_merchantprofile " +
             "(user_id, business_name, mobile_number, commission_percent, service_mode, address, business_category, is_verified, created_at) " +
-            "VALUES (?, ?, ?, 0.00, 'BOTH', ?, ?, true, NOW()) " +
+            "VALUES (?, ?, ?, 0.00, ?, ?, ?, true, NOW()) " +
             "ON CONFLICT (user_id) DO NOTHING",
-            userId, businessName, mobile, address != null ? address : "", businessCategory != null ? businessCategory : ""
+            userId, businessName, mobile,
+            serviceMode != null ? serviceMode.toUpperCase() : "OFFLINE",
+            address != null ? address : "",
+            businessCategory != null ? businessCategory : ""
         );
     }
 

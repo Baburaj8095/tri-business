@@ -1580,6 +1580,9 @@ function BusinessDashboard() {
   });
   const joinPrimePath = "/demo/join-prime";
   const CAPTAIN_API_URL = process.env.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
+  // Read service mode from localStorage (set on login/registration)
+  const serviceMode = localStorage.getItem('service_mode_business') || 'OFFLINE';
+  const isOnlineMerchant = serviceMode === 'ONLINE' || serviceMode === 'BOTH';
 
   const [sponsoredShops, setSponsoredShops] = useState(ONLINE_B2B_ADS);
   const [featuredProducts, setFeaturedProducts] = useState(PRODUCTS);
@@ -1721,7 +1724,11 @@ function BusinessDashboard() {
       setActiveModal("logout");
       return;
     }
-    if (["inventoryManagement", "ads", "reports", "help"].includes(action)) {
+    if (action === "ads") {
+      navigate("/business/ads");
+      return;
+    }
+    if (["inventoryManagement", "reports", "help"].includes(action)) {
       setToastMsg("This feature is coming soon!");
       return;
     }
@@ -1938,6 +1945,33 @@ function BusinessDashboard() {
               <Typography sx={{ fontWeight: 800, fontSize: 12.2, lineHeight: 1.2, textAlign: "center" }}>Tri Inventory & Billing</Typography>
             </Button>
           </Stack>
+
+          {/* Online Products Management — only for ONLINE/BOTH merchants */}
+          {isOnlineMerchant && (
+            <Box sx={{ mb: 1 }}>
+              <SectionShell
+                title="Online Products"
+                subtitle="Manage products listed in the online marketplace"
+              >
+                <Button
+                  fullWidth
+                  variant="contained"
+                  onClick={() => navigate('/business/online-products')}
+                  sx={{
+                    bgcolor: '#3b82f6',
+                    fontWeight: 800,
+                    textTransform: 'none',
+                    borderRadius: '12px',
+                    py: 1.4,
+                    fontSize: '0.95rem',
+                    '&:hover': { bgcolor: '#2563eb' },
+                  }}
+                >
+                  📦 Manage Online Products
+                </Button>
+              </SectionShell>
+            </Box>
+          )}
 
           <Box id="product-section">
             <SectionShell

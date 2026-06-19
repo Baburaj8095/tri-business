@@ -26,4 +26,10 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/009-marketplace-ads.yaml
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/010-ads-merchant-ownership.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/011-online-product-categories.yaml
+      relativeToChangelogFile: false
 

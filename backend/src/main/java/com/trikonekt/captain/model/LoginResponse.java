@@ -16,4 +16,6 @@ public class LoginResponse {
     private String pincode;
     private String district;
     private String state;
+    /** ONLINE | OFFLINE | BOTH — from market_merchantprofile.service_mode */
+    private String serviceMode;
 }

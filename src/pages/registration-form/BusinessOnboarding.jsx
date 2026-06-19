@@ -334,6 +334,11 @@ const BusinessOnboarding = () => {
     setLoading(true);
 
     const isB2B = form.subCategories.includes('Merchant (B2B)');
+    // Map businessCategory to serviceMode
+    let serviceMode = 'OFFLINE';
+    if (form.businessCategory === 'Online Business') serviceMode = 'ONLINE';
+    else if (form.businessCategory === 'Nearby Store (Offline)') serviceMode = 'OFFLINE';
+    else if (form.businessCategory === 'TriZone Services') serviceMode = 'OFFLINE';
     const payload = {
       sponsorId: form.sponsorId,
       fullName: form.fullName,
@@ -347,6 +352,7 @@ const BusinessOnboarding = () => {
       latitude: parseFloat(form.latitude) || 0.0,
       longitude: parseFloat(form.longitude) || 0.0,
       category: isB2B ? 'merchant' : 'business',
+      serviceMode,
       discountPercent: 0.0,
       categoryId: null,
       subcategoryId: null
@@ -365,6 +371,7 @@ const BusinessOnboarding = () => {
         localStorage.setItem('token_business', data.access);
         localStorage.setItem('refresh_business', data.refresh);
         localStorage.setItem('username_business', data.username);
+        localStorage.setItem('service_mode_business', data.serviceMode || serviceMode || 'OFFLINE');
         
         setLoading(false);
         setSubmitted(true);
@@ -380,6 +387,7 @@ const BusinessOnboarding = () => {
       localStorage.setItem('token_business', 'dummy_access_token');
       localStorage.setItem('refresh_business', 'dummy_refresh_token');
       localStorage.setItem('username_business', form.mobile);
+      localStorage.setItem('service_mode_business', serviceMode || 'OFFLINE');
       setLoading(false);
       setSubmitted(true);
       localStorage.removeItem('trikonext_onboarding');

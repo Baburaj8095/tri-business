@@ -42,6 +42,15 @@ public class MerchantRegisterRequest {
     @NotBlank(message = "Category (B2B/B2C) is required")
     private String category; // 'merchant' (B2B) or 'business' (B2C)
 
+    /**
+     * Business mode from onboarding step 2:
+     * 'ONLINE'  → Online Business only
+     * 'OFFLINE' → Nearby Store (Offline) only
+     * 'BOTH'    → Online + Physical
+     * Defaults to 'OFFLINE' if not provided.
+     */
+    private String serviceMode;
+
     private Double discountPercent;
     private Integer categoryId;
     private Integer subcategoryId;
