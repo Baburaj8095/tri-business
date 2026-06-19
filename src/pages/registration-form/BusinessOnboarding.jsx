@@ -652,8 +652,8 @@ const BusinessOnboarding = () => {
                           <Stack spacing={2} sx={{ flexGrow: 1, justifyContent: 'center' }}>
                           {[
                             { value: 'Nearby Store (Offline)', icon: <Storefront />, desc: 'Operate a physical store or local shop', colorTheme: { main: '#0D9488', bg: '#E6F4F1' }, disabled: false },
-                            { value: 'Online Business', icon: <Language />, desc: 'E-commerce or digital services (Coming Soon)', colorTheme: { main: '#64748b', bg: '#f1f5f9' }, disabled: true },
-                            { value: 'TriZone Services', icon: <Hub />, desc: 'On-demand marketplace services (Coming Soon)', colorTheme: { main: '#64748b', bg: '#f1f5f9' }, disabled: true },
+                            { value: 'Online Business', icon: <Language />, desc: 'E-commerce, digital products, and online deliveries', colorTheme: { main: '#3b82f6', bg: '#eff6ff' }, disabled: false },
+                            { value: 'TriZone Services', icon: <Hub />, desc: 'On-demand local marketplace operations and fulfillment', colorTheme: { main: '#8b5cf6', bg: '#f5f3ff' }, disabled: false },
                           ].map((item, i) => (
                             <Box key={item.value} sx={{ display: 'flex', flex: 1 }}>
                               <SelectionCard

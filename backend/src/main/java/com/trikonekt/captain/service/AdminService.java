@@ -125,6 +125,18 @@ public class AdminService {
         }
     }
 
+    /**
+     * LLD Section 6C: Verify and activate a merchant's account + shop profile.
+     * POST /admin/onboard/merchant/{id}/verify
+     */
+    public void verifyMerchant(String token, long merchantId, String notes) {
+        verifyAdminToken(token, "captains");
+        // Activate the user account
+        adminRepository.updateUserAccountStatus(merchantId, true);
+        // Activate and unlock their shop for online + offline delivery
+        adminRepository.activateMerchantShop(merchantId);
+    }
+
     // Sub-Admin CRUD
     public List<Map<String, Object>> getSubAdmins(String token) {
         verifyAdminToken(token, "sub_admins");

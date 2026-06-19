@@ -54,8 +54,9 @@ public class UserRepository {
 
     public List<Map<String, Object>> findPublicB2cMerchants() {
         return jdbc.queryForList(
-            "SELECT s.id, u.id as user_id, u.full_name, u.phone, u.pincode, " +
-            "       s.shop_name, s.address, s.city, s.contact_number, " +
+            "SELECT s.id, u.id as user_id, u.full_name, u.phone, u.pincode as user_pincode, " +
+            "       s.shop_name, s.address, s.city, s.pincode as shop_pincode, s.contact_number, " +
+            "       s.service_mode, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.shop_image, " +
             "       CASE WHEN UPPER(COALESCE(s.status, '')) = 'ACTIVE' THEN true ELSE false END as is_active " +
             "FROM accounts_customuser u " +
             "JOIN market_shop s ON u.id = s.merchant_id " +

@@ -30,6 +30,12 @@ public class ShopProductResponse {
     private Integer stockQty;
 
     private String image;
+
+    @JsonProperty("image_url")
+    public String getImageUrl() {
+        return image;
+    }
+
     private Boolean is_active;
 
     @JsonProperty("created_at")

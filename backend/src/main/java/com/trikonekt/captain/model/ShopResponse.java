@@ -32,6 +32,18 @@ public class ShopResponse {
     private String business_logo;
     private Boolean is_active;
 
+    @JsonProperty("service_mode")
+    private String serviceMode;
+
+    @JsonProperty("delivery_radius_km")
+    private Double deliveryRadiusKm;
+
+    @JsonProperty("min_order_value")
+    private Double minOrderValue;
+
+    @JsonProperty("base_delivery_fee")
+    private Double baseDeliveryFee;
+
     @JsonProperty("created_at")
     private String createdAt;
 

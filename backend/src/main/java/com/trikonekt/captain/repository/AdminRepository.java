@@ -56,6 +56,15 @@ public class AdminRepository {
         );
     }
 
+    public void activateMerchantShop(long merchantUserId) {
+        // Set shop to active and ensure service_mode is BOTH
+        jdbc.update(
+            "UPDATE market_shop SET is_active = TRUE, service_mode = 'BOTH', updated_at = NOW() " +
+            "WHERE merchant_id = ?",
+            merchantUserId
+        );
+    }
+
     public void deleteSubAdmin(long id) {
         jdbc.update("DELETE FROM business_admins WHERE id = ? AND role = 'SUB_ADMIN'", id);
     }

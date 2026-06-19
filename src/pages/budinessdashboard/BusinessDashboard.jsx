@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { alpha, createTheme, ThemeProvider } from "@mui/material/styles";
 import {
@@ -1579,6 +1579,50 @@ function BusinessDashboard() {
     service_mode: 'BOTH'
   });
   const joinPrimePath = "/demo/join-prime";
+  const CAPTAIN_API_URL = process.env.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
+
+  const [sponsoredShops, setSponsoredShops] = useState(ONLINE_B2B_ADS);
+  const [featuredProducts, setFeaturedProducts] = useState(PRODUCTS);
+  const [bannerAds, setBannerAds] = useState(ADS);
+
+  useEffect(() => {
+    // Fetch all marketplace ads in a single call
+    fetch(`${CAPTAIN_API_URL}/api/ads/all?bannerLimit=6&shopLimit=8&productLimit=8`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (!data) return;
+        if (Array.isArray(data.sponsored_shops) && data.sponsored_shops.length > 0) {
+          setSponsoredShops(data.sponsored_shops.map(ad => ({
+            id: ad.id,
+            title: ad.title || ad.shop_name || 'Sponsored Shop',
+            offer: ad.description || '',
+            image: ad.image_url || ad.shop_image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=700&q=80',
+            shopId: ad.shop_id,
+            sponsored: true,
+          })));
+        }
+        if (Array.isArray(data.featured_products) && data.featured_products.length > 0) {
+          setFeaturedProducts(data.featured_products.map(ad => ({
+            id: ad.id,
+            name: ad.product_title || ad.title || 'Featured Product',
+            mrp: ad.product_mrp ? `Rs. ${Math.round(ad.product_mrp).toLocaleString()}` : '',
+            price: ad.product_price ? `Rs. ${Math.round(ad.product_price).toLocaleString()}` : '',
+            discount: ad.product_discount_percent ? `${Math.round(ad.product_discount_percent)}% OFF` : '',
+            image: ad.image_url || null,
+            productId: ad.product_id,
+          })));
+        }
+        if (Array.isArray(data.banners) && data.banners.length > 0) {
+          setBannerAds(data.banners.map(ad => ({
+            id: ad.id,
+            title: ad.title,
+            caption: ad.description || '',
+            image: ad.image_url || null,
+          })));
+        }
+      })
+      .catch(() => { /* keep static fallbacks on error */ });
+  }, [CAPTAIN_API_URL]);
 
   React.useEffect(() => {
     getPublicB2bMerchants()
@@ -1613,8 +1657,8 @@ function BusinessDashboard() {
   };
 
   const handleFooterNavigate = (action) => {
-    if (action === "tri-zone-footer" || action === "product-section") {
-      setToastMsg("This feature is coming soon!");
+    if (action === "tri-zone-footer") {
+      setToastMsg("TriZone features are coming soon!");
       return;
     }
     if (action === "city-search-section") {
@@ -1813,13 +1857,16 @@ function BusinessDashboard() {
           </Box>
 
           <Box id="online-b2b-ads-section" sx={{ mt: -0.25 }}>
-            <ComingSoonOverlay label="Online Coming Soon">
+            <SectionShell
+              title="Online B2B Ads"
+              subtitle="Sponsored wholesale and trade offers"
+            >
               <ScrollRow gap={1} pb={0.15}>
-                {ONLINE_B2B_ADS.map((item) => (
+                {sponsoredShops.map((item) => (
                   <OnlineB2BAdCard key={item.id} item={item} />
                 ))}
               </ScrollRow>
-            </ComingSoonOverlay>
+            </SectionShell>
           </Box>
 
           <Box id="business-shops">
@@ -1843,7 +1890,7 @@ function BusinessDashboard() {
 
           <Box id="ads-section">
             <ScrollRow gap={1}>
-              {ADS.map((item) => (
+              {bannerAds.map((item) => (
                 <AdBannerCard key={item.id} item={item} />
               ))}
             </ScrollRow>
@@ -1893,26 +1940,24 @@ function BusinessDashboard() {
           </Stack>
 
           <Box id="product-section">
-            <ComingSoonOverlay label="Online Products Coming Soon">
-              <SectionShell
-                title="Deals for You"
-                subtitle="Discounted products picked for your account"
+            <SectionShell
+              title="Deals for You"
+              subtitle="Discounted products picked for your area"
+            >
+              <StickyDeliveryButton onClick={() => navigate("/business/tri-sarathi-delivery")} />
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                  gap: 0.9,
+                  width: "100%",
+                }}
               >
-                <StickyDeliveryButton onClick={() => navigate("/business/tri-sarathi-delivery")} />
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                    gap: 0.9,
-                    width: "100%",
-                  }}
-                >
-                  {PRODUCTS.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                  ))}
-                </Box>
-              </SectionShell>
-            </ComingSoonOverlay>
+                {featuredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </Box>
+            </SectionShell>
           </Box>
 
         </Stack>

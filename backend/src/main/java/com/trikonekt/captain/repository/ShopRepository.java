@@ -26,7 +26,7 @@ public class ShopRepository {
         return jdbc.query(
             "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
             "contact_number, shop_image, category_id, subcategory_id, " +
-            "status, created_at " +
+            "status, created_at, service_mode, delivery_radius_km, min_order_value, base_delivery_fee " +
             "FROM market_shop WHERE merchant_id = ? ORDER BY created_at DESC",
             new Object[]{merchantId},
             (rs, rowNum) -> ShopResponse.builder()
@@ -50,6 +50,10 @@ public class ShopRepository {
                 .business_reg_number(null)
                 .business_logo(null)
                 .is_active("ACTIVE".equals(rs.getString("status")))
+                .serviceMode(rs.getString("service_mode"))
+                .deliveryRadiusKm(rs.getDouble("delivery_radius_km"))
+                .minOrderValue(rs.getDouble("min_order_value"))
+                .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
                 .createdAt(rs.getString("created_at"))
                 .updatedAt(rs.getString("created_at"))
                 .build()
@@ -63,7 +67,7 @@ public class ShopRepository {
         List<ShopResponse> result = jdbc.query(
             "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
             "contact_number, shop_image, category_id, subcategory_id, " +
-            "status, created_at " +
+            "status, created_at, service_mode, delivery_radius_km, min_order_value, base_delivery_fee " +
             "FROM market_shop WHERE id = ? AND status = 'ACTIVE'",
             new Object[]{shopId},
             (rs, rowNum) -> ShopResponse.builder()
@@ -87,6 +91,10 @@ public class ShopRepository {
                 .business_reg_number(null)
                 .business_logo(null)
                 .is_active("ACTIVE".equals(rs.getString("status")))
+                .serviceMode(rs.getString("service_mode"))
+                .deliveryRadiusKm(rs.getDouble("delivery_radius_km"))
+                .minOrderValue(rs.getDouble("min_order_value"))
+                .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
                 .createdAt(rs.getString("created_at"))
                 .updatedAt(rs.getString("created_at"))
                 .build()
@@ -101,7 +109,7 @@ public class ShopRepository {
         return jdbc.query(
             "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
             "contact_number, shop_image, category_id, subcategory_id, " +
-            "status, created_at " +
+            "status, created_at, service_mode, delivery_radius_km, min_order_value, base_delivery_fee " +
             "FROM market_shop WHERE status = 'ACTIVE' ORDER BY created_at DESC",
             (rs, rowNum) -> ShopResponse.builder()
                 .id(rs.getLong("id"))
@@ -124,6 +132,10 @@ public class ShopRepository {
                 .business_reg_number(null)
                 .business_logo(null)
                 .is_active("ACTIVE".equals(rs.getString("status")))
+                .serviceMode(rs.getString("service_mode"))
+                .deliveryRadiusKm(rs.getDouble("delivery_radius_km"))
+                .minOrderValue(rs.getDouble("min_order_value"))
+                .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
                 .createdAt(rs.getString("created_at"))
                 .updatedAt(rs.getString("created_at"))
                 .build()
@@ -235,7 +247,7 @@ public class ShopRepository {
         List<ShopResponse> result = jdbc.query(
             "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
             "contact_number, shop_image, category_id, subcategory_id, " +
-            "status, created_at " +
+            "status, created_at, service_mode, delivery_radius_km, min_order_value, base_delivery_fee " +
             "FROM market_shop WHERE id = ? AND merchant_id = ?",
             new Object[]{shopId, merchantId},
             (rs, rowNum) -> ShopResponse.builder()
@@ -259,6 +271,10 @@ public class ShopRepository {
                 .business_reg_number(null)
                 .business_logo(null)
                 .is_active("ACTIVE".equals(rs.getString("status")))
+                .serviceMode(rs.getString("service_mode"))
+                .deliveryRadiusKm(rs.getDouble("delivery_radius_km"))
+                .minOrderValue(rs.getDouble("min_order_value"))
+                .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
                 .createdAt(rs.getString("created_at"))
                 .updatedAt(rs.getString("created_at"))
                 .build()

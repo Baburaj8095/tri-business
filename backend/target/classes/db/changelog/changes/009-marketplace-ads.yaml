@@ -1,0 +1,94 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-marketplace-ads
+      author: trikonekt
+      validCheckSum: ANY
+      changes:
+
+        # ─── marketplace_ads: unified ad placements table ────────────────────────
+        - createTable:
+            tableName: marketplace_ads
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: ad_type
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+                    # Values: BANNER, SPONSORED_SHOP, FEATURED_PRODUCT
+              - column:
+                  name: shop_id
+                  type: BIGINT
+              - column:
+                  name: product_id
+                  type: BIGINT
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(500)
+              - column:
+                  name: image_url
+                  type: VARCHAR(500)
+              - column:
+                  name: target_url
+                  type: VARCHAR(500)
+              - column:
+                  name: priority
+                  type: INTEGER
+                  defaultValue: 10
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: valid_from
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: valid_to
+                  type: TIMESTAMP
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        # ─── Indexes ─────────────────────────────────────────────────────────────
+        - createIndex:
+            tableName: marketplace_ads
+            indexName: idx_ads_type_active
+            columns:
+              - column:
+                  name: ad_type
+              - column:
+                  name: is_active
+              - column:
+                  name: priority
+
+        - createIndex:
+            tableName: marketplace_ads
+            indexName: idx_ads_shop
+            columns:
+              - column:
+                  name: shop_id
+
+        - createIndex:
+            tableName: marketplace_ads
+            indexName: idx_ads_product
+            columns:
+              - column:
+                  name: product_id

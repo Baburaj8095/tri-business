@@ -1,0 +1,117 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-schema-gaps
+      author: trikonekt
+      validCheckSum: ANY
+      changes:
+
+        # ─── online_orders: missing LLD columns ─────────────────────────────────
+        - addColumn:
+            tableName: online_orders
+            columns:
+              - column:
+                  name: order_number
+                  type: VARCHAR(64)
+              - column:
+                  name: payment_ref_id
+                  type: VARCHAR(128)
+              - column:
+                  name: total_mrp
+                  type: numeric(12, 2)
+                  defaultValue: 0.00
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_discount
+                  type: numeric(12, 2)
+                  defaultValue: 0.00
+                  constraints:
+                    nullable: false
+              - column:
+                  name: grand_total
+                  type: numeric(12, 2)
+                  defaultValue: 0.00
+                  constraints:
+                    nullable: false
+              - column:
+                  name: cancellation_reason
+                  type: VARCHAR(255)
+
+        # ─── online_order_items: add mrp_at_purchase snapshot ───────────────────
+        - addColumn:
+            tableName: online_order_items
+            columns:
+              - column:
+                  name: mrp_at_purchase
+                  type: numeric(12, 2)
+                  defaultValue: 0.00
+                  constraints:
+                    nullable: false
+
+        # ─── inventory_leases: add session_token for token-based lookup ─────────
+        - addColumn:
+            tableName: inventory_leases
+            columns:
+              - column:
+                  name: session_token
+                  type: VARCHAR(128)
+
+        # ─── online_order_status_history: new table ──────────────────────────────
+        - createTable:
+            tableName: online_order_status_history
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: order_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notes
+                  type: TEXT
+              - column:
+                  name: changed_by
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: changed_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        # ─── Indexes ─────────────────────────────────────────────────────────────
+        - createIndex:
+            tableName: online_orders
+            indexName: idx_online_orders_order_number
+            unique: true
+            columns:
+              - column:
+                  name: order_number
+
+        - createIndex:
+            tableName: online_order_status_history
+            indexName: idx_order_history_order
+            columns:
+              - column:
+                  name: order_id
+              - column:
+                  name: changed_at
+
+        - createIndex:
+            tableName: inventory_leases
+            indexName: idx_lease_session_token
+            columns:
+              - column:
+                  name: session_token

@@ -127,6 +127,21 @@ public class BusinessAdminController {
         return ResponseEntity.ok(Map.of("message", "Captain KYC status updated successfully."));
     }
 
+    /**
+     * POST /admin/onboard/merchant/{id}/verify
+     * Approves a merchant and activates their shop profile.
+     * LLD Section 6C: Admin Endpoints.
+     */
+    @PostMapping("/onboard/merchant/{id}/verify")
+    public ResponseEntity<Map<String, String>> verifyMerchant(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable long id,
+            @RequestBody(required = false) Map<String, String> body) {
+        String notes = body != null ? body.getOrDefault("notes", "") : "";
+        adminService.verifyMerchant(authHeader, id, notes);
+        return ResponseEntity.ok(Map.of("message", "Merchant verified and shop activated successfully."));
+    }
+
     // Sub-Admin Management
     /**
      * GET /api/admin/sub-admins

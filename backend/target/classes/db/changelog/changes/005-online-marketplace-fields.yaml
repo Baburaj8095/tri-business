@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-online-marketplace-fields
+      author: trikonekt
+      validCheckSum: ANY
+      changes:
+        - addColumn:
+            tableName: market_shop
+            columns:
+              - column:
+                  name: service_mode
+                  type: VARCHAR(16)
+                  defaultValue: BOTH
+                  constraints:
+                    nullable: false
+              - column:
+                  name: delivery_radius_km
+                  type: numeric(4, 2)
+                  defaultValue: 5.00
+                  constraints:
+                    nullable: false
+              - column:
+                  name: min_order_value
+                  type: numeric(10, 2)
+                  defaultValue: 0.00
+                  constraints:
+                    nullable: false
+              - column:
+                  name: base_delivery_fee
+                  type: numeric(8, 2)
+                  defaultValue: 0.00
+                  constraints:
+                    nullable: false
+        - addColumn:
+            tableName: market_shopproduct
+            columns:
+              - column:
+                  name: available_for_online
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: available_for_offline
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sku
+                  type: VARCHAR(64)
+                  constraints:
+                    unique: true
+                    nullable: true
