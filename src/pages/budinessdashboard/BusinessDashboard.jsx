@@ -75,6 +75,14 @@ import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalance
 import ArrowForwardIosRoundedIcon from '@mui/icons-material/ArrowForwardIosRounded';
 import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
+import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
+import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
+import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import SearchBar from "../../components/business/SearchBar";
 import { getPublicB2bMerchants, getMerchantProfile, updateMerchantProfile } from "../../api/api";
 import "../consumer-ecommerce/consumerEcommerce.css";
@@ -1040,6 +1048,40 @@ function AppDrawer({ open, onClose, onAction, profile }) {
     ? displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : 'BU';
 
+  const orderCount = 28;
+  const shopsCount = 1;
+  const adsCount = 3;
+
+  const menuGroups = [
+    {
+      title: "Account",
+      items: [
+        { label: "Orders", action: "orders", icon: LuFileText },
+        { label: "Completed Orders", action: "completedOrders", icon: LuFileText },
+        { label: "Wallet", action: "wallet", icon: AccountBalanceWalletOutlinedIcon },
+        { label: "Profile & Security", action: "profile", icon: HiOutlineUser },
+      ]
+    },
+    {
+      title: "Business",
+      items: [
+        { label: "My Shops", action: "addShop", icon: LuStore },
+        { label: "Inventory Management", action: "inventoryManagement", icon: LuFileText },
+        { label: "Ads Manager", action: "ads", icon: CampaignOutlinedIcon },
+        { label: "Reports & Analytics", action: "reports", icon: AssignmentOutlinedIcon },
+      ]
+    },
+    {
+      title: "Support",
+      items: [
+        { label: "Help Center", action: "help", icon: LuCircleHelp },
+        { label: "Terms & Conditions", action: "terms", icon: LuBookOpen },
+        { label: "Refund Policy", action: "refund", icon: LuInfo },
+        { label: "Refer & Earn", action: "refer", icon: LuGift },
+      ]
+    }
+  ];
+
   return (
     <Drawer
       anchor="left"
@@ -1047,164 +1089,358 @@ function AppDrawer({ open, onClose, onAction, profile }) {
       onClose={onClose}
       PaperProps={{
         sx: {
-          width: "78vw",
-          maxWidth: 300,
+          width: "85vw",
+          maxWidth: 320,
           bgcolor: UI.surface,
-          borderTopRightRadius: 16,
-          borderBottomRightRadius: 16,
+          borderTopRightRadius: 20,
+          borderBottomRightRadius: 20,
           overflowX: "hidden",
         },
       }}
     >
-      <Box sx={{ height: "100%", display: "flex", flexDirection: "column", px: 2, py: 2 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography sx={{ fontSize: 15, fontWeight: 900, color: UI.text }}>
-            Menu
+      <Box sx={{ height: "100%", display: "flex", flexDirection: "column", bgcolor: "#ffffff" }}>
+        
+        {/* Header */}
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2, pt: 1.5, pb: 1 }}>
+          <Typography sx={{ fontSize: 17, fontWeight: 800, color: UI.text }}>
+            Business Account
           </Typography>
           <IconButton onClick={onClose} sx={{ color: UI.text }}>
-            <CloseRoundedIcon />
+            <CloseRoundedIcon sx={{ fontSize: 22 }} />
           </IconButton>
         </Stack>
 
-        <Card
-          sx={{
-            borderRadius: 3,
-            bgcolor: alpha(UI.primary, 0.08),
-            border: `1px solid ${alpha(UI.primary, 0.14)}`,
-            boxShadow: "none",
-          }}
-        >
-          <CardContent sx={{ p: 1.6 }}>
-            <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 1 }}>
+        {/* Scrollable Content Container */}
+        <Box sx={{ flexGrow: 1, overflowY: "auto", pb: 3 }}>
+          
+          {/* Profile Card */}
+          <Box
+            sx={{
+              mx: 2,
+              mt: 0.5,
+              mb: 2,
+              p: 2,
+              borderRadius: 4,
+              background: "linear-gradient(135deg, #1B4D3E 0%, #228B22 100%)",
+              color: "#fff",
+              position: "relative"
+            }}
+          >
+            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ cursor: 'pointer' }} onClick={() => { onClose(); onAction("profile"); }}>
               <Avatar
                 sx={{
-                  width: 48,
-                  height: 48,
-                  bgcolor: UI.primary,
-                  color: UI.onPrimary,
+                  width: 52,
+                  height: 52,
+                  bgcolor: "rgba(255, 255, 255, 0.2)",
+                  color: "#fff",
                   fontWeight: 800,
+                  fontSize: 18,
+                  border: "2px solid rgba(255, 255, 255, 0.4)"
                 }}
               >
                 {initials}
               </Avatar>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: UI.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {displayName}
-                </Typography>
-                {username && (
-                  <Typography sx={{ fontSize: 11, color: UI.primary, fontWeight: 700 }}>
-                    @{username}
+              <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Typography sx={{ fontSize: 15, fontWeight: 950, color: "#fff", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {displayName}
                   </Typography>
-                )}
-                <Typography sx={{ fontSize: 10.5, color: UI.textMuted }}>
-                  {displayPhone || 'Business Account'}
+                  <CheckCircleRoundedIcon sx={{ fontSize: 16, color: "#4ade80" }} />
+                </Stack>
+                <Typography sx={{ fontSize: 11.5, color: "rgba(255, 255, 255, 0.85)", fontWeight: 600 }}>
+                  @{username || "business_user"}
+                </Typography>
+                <Typography sx={{ fontSize: 11, color: "rgba(255, 255, 255, 0.8)", mt: 0.25 }}>
+                  Retail Store · Gulbarga
                 </Typography>
               </Box>
+              <KeyboardArrowRightRoundedIcon sx={{ color: "rgba(255, 255, 255, 0.7)" }} />
             </Stack>
-            <Divider sx={{ my: 1, borderColor: alpha(UI.primary, 0.1) }} />
+
+            {/* Verified badge pill */}
+            <Box sx={{ mt: 1.5, display: "flex", gap: 1, alignItems: "center" }}>
+              <Box
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  bgcolor: "rgba(255, 255, 255, 0.15)",
+                  border: "1px solid rgba(255, 255, 255, 0.3)",
+                  px: 1.2,
+                  py: 0.4,
+                  borderRadius: 999,
+                }}
+              >
+                <ShieldRoundedIcon sx={{ fontSize: 12, color: "#fff" }} />
+                <Typography sx={{ fontSize: 10, fontWeight: 800, color: "#fff", letterSpacing: 0.2 }}>
+                  Verified Business
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Edit profile link */}
             <Button
               variant="text"
-              size="small"
               onClick={() => {
                 onClose();
                 onAction("profile");
               }}
               sx={{
-                textTransform: 'none',
-                color: UI.primary,
-                fontWeight: 700,
-                fontSize: 11.5,
+                mt: 1.5,
                 p: 0,
+                textTransform: "none",
+                color: "#fff",
+                fontWeight: 800,
+                fontSize: 11.5,
+                minWidth: 0,
                 minHeight: 0,
-                justifyContent: 'flex-start',
-                '&:hover': { bgcolor: 'transparent', color: UI.secondary }
+                justifyContent: "flex-start",
+                "&:hover": { bgcolor: "transparent", opacity: 0.9 }
               }}
             >
               Edit Business Profile →
             </Button>
-          </CardContent>
-        </Card>
+          </Box>
 
-        {/* Wallet Balance Card with Premium Gradient */}
-        <Card
-          sx={{
-            borderRadius: 3,
-            background: 'linear-gradient(135deg, #1B4D3E 0%, #228B22 100%)',
-            color: '#fff',
-            boxShadow: '0 8px 24px rgba(34, 139, 34, 0.18)',
-            border: 0,
-            mt: 1.5,
-            cursor: 'pointer'
-          }}
-          onClick={() => {
-            onClose();
-            onAction("wallet");
-          }}
-        >
-          <CardContent sx={{ p: 1.6, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(255,255,255,0.15)', p: 1, borderRadius: '8px' }}>
-              <AccountBalanceWalletOutlinedIcon sx={{ color: '#fff', fontSize: 20 }} />
-            </Box>
-            <Box>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255, 255, 255, 0.85)', mb: 0.1 }}>
-                Wallet Balance
-              </Typography>
-              <Typography sx={{ fontSize: '1.2rem', fontWeight: 900, lineHeight: 1.1 }}>
-                ₹ {Number(profile?.walletBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </Typography>
-            </Box>
-          </CardContent>
-        </Card>
-
-        <Stack spacing={0.6} sx={{ mt: 1.5 }}>
-          {DRAWER_ITEMS.map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <Button
-                key={item.label}
-                onClick={() => onAction(item.action)}
-                sx={{
-                  justifyContent: "space-between",
-                  textTransform: "none",
-                  color: UI.text,
-                  borderRadius: 2.2,
-                  px: 1.2,
-                  py: 1,
-                  bgcolor: alpha(UI.primary, 0.04),
-                }}
-              >
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <Icon sx={{ color: UI.primary, fontSize: 20 }} />
-                  <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: UI.text }}>
-                    {item.label}
-                  </Typography>
-                </Stack>
-                <ArrowForwardIosRoundedIcon sx={{ fontSize: 14, color: UI.textMuted }} />
-              </Button>
-            );
-          })}
-        </Stack>
-
-        <Box sx={{ mt: "auto", pt: 2 }}>
-          <Divider sx={{ mb: 1.2 }} />
-          <Button
-            fullWidth
-            variant="outlined"
-            onClick={() => onAction("logout")}
+          {/* Metrics Row (Total Orders, Wallet Balance etc.) */}
+          <Card
+            elevation={0}
             sx={{
-              borderRadius: 2.2,
-              py: 1.1,
-              textTransform: "none",
-              fontWeight: 800,
-              fontSize: 12.5,
-              borderColor: alpha(UI.text, 0.18),
-              color: UI.text,
+              mx: 2,
+              mb: 2.5,
+              border: "1px solid #e2e8f0",
+              borderRadius: 3.5,
+              bgcolor: "#fff"
             }}
           >
-            Logout
-          </Button>
+            <CardContent sx={{ p: "12px !important" }}>
+              <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0.5 }}>
+                
+                {/* Total Orders */}
+                <Box 
+                  onClick={() => { onClose(); onAction("orders"); }}
+                  sx={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", px: 0.5 }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: 28, width: 28 }}>
+                    <ShoppingBagOutlinedIcon style={{ fontSize: 18, color: UI.primary }} />
+                  </Box>
+                  <Typography sx={{ fontSize: 14, fontWeight: 900, color: UI.text, mt: 0.25 }}>
+                    {orderCount}
+                  </Typography>
+                  <Typography sx={{ fontSize: 9.5, fontWeight: 700, color: UI.textMuted, textAlign: "center", mt: 0.25, lineHeight: 1.1 }}>
+                    Total Orders
+                  </Typography>
+                </Box>
+
+                {/* Wallet Balance */}
+                <Box 
+                  onClick={() => { onClose(); onAction("wallet"); }}
+                  sx={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", px: 0.5, borderLeft: "1px solid #f1f5f9" }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: 28, width: 28 }}>
+                    <AccountBalanceWalletOutlinedIcon style={{ fontSize: 18, color: UI.primary }} />
+                  </Box>
+                  <Typography sx={{ fontSize: 14, fontWeight: 900, color: UI.text, mt: 0.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%', textAlign: 'center' }}>
+                    ₹{profile?.walletBalance !== undefined ? Math.floor(profile.walletBalance) : "0"}
+                  </Typography>
+                  <Typography sx={{ fontSize: 9.5, fontWeight: 700, color: UI.textMuted, textAlign: "center", mt: 0.25, lineHeight: 1.1 }}>
+                    Wallet Balance
+                  </Typography>
+                </Box>
+
+                {/* Total Shops */}
+                <Box 
+                  onClick={() => { onClose(); onAction("addShop"); }}
+                  sx={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", px: 0.5, borderLeft: "1px solid #f1f5f9" }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: 28, width: 28 }}>
+                    <StorefrontOutlinedIcon style={{ fontSize: 18, color: UI.primary }} />
+                  </Box>
+                  <Typography sx={{ fontSize: 14, fontWeight: 900, color: UI.text, mt: 0.25 }}>
+                    {shopsCount}
+                  </Typography>
+                  <Typography sx={{ fontSize: 9.5, fontWeight: 700, color: UI.textMuted, textAlign: "center", mt: 0.25, lineHeight: 1.1 }}>
+                    Total Shops
+                  </Typography>
+                </Box>
+
+                {/* Active Ads */}
+                <Box 
+                  onClick={() => { onClose(); onAction("ads"); }}
+                  sx={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", px: 0.5, borderLeft: "1px solid #f1f5f9" }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: 28, width: 28 }}>
+                    <CampaignOutlinedIcon style={{ fontSize: 18, color: UI.primary }} />
+                  </Box>
+                  <Typography sx={{ fontSize: 14, fontWeight: 900, color: UI.text, mt: 0.25 }}>
+                    {adsCount}
+                  </Typography>
+                  <Typography sx={{ fontSize: 9.5, fontWeight: 700, color: UI.textMuted, textAlign: "center", mt: 0.25, lineHeight: 1.1 }}>
+                    Active Ads
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions Title & Grid */}
+          <Box sx={{ px: 2, mb: 3 }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 800, color: UI.text, mb: 1.2 }}>
+              Quick Actions
+            </Typography>
+            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1 }}>
+              {[
+                { label: "Wallet", action: "wallet", icon: AccountBalanceWalletOutlinedIcon },
+                { label: "Orders", action: "orders", icon: LuFileText },
+                { label: "KYC", action: "kyc", icon: LuShieldCheck },
+                { label: "Add Shop", action: "addShop", icon: StorefrontOutlinedIcon },
+                { label: "Ads Manager", action: "ads", icon: CampaignOutlinedIcon },
+                { label: "Reports", action: "reports", icon: AssignmentOutlinedIcon },
+              ].map((btn) => {
+                const ActionIcon = btn.icon;
+                return (
+                  <Button
+                    key={btn.label}
+                    onClick={() => {
+                      onClose();
+                      onAction(btn.action);
+                    }}
+                    sx={{
+                      flexDirection: "column",
+                      textTransform: "none",
+                      bgcolor: "rgba(34, 139, 34, 0.04)",
+                      border: "1px solid rgba(34, 139, 34, 0.08)",
+                      borderRadius: 2.2,
+                      py: 1.5,
+                      px: 0.5,
+                      minWidth: 0,
+                      color: UI.text,
+                      "&:hover": { bgcolor: "rgba(34, 139, 34, 0.08)" }
+                    }}
+                  >
+                    <ActionIcon sx={{ fontSize: 20, color: UI.primary, mb: 0.5 }} />
+                    <Typography sx={{ fontSize: 10, fontWeight: 800, color: UI.text }}>
+                      {btn.label}
+                    </Typography>
+                  </Button>
+                );
+              })}
+            </Box>
+          </Box>
+
+          {/* Grouped lists */}
+          <Stack spacing={2.5} sx={{ px: 2, mb: 1 }}>
+            {menuGroups.map((group) => (
+              <Box key={group.title}>
+                <Typography sx={{ fontSize: 13, fontWeight: 800, color: UI.text, mb: 0.8 }}>
+                  {group.title}
+                </Typography>
+                <Stack spacing={0.25} sx={{ border: "1px solid #f1f5f9", borderRadius: 3, overflow: "hidden", bgcolor: "#fff" }}>
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Button
+                        key={item.label}
+                        onClick={() => onAction(item.action)}
+                        sx={{
+                          justifyContent: "space-between",
+                          textTransform: "none",
+                          color: UI.text,
+                          borderRadius: 0,
+                          px: 1.5,
+                          py: 1.1,
+                          bgcolor: "transparent",
+                          borderBottom: "1px solid #f8fafc",
+                          "&:last-child": { borderBottom: "none" },
+                          "&:hover": { bgcolor: "#f8fafc" }
+                        }}
+                      >
+                        <Stack direction="row" spacing={1.2} alignItems="center">
+                          {typeof Icon === 'function' ? (
+                            <Icon style={{ color: UI.primary, fontSize: 18 }} />
+                          ) : (
+                            <Icon sx={{ color: UI.primary, fontSize: 18 }} />
+                          )}
+                          <Typography sx={{ fontSize: 12, fontWeight: 700, color: UI.text }}>
+                            {item.label}
+                          </Typography>
+                        </Stack>
+                        <ArrowForwardIosRoundedIcon sx={{ fontSize: 12, color: "#64748b" }} />
+                      </Button>
+                    );
+                  })}
+                </Stack>
+              </Box>
+            ))}
+          </Stack>
+
+          {/* Logout Section */}
+          <Box sx={{ px: 2, mt: 2 }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={() => onAction("logout")}
+              startIcon={<LogoutRoundedIcon sx={{ fontSize: 18 }} />}
+              sx={{
+                borderRadius: 3,
+                py: 1.2,
+                textTransform: "none",
+                fontWeight: 900,
+                fontSize: 13,
+                borderColor: "#fca5a5",
+                color: "#ef4444",
+                bgcolor: "#fef2f2",
+                "&:hover": {
+                  borderColor: "#ef4444",
+                  bgcolor: "#fee2e2"
+                }
+              }}
+            >
+              Logout
+            </Button>
+          </Box>
+
         </Box>
+
+        {/* Footer Brand Logo Box */}
+        <Box sx={{ px: 2, pb: 2, pt: 1.5, borderTop: "1px solid #e2e8f0" }}>
+          <Box
+            sx={{
+              p: 1.25,
+              borderRadius: 3,
+              bgcolor: "#f8fafc",
+              border: "1px solid #f1f5f9",
+              display: "flex",
+              alignItems: "center",
+              gap: 1.3
+            }}
+          >
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: 2.2,
+                bgcolor: "rgba(34, 139, 34, 0.12)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0
+              }}
+            >
+              <ShieldRoundedIcon sx={{ fontSize: 18, color: UI.primary }} />
+            </Box>
+            <Box sx={{ flexGrow: 1 }}>
+              <Typography sx={{ fontSize: 11.5, fontWeight: 800, color: UI.text }}>
+                Trikonekt Business
+              </Typography>
+              <Typography sx={{ fontSize: 10, color: UI.textMuted }}>
+                Version 2.3.0
+              </Typography>
+            </Box>
+            <CheckCircleRoundedIcon sx={{ fontSize: 16, color: "#228B22" }} />
+          </Box>
+        </Box>
+
       </Box>
     </Drawer>
   );
@@ -1439,6 +1675,10 @@ function BusinessDashboard() {
     }
     if (action === "logout") {
       setActiveModal("logout");
+      return;
+    }
+    if (["inventoryManagement", "ads", "reports", "help"].includes(action)) {
+      setToastMsg("This feature is coming soon!");
       return;
     }
     handleScrollTo(action);
