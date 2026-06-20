@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: 012-nearby-delivery-flow-shop-fields
+      author: trikonekt
+      validCheckSum: ANY
+      changes:
+        - addColumn:
+            tableName: market_shop
+            columns:
+              - column:
+                  name: home_delivery_enabled
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 012-nearby-delivery-flow-order-channel
+      author: trikonekt
+      validCheckSum: ANY
+      changes:
+        - addColumn:
+            tableName: online_orders
+            columns:
+              - column:
+                  name: order_channel
+                  type: VARCHAR(32)
+                  defaultValue: ONLINE_DELIVERY
+                  constraints:
+                    nullable: false

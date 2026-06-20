@@ -78,12 +78,12 @@ public class OrderRepository {
                             String orderNumber,
                             Double totalMrp, Double totalDiscount,
                             Double subtotal, Double deliveryFee, Double grandTotal,
-                            String paymentMethod, String notes) {
+                            String paymentMethod, String orderChannel, String notes) {
         String sql = "INSERT INTO online_orders (" +
                      "user_id, shop_id, delivery_address_id, order_number, status, " +
                      "total_mrp, total_discount, subtotal, delivery_fee, grand_total, total, " +
-                     "payment_method, payment_status, notes, created_at, updated_at" +
-                     ") VALUES (?, ?, ?, ?, 'DRAFT', ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, NOW(), NOW())";
+                      "payment_method, order_channel, payment_status, notes, created_at, updated_at" +
+                      ") VALUES (?, ?, ?, ?, 'DRAFT', ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, NOW(), NOW())";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
@@ -99,7 +99,8 @@ public class OrderRepository {
             ps.setDouble(9, grandTotal);
             ps.setDouble(10, grandTotal); // total mirrors grand_total
             ps.setString(11, paymentMethod);
-            ps.setString(12, notes != null ? notes : "");
+            ps.setString(12, orderChannel != null ? orderChannel : "ONLINE_DELIVERY");
+            ps.setString(13, notes != null ? notes : "");
             return ps;
         }, keyHolder);
 
@@ -127,6 +128,22 @@ public class OrderRepository {
     public int updateOrderStatus(Long orderId, String status, String paymentStatus) {
         String sql = "UPDATE online_orders SET status = ?, payment_status = ?, updated_at = NOW() WHERE id = ?";
         return jdbc.update(sql, status, paymentStatus, orderId);
+    }
+
+    /**
+     * Link a Near Store delivery order to the existing offline Pay Store payment record.
+     */
+    public void linkOfflinePayment(Long orderId, Long offlinePaymentId, String paymentStatus) {
+        String sql = "UPDATE online_orders SET offline_payment_id = ?, payment_status = ?, updated_at = NOW() WHERE id = ?";
+        jdbc.update(sql, offlinePaymentId, paymentStatus, orderId);
+    }
+
+    /**
+     * Update only the payment status for an order after the linked offline payment is actioned.
+     */
+    public void updateOrderPaymentStatus(Long orderId, String paymentStatus) {
+        String sql = "UPDATE online_orders SET payment_status = ?, updated_at = NOW() WHERE id = ?";
+        jdbc.update(sql, paymentStatus, orderId);
     }
 
     /**
@@ -266,9 +283,9 @@ public class OrderRepository {
 
     // Shared SELECT clause reused across all order fetch methods
     private static final String ORDER_SELECT_SQL =
-            "SELECT o.id, o.order_number, o.user_id, o.shop_id, s.shop_name, o.delivery_address_id, o.status, " +
+            "SELECT o.id, o.order_number, o.user_id, o.shop_id, s.shop_name, o.delivery_address_id, o.order_channel, o.status, " +
             "o.total_mrp, o.total_discount, o.subtotal, o.delivery_fee, o.grand_total, o.total, " +
-            "o.payment_method, o.payment_status, o.payment_ref_id, o.cancellation_reason, o.notes, " +
+            "o.payment_method, o.payment_status, o.payment_ref_id, o.offline_payment_id, o.cancellation_reason, o.notes, " +
             "o.created_at, o.updated_at " +
             "FROM online_orders o " +
             "JOIN market_shop s ON o.shop_id = s.id";
@@ -281,6 +298,7 @@ public class OrderRepository {
                 .shopId(rs.getLong("shop_id"))
                 .shopName(rs.getString("shop_name"))
                 .deliveryAddressId(rs.getLong("delivery_address_id"))
+                .orderChannel(rs.getString("order_channel"))
                 .status(rs.getString("status"))
                 .totalMrp(rs.getDouble("total_mrp"))
                 .totalDiscount(rs.getDouble("total_discount"))
@@ -291,6 +309,7 @@ public class OrderRepository {
                 .paymentMethod(rs.getString("payment_method"))
                 .paymentStatus(rs.getString("payment_status"))
                 .paymentRefId(rs.getString("payment_ref_id"))
+                .offlinePaymentId(rs.getObject("offline_payment_id") != null ? rs.getLong("offline_payment_id") : null)
                 .cancellationReason(rs.getString("cancellation_reason"))
                 .notes(rs.getString("notes"))
                 .createdAt(rs.getString("created_at"))

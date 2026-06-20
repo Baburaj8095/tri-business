@@ -78,6 +78,8 @@ export default function BusinessDashboard() {
   const pending = shops.filter((s) => s.status === "PENDING").length;
   const walletBalance = profile?.wallet_balance || 0;
   const rating = (profile?.rating || 4.8).toFixed(1);
+  const serviceMode = profile?.service_mode || localStorage.getItem('service_mode_business') || 'OFFLINE';
+  const isOnlineMerchant = serviceMode === 'ONLINE' || serviceMode === 'BOTH';
 
   // Get initials for avatar
   const getInitials = () => {
@@ -351,6 +353,53 @@ export default function BusinessDashboard() {
           </CardContent>
         </Card>
 
+        {/* ONLINE B2B SECTION */}
+        {isOnlineMerchant && (
+          <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none', mb: 3 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: TEXT, mb: 2 }}>
+                🌐 Online B2B
+              </Typography>
+              <Typography sx={{ fontSize: '0.95rem', color: TEXT_SECONDARY, mb: 2 }}>
+                Browse products from other B2B sellers or manage only your own online listings.
+              </Typography>
+              <Stack spacing={1.25}>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() => navigate('/business/online-marketplace')}
+                  sx={{
+                    bgcolor: PRIMARY,
+                    textTransform: 'none',
+                    fontWeight: 800,
+                    borderRadius: '12px',
+                    py: 1.2,
+                    '&:hover': { bgcolor: PRIMARY_DARK }
+                  }}
+                >
+                  Browse B2B Online Marketplace
+                </Button>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => navigate('/business/online-products')}
+                  sx={{
+                    borderColor: PRIMARY,
+                    color: PRIMARY,
+                    textTransform: 'none',
+                    fontWeight: 800,
+                    borderRadius: '12px',
+                    py: 1.2,
+                    '&:hover': { bgcolor: 'rgba(34, 139, 34, 0.08)', borderColor: PRIMARY_DARK }
+                  }}
+                >
+                  Manage My Online Products
+                </Button>
+              </Stack>
+            </CardContent>
+          </Card>
+        )}
+
         {/* GO PUBLIC SECTION */}
         {active > 0 && (
           <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none', mb: 3 }}>
@@ -364,7 +413,7 @@ export default function BusinessDashboard() {
               <Button
                 variant="outlined"
                 fullWidth
-                onClick={() => navigate('/merchant-marketplace')}
+                onClick={() => navigate('/business/online-marketplace')}
                 sx={{
                   borderColor: PRIMARY,
                   color: PRIMARY,
@@ -375,7 +424,7 @@ export default function BusinessDashboard() {
                   '&:hover': { bgcolor: 'rgba(34, 139, 34, 0.08)', borderColor: PRIMARY_DARK }
                 }}
               >
-                View Marketplace
+                Browse B2B Marketplace
               </Button>
             </CardContent>
           </Card>
@@ -384,4 +433,5 @@ export default function BusinessDashboard() {
     </Box>
   );
 }
+
 

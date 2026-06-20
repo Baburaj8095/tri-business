@@ -35,6 +35,9 @@ public class ShopResponse {
     @JsonProperty("service_mode")
     private String serviceMode;
 
+    @JsonProperty("home_delivery_enabled")
+    private Boolean homeDeliveryEnabled;
+
     @JsonProperty("delivery_radius_km")
     private Double deliveryRadiusKm;
 
@@ -43,6 +46,15 @@ public class ShopResponse {
 
     @JsonProperty("base_delivery_fee")
     private Double baseDeliveryFee;
+
+    @JsonProperty("distance_km")
+    private Double distanceKm;
+
+    @JsonProperty("is_delivery_available")
+    private Boolean isDeliveryAvailable;
+
+    @JsonProperty("delivery_unavailable_reason")
+    private String deliveryUnavailableReason;
 
     @JsonProperty("created_at")
     private String createdAt;

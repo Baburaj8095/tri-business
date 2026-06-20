@@ -39,7 +39,7 @@ public class OnlineMarketplaceRepository {
         return jdbc.queryForList(
             "SELECT DISTINCT sp.category AS name, LOWER(REPLACE(sp.category,' ','-')) AS slug " +
             "FROM market_shopproduct sp " +
-            "JOIN market_shop s ON sp.shop = s.id " +
+            "JOIN market_shop s ON sp.shop_id = s.id " +
             "WHERE sp.online_delivery = TRUE " +
             "  AND sp.is_active = TRUE " +
             "  AND sp.stock_qty > 0 " +
@@ -58,14 +58,18 @@ public class OnlineMarketplaceRepository {
     public List<Map<String, Object>> findOnlineProducts(String category, String search, int limit, int offset) {
         StringBuilder sql = new StringBuilder(
             "SELECT sp.id, sp.title, sp.description, sp.mrp, sp.price, sp.discount_percent, " +
-            "sp.stock_qty, sp.category, sp.image, sp.online_delivery, sp.offline_delivery, " +
-            "s.id AS shop_id, s.shop_name, s.city AS shop_city, s.shop_image " +
+            "sp.stock_qty, sp.category, sp.image, sp.image AS image_url, sp.online_delivery, sp.offline_delivery, " +
+            "s.id AS shop_id, s.shop_name, s.city AS shop_city, s.shop_image, u.category AS merchant_category " +
             "FROM market_shopproduct sp " +
-            "JOIN market_shop s ON sp.shop = s.id " +
+            "JOIN market_shop s ON sp.shop_id = s.id " +
+            "JOIN accounts_customuser u ON s.merchant_id = u.id " +
+            "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
             "WHERE sp.online_delivery = TRUE " +
             "  AND sp.is_active = TRUE " +
             "  AND sp.stock_qty > 0 " +
-            "  AND s.is_active = TRUE "
+            "  AND s.is_active = TRUE " +
+            "  AND u.category = 'business' " +
+            "  AND COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') IN ('ONLINE', 'BOTH') "
         );
 
         List<Object> params = new ArrayList<>();
@@ -89,6 +93,59 @@ public class OnlineMarketplaceRepository {
     }
 
     /**
+     * Business B2B online marketplace.
+     * Returns active, in-stock products uploaded by ONLINE/BOTH B2B merchants only.
+     * By default callers should exclude the logged-in merchant's own products.
+     */
+    public List<Map<String, Object>> findBusinessOnlineProducts(long viewerMerchantId, boolean excludeOwn, String category, String search, int limit, int offset) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT sp.id, sp.title, sp.description, sp.mrp, sp.price, sp.discount_percent, " +
+            "sp.stock_qty, sp.category, sp.image, sp.image AS image_url, sp.online_delivery, sp.offline_delivery, " +
+            "s.id AS shop_id, s.shop_name, s.city AS shop_city, s.shop_image, s.merchant_id, " +
+            "u.full_name AS merchant_name, u.category AS merchant_category, " +
+            "COALESCE(mp.business_name, u.full_name, s.shop_name) AS business_name, " +
+            "COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') AS service_mode, " +
+            "CASE WHEN s.merchant_id = ? THEN TRUE ELSE FALSE END AS is_own_product " +
+            "FROM market_shopproduct sp " +
+            "JOIN market_shop s ON sp.shop_id = s.id " +
+            "JOIN accounts_customuser u ON s.merchant_id = u.id " +
+            "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
+            "WHERE sp.online_delivery = TRUE " +
+            "  AND sp.is_active = TRUE " +
+            "  AND sp.stock_qty > 0 " +
+            "  AND s.is_active = TRUE " +
+            "  AND u.category = 'merchant' " +
+            "  AND COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') IN ('ONLINE', 'BOTH') "
+        );
+
+        List<Object> params = new ArrayList<>();
+        params.add(viewerMerchantId);
+
+        if (excludeOwn) {
+            sql.append("AND s.merchant_id <> ? ");
+            params.add(viewerMerchantId);
+        }
+
+        if (category != null && !category.isBlank()) {
+            sql.append("AND LOWER(sp.category) = LOWER(?) ");
+            params.add(category.trim());
+        }
+        if (search != null && !search.isBlank()) {
+            sql.append("AND (LOWER(sp.title) LIKE LOWER(?) OR LOWER(sp.description) LIKE LOWER(?) OR LOWER(s.shop_name) LIKE LOWER(?)) ");
+            String like = "%" + search.trim() + "%";
+            params.add(like);
+            params.add(like);
+            params.add(like);
+        }
+
+        sql.append("ORDER BY sp.created_at DESC LIMIT ? OFFSET ?");
+        params.add(limit);
+        params.add(offset);
+
+        return jdbc.queryForList(sql.toString(), params.toArray());
+    }
+
+    /**
      * Merchant's own online products (for OnlineProductsPage.jsx).
      * Requires the merchant's user ID.
      */
@@ -98,7 +155,7 @@ public class OnlineMarketplaceRepository {
             "sp.stock_qty, sp.category, sp.image, sp.online_delivery, sp.offline_delivery, sp.is_active, " +
             "s.id AS shop_id, s.shop_name " +
             "FROM market_shopproduct sp " +
-            "JOIN market_shop s ON sp.shop = s.id " +
+            "JOIN market_shop s ON sp.shop_id = s.id " +
             "WHERE s.merchant_id = ? " +
             "  AND sp.online_delivery = TRUE " +
             "ORDER BY sp.created_at DESC " +

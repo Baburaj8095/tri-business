@@ -1441,6 +1441,10 @@ export async function createShop({
   gst_number = "",
   pan_number = "",
   business_reg_number = "",
+  home_delivery_enabled = false,
+  delivery_radius_km = 5,
+  min_order_value = 0,
+  base_delivery_fee = 0,
   business_logo = null,
   business_documents = [],
 } = {}) {
@@ -1462,6 +1466,10 @@ export async function createShop({
   if (gst_number) fd.append("gst_number", String(gst_number));
   if (pan_number) fd.append("pan_number", String(pan_number));
   if (business_reg_number) fd.append("business_reg_number", String(business_reg_number));
+  fd.append("home_delivery_enabled", String(Boolean(home_delivery_enabled)));
+  fd.append("delivery_radius_km", String(Math.min(Number(delivery_radius_km) || 5, 25)));
+  fd.append("min_order_value", String(Math.max(Number(min_order_value) || 0, 0)));
+  fd.append("base_delivery_fee", String(Math.max(Number(base_delivery_fee) || 0, 0)));
   if (business_logo) fd.append("business_logo", business_logo);
   if (Array.isArray(business_documents)) {
     business_documents.forEach((doc, idx) => {
@@ -1490,6 +1498,10 @@ export async function updateShop(id, {
   gst_number,
   pan_number,
   business_reg_number,
+  home_delivery_enabled,
+  delivery_radius_km,
+  min_order_value,
+  base_delivery_fee,
   business_logo,
   business_documents,
 } = {}) {
@@ -1511,6 +1523,10 @@ export async function updateShop(id, {
   if (gst_number !== undefined) fd.append("gst_number", String(gst_number));
   if (pan_number !== undefined) fd.append("pan_number", String(pan_number));
   if (business_reg_number !== undefined) fd.append("business_reg_number", String(business_reg_number));
+  if (home_delivery_enabled !== undefined) fd.append("home_delivery_enabled", String(Boolean(home_delivery_enabled)));
+  if (delivery_radius_km !== undefined) fd.append("delivery_radius_km", String(Math.min(Number(delivery_radius_km) || 5, 25)));
+  if (min_order_value !== undefined) fd.append("min_order_value", String(Math.max(Number(min_order_value) || 0, 0)));
+  if (base_delivery_fee !== undefined) fd.append("base_delivery_fee", String(Math.max(Number(base_delivery_fee) || 0, 0)));
   if (business_logo !== undefined && business_logo !== null) fd.append("business_logo", business_logo);
   if (Array.isArray(business_documents)) {
     business_documents.forEach((doc, idx) => {

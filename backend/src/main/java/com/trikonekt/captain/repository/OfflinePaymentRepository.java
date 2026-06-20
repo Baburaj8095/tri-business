@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
+import java.sql.Types;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
@@ -22,11 +23,15 @@ public class OfflinePaymentRepository {
     }
 
     public long createPayment(String refId, long consumerId, long shopId, BigDecimal amount, String paymentMethod, String status) {
+        return createPayment(refId, consumerId, shopId, amount, paymentMethod, status, null);
+    }
+
+    public long createPayment(String refId, long consumerId, long shopId, BigDecimal amount, String paymentMethod, String status, Long onlineOrderId) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(con -> {
             PreparedStatement ps = con.prepareStatement(
-                "INSERT INTO offline_payments (ref_id, consumer_id, shop_id, amount, payment_method, status, created_at, updated_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW()) RETURNING id",
+                "INSERT INTO offline_payments (ref_id, consumer_id, shop_id, amount, payment_method, status, online_order_id, created_at, updated_at) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW()) RETURNING id",
                 Statement.RETURN_GENERATED_KEYS
             );
             ps.setString(1, refId);
@@ -35,6 +40,11 @@ public class OfflinePaymentRepository {
             ps.setBigDecimal(4, amount);
             ps.setString(5, paymentMethod);
             ps.setString(6, status);
+            if (onlineOrderId != null) {
+                ps.setLong(7, onlineOrderId);
+            } else {
+                ps.setNull(7, Types.BIGINT);
+            }
             return ps;
         }, keyHolder);
 
@@ -65,7 +75,7 @@ public class OfflinePaymentRepository {
 
     public Optional<Map<String, Object>> getPaymentById(long id) {
         List<Map<String, Object>> rows = jdbc.queryForList(
-            "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
+            "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.online_order_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
             "       u.full_name as consumer_name, u.phone as consumer_phone, s.shop_name, s.discount_percent " +
             "FROM offline_payments p " +
             "JOIN accounts_customuser u ON p.consumer_id = u.id " +
@@ -78,7 +88,7 @@ public class OfflinePaymentRepository {
 
     public List<Map<String, Object>> getPaymentsByConsumerId(long consumerId) {
         return jdbc.queryForList(
-            "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
+            "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.online_order_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
             "       u.full_name as consumer_name, u.phone as consumer_phone, s.shop_name " +
             "FROM offline_payments p " +
             "JOIN accounts_customuser u ON p.consumer_id = u.id " +
@@ -91,7 +101,7 @@ public class OfflinePaymentRepository {
 
     public List<Map<String, Object>> getPendingPaymentsForMerchant(long merchantId) {
         return jdbc.queryForList(
-            "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
+            "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.online_order_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
             "       u.full_name as consumer_name, u.phone as consumer_phone, s.shop_name " +
             "FROM offline_payments p " +
             "JOIN accounts_customuser u ON p.consumer_id = u.id " +
@@ -104,7 +114,7 @@ public class OfflinePaymentRepository {
 
     public List<Map<String, Object>> getAllPaymentsForMerchant(long merchantId) {
         return jdbc.queryForList(
-            "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
+            "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.online_order_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
             "       u.full_name as consumer_name, u.phone as consumer_phone, s.shop_name " +
             "FROM offline_payments p " +
             "JOIN accounts_customuser u ON p.consumer_id = u.id " +
@@ -127,6 +137,20 @@ public class OfflinePaymentRepository {
             "UPDATE offline_payments SET status = ?, updated_at = NOW() WHERE id = ? AND status = 'PENDING'",
             status, id
         );
+    }
+
+    public Optional<Map<String, Object>> getPendingPaymentByOnlineOrderId(long onlineOrderId) {
+        List<Map<String, Object>> rows = jdbc.queryForList(
+            "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.online_order_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
+            "       u.full_name as consumer_name, u.phone as consumer_phone, s.shop_name, s.discount_percent " +
+            "FROM offline_payments p " +
+            "JOIN accounts_customuser u ON p.consumer_id = u.id " +
+            "JOIN market_shop s ON p.shop_id = s.id " +
+            "WHERE p.online_order_id = ? AND p.status = 'PENDING' " +
+            "ORDER BY p.created_at DESC LIMIT 1",
+            onlineOrderId
+        );
+        return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }
 
     public Optional<Map<String, Object>> getWalletByUserId(long userId) {

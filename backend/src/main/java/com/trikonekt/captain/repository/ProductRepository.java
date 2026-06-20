@@ -159,6 +159,7 @@ public class ProductRepository {
     private ShopProductResponse mapProduct(ResultSet rs, int rowNum) throws SQLException {
         return ShopProductResponse.builder()
                 .id(rs.getLong("id"))
+                .shopId(rs.getLong("shop_id"))
                 .title(rs.getString("title"))
                 .description(rs.getString("description"))
                 .mrp(rs.getDouble("mrp"))

@@ -152,6 +152,10 @@ export default function BusinessShops() {
       gst_number: "",
       pan_number: "",
       business_reg_number: "",
+      home_delivery_enabled: false,
+      delivery_radius_km: "5",
+      min_order_value: "0",
+      base_delivery_fee: "0",
       business_logo: null,
       business_logo_url: "",
       business_documents: [],
@@ -326,6 +330,10 @@ export default function BusinessShops() {
       gst_number: shop.gst_number || "",
       pan_number: shop.pan_number || "",
       business_reg_number: shop.business_reg_number || "",
+      home_delivery_enabled: Boolean(shop.home_delivery_enabled),
+      delivery_radius_km: String(shop.delivery_radius_km ?? 5),
+      min_order_value: String(shop.min_order_value ?? 0),
+      base_delivery_fee: String(shop.base_delivery_fee ?? 0),
       business_logo: null,
       business_logo_url: shop.business_logo || "",
       business_documents: [],
@@ -381,6 +389,10 @@ export default function BusinessShops() {
       gst_number: form.gst_number,
       pan_number: form.pan_number,
       business_reg_number: form.business_reg_number,
+      home_delivery_enabled: Boolean(form.home_delivery_enabled),
+      delivery_radius_km: Math.min(Number(form.delivery_radius_km) || 5, 25),
+      min_order_value: Math.max(Number(form.min_order_value) || 0, 0),
+      base_delivery_fee: Math.max(Number(form.base_delivery_fee) || 0, 0),
       business_logo: form.business_logo,
       business_documents: form.business_documents,
     };
@@ -747,6 +759,63 @@ export default function BusinessShops() {
 
                     <Divider sx={{ my: 2, borderColor: T.border }} />
 
+                    {/* Home Delivery Settings */}
+                    <Box sx={{ p: 2, bgcolor: alpha(T.accent, 0.05), borderRadius: '12px', border: `1px solid ${alpha(T.accent, 0.15)}` }}>
+                      <Typography sx={{ fontWeight: 850, fontSize: '0.92rem', color: T.accent, mb: 2 }}>
+                        🚚 Home Delivery Settings
+                      </Typography>
+
+                      <Stack spacing={2.5}>
+                        <Box>
+                          <Typography sx={labelSx}>Offer Home Delivery?</Typography>
+                          <Select
+                            fullWidth
+                            value={form.home_delivery_enabled ? 'yes' : 'no'}
+                            onChange={(e) => setForm(p => ({ ...p, home_delivery_enabled: e.target.value === 'yes' }))}
+                            sx={{ borderRadius: '12px', bgcolor: '#fff', '& .MuiSelect-select': { fontWeight: 700, py: 1.5 } }}
+                          >
+                            <MenuItem value="yes">Yes</MenuItem>
+                            <MenuItem value="no">No</MenuItem>
+                          </Select>
+                        </Box>
+
+                        <TextField
+                          label="Delivery Radius KM (max 25)"
+                          type="number"
+                          fullWidth
+                          value={form.delivery_radius_km}
+                          onChange={(e) => setForm(p => ({ ...p, delivery_radius_km: String(Math.min(Number(e.target.value) || 0, 25)) }))}
+                          inputProps={{ min: 1, max: 25, step: 0.5 }}
+                          disabled={!form.home_delivery_enabled}
+                          sx={inputSx}
+                        />
+
+                        <TextField
+                          label="Minimum Order Value"
+                          type="number"
+                          fullWidth
+                          value={form.min_order_value}
+                          onChange={(e) => setForm(p => ({ ...p, min_order_value: e.target.value }))}
+                          inputProps={{ min: 0, step: 1 }}
+                          disabled={!form.home_delivery_enabled}
+                          sx={inputSx}
+                        />
+
+                        <TextField
+                          label="Base Delivery Fee"
+                          type="number"
+                          fullWidth
+                          value={form.base_delivery_fee}
+                          onChange={(e) => setForm(p => ({ ...p, base_delivery_fee: e.target.value }))}
+                          inputProps={{ min: 0, step: 1 }}
+                          disabled={!form.home_delivery_enabled}
+                          sx={inputSx}
+                        />
+                      </Stack>
+                    </Box>
+
+                    <Divider sx={{ my: 2, borderColor: T.border }} />
+
                     {/* Business Verification Details (Moved from Onboarding) */}
                     <Box sx={{ p: 2, bgcolor: alpha(T.primary, 0.04), borderRadius: '12px', border: `1px solid ${alpha(T.primary, 0.1)}` }}>
                       <Typography sx={{ fontWeight: 850, fontSize: '0.92rem', color: T.primary, mb: 2 }}>
@@ -937,6 +1006,22 @@ export default function BusinessShops() {
                           </Typography>
 
                           <Stack spacing={0.75} sx={{ mb: 2 }}>
+                            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                              <Chip
+                                size="small"
+                                label={s.home_delivery_enabled ? 'Home Delivery On' : 'No Home Delivery'}
+                                color={s.home_delivery_enabled ? 'success' : 'default'}
+                                sx={{ fontWeight: 800, fontSize: '0.68rem' }}
+                              />
+                              {s.home_delivery_enabled && (
+                                <Chip
+                                  size="small"
+                                  label={`Radius ${Math.min(Number(s.delivery_radius_km) || 5, 25)} km`}
+                                  sx={{ fontWeight: 800, fontSize: '0.68rem', bgcolor: alpha(T.accent, 0.1), color: T.accent }}
+                                />
+                              )}
+                            </Stack>
+
                             <Stack direction="row" spacing={1} alignItems="center" sx={{ color: T.textSecondary }}>
                               <PlaceIcon sx={{ fontSize: 15, color: T.textMuted }} />
                               <Typography sx={{ fontSize: '0.8rem', fontWeight: 600 }}>
@@ -978,7 +1063,7 @@ export default function BusinessShops() {
                                 "&:hover": { bgcolor: alpha(T.primary, 0.05), borderColor: T.primaryDark }
                               }}
                             >
-                              Manage Products
+                              {s.home_delivery_enabled ? 'Manage Delivery Products' : 'Manage Products'}
                             </Button>
 
                             <IconButton

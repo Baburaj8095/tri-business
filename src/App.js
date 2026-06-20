@@ -29,6 +29,10 @@ import BusinessDashboard from './pages/business/BusinessDashboard';
 import BusinessProfile from './pages/business/BusinessProfile.jsx';
 import AdsManagerPage from './pages/business/AdsManagerPage.jsx';
 import OnlineProductsPage from './pages/business/OnlineProductsPage.jsx';
+import BusinessOnlineMarketplacePage from './pages/business/BusinessOnlineMarketplacePage.jsx';
+import BusinessB2BCartPage from './pages/business/BusinessB2BCartPage.jsx';
+import BusinessB2BOrdersPage from './pages/business/BusinessB2BOrdersPage.jsx';
+import BusinessB2BSellerOrdersPage from './pages/business/BusinessB2BSellerOrdersPage.jsx';
 
 import { Navigate } from 'react-router-dom';
 
@@ -66,6 +70,10 @@ function App() {
         <Route path="/business/delivery" element={<TriSarathiDelivery />} />
         <Route path="/business/ads" element={<AdsManagerPage />} />
         <Route path="/business/online-products" element={<OnlineProductsPage />} />
+        <Route path="/business/online-marketplace" element={<BusinessOnlineMarketplacePage />} />
+        <Route path="/business/online-marketplace/cart" element={<BusinessB2BCartPage />} />
+        <Route path="/business/b2b-orders" element={<BusinessB2BOrdersPage />} />
+        <Route path="/business/seller/b2b-orders" element={<BusinessB2BSellerOrdersPage />} />
         <Route path="/registration" element={<BusinessRegistration />} />
         <Route path="/registration-wizard" element={<BusinessRegistrationWizard />} />
         <Route path="/onboarding" element={<BusinessOnboarding />} />

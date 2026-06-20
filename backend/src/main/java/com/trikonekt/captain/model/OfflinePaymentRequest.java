@@ -1,5 +1,6 @@
 package com.trikonekt.captain.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.DecimalMin;
@@ -15,4 +16,7 @@ public class OfflinePaymentRequest {
     private BigDecimal amount;
 
     private String paymentMethod = "MANUAL";
+
+    @JsonProperty("online_order_id")
+    private Long onlineOrderId;
 }

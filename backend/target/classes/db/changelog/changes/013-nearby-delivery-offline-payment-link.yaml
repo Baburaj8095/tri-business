@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 013-nearby-delivery-offline-payment-link
+      author: cline
+      validCheckSum: ANY
+      changes:
+        - addColumn:
+            tableName: offline_payments
+            columns:
+              - column:
+                  name: online_order_id
+                  type: BIGINT
+                  remarks: Optional delivery order linked to this existing Pay Store/offline payment record.
+        - addColumn:
+            tableName: online_orders
+            columns:
+              - column:
+                  name: offline_payment_id
+                  type: BIGINT
+                  remarks: Existing offline_payments record used to pay a Near Store delivery order.
+        - createIndex:
+            tableName: offline_payments
+            indexName: idx_offline_payments_online_order_id
+            columns:
+              - column:
+                  name: online_order_id
+        - createIndex:
+            tableName: online_orders
+            indexName: idx_online_orders_offline_payment_id
+            columns:
+              - column:
+                  name: offline_payment_id

@@ -30,6 +30,9 @@ public class OnlineOrder {
     @JsonProperty("delivery_address_id")
     private Long deliveryAddressId;
 
+    @JsonProperty("order_channel")
+    private String orderChannel;
+
     private String status; // DRAFT, PENDING_CONFIRMATION, CONFIRMED, PREPARING, DISPATCHED, COMPLETED, CANCELLED
 
     private Double subtotal;
@@ -56,6 +59,9 @@ public class OnlineOrder {
 
     @JsonProperty("payment_ref_id")
     private String paymentRefId;
+
+    @JsonProperty("offline_payment_id")
+    private Long offlinePaymentId;
 
     @JsonProperty("cancellation_reason")
     private String cancellationReason;

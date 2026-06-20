@@ -137,6 +137,7 @@ const BusinessOnboarding = () => {
   const [form, setForm] = useState({
     userType: '',
     businessCategory: '',
+    businessModel: '',
     subCategories: [],
     fullName: '',
     businessName: '',
@@ -258,6 +259,36 @@ const BusinessOnboarding = () => {
     clearErr(name);
   };
 
+  const getBusinessModel = useCallback(() => {
+    if (form.businessModel) return form.businessModel;
+    if (form.subCategories.includes('B2B') || form.subCategories.includes('Merchant (B2B)')) return 'B2B';
+    if (form.subCategories.includes('B2C') || form.subCategories.includes('Consumer (B2C)')) return 'B2C';
+    return '';
+  }, [form.businessModel, form.subCategories]);
+
+  const getServiceMode = useCallback(() => (
+    form.businessCategory === 'Online Business' ? 'ONLINE' : 'OFFLINE'
+  ), [form.businessCategory]);
+
+  const getCategoryValue = useCallback((legacy = false) => {
+    const isB2B = getBusinessModel() === 'B2B';
+    if (legacy) return isB2B ? 'merchant' : 'business';
+    return isB2B ? 'merchant_business' : 'consumer_business';
+  }, [getBusinessModel]);
+
+  const getUsernamePrefix = useCallback(() => {
+    const serviceMode = getServiceMode();
+    const businessModel = getBusinessModel();
+    if (serviceMode === 'ONLINE' && businessModel === 'B2B') return 'ONB2B';
+    if (serviceMode === 'ONLINE') return 'ONB2C';
+    if (businessModel === 'B2B') return 'NSB2B';
+    return 'NSB2C';
+  }, [getServiceMode, getBusinessModel]);
+
+  const getExpectedUsername = useCallback(() => (
+    form.mobile ? `${getUsernamePrefix()}${form.mobile}` : ''
+  ), [form.mobile, getUsernamePrefix]);
+
   /* ── File handlers ── */
   const processLogo = (file) => {
     if (!file.type.startsWith('image/')) return;
@@ -292,7 +323,7 @@ const BusinessOnboarding = () => {
         if (!form.businessCategory) e.businessCategory = 'Please select a category';
         break;
       case 3:
-        if (form.subCategories.length === 0) e.subCategories = 'Please select at least one option';
+        if (!getBusinessModel()) e.subCategories = 'Please select B2C or B2B';
         break;
       case 4:
         if (!form.sponsorId.trim()) e.sponsorId = 'Sponsor ID is required';
@@ -330,16 +361,11 @@ const BusinessOnboarding = () => {
 
   /* ── Submit ── */
   const handleSubmit = async () => {
-    if (!validate(7)) return;
+    if (!validate(6)) return;
     setLoading(true);
 
-    const isB2B = form.subCategories.includes('Merchant (B2B)');
-    // Map businessCategory to serviceMode
-    let serviceMode = 'OFFLINE';
-    if (form.businessCategory === 'Online Business') serviceMode = 'ONLINE';
-    else if (form.businessCategory === 'Nearby Store (Offline)') serviceMode = 'OFFLINE';
-    else if (form.businessCategory === 'TriZone Services') serviceMode = 'OFFLINE';
-    const payload = {
+    const serviceMode = getServiceMode();
+    const buildPayload = (legacyCategory = false) => ({
       sponsorId: form.sponsorId,
       fullName: form.fullName,
       businessName: form.businessName,
@@ -351,27 +377,40 @@ const BusinessOnboarding = () => {
       pincode: form.pincode,
       latitude: parseFloat(form.latitude) || 0.0,
       longitude: parseFloat(form.longitude) || 0.0,
-      category: isB2B ? 'merchant' : 'business',
+      category: getCategoryValue(legacyCategory),
       serviceMode,
       discountPercent: 0.0,
       categoryId: null,
       subcategoryId: null
-    };
+    });
 
-    try {
+    const submitRegistration = async (payload) => {
       const apiBase = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
-      const res = await fetch(`${apiBase}/captain/merchant/register`, {
+      return fetch(`${apiBase}/captain/merchant/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+    };
+
+    try {
+      let res = await submitRegistration(buildPayload(false));
+      let usedLegacyCategory = false;
+
+      // Backward compatibility: if the API has not yet been updated for
+      // consumer_business / merchant_business, retry once with old values.
+      if (!res.ok && [400, 422].includes(res.status)) {
+        res = await submitRegistration(buildPayload(true));
+        usedLegacyCategory = res.ok;
+      }
 
       if (res.ok) {
         const data = await res.json();
         localStorage.setItem('token_business', data.access);
         localStorage.setItem('refresh_business', data.refresh);
-        localStorage.setItem('username_business', data.username);
+        localStorage.setItem('username_business', data.username || getExpectedUsername());
         localStorage.setItem('service_mode_business', data.serviceMode || serviceMode || 'OFFLINE');
+        localStorage.setItem('category_business', data.category || getCategoryValue(usedLegacyCategory));
         
         setLoading(false);
         setSubmitted(true);
@@ -386,8 +425,9 @@ const BusinessOnboarding = () => {
       // Fallback for offline testing
       localStorage.setItem('token_business', 'dummy_access_token');
       localStorage.setItem('refresh_business', 'dummy_refresh_token');
-      localStorage.setItem('username_business', form.mobile);
+      localStorage.setItem('username_business', getExpectedUsername() || form.mobile);
       localStorage.setItem('service_mode_business', serviceMode || 'OFFLINE');
+      localStorage.setItem('category_business', getCategoryValue(false));
       setLoading(false);
       setSubmitted(true);
       localStorage.removeItem('trikonext_onboarding');
@@ -659,9 +699,9 @@ const BusinessOnboarding = () => {
                           <StepHeader title="Choose your business category" subtitle="Pick the type that matches your business model" />
                           <Stack spacing={2} sx={{ flexGrow: 1, justifyContent: 'center' }}>
                           {[
-                            { value: 'Nearby Store (Offline)', icon: <Storefront />, desc: 'Operate a physical store or local shop', colorTheme: { main: '#0D9488', bg: '#E6F4F1' }, disabled: false },
-                            { value: 'Online Business', icon: <Language />, desc: 'E-commerce, digital products, and online deliveries', colorTheme: { main: '#3b82f6', bg: '#eff6ff' }, disabled: false },
-                            { value: 'TriZone Services', icon: <Hub />, desc: 'On-demand local marketplace operations and fulfillment', colorTheme: { main: '#8b5cf6', bg: '#f5f3ff' }, disabled: false },
+                            { value: 'Nearby Store (Offline)', icon: <Storefront />, desc: 'Physical store / NearStore registration', colorTheme: { main: '#0D9488', bg: '#E6F4F1' }, disabled: false },
+                            { value: 'Online Business', icon: <Language />, desc: 'Online selling, digital orders, and delivery-based business', colorTheme: { main: '#3b82f6', bg: '#eff6ff' }, disabled: false },
+                            { value: 'TriZone Services', icon: <Hub />, desc: 'Coming soon - currently unavailable', colorTheme: { main: '#8b5cf6', bg: '#f5f3ff' }, disabled: true },
                           ].map((item, i) => (
                             <Box key={item.value} sx={{ display: 'flex', flex: 1 }}>
                               <SelectionCard
@@ -673,7 +713,7 @@ const BusinessOnboarding = () => {
                                 colorTheme={item.colorTheme}
                                 selected={form.businessCategory === item.value}
                                 disabled={item.disabled}
-                                onClick={() => { setForm(p => ({ ...p, businessCategory: item.value, subCategories: [] })); clearErr('businessCategory'); }}
+                                onClick={() => { setForm(p => ({ ...p, businessCategory: item.value, businessModel: '', subCategories: [] })); clearErr('businessCategory'); }}
                               />
                             </Box>
                           ))}
@@ -699,8 +739,8 @@ const BusinessOnboarding = () => {
                         {form.businessCategory === 'Nearby Store (Offline)' && (
                             <Stack spacing={2} sx={{ flexGrow: 1, justifyContent: 'center' }}>
                             {[
-                              { value: 'Consumer (B2C)', label: 'B2C', icon: <ShoppingCart />, desc: 'Consumer' },
-                              { value: 'Merchant (B2B)', label: 'B2B', icon: <Business />, desc: 'Merchant' },
+                              { value: 'B2C', label: 'B2C', icon: <ShoppingCart />, desc: 'Consumer business' },
+                              { value: 'B2B', label: 'B2B', icon: <Business />, desc: 'Merchant business' },
                             ].map((item, i) => (
                               <Box key={item.value} sx={{ display: 'flex', flex: 1 }}>
                                 <SelectionCard
@@ -709,8 +749,8 @@ const BusinessOnboarding = () => {
                                   icon={item.icon}
                                   title={item.label}
                                   desc={item.desc}
-                                  selected={form.subCategories.includes(item.value)}
-                                  onClick={() => { setForm(p => ({ ...p, subCategories: [item.value] })); clearErr('subCategories'); }}
+                                  selected={getBusinessModel() === item.value}
+                                  onClick={() => { setForm(p => ({ ...p, businessModel: item.value, subCategories: [item.value] })); clearErr('subCategories'); }}
                                 />
                               </Box>
                             ))}
@@ -730,8 +770,8 @@ const BusinessOnboarding = () => {
                                   icon={item.icon}
                                   title={item.value}
                                   desc={item.desc}
-                                  selected={form.subCategories.includes(item.value)}
-                                  onClick={() => { setForm(p => ({ ...p, subCategories: [item.value] })); clearErr('subCategories'); }}
+                                  selected={getBusinessModel() === item.value}
+                                  onClick={() => { setForm(p => ({ ...p, businessModel: item.value, subCategories: [item.value] })); clearErr('subCategories'); }}
                                 />
                               </Box>
                             ))}
@@ -890,9 +930,12 @@ const BusinessOnboarding = () => {
                         <Stack spacing={3}>
                           {/* Summary Sections */}
                           <ReviewSection title="User Type" items={[{ label: 'Role', value: form.userType }]} />
-                          <ReviewSection title="Business Category" items={[
-                            { label: 'Category', value: form.businessCategory },
-                            { label: form.businessCategory === 'TriZone Services' ? 'Services' : 'Type', value: form.subCategories.join(', ') },
+                          <ReviewSection title="Business Registration" items={[
+                            { label: 'Channel', value: form.businessCategory },
+                            { label: 'Model', value: getBusinessModel() },
+                            { label: 'Service Mode', value: getServiceMode() },
+                            { label: 'API Category', value: getCategoryValue(false) },
+                            { label: 'Expected Username', value: getExpectedUsername() || 'Enter mobile number' },
                           ]} />
                           <ReviewSection title="Business Information" items={[
                             { label: 'Full Name', value: form.fullName },
@@ -1014,11 +1057,13 @@ const BusinessOnboarding = () => {
                   <Stack spacing={1.5}>
                     {[
                       ['Role', form.userType],
-                      ['Category', form.businessCategory],
+                      ['Channel', form.businessCategory],
+                      ['Model', getBusinessModel()],
+                      ['Service Mode', getServiceMode()],
                       ['Business', form.businessName],
                       ['Owner', form.fullName],
                       ['Mobile', form.mobile],
-                      ['Username', form.subCategories.includes('Merchant (B2B)') ? 'NSB2B' + form.mobile : 'NSB2C' + form.mobile],
+                      ['Username', getExpectedUsername()],
                       ['City', form.city],
                     ].map(([l, v]) => (
                       <Stack direction="row" justifyContent="space-between" key={l}>

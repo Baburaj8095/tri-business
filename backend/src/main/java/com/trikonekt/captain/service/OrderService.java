@@ -85,6 +85,22 @@ public class OrderService {
             throw new RuntimeException("This shop operates only in OFFLINE mode.");
         }
 
+        String orderChannel = req.getOrderChannel() != null ? req.getOrderChannel().toUpperCase() : "ONLINE_DELIVERY";
+        if ("NEARBY_DELIVERY".equals(orderChannel)) {
+            if (!Boolean.TRUE.equals(shop.getHomeDeliveryEnabled())) {
+                throw new RuntimeException("This shop does not provide home delivery.");
+            }
+            if (req.getLatitude() == null || req.getLongitude() == null) {
+                throw new RuntimeException("Current location is required for nearby delivery orders.");
+            }
+            double distanceKm = ShopService.calculateDistanceKm(
+                    req.getLatitude(), req.getLongitude(), shop.getLatitude(), shop.getLongitude());
+            double radiusKm = ShopService.normalizeDeliveryRadius(shop.getDeliveryRadiusKm());
+            if (distanceKm > radiusKm) {
+                throw new RuntimeException("This shop is outside your local delivery radius.");
+            }
+        }
+
         // 2. Validate Address range and delivery
         UserDeliveryAddress address = addressRepository.findAddressByIdAndUserId(req.getAddressId(), userId)
                 .orElseThrow(() -> new RuntimeException("Specified delivery address not found in your address book."));
@@ -104,6 +120,12 @@ public class OrderService {
 
         for (CartItemRequest itemReq : req.getItems()) {
             ShopProductResponse product = productRepository.findProductById(itemReq.getProductId()).get();
+            if (product.getShopId() == null || !product.getShopId().equals(shop.getId())) {
+                throw new RuntimeException("Product does not belong to the selected shop: " + product.getTitle());
+            }
+            if (!Boolean.TRUE.equals(product.getIs_active()) || !Boolean.TRUE.equals(product.getOnlineDelivery())) {
+                throw new RuntimeException("Product is not available for delivery: " + product.getTitle());
+            }
             double mrp = product.getMrp() != null ? product.getMrp() : 0.0;
             double price = product.getPrice() != null ? product.getPrice() : 0.0;
             double itemTotal = price * itemReq.getQuantity();
@@ -151,6 +173,7 @@ public class OrderService {
                 deliveryFee,
                 grandTotal,
                 paymentMethod,
+                orderChannel,
                 req.getNotes()
         );
 
@@ -243,7 +266,7 @@ public class OrderService {
                 if (!"DISPATCHED".equals(currentStatus)) {
                     throw new RuntimeException("Order must be DISPATCHED before completion.");
                 }
-                if ("COD".equalsIgnoreCase(order.getPaymentMethod())) {
+                if ("COD".equalsIgnoreCase(order.getPaymentMethod()) && !"NEARBY_DELIVERY".equalsIgnoreCase(order.getOrderChannel())) {
                     paymentStatus = "PAID";
                 }
                 // Delete association leases now that inventory replenishment is settled

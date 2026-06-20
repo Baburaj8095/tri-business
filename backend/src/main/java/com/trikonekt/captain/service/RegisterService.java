@@ -89,12 +89,35 @@ public class RegisterService {
 
     public LoginResponse registerMerchant(MerchantRegisterRequest req) {
         // Determine category, username, prefix code and prefixed ID
-        String category = req.getCategory(); // "merchant" (B2B) or "business" (B2C)
-        if (!"merchant".equalsIgnoreCase(category) && !"business".equalsIgnoreCase(category)) {
-            throw new RuntimeException("Invalid merchant category: " + category);
+        String requestedCategory = req.getCategory(); // New: consumer_business/merchant_business; Legacy: business/merchant
+        if (requestedCategory == null || requestedCategory.isBlank()) {
+            throw new RuntimeException("Invalid merchant category: " + requestedCategory);
         }
 
-        String prefixCode = "merchant".equalsIgnoreCase(category) ? "NSB2B" : "NSB2C";
+        String normalizedCategory = requestedCategory.trim().toLowerCase();
+        boolean isB2B;
+        if ("merchant_business".equals(normalizedCategory) || "merchant".equals(normalizedCategory)) {
+            isB2B = true;
+        } else if ("consumer_business".equals(normalizedCategory) || "business".equals(normalizedCategory)) {
+            isB2B = false;
+        } else {
+            throw new RuntimeException("Invalid merchant category: " + requestedCategory);
+        }
+
+        // Keep DB category backward-compatible because login/profile filters still expect
+        // accounts_customuser.category IN ('merchant', 'business').
+        String legacyCategory = isB2B ? "merchant" : "business";
+
+        String resolvedServiceMode = (req.getServiceMode() != null && !req.getServiceMode().isBlank())
+            ? req.getServiceMode().trim().toUpperCase()
+            : "OFFLINE";
+        if (!resolvedServiceMode.equals("ONLINE") && !resolvedServiceMode.equals("OFFLINE") && !resolvedServiceMode.equals("BOTH")) {
+            resolvedServiceMode = "OFFLINE";
+        }
+
+        String channelPrefix = "ONLINE".equals(resolvedServiceMode) ? "ON" : "NS";
+        String modelPrefix = isB2B ? "B2B" : "B2C";
+        String prefixCode = channelPrefix + modelPrefix;
         String username = prefixCode + req.getPhone();
         String prefixedId = prefixCode + "-" + req.getPhone();
 
@@ -125,26 +148,19 @@ public class RegisterService {
             req.getSponsorId().toUpperCase(),
             prefixedId,
             prefixCode,
-            category
+            legacyCategory
         );
 
         // Create wallet (accounts_wallet)
         regionRepository.insertWallet(userId);
 
         // Insert profile in market_merchantprofile
-        // Resolve serviceMode: default to OFFLINE for Nearby Store, ONLINE for Online Business
-        String resolvedServiceMode = (req.getServiceMode() != null && !req.getServiceMode().isBlank())
-            ? req.getServiceMode().toUpperCase()
-            : ("merchant".equalsIgnoreCase(category) ? "OFFLINE" : "OFFLINE");
-        if (!resolvedServiceMode.equals("ONLINE") && !resolvedServiceMode.equals("OFFLINE") && !resolvedServiceMode.equals("BOTH")) {
-            resolvedServiceMode = "OFFLINE";
-        }
         userRepository.insertMerchantProfile(
             userId,
             req.getBusinessName(),
             req.getPhone(),
             req.getAddress(),
-            category,
+            legacyCategory,
             resolvedServiceMode
         );
 

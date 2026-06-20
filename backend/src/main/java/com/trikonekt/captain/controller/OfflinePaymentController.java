@@ -3,12 +3,15 @@ package com.trikonekt.captain.controller;
 import com.trikonekt.captain.model.OfflinePaymentRequest;
 import com.trikonekt.captain.model.OfflinePaymentActionRequest;
 import com.trikonekt.captain.model.OfflinePaymentResponse;
+import com.trikonekt.captain.model.OnlineOrder;
 import com.trikonekt.captain.repository.OfflinePaymentRepository;
+import com.trikonekt.captain.repository.OrderRepository;
 import com.trikonekt.captain.repository.UserRepository;
 import com.trikonekt.captain.service.JwtService;
 import io.jsonwebtoken.Claims;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -27,12 +30,15 @@ public class OfflinePaymentController {
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final OfflinePaymentRepository offlinePaymentRepository;
+    private final OrderRepository orderRepository;
 
     public OfflinePaymentController(JwtService jwtService, UserRepository userRepository,
-                                    OfflinePaymentRepository offlinePaymentRepository) {
+                                    OfflinePaymentRepository offlinePaymentRepository,
+                                    OrderRepository orderRepository) {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.offlinePaymentRepository = offlinePaymentRepository;
+        this.orderRepository = orderRepository;
     }
 
     private String getUsernameFromToken(String authHeader) {
@@ -70,6 +76,7 @@ public class OfflinePaymentController {
             .consumerPhone((String) row.get("consumer_phone"))
             .shopId(((Number) row.get("shop_id")).longValue())
             .shopName((String) row.get("shop_name"))
+            .onlineOrderId(row.get("online_order_id") != null ? ((Number) row.get("online_order_id")).longValue() : null)
             .amount((BigDecimal) row.get("amount"))
             .paymentMethod((String) row.get("payment_method"))
             .status((String) row.get("status"))
@@ -83,6 +90,7 @@ public class OfflinePaymentController {
      * Initiates a manual/offline payment from a consumer to a shop.
      */
     @PostMapping("/offline-payments")
+    @Transactional
     public ResponseEntity<OfflinePaymentResponse> initiatePayment(
             @RequestHeader("Authorization") String authHeader,
             @RequestBody OfflinePaymentRequest req) {
@@ -100,6 +108,36 @@ public class OfflinePaymentController {
         }
         if (!offlinePaymentRepository.existsActiveShopById(req.getShopId())) {
             throw new RuntimeException("Shop not found or inactive");
+        }
+
+        OnlineOrder linkedOrder = null;
+        if (req.getOnlineOrderId() != null) {
+            linkedOrder = orderRepository.findOrderByIdAndUserId(req.getOnlineOrderId(), consumerId)
+                    .orElseThrow(() -> new RuntimeException("Delivery order not found or unauthorized."));
+
+            if (!req.getShopId().equals(linkedOrder.getShopId())) {
+                throw new RuntimeException("Payment shop does not match delivery order shop.");
+            }
+            if (!"NEARBY_DELIVERY".equalsIgnoreCase(linkedOrder.getOrderChannel())) {
+                throw new RuntimeException("Only Near Store delivery orders can use linked offline payment.");
+            }
+            if (!"COMPLETED".equalsIgnoreCase(linkedOrder.getStatus())) {
+                throw new RuntimeException("Pay Store settlement is available after delivery is completed.");
+            }
+            if ("PAID".equalsIgnoreCase(linkedOrder.getPaymentStatus())) {
+                throw new RuntimeException("This delivery order is already paid.");
+            }
+            if (linkedOrder.getOfflinePaymentId() != null) {
+                throw new RuntimeException("This delivery order already has a linked Pay Store payment.");
+            }
+            if (offlinePaymentRepository.getPendingPaymentByOnlineOrderId(linkedOrder.getId()).isPresent()) {
+                throw new RuntimeException("A pending Pay Store payment already exists for this delivery order.");
+            }
+
+            BigDecimal orderTotal = BigDecimal.valueOf(linkedOrder.getGrandTotal() != null ? linkedOrder.getGrandTotal() : linkedOrder.getTotal());
+            if (req.getAmount().compareTo(orderTotal) != 0) {
+                throw new RuntimeException("Payment amount must match delivery order total: ₹" + orderTotal);
+            }
         }
 
         String paymentMethod = req.getPaymentMethod();
@@ -122,8 +160,14 @@ public class OfflinePaymentController {
             req.getShopId(),
             req.getAmount(),
             paymentMethod,
-            "PENDING"
+            "PENDING",
+            linkedOrder != null ? linkedOrder.getId() : null
         );
+
+        if (linkedOrder != null) {
+            orderRepository.linkOfflinePayment(linkedOrder.getId(), paymentId, "PENDING_OFFLINE_APPROVAL");
+            orderRepository.insertStatusHistory(linkedOrder.getId(), "PAYMENT_PENDING_APPROVAL", "Pay Store offline payment submitted", "CONSUMER");
+        }
 
         Map<String, Object> paymentRow = offlinePaymentRepository.getPaymentById(paymentId)
             .orElseThrow(() -> new RuntimeException("Failed to retrieve payment after insertion"));
@@ -176,6 +220,7 @@ public class OfflinePaymentController {
      * Allows a merchant to accept or reject a pending offline payment.
      */
     @PostMapping("/offline-payments/{id}/action")
+    @Transactional
     public ResponseEntity<Map<String, String>> handlePaymentAction(
             @RequestHeader("Authorization") String authHeader,
             @PathVariable("id") long id,
@@ -211,6 +256,12 @@ public class OfflinePaymentController {
             int updated = offlinePaymentRepository.updatePaymentStatusIfPending(id, "APPROVED");
             if (updated == 0) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Payment is already processed"));
+            }
+
+            Long linkedOrderId = payment.get("online_order_id") != null ? ((Number) payment.get("online_order_id")).longValue() : null;
+            if (linkedOrderId != null) {
+                orderRepository.updateOrderPaymentStatus(linkedOrderId, "PAID");
+                orderRepository.insertStatusHistory(linkedOrderId, "PAYMENT_APPROVED", "Linked Pay Store payment approved by merchant", "MERCHANT");
             }
 
             // Calculate cashback commission
@@ -259,6 +310,13 @@ public class OfflinePaymentController {
             if (updated == 0) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Payment is already processed"));
             }
+
+            Long linkedOrderId = payment.get("online_order_id") != null ? ((Number) payment.get("online_order_id")).longValue() : null;
+            if (linkedOrderId != null) {
+                orderRepository.updateOrderPaymentStatus(linkedOrderId, "OFFLINE_REJECTED");
+                orderRepository.insertStatusHistory(linkedOrderId, "PAYMENT_REJECTED", "Linked Pay Store payment rejected by merchant", "MERCHANT");
+            }
+
             return ResponseEntity.ok(Map.of(
                 "message", "Payment rejected successfully.",
                 "status", "REJECTED"

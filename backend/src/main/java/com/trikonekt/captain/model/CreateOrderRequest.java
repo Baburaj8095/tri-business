@@ -22,6 +22,13 @@ public class CreateOrderRequest {
     @JsonProperty("payment_method")
     private String paymentMethod; // COD or ONLINE
 
+    @JsonProperty("order_channel")
+    private String orderChannel; // NEARBY_DELIVERY for local home-delivery flow
+
+    private Double latitude;
+
+    private Double longitude;
+
     private String notes;
 
     private List<CartItemRequest> items;

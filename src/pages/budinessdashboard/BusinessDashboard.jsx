@@ -216,7 +216,7 @@ const FOOTER_ITEMS = [
   { id: "home-top", label: "Home", icon: HiOutlineHome },
   { id: "tri-zone-footer", label: "Tri Zone", icon: HiOutlineSquares2X2 },
   { id: "scanner-section", label: "Scanner", icon: HiOutlineQrCode, raised: true },
-  { id: "product-section", label: "Online", icon: HiOutlineGlobeAlt },
+  { id: "online-marketplace", label: "Online", icon: HiOutlineGlobeAlt },
   { id: "city-search-section", label: "Nearby", icon: HiOutlineBuildingStorefront },
 ];
 
@@ -1668,6 +1668,10 @@ function BusinessDashboard() {
       navigate("/business/nearby-stores");
       return;
     }
+    if (action === "online-marketplace") {
+      navigate("/business/online-marketplace");
+      return;
+    }
     setActiveFooterItem(action);
     if (action === "home-top") {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1946,29 +1950,48 @@ function BusinessDashboard() {
             </Button>
           </Stack>
 
-          {/* Online Products Management — only for ONLINE/BOTH merchants */}
+          {/* Online B2B actions — browsing and own-product management stay separate */}
           {isOnlineMerchant && (
             <Box sx={{ mb: 1 }}>
               <SectionShell
-                title="Online Products"
-                subtitle="Manage products listed in the online marketplace"
+                title="Online B2B"
+                subtitle="Browse marketplace products or manage only your own listings"
               >
-                <Button
-                  fullWidth
-                  variant="contained"
-                  onClick={() => navigate('/business/online-products')}
-                  sx={{
-                    bgcolor: '#3b82f6',
-                    fontWeight: 800,
-                    textTransform: 'none',
-                    borderRadius: '12px',
-                    py: 1.4,
-                    fontSize: '0.95rem',
-                    '&:hover': { bgcolor: '#2563eb' },
-                  }}
-                >
-                  📦 Manage Online Products
-                </Button>
+                <Stack spacing={1}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={() => navigate('/business/online-marketplace')}
+                    sx={{
+                      bgcolor: UI.primary,
+                      fontWeight: 800,
+                      textTransform: 'none',
+                      borderRadius: '12px',
+                      py: 1.4,
+                      fontSize: '0.95rem',
+                      '&:hover': { bgcolor: UI.secondary },
+                    }}
+                  >
+                    🛒 Browse B2B Online Marketplace
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={() => navigate('/business/online-products')}
+                    sx={{
+                      borderColor: '#3b82f6',
+                      color: '#2563eb',
+                      fontWeight: 800,
+                      textTransform: 'none',
+                      borderRadius: '12px',
+                      py: 1.25,
+                      fontSize: '0.9rem',
+                      '&:hover': { bgcolor: 'rgba(59,130,246,0.08)', borderColor: '#2563eb' },
+                    }}
+                  >
+                    📦 Manage My Online Products
+                  </Button>
+                </Stack>
               </SectionShell>
             </Box>
           )}

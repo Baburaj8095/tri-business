@@ -69,6 +69,10 @@ public class ShopService {
                 request.getGst_number(),
                 request.getPan_number(),
                 request.getBusiness_reg_number(),
+                Boolean.TRUE.equals(request.getHome_delivery_enabled()),
+                normalizeDeliveryRadius(request.getDelivery_radius_km()),
+                normalizeMoney(request.getMin_order_value()),
+                normalizeMoney(request.getBase_delivery_fee()),
                 now
             );
 
@@ -102,6 +106,21 @@ public class ShopService {
     }
 
     /**
+     * Get consumer-safe B2C shop detail (public, consumer audience only).
+     */
+    public ShopResponse getConsumerShopDetail(Long shopId) {
+        if (shopId == null || shopId <= 0) {
+            throw new IllegalArgumentException("Invalid shop ID");
+        }
+        try {
+            return shopRepository.findConsumerActiveShopById(shopId)
+                .orElseThrow(() -> new RuntimeException("Consumer shop not found, inactive, or not online-enabled"));
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Failed to fetch consumer shop: " + e.getMessage());
+        }
+    }
+
+    /**
      * List all public active shops (public)
      */
     public List<ShopResponse> listPublicShops() {
@@ -123,6 +142,20 @@ public class ShopService {
             return shopRepository.findProductsByShopId(shopId);
         } catch (DataAccessException e) {
             throw new RuntimeException("Failed to fetch products: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get consumer-safe B2C online products for a shop (public, consumer audience only).
+     */
+    public List<ShopProductResponse> getConsumerShopProducts(Long shopId) {
+        if (shopId == null || shopId <= 0) {
+            throw new IllegalArgumentException("Invalid shop ID");
+        }
+        try {
+            return shopRepository.findConsumerOnlineProductsByShopId(shopId);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Failed to fetch consumer shop products: " + e.getMessage());
         }
     }
 
@@ -204,6 +237,18 @@ public class ShopService {
             // Allow category & subcategory update/keep
             Long categoryId = request.getCategory() != null ? request.getCategory() : existing.getCategory();
             Long subcategoryId = request.getSubcategory() != null ? request.getSubcategory() : existing.getSubcategory();
+            Boolean homeDeliveryEnabled = request.getHome_delivery_enabled() != null
+                ? request.getHome_delivery_enabled()
+                : Boolean.TRUE.equals(existing.getHomeDeliveryEnabled());
+            Double deliveryRadiusKm = request.getDelivery_radius_km() != null
+                ? normalizeDeliveryRadius(request.getDelivery_radius_km())
+                : normalizeDeliveryRadius(existing.getDeliveryRadiusKm());
+            Double minOrderValue = request.getMin_order_value() != null
+                ? normalizeMoney(request.getMin_order_value())
+                : normalizeMoney(existing.getMinOrderValue());
+            Double baseDeliveryFee = request.getBase_delivery_fee() != null
+                ? normalizeMoney(request.getBase_delivery_fee())
+                : normalizeMoney(existing.getBaseDeliveryFee());
 
             int rowsUpdated = shopRepository.updateShop(
                 shopId,
@@ -217,7 +262,11 @@ public class ShopService {
                 longitude,
                 contactNumber,
                 categoryId,
-                subcategoryId
+                subcategoryId,
+                homeDeliveryEnabled,
+                deliveryRadiusKm,
+                minOrderValue,
+                baseDeliveryFee
             );
 
             if (rowsUpdated == 0) {
@@ -293,5 +342,82 @@ public class ShopService {
         if (request.getEmail() == null || request.getEmail().isBlank()) {
             throw new IllegalArgumentException("Email is required");
         }
+        if (request.getDelivery_radius_km() != null && (request.getDelivery_radius_km() <= 0 || request.getDelivery_radius_km() > 25)) {
+            throw new IllegalArgumentException("Delivery radius must be between 1 and 25 km");
+        }
+        if (request.getMin_order_value() != null && request.getMin_order_value() < 0) {
+            throw new IllegalArgumentException("Minimum order value cannot be negative");
+        }
+        if (request.getBase_delivery_fee() != null && request.getBase_delivery_fee() < 0) {
+            throw new IllegalArgumentException("Base delivery fee cannot be negative");
+        }
+    }
+
+    public ShopResponse getNearbyDeliveryShopDetail(Long shopId, Double latitude, Double longitude) {
+        ShopResponse shop = getConsumerShopDetail(shopId);
+        return withDeliveryAvailability(shop, latitude, longitude, true);
+    }
+
+    public List<ShopProductResponse> getNearbyDeliveryProducts(Long shopId, Double latitude, Double longitude) {
+        ShopResponse shop = getNearbyDeliveryShopDetail(shopId, latitude, longitude);
+        if (!Boolean.TRUE.equals(shop.getIsDeliveryAvailable())) {
+            throw new RuntimeException(shop.getDeliveryUnavailableReason() != null
+                ? shop.getDeliveryUnavailableReason()
+                : "Shop is not available for nearby delivery");
+        }
+        return getConsumerShopProducts(shopId);
+    }
+
+    public ShopResponse withDeliveryAvailability(ShopResponse shop, Double latitude, Double longitude, boolean requireLocation) {
+        if (shop == null) {
+            return null;
+        }
+
+        double radius = normalizeDeliveryRadius(shop.getDeliveryRadiusKm());
+        shop.setDeliveryRadiusKm(radius);
+
+        if (!Boolean.TRUE.equals(shop.getHomeDeliveryEnabled())) {
+            shop.setIsDeliveryAvailable(false);
+            shop.setDeliveryUnavailableReason("NO_HOME_DELIVERY");
+            return shop;
+        }
+
+        if (latitude == null || longitude == null || shop.getLatitude() == null || shop.getLongitude() == null) {
+            shop.setIsDeliveryAvailable(!requireLocation);
+            shop.setDeliveryUnavailableReason(requireLocation ? "SET_LOCATION" : null);
+            return shop;
+        }
+
+        double distanceKm = calculateDistanceKm(latitude, longitude, shop.getLatitude(), shop.getLongitude());
+        shop.setDistanceKm(Math.round(distanceKm * 10.0) / 10.0);
+        boolean available = distanceKm <= radius;
+        shop.setIsDeliveryAvailable(available);
+        shop.setDeliveryUnavailableReason(available ? null : "TOO_FAR");
+        return shop;
+    }
+
+    public static double normalizeDeliveryRadius(Double radiusKm) {
+        if (radiusKm == null || radiusKm <= 0) {
+            return 5.0;
+        }
+        return Math.min(radiusKm, 25.0);
+    }
+
+    public static double normalizeMoney(Double value) {
+        return value == null || value < 0 ? 0.0 : value;
+    }
+
+    public static double calculateDistanceKm(Double lat1, Double lng1, Double lat2, Double lng2) {
+        if (lat1 == null || lng1 == null || lat2 == null || lng2 == null) {
+            return Double.MAX_VALUE;
+        }
+        double earthRadiusKm = 6371.0;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLng = Math.toRadians(lng2 - lng1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+            + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+            * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return earthRadiusKm * c;
     }
 }

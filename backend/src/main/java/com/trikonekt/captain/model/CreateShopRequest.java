@@ -25,4 +25,8 @@ public class CreateShopRequest {
     private String gst_number;
     private String pan_number;
     private String business_reg_number;
+    private Boolean home_delivery_enabled;
+    private Double delivery_radius_km;
+    private Double min_order_value;
+    private Double base_delivery_fee;
 }

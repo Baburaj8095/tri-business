@@ -1,5 +1,6 @@
 package com.trikonekt.captain.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -19,6 +20,8 @@ public class OfflinePaymentResponse {
     private String consumerPhone;
     private Long shopId;
     private String shopName;
+    @JsonProperty("online_order_id")
+    private Long onlineOrderId;
     private BigDecimal amount;
     private String paymentMethod;
     private String status;

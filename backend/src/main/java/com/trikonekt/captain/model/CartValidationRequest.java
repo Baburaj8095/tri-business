@@ -19,5 +19,12 @@ public class CartValidationRequest {
     @JsonProperty("address_id")
     private Long addressId;
 
+    @JsonProperty("order_channel")
+    private String orderChannel;
+
+    private Double latitude;
+
+    private Double longitude;
+
     private List<CartItemRequest> items;
 }

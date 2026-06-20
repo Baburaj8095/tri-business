@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
   Box, Typography, Card, CardContent, Button, Stack, CircularProgress, Alert, 
-  Container, Tabs, Tab, IconButton, Chip, FormControl, InputLabel, Select, MenuItem 
+  Container, Tabs, Tab, IconButton, Chip, FormControl, InputLabel, Select, MenuItem, Divider 
 } from '@mui/material';
 import { 
   LuStore, LuPhone, LuDollarSign, LuCalendar, LuCheck, LuX, LuChevronLeft, 
@@ -468,6 +468,11 @@ export default function MerchantOrdersPage() {
                             <Typography variant="caption" sx={{ color: TEXT_MUTED, fontWeight: 700 }}>
                               REF: {pm.refId}
                             </Typography>
+                            {(pm.onlineOrderId || pm.online_order_id) && (
+                              <Typography variant="caption" sx={{ color: '#ea580c', fontWeight: 800 }}>
+                                DELIVERY ORDER: #{pm.onlineOrderId || pm.online_order_id}
+                              </Typography>
+                            )}
                             <Typography variant="caption" sx={{ color: TEXT_MUTED, fontWeight: 600 }}>
                               SHOP: {pm.shopName}
                             </Typography>
@@ -788,5 +793,7 @@ export default function MerchantOrdersPage() {
     </Box>
   );
 }
+
+
 
 

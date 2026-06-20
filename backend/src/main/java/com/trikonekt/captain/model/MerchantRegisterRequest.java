@@ -40,7 +40,12 @@ public class MerchantRegisterRequest {
     private Double longitude;
 
     @NotBlank(message = "Category (B2B/B2C) is required")
-    private String category; // 'merchant' (B2B) or 'business' (B2C)
+    /**
+     * Supports both new and legacy values:
+     * 'consumer_business' or 'business' -> B2C
+     * 'merchant_business' or 'merchant' -> B2B
+     */
+    private String category;
 
     /**
      * Business mode from onboarding step 2:

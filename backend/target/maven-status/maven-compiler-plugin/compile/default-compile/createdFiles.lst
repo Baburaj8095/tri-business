@@ -16,6 +16,7 @@ com\trikonekt\captain\model\MerchantProfileResponse$MerchantProfileResponseBuild
 com\trikonekt\captain\model\SponsorInfo.class
 com\trikonekt\captain\service\OrderService.class
 com\trikonekt\captain\model\OnlineOrder$OnlineOrderBuilder.class
+com\trikonekt\captain\controller\ConsumerShopController.class
 com\trikonekt\captain\service\AdminService.class
 com\trikonekt\captain\controller\BusinessAdminController.class
 com\trikonekt\captain\controller\CartController.class
@@ -29,6 +30,7 @@ com\trikonekt\captain\model\ShopProductResponse.class
 com\trikonekt\captain\controller\MerchantProductController.class
 com\trikonekt\captain\repository\RegionRepository.class
 com\trikonekt\captain\service\SponsorService.class
+com\trikonekt\captain\model\B2BOrderStatusHistory.class
 com\trikonekt\captain\model\CartValidationRequest$CartValidationRequestBuilder.class
 com\trikonekt\captain\model\CreateShopRequest$CreateShopRequestBuilder.class
 com\trikonekt\captain\controller\ShopController.class
@@ -36,6 +38,7 @@ com\trikonekt\captain\model\MerchantSubCategoryCreateRequest.class
 com\trikonekt\captain\controller\RegisterController.class
 com\trikonekt\captain\repository\OfflinePaymentRepository.class
 com\trikonekt\captain\repository\UserRepository.class
+com\trikonekt\captain\model\B2BOrderStatusHistory$B2BOrderStatusHistoryBuilder.class
 com\trikonekt\captain\repository\MerchantCategoryRepository.class
 com\trikonekt\captain\model\InventoryLease.class
 com\trikonekt\captain\model\MerchantCategoryCreateRequest.class

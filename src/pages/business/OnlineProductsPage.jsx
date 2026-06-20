@@ -37,8 +37,17 @@ const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
 
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
 function authHeaders() {
-  const token = localStorage.getItem('token_business') || localStorage.getItem('captain_token');
+  const token = localStorage.getItem('token_business') || localStorage.getItem('token_captain') || localStorage.getItem('captain_token');
   return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+}
+
+async function readApiError(res) {
+  try {
+    const data = await res.json();
+    return data.error || data.message || data.details || `HTTP ${res.status}`;
+  } catch (_) {
+    return `HTTP ${res.status}`;
+  }
 }
 
 function fmtCurrency(val) {
@@ -168,7 +177,7 @@ export default function OnlineProductsPage() {
         `${CAPTAIN_API}/captain/merchant/online-products?limit=200&offset=0`,
         { headers: authHeaders() }
       );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) throw new Error(await readApiError(res));
       const data = await res.json();
       setProducts(Array.isArray(data) ? data : (data.products || []));
     } catch (e) {
@@ -251,7 +260,7 @@ export default function OnlineProductsPage() {
 
   /* ── Remove from online (sets online_delivery=false) ── */
   async function handleDelete(product) {
-    if (!window.confirm(`Remove "${product.name}" from online marketplace?`)) return;
+    if (!window.confirm(`Remove "${product.name}" from your online listing?`)) return;
     try {
       const res = await fetch(
         `${CAPTAIN_API}/captain/products/${product.id}/online-delivery`,
@@ -263,7 +272,7 @@ export default function OnlineProductsPage() {
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setProducts(prev => prev.filter(p => p.id !== product.id));
-      showSnack('Removed from online marketplace');
+      showSnack('Removed from your online listing');
     } catch (e) {
       showSnack(`Remove failed: ${e.message}`, 'error');
     }
@@ -290,9 +299,9 @@ export default function OnlineProductsPage() {
               <InventoryIcon />
             </Avatar>
             <Box>
-              <Typography variant="h6" fontWeight={700}>Online Products</Typography>
+              <Typography variant="h6" fontWeight={700}>Manage My Online Products</Typography>
               <Typography variant="caption" sx={{ opacity: .75 }}>
-                Manage your products listed in the online marketplace
+                Manage only your own products listed for online selling
               </Typography>
             </Box>
           </Stack>
@@ -309,8 +318,8 @@ export default function OnlineProductsPage() {
 
         {/* Search + refresh */}
         <SectionShell
-          title="Your Products"
-          subtitle="Toggle 'List Online' to publish products to the consumer marketplace"
+          title="My Product Listings"
+          subtitle="Toggle 'List Online' to publish or unpublish your own products"
           actions={
             <Button variant="outlined" size="small" onClick={fetchProducts}
               sx={{ color: P, borderColor: P }}>
@@ -357,7 +366,7 @@ export default function OnlineProductsPage() {
         {/* Info banner */}
         <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
           <Typography variant="body2">
-            <strong>How it works:</strong> Toggle "List Online" on any product to make it visible in the Trikonekt consumer app's Online Marketplace. Products must be <strong>in stock</strong> and <strong>active</strong> to appear.
+            <strong>How it works:</strong> This page manages products owned by your business account only. Toggle "List Online" on any product to publish or unpublish it from your online listing. Products must be <strong>in stock</strong> and <strong>active</strong> to appear online.
           </Typography>
         </Alert>
       </Container>
@@ -390,7 +399,7 @@ export default function OnlineProductsPage() {
                   onChange={e => setEditForm(f => ({ ...f, online_delivery: e.target.checked }))}
                   sx={{ '& .MuiSwitch-track': { bgcolor: editForm.online_delivery ? P : MUT } }} />
               }
-              label={<Typography variant="body2">List on Online Marketplace</Typography>}
+              label={<Typography variant="body2">List Online</Typography>}
             />
           </Stack>
         </DialogContent>

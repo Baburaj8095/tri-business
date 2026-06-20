@@ -6,6 +6,7 @@ import com.trikonekt.captain.repository.ProductRepository;
 import com.trikonekt.captain.repository.ShopRepository;
 import com.trikonekt.captain.repository.UserRepository;
 import com.trikonekt.captain.service.JwtService;
+import com.trikonekt.captain.service.ShopService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -82,11 +83,35 @@ public class CartController {
                     .build());
         }
 
+        String orderChannel = req.getOrderChannel() != null ? req.getOrderChannel().toUpperCase() : "ONLINE_DELIVERY";
+        if ("NEARBY_DELIVERY".equals(orderChannel) && !Boolean.TRUE.equals(shop.getHomeDeliveryEnabled())) {
+            return ResponseEntity.ok(CartValidationResponse.builder()
+                    .isValid(false)
+                    .shopName(shop.getShop_name())
+                    .message("This shop does not provide home delivery.")
+                    .build());
+        }
+
         boolean isDeliverable = true;
         String deliverabilityMessage = "Delivery is available to your standard location.";
 
+        if ("NEARBY_DELIVERY".equals(orderChannel)) {
+            if (req.getLatitude() == null || req.getLongitude() == null) {
+                isDeliverable = false;
+                deliverabilityMessage = "Set your location to check nearby delivery availability.";
+            } else {
+                double distanceKm = ShopService.calculateDistanceKm(
+                        req.getLatitude(), req.getLongitude(), shop.getLatitude(), shop.getLongitude());
+                double radiusKm = ShopService.normalizeDeliveryRadius(shop.getDeliveryRadiusKm());
+                if (distanceKm > radiusKm) {
+                    isDeliverable = false;
+                    deliverabilityMessage = "This shop is outside your local delivery radius.";
+                }
+            }
+        }
+
         // 2. Validate Deliverability Address if address_id is provided
-        if (req.getAddressId() != null) {
+        if (isDeliverable && req.getAddressId() != null) {
             if (authHeader == null) {
                 return ResponseEntity.ok(CartValidationResponse.builder()
                         .isValid(false)
@@ -121,7 +146,7 @@ public class CartController {
                     }
                 }
             }
-        } else {
+        } else if (isDeliverable) {
             deliverabilityMessage = "Please select a delivery address to verify shipping suitability.";
         }
 
@@ -160,6 +185,20 @@ public class CartController {
             }
 
             ShopProductResponse product = prodOpt.get();
+
+            if (product.getShopId() == null || !product.getShopId().equals(shop.getId())) {
+                validatedItems.add(CartItemResponse.builder()
+                        .productId(product.getId())
+                        .title(product.getTitle())
+                        .price(product.getPrice())
+                        .quantity(itemReq.getQuantity())
+                        .subTotal(0.0)
+                        .isAvailable(false)
+                        .message("Product does not belong to this shop.")
+                        .build());
+                allItemsAvailable = false;
+                continue;
+            }
 
             // Verify if product is active
             if (!Boolean.TRUE.equals(product.getIs_active())) {
