@@ -351,7 +351,7 @@ export default function InventoryPage() {
       {/* BACK BUTTON */}
       <Button
         variant="outlined"
-        onClick={() => navigate("/business/dashboard")}
+        onClick={() => navigate("/business-dashboard")}
         sx={{ mt: 3 }}
       >
         Back to Dashboard

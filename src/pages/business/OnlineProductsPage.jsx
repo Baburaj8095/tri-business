@@ -292,7 +292,7 @@ export default function OnlineProductsPage() {
       <Box sx={{ bgcolor: PD, color: '#fff', py: 2, px: { xs: 2, md: 4 } }}>
         <Container maxWidth="lg" disableGutters>
           <Stack direction="row" alignItems="center" gap={2}>
-            <IconButton onClick={() => navigate('/business/dashboard')} sx={{ color: '#fff' }}>
+            <IconButton onClick={() => navigate('/business-dashboard')} sx={{ color: '#fff' }}>
               <BackIcon />
             </IconButton>
             <Avatar sx={{ bgcolor: `${P}44`, color: '#fff' }}>

@@ -100,7 +100,7 @@ public class ProductRepository {
             "p.online_delivery, p.offline_delivery, p.stock_qty, p.image, p.is_active, p.created_at " +
             "FROM market_shopproduct p " +
             "JOIN market_shop s ON p.shop_id = s.id " +
-            "LEFT JOIN market_shopcategory sc ON s.category_id = sc.id " +
+            "LEFT JOIN business_merchantcategory sc ON s.category_id = sc.id " +
             "WHERE p.online_delivery = TRUE AND p.is_active = TRUE " +
             "AND s.is_active = TRUE AND s.service_mode IN ('ONLINE', 'BOTH') "
         );
@@ -128,7 +128,7 @@ public class ProductRepository {
             "SELECT DISTINCT sc.name " +
             "FROM market_shopproduct p " +
             "JOIN market_shop s ON p.shop_id = s.id " +
-            "LEFT JOIN market_shopcategory sc ON s.category_id = sc.id " +
+            "LEFT JOIN business_merchantcategory sc ON s.category_id = sc.id " +
             "WHERE p.online_delivery = TRUE AND p.is_active = TRUE " +
             "AND s.is_active = TRUE AND s.service_mode IN ('ONLINE', 'BOTH') " +
             "AND sc.name IS NOT NULL " +

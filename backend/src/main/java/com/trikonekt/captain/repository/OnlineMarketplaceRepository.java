@@ -37,15 +37,16 @@ public class OnlineMarketplaceRepository {
 
         // Fallback: derive from product data
         return jdbc.queryForList(
-            "SELECT DISTINCT sp.category AS name, LOWER(REPLACE(sp.category,' ','-')) AS slug " +
+            "SELECT DISTINCT mc.name AS name, LOWER(REPLACE(mc.name,' ','-')) AS slug " +
             "FROM market_shopproduct sp " +
             "JOIN market_shop s ON sp.shop_id = s.id " +
+            "LEFT JOIN business_merchantcategory mc ON s.category_id = mc.id " +
             "WHERE sp.online_delivery = TRUE " +
             "  AND sp.is_active = TRUE " +
             "  AND sp.stock_qty > 0 " +
             "  AND s.is_active = TRUE " +
-            "  AND sp.category IS NOT NULL " +
-            "  AND sp.category <> '' " +
+            "  AND mc.name IS NOT NULL " +
+            "  AND mc.name <> '' " +
             "ORDER BY name ASC " +
             "LIMIT 40"
         );
@@ -58,12 +59,13 @@ public class OnlineMarketplaceRepository {
     public List<Map<String, Object>> findOnlineProducts(String category, String search, int limit, int offset) {
         StringBuilder sql = new StringBuilder(
             "SELECT sp.id, sp.title, sp.description, sp.mrp, sp.price, sp.discount_percent, " +
-            "sp.stock_qty, sp.category, sp.image, sp.image AS image_url, sp.online_delivery, sp.offline_delivery, " +
+            "sp.stock_qty, mc.name AS category, sp.image, sp.image AS image_url, sp.online_delivery, sp.offline_delivery, " +
             "s.id AS shop_id, s.shop_name, s.city AS shop_city, s.shop_image, u.category AS merchant_category " +
             "FROM market_shopproduct sp " +
             "JOIN market_shop s ON sp.shop_id = s.id " +
             "JOIN accounts_customuser u ON s.merchant_id = u.id " +
             "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
+            "LEFT JOIN business_merchantcategory mc ON s.category_id = mc.id " +
             "WHERE sp.online_delivery = TRUE " +
             "  AND sp.is_active = TRUE " +
             "  AND sp.stock_qty > 0 " +
@@ -75,7 +77,7 @@ public class OnlineMarketplaceRepository {
         List<Object> params = new ArrayList<>();
 
         if (category != null && !category.isBlank()) {
-            sql.append("AND LOWER(sp.category) = LOWER(?) ");
+            sql.append("AND LOWER(mc.name) = LOWER(?) ");
             params.add(category.trim());
         }
         if (search != null && !search.isBlank()) {
@@ -100,7 +102,7 @@ public class OnlineMarketplaceRepository {
     public List<Map<String, Object>> findBusinessOnlineProducts(long viewerMerchantId, boolean excludeOwn, String category, String search, int limit, int offset) {
         StringBuilder sql = new StringBuilder(
             "SELECT sp.id, sp.title, sp.description, sp.mrp, sp.price, sp.discount_percent, " +
-            "sp.stock_qty, sp.category, sp.image, sp.image AS image_url, sp.online_delivery, sp.offline_delivery, " +
+            "sp.stock_qty, mc.name AS category, sp.image, sp.image AS image_url, sp.online_delivery, sp.offline_delivery, " +
             "s.id AS shop_id, s.shop_name, s.city AS shop_city, s.shop_image, s.merchant_id, " +
             "u.full_name AS merchant_name, u.category AS merchant_category, " +
             "COALESCE(mp.business_name, u.full_name, s.shop_name) AS business_name, " +
@@ -110,6 +112,7 @@ public class OnlineMarketplaceRepository {
             "JOIN market_shop s ON sp.shop_id = s.id " +
             "JOIN accounts_customuser u ON s.merchant_id = u.id " +
             "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
+            "LEFT JOIN business_merchantcategory mc ON s.category_id = mc.id " +
             "WHERE sp.online_delivery = TRUE " +
             "  AND sp.is_active = TRUE " +
             "  AND sp.stock_qty > 0 " +
@@ -127,7 +130,7 @@ public class OnlineMarketplaceRepository {
         }
 
         if (category != null && !category.isBlank()) {
-            sql.append("AND LOWER(sp.category) = LOWER(?) ");
+            sql.append("AND LOWER(mc.name) = LOWER(?) ");
             params.add(category.trim());
         }
         if (search != null && !search.isBlank()) {
@@ -152,10 +155,11 @@ public class OnlineMarketplaceRepository {
     public List<Map<String, Object>> findMerchantOnlineProducts(long merchantId, int limit, int offset) {
         return jdbc.queryForList(
             "SELECT sp.id, sp.title, sp.description, sp.mrp, sp.price, sp.discount_percent, " +
-            "sp.stock_qty, sp.category, sp.image, sp.online_delivery, sp.offline_delivery, sp.is_active, " +
+            "sp.stock_qty, mc.name AS category, sp.image, sp.online_delivery, sp.offline_delivery, sp.is_active, " +
             "s.id AS shop_id, s.shop_name " +
             "FROM market_shopproduct sp " +
             "JOIN market_shop s ON sp.shop_id = s.id " +
+            "LEFT JOIN business_merchantcategory mc ON s.category_id = mc.id " +
             "WHERE s.merchant_id = ? " +
             "  AND sp.online_delivery = TRUE " +
             "ORDER BY sp.created_at DESC " +

@@ -236,7 +236,7 @@ export default function TriSarathiDelivery() {
       <DeliveryHeader
         onBack={() => {
           if (window.history.length > 1) navigate(-1);
-          else navigate("/business/dashboard", { replace: true });
+          else navigate("/business-dashboard", { replace: true });
         }}
       >
         <SearchBar
