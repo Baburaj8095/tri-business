@@ -29,7 +29,7 @@ public class B2BOrderController {
     public ResponseEntity<CartValidationResponse> validateCart(
             @RequestHeader(value = "Authorization", required = false) String auth,
             @RequestBody CartValidationRequest req) {
-        Long buyerId = extractMerchantId(auth);
+        Long buyerId = extractBusinessBuyerId(auth);
         return ResponseEntity.ok(b2bOrderService.validateCart(buyerId, req));
     }
 
@@ -37,14 +37,14 @@ public class B2BOrderController {
     public ResponseEntity<B2BOnlineOrder> createOrder(
             @RequestHeader(value = "Authorization", required = false) String auth,
             @RequestBody CreateB2BOrderRequest req) {
-        Long buyerId = extractMerchantId(auth);
+        Long buyerId = extractBusinessBuyerId(auth);
         return ResponseEntity.status(HttpStatus.CREATED).body(b2bOrderService.placeOrder(buyerId, req));
     }
 
     @GetMapping("/orders")
     public ResponseEntity<List<B2BOnlineOrder>> listBuyerOrders(
             @RequestHeader(value = "Authorization", required = false) String auth) {
-        Long buyerId = extractMerchantId(auth);
+        Long buyerId = extractBusinessBuyerId(auth);
         return ResponseEntity.ok(b2bOrderService.listBuyerOrders(buyerId));
     }
 
@@ -52,7 +52,7 @@ public class B2BOrderController {
     public ResponseEntity<B2BOnlineOrder> getBuyerOrder(
             @RequestHeader(value = "Authorization", required = false) String auth,
             @PathVariable("id") Long orderId) {
-        Long buyerId = extractMerchantId(auth);
+        Long buyerId = extractBusinessBuyerId(auth);
         return ResponseEntity.ok(b2bOrderService.getBuyerOrder(buyerId, orderId));
     }
 
@@ -61,7 +61,7 @@ public class B2BOrderController {
             @RequestHeader(value = "Authorization", required = false) String auth,
             @PathVariable("id") Long orderId,
             @RequestBody(required = false) OrderStateTransitionRequest req) {
-        Long buyerId = extractMerchantId(auth);
+        Long buyerId = extractBusinessBuyerId(auth);
         String reason = req != null ? req.getCancellationReason() : null;
         return ResponseEntity.ok(b2bOrderService.cancelBuyerOrder(buyerId, orderId, reason));
     }
@@ -71,14 +71,14 @@ public class B2BOrderController {
             @RequestHeader(value = "Authorization", required = false) String auth,
             @PathVariable("id") Long orderId,
             @RequestBody B2BPaymentRequest req) {
-        Long buyerId = extractMerchantId(auth);
+        Long buyerId = extractBusinessBuyerId(auth);
         return ResponseEntity.ok(b2bOrderService.submitPayment(buyerId, orderId, req));
     }
 
     @GetMapping("/seller/orders")
     public ResponseEntity<List<B2BOnlineOrder>> listSellerOrders(
             @RequestHeader(value = "Authorization", required = false) String auth) {
-        Long sellerId = extractMerchantId(auth);
+        Long sellerId = extractMerchantSellerId(auth);
         return ResponseEntity.ok(b2bOrderService.listSellerOrders(sellerId));
     }
 
@@ -86,7 +86,7 @@ public class B2BOrderController {
     public ResponseEntity<B2BOnlineOrder> getSellerOrder(
             @RequestHeader(value = "Authorization", required = false) String auth,
             @PathVariable("id") Long orderId) {
-        Long sellerId = extractMerchantId(auth);
+        Long sellerId = extractMerchantSellerId(auth);
         return ResponseEntity.ok(b2bOrderService.getSellerOrder(sellerId, orderId));
     }
 
@@ -95,7 +95,7 @@ public class B2BOrderController {
             @RequestHeader(value = "Authorization", required = false) String auth,
             @PathVariable("id") Long orderId,
             @RequestBody OrderStateTransitionRequest req) {
-        Long sellerId = extractMerchantId(auth);
+        Long sellerId = extractMerchantSellerId(auth);
         return ResponseEntity.ok(b2bOrderService.transitionSellerOrder(sellerId, orderId, req));
     }
 
@@ -104,11 +104,29 @@ public class B2BOrderController {
             @RequestHeader(value = "Authorization", required = false) String auth,
             @PathVariable("id") Long orderId,
             @RequestBody B2BPaymentActionRequest req) {
-        Long sellerId = extractMerchantId(auth);
+        Long sellerId = extractMerchantSellerId(auth);
         return ResponseEntity.ok(b2bOrderService.actionPayment(sellerId, orderId, req));
     }
 
-    private Long extractMerchantId(String auth) {
+    private Long extractBusinessBuyerId(String auth) {
+        Map<String, Object> user = extractBusinessUser(auth);
+        String category = String.valueOf(user.getOrDefault("category", ""));
+        if (!"merchant".equalsIgnoreCase(category) && !"business".equalsIgnoreCase(category)) {
+            throw new RuntimeException("Only business or merchant accounts can place B2B marketplace orders.");
+        }
+        return ((Number) user.get("id")).longValue();
+    }
+
+    private Long extractMerchantSellerId(String auth) {
+        Map<String, Object> user = extractBusinessUser(auth);
+        String category = String.valueOf(user.getOrDefault("category", ""));
+        if (!"merchant".equalsIgnoreCase(category)) {
+            throw new RuntimeException("Only B2B merchant seller accounts can process B2B orders.");
+        }
+        return ((Number) user.get("id")).longValue();
+    }
+
+    private Map<String, Object> extractBusinessUser(String auth) {
         if (auth == null || !auth.startsWith("Bearer ")) {
             throw new RuntimeException("Missing or invalid Authorization header");
         }
@@ -117,14 +135,10 @@ public class B2BOrderController {
         Map<String, Object> user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
-        String category = String.valueOf(user.getOrDefault("category", ""));
-        if (!"merchant".equalsIgnoreCase(category)) {
-            throw new RuntimeException("Only B2B merchant accounts can use B2B ordering.");
-        }
         Object active = user.get("is_active");
         if (active instanceof Boolean && !((Boolean) active)) {
-            throw new RuntimeException("Merchant account is inactive.");
+            throw new RuntimeException("Business account is inactive.");
         }
-        return ((Number) user.get("id")).longValue();
+        return user;
     }
 }
