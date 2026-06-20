@@ -44,7 +44,7 @@ public class OnlineMarketplaceRepository {
             "WHERE sp.online_delivery = TRUE " +
             "  AND sp.is_active = TRUE " +
             "  AND sp.stock_qty > 0 " +
-            "  AND s.is_active = TRUE " +
+            "  AND s.status = 'ACTIVE' " +
             "  AND mc.name IS NOT NULL " +
             "  AND mc.name <> '' " +
             "ORDER BY name ASC " +
@@ -69,7 +69,7 @@ public class OnlineMarketplaceRepository {
             "WHERE sp.online_delivery = TRUE " +
             "  AND sp.is_active = TRUE " +
             "  AND sp.stock_qty > 0 " +
-            "  AND s.is_active = TRUE " +
+            "  AND s.status = 'ACTIVE' " +
             "  AND u.category = 'business' " +
             "  AND COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') IN ('ONLINE', 'BOTH') "
         );
@@ -116,7 +116,7 @@ public class OnlineMarketplaceRepository {
             "WHERE sp.online_delivery = TRUE " +
             "  AND sp.is_active = TRUE " +
             "  AND sp.stock_qty > 0 " +
-            "  AND s.is_active = TRUE " +
+            "  AND s.status = 'ACTIVE' " +
             "  AND u.category = 'merchant' " +
             "  AND COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') IN ('ONLINE', 'BOTH') "
         );

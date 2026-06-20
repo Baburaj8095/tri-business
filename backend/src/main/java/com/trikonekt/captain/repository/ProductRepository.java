@@ -102,7 +102,7 @@ public class ProductRepository {
             "JOIN market_shop s ON p.shop_id = s.id " +
             "LEFT JOIN business_merchantcategory sc ON s.category_id = sc.id " +
             "WHERE p.online_delivery = TRUE AND p.is_active = TRUE " +
-            "AND s.is_active = TRUE AND s.service_mode IN ('ONLINE', 'BOTH') "
+            "AND s.status = 'ACTIVE' AND s.service_mode IN ('ONLINE', 'BOTH') "
         );
         java.util.List<Object> params = new java.util.ArrayList<>();
         if (search != null && !search.isBlank()) {
@@ -130,7 +130,7 @@ public class ProductRepository {
             "JOIN market_shop s ON p.shop_id = s.id " +
             "LEFT JOIN business_merchantcategory sc ON s.category_id = sc.id " +
             "WHERE p.online_delivery = TRUE AND p.is_active = TRUE " +
-            "AND s.is_active = TRUE AND s.service_mode IN ('ONLINE', 'BOTH') " +
+            "AND s.status = 'ACTIVE' AND s.service_mode IN ('ONLINE', 'BOTH') " +
             "AND sc.name IS NOT NULL " +
             "ORDER BY sc.name ASC";
         return jdbc.queryForList(sql, String.class);

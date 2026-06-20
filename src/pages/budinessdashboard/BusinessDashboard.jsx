@@ -225,6 +225,7 @@ const DRAWER_ITEMS = [
   { label: "Orders", action: "orders", icon: HiOutlineBuildingStorefront },
   { label: "Password Reset", action: "passwordReset", icon: LuLock },
   { label: "Add Shop", action: "addShop", icon: LuStore },
+  { label: "Manage Online Products", action: "onlineProducts", icon: LuTag },
   { label: "kyc", action: "kyc", icon: LuShieldCheck },
   { label: "Completed Orders", action: "completedOrders", icon: LuFileText },
   { label: "Terms & Condition", action: "terms", icon: LuBookOpen },
@@ -1704,6 +1705,10 @@ function BusinessDashboard() {
       navigate("/business/shops");
       return;
     }
+    if (action === "onlineProducts") {
+      navigate("/business/online-products");
+      return;
+    }
     if (action === "kyc") {
       setActiveModal("kyc");
       return;
@@ -1930,7 +1935,7 @@ function BusinessDashboard() {
             </Button>
             <Button
               fullWidth
-              onClick={() => navigate("/business/inventory-billing")}
+              onClick={() => navigate("/business/inventory")}
               sx={{
                 borderRadius: 2.5,
                 py: 1.55,
