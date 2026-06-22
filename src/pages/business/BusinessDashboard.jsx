@@ -50,6 +50,8 @@ export default function BusinessDashboard() {
     }
   }, []);
 
+  const [b2bAds, setB2bAds] = useState([]);
+
   useEffect(() => {
     (async () => {
       const [p, s, pp] = await Promise.all([
@@ -70,6 +72,21 @@ export default function BusinessDashboard() {
       });
 
       setHasPrime750(prime750);
+
+      // Fetch B2B Ads
+      try {
+        const token = localStorage.getItem('token_business');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const apiBase = process.env.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
+        const [onlineRes, offlineRes] = await Promise.all([
+          axios.get(`${apiBase}/api/ads/banners?target=BUSINESS_ONLINE_B2B`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${apiBase}/api/ads/banners?target=BUSINESS_OFFLINE_B2B`, { headers }).catch(() => ({ data: [] }))
+        ]);
+        const adsList = [...(onlineRes.data || []), ...(offlineRes.data || [])];
+        setB2bAds(adsList);
+      } catch (err) {
+        console.error('Failed to fetch B2B Ads:', err);
+      }
     })();
   }, []);
 
@@ -267,37 +284,77 @@ export default function BusinessDashboard() {
           </Card>
         )}
 
-        {/* QUICK ACTIONS */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6}>
-            <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none' }}>
-              <CardContent sx={{ p: 2.5, textAlign: 'center' }}>
-                <Box sx={{ fontSize: '2rem', mb: 1 }}>🏪</Box>
-                <Typography sx={{ fontWeight: 900, color: TEXT, mb: 0.5 }}>
-                  {active} Active Shops
-                </Typography>
-                <Typography sx={{ fontSize: '0.9rem', color: TEXT_MUTED, mb: 1.5 }}>
-                  {pending > 0 ? `${pending} pending` : 'All active'}
-                </Typography>
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={() => navigate('/business/shops')}
-                  sx={{
-                    bgcolor: PRIMARY,
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    borderRadius: '10px',
-                    '&:hover': { bgcolor: PRIMARY_DARK }
+        {/* B2B ADS CAROUSEL */}
+        {b2bAds.length > 0 && (
+          <Box sx={{ mb: 3 }}>
+            <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: TEXT, mb: 1.5 }}>
+              📢 B2B Offers & Featured Promos
+            </Typography>
+            <Stack direction="row" spacing={2} sx={{ overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { display: 'none' } }}>
+              {b2bAds.map(ad => (
+                <Card 
+                  key={ad.id} 
+                  onClick={() => ad.target_url && window.open(ad.target_url, '_blank')}
+                  sx={{ 
+                    minWidth: { xs: 260, sm: 320 }, 
+                    maxWidth: 320, 
+                    borderRadius: '16px', 
+                    border: `1px solid ${BORDER}`, 
+                    boxShadow: 'none',
+                    cursor: ad.target_url ? 'pointer' : 'default',
+                    overflow: 'hidden'
                   }}
                 >
-                  Manage Shops
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
+                  <Box sx={{ height: 120, background: `url(${ad.image_url}) center/cover no-repeat` }} />
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: TEXT, mb: 0.5 }}>
+                      {ad.title}
+                    </Typography>
+                    {ad.description && (
+                      <Typography sx={{ fontSize: '0.78rem', color: TEXT_SECONDARY, lineHeight: 1.3 }}>
+                        {ad.description}
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </Stack>
+          </Box>
+        )}
 
-          <Grid item xs={12} sm={6}>
+        {/* QUICK ACTIONS */}
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          {isOfflineMerchant && (
+            <Grid item xs={12} sm={6}>
+              <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none' }}>
+                <CardContent sx={{ p: 2.5, textAlign: 'center' }}>
+                  <Box sx={{ fontSize: '2rem', mb: 1 }}>🏪</Box>
+                  <Typography sx={{ fontWeight: 900, color: TEXT, mb: 0.5 }}>
+                    {active} Active Shops
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.9rem', color: TEXT_MUTED, mb: 1.5 }}>
+                    {pending > 0 ? `${pending} pending` : 'All active'}
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => navigate('/business/shops')}
+                    sx={{
+                      bgcolor: PRIMARY,
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      borderRadius: '10px',
+                      '&:hover': { bgcolor: PRIMARY_DARK }
+                    }}
+                  >
+                    Manage Shops
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
+
+          <Grid item xs={12} sm={isOfflineMerchant ? 6 : 12}>
             <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none' }}>
               <CardContent sx={{ p: 2.5, textAlign: 'center' }}>
                 <Box sx={{ fontSize: '2rem', mb: 1 }}>👤</Box>
@@ -327,58 +384,62 @@ export default function BusinessDashboard() {
         </Grid>
 
         {/* INVENTORY SECTION */}
-        <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none', mb: 3 }}>
-          <CardContent sx={{ p: 3 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: TEXT, mb: 2 }}>
-              📋 Inventory & Billing
-            </Typography>
-            <Typography sx={{ fontSize: '0.95rem', color: TEXT_SECONDARY, mb: 2 }}>
-              Manage products and billing across all channels
-            </Typography>
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={() => navigate('/business/inventory')}
-              sx={{
-                bgcolor: PRIMARY,
-                textTransform: 'none',
-                fontWeight: 800,
-                borderRadius: '12px',
-                py: 1.2,
-                '&:hover': { bgcolor: PRIMARY_DARK }
-              }}
-            >
-              Tri Inventory & Billing
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* ONLINE B2B SECTION */}
         {isOnlineMerchant && (
           <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none', mb: 3 }}>
             <CardContent sx={{ p: 3 }}>
               <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: TEXT, mb: 2 }}>
-                🌐 Online B2B
+                📋 Inventory & Billing
               </Typography>
               <Typography sx={{ fontSize: '0.95rem', color: TEXT_SECONDARY, mb: 2 }}>
-                Browse products from other B2B sellers or manage only your own online listings.
+                Manage products and billing across all channels
               </Typography>
-              <Stack spacing={1.25}>
-                <Button
-                  variant="contained"
-                  fullWidth
-                  onClick={() => navigate('/business/online-marketplace')}
-                  sx={{
-                    bgcolor: PRIMARY,
-                    textTransform: 'none',
-                    fontWeight: 800,
-                    borderRadius: '12px',
-                    py: 1.2,
-                    '&:hover': { bgcolor: PRIMARY_DARK }
-                  }}
-                >
-                  Browse B2B Online Marketplace
-                </Button>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={() => navigate('/business/inventory')}
+                sx={{
+                  bgcolor: PRIMARY,
+                  textTransform: 'none',
+                  fontWeight: 800,
+                  borderRadius: '12px',
+                  py: 1.2,
+                  '&:hover': { bgcolor: PRIMARY_DARK }
+                }}
+              >
+                Tri Inventory & Billing
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ONLINE B2B SECTION */}
+        <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none', mb: 3 }}>
+          <CardContent sx={{ p: 3 }}>
+            <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: TEXT, mb: 2 }}>
+              🌐 Online B2B Marketplace
+            </Typography>
+            <Typography sx={{ fontSize: '0.95rem', color: TEXT_SECONDARY, mb: 2 }}>
+              {isOnlineMerchant 
+                ? "Browse products from other B2B sellers or manage your own online B2B listings."
+                : "Browse products uploaded by B2B sellers and order stock directly for your physical shop."}
+            </Typography>
+            <Stack spacing={1.25}>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={() => navigate('/business/online-marketplace')}
+                sx={{
+                  bgcolor: PRIMARY,
+                  textTransform: 'none',
+                  fontWeight: 800,
+                  borderRadius: '12px',
+                  py: 1.2,
+                  '&:hover': { bgcolor: PRIMARY_DARK }
+                }}
+              >
+                Browse B2B Online Marketplace
+              </Button>
+              {isOnlineMerchant && (
                 <Button
                   variant="outlined"
                   fullWidth
@@ -395,13 +456,13 @@ export default function BusinessDashboard() {
                 >
                   Manage My Online Products
                 </Button>
-              </Stack>
-            </CardContent>
-          </Card>
-        )}
+              )}
+            </Stack>
+          </CardContent>
+        </Card>
 
         {/* GO PUBLIC SECTION */}
-        {active > 0 && (
+        {isOfflineMerchant && active > 0 && (
           <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none', mb: 3 }}>
             <CardContent sx={{ p: 3 }}>
               <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: TEXT, mb: 2 }}>

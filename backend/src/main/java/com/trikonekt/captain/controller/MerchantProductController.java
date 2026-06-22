@@ -90,6 +90,7 @@ public class MerchantProductController {
             @RequestParam(value = "offline_delivery", required = false, defaultValue = "true") Boolean offlineDelivery,
             @RequestParam(value = "stock_qty", required = false, defaultValue = "0") Integer stockQty,
             @RequestParam(value = "is_active", required = false, defaultValue = "true") Boolean isActive,
+            @RequestParam(value = "category", required = false, defaultValue = "") String category,
             @RequestParam(value = "image", required = false) MultipartFile image
     ) {
         Long userId = extractUserIdFromToken(authHeader);
@@ -117,7 +118,8 @@ public class MerchantProductController {
                 offlineDelivery,
                 stockQty,
                 imageUrl,
-                isActive
+                isActive,
+                category
         );
 
         Map<String, Object> response = new HashMap<>();
@@ -143,6 +145,7 @@ public class MerchantProductController {
             @RequestParam(value = "offline_delivery", required = false) Boolean offlineDelivery,
             @RequestParam(value = "stock_qty", required = false) Integer stockQty,
             @RequestParam(value = "is_active", required = false) Boolean isActive,
+            @RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "image", required = false) MultipartFile image
     ) {
         Long userId = extractUserIdFromToken(authHeader);
@@ -164,6 +167,7 @@ public class MerchantProductController {
         Boolean finalOffline = offlineDelivery != null ? offlineDelivery : existing.getOfflineDelivery();
         Integer finalStock = stockQty != null ? stockQty : existing.getStockQty();
         Boolean finalActive = isActive != null ? isActive : existing.getIs_active();
+        String finalCategory = category != null ? category : existing.getCategory();
 
         String imageUrl = existing.getImage();
         if (image != null && !image.isEmpty()) {
@@ -181,7 +185,8 @@ public class MerchantProductController {
                 finalOffline,
                 finalStock,
                 imageUrl,
-                finalActive
+                finalActive,
+                finalCategory
         );
 
         Map<String, Object> response = new HashMap<>();

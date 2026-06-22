@@ -24,6 +24,7 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { getMerchantProfile } from '../../api/api';
 
 /* ─── Design tokens (match BusinessDashboard) ─────────────────────────────── */
 const P  = '#228B22';
@@ -82,6 +83,15 @@ const DISPLAY_TARGETS = [
     bg: '#fff7ed',
     icon: <B2BIcon fontSize="small" />,
     desc: 'Shown on the Business Dashboard Online B2B ads section (visible to other merchants)',
+  },
+  {
+    value: 'BUSINESS_OFFLINE_B2B',
+    label: 'Business Platform — Offline B2B',
+    badge: 'B2B Offline',
+    color: '#eab308',
+    bg: '#fef9c3',
+    icon: <B2BIcon fontSize="small" />,
+    desc: 'Shown on the Business Dashboard Offline B2B ads section (visible to other merchants)',
   },
 ];
 
@@ -228,8 +238,37 @@ export default function AdsManagerPage() {
   const [toast, setToast]           = useState({ open: false, msg: '', type: 'success' });
   const [deleteId, setDeleteId]     = useState(null);
   const [activeFilter, setActiveFilter] = useState('ALL');
+  
+  const [profile, setProfile] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [expiryDays, setExpiryDays] = useState('');
 
   const token = localStorage.getItem('token_business');
+
+  const getSelectableTargets = useCallback(() => {
+    if (!profile) return DISPLAY_TARGETS;
+    const isB2B = profile.category === 'merchant' || profile.category === 'merchant_business';
+    const serviceMode = profile.service_mode || 'OFFLINE';
+    
+    const targets = [];
+    if (isB2B) {
+      if (serviceMode === 'ONLINE' || serviceMode === 'BOTH') {
+        targets.push(DISPLAY_TARGETS.find(t => t.value === 'BUSINESS_ONLINE_B2B'));
+      }
+      if (serviceMode === 'OFFLINE' || serviceMode === 'BOTH') {
+        targets.push(DISPLAY_TARGETS.find(t => t.value === 'BUSINESS_OFFLINE_B2B'));
+      }
+    } else {
+      if (serviceMode === 'ONLINE' || serviceMode === 'BOTH') {
+        targets.push(DISPLAY_TARGETS.find(t => t.value === 'CONSUMER_ONLINE_B2C'));
+        targets.push(DISPLAY_TARGETS.find(t => t.value === 'CONSUMER_TRIZONE_B2C'));
+      }
+      if (serviceMode === 'OFFLINE' || serviceMode === 'BOTH') {
+        targets.push(DISPLAY_TARGETS.find(t => t.value === 'CONSUMER_NEARBY_B2C'));
+      }
+    }
+    return targets.filter(Boolean);
+  }, [profile]);
 
   /* ── Fetch my ads ─────────────────────────────────────────────────────── */
   const loadAds = useCallback(async () => {
@@ -254,12 +293,43 @@ export default function AdsManagerPage() {
   useEffect(() => {
     if (!token) { navigate('/login'); return; }
     loadAds();
+    getMerchantProfile()
+      .then(p => {
+        setProfile(p);
+        // Set default display target based on service mode and category
+        const isB2B = p.category === 'merchant' || p.category === 'merchant_business';
+        const serviceMode = p.service_mode || 'OFFLINE';
+        if (isB2B) {
+          setForm(f => ({ ...f, display_target: serviceMode === 'ONLINE' ? 'BUSINESS_ONLINE_B2B' : 'BUSINESS_OFFLINE_B2B' }));
+        } else {
+          setForm(f => ({ ...f, display_target: serviceMode === 'ONLINE' ? 'CONSUMER_ONLINE_B2C' : 'CONSUMER_NEARBY_B2C' }));
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching profile in AdsManagerPage:', err);
+      });
   }, [loadAds, navigate, token]);
 
   /* ── Dialog helpers ───────────────────────────────────────────────────── */
   const openCreate = () => {
     setEditId(null);
-    setForm(BLANK_FORM);
+    setImageFile(null);
+    setExpiryDays('');
+    // Pick default based on profile
+    let defaultTarget = 'CONSUMER_ONLINE_B2C';
+    if (profile) {
+      const isB2B = profile.category === 'merchant' || profile.category === 'merchant_business';
+      const serviceMode = profile.service_mode || 'OFFLINE';
+      if (isB2B) {
+        defaultTarget = serviceMode === 'ONLINE' ? 'BUSINESS_ONLINE_B2B' : 'BUSINESS_OFFLINE_B2B';
+      } else {
+        defaultTarget = serviceMode === 'ONLINE' ? 'CONSUMER_ONLINE_B2C' : 'CONSUMER_NEARBY_B2C';
+      }
+    }
+    setForm({
+      ...BLANK_FORM,
+      display_target: defaultTarget
+    });
     setDialogOpen(true);
   };
 
@@ -279,30 +349,59 @@ export default function AdsManagerPage() {
       valid_to:       ad.valid_to?.slice(0, 16) || '',
       is_active:      ad.is_active !== false,
     });
+    setImageFile(null);
+    setExpiryDays('');
     setDialogOpen(true);
+  };
+
+  const calculateValidTo = (fromStr, days) => {
+    if (!days) return form.valid_to || null;
+    const baseDate = fromStr ? new Date(fromStr) : new Date();
+    const expiryDate = new Date(baseDate.getTime() + Number(days) * 24 * 60 * 60 * 1000);
+    // Format to YYYY-MM-DDTHH:MM
+    const tzoffset = expiryDate.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(expiryDate.getTime() - tzoffset)).toISOString().slice(0, 16);
+    return localISOTime;
   };
 
   /* ── Save (create / update) ───────────────────────────────────────────── */
   const handleSave = async () => {
-    if (!form.title.trim()) { showToast('Ad title is required', 'error'); return; }
+    if (!form.title.trim()) { showToast('Post Name / Title is required', 'error'); return; }
     setSaving(true);
     try {
       const url = editId
         ? `${CAPTAIN_API}/captain/merchant/ads/${editId}`
         : `${CAPTAIN_API}/captain/merchant/ads`;
       const method = editId ? 'PUT' : 'POST';
-      const payload = {
-        ...form,
-        priority: Number(form.priority) || 10,
-        shop_id:    form.shop_id ? Number(form.shop_id) : null,
-        product_id: form.product_id ? Number(form.product_id) : null,
-        valid_from: form.valid_from || null,
-        valid_to:   form.valid_to || null,
-      };
+
+      let finalValidTo = form.valid_to;
+      if (expiryDays) {
+        finalValidTo = calculateValidTo(form.valid_from, expiryDays);
+      }
+
+      const fd = new FormData();
+      fd.append('ad_type', form.ad_type);
+      fd.append('title', form.title);
+      fd.append('description', form.description || '');
+      fd.append('target_url', form.target_url || '');
+      fd.append('display_target', form.display_target);
+      fd.append('priority', String(Number(form.priority) || 10));
+      if (form.shop_id) fd.append('shop_id', String(form.shop_id));
+      if (form.product_id) fd.append('product_id', String(form.product_id));
+      if (form.valid_from) fd.append('valid_from', form.valid_from);
+      if (finalValidTo) fd.append('valid_to', finalValidTo);
+      fd.append('is_active', String(form.is_active));
+
+      if (imageFile) {
+        fd.append('image', imageFile);
+      } else if (form.image_url) {
+        fd.append('image_url', form.image_url);
+      }
+
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(payload),
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
       });
       const data = await res.json();
       if (res.ok) {
@@ -312,7 +411,8 @@ export default function AdsManagerPage() {
       } else {
         showToast(data.error || 'Failed to save ad', 'error');
       }
-    } catch {
+    } catch (err) {
+      console.error(err);
       showToast('Network error', 'error');
     } finally {
       setSaving(false);
@@ -414,7 +514,7 @@ export default function AdsManagerPage() {
 
         {/* Channel summary cards */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          {DISPLAY_TARGETS.map(dt => (
+          {getSelectableTargets().map(dt => (
             <Grid item xs={6} sm={3} key={dt.value}>
               <Card
                 onClick={() => setActiveFilter(activeFilter === dt.value ? 'ALL' : dt.value)}
@@ -551,7 +651,7 @@ export default function AdsManagerPage() {
                 Display Target — Where will this ad appear?
               </Typography>
               <Stack spacing={1}>
-                {DISPLAY_TARGETS.map(dt => (
+                {getSelectableTargets().map(dt => (
                   <Box
                     key={dt.value}
                     onClick={() => setForm(f => ({ ...f, display_target: dt.value }))}
@@ -585,7 +685,7 @@ export default function AdsManagerPage() {
 
             {/* Core fields */}
             <TextField
-              label="Ad Title *"
+              label="Post Name / Title *"
               value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               fullWidth
@@ -606,10 +706,65 @@ export default function AdsManagerPage() {
               sx={inputSx}
             />
 
+            {/* Media Upload */}
+            <Box>
+              <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: MUT, mb: 1, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Upload Post Media (Photo / Motion Graphic)
+              </Typography>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Button
+                  variant="outlined"
+                  component="label"
+                  size="small"
+                  startIcon={<ImageIcon />}
+                  sx={{ textTransform: 'none', color: P, borderColor: P, '&:hover': { borderColor: PD, bgcolor: 'rgba(34,139,34,0.04)' } }}
+                >
+                  Choose File
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    hidden
+                    onChange={e => {
+                      if (e.target.files && e.target.files[0]) {
+                        setImageFile(e.target.files[0]);
+                        setForm(f => ({ ...f, image_url: '' }));
+                      }
+                    }}
+                  />
+                </Button>
+                <Typography sx={{ fontSize: '0.85rem', color: imageFile ? TXT : MUT, flex: 1, minWidth: 0, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  {imageFile ? imageFile.name : 'No file chosen'}
+                </Typography>
+                {imageFile && (
+                  <IconButton size="small" onClick={() => setImageFile(null)} sx={{ color: ERR }}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                )}
+              </Stack>
+              {imageFile && (
+                <Box
+                  sx={{
+                    mt: 1.5, height: 100, borderRadius: '12px',
+                    background: `url(${URL.createObjectURL(imageFile)}) center/cover no-repeat`,
+                    border: `1.5px solid ${BOR}`,
+                  }}
+                />
+              )}
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Divider sx={{ flex: 1 }} />
+              <Typography sx={{ fontSize: '0.75rem', color: MUT, fontWeight: 700 }}>OR</Typography>
+              <Divider sx={{ flex: 1 }} />
+            </Box>
+
             <TextField
               label="Image URL"
               value={form.image_url}
-              onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))}
+              onChange={e => {
+                setForm(f => ({ ...f, image_url: e.target.value }));
+                if (e.target.value) setImageFile(null);
+              }}
               fullWidth
               size="small"
               placeholder="https://..."
@@ -618,7 +773,7 @@ export default function AdsManagerPage() {
               }}
               sx={inputSx}
             />
-            <ImagePreview url={form.image_url} />
+            {form.image_url && <ImagePreview url={form.image_url} />}
 
             <TextField
               label="Click-through URL (optional)"
@@ -666,6 +821,33 @@ export default function AdsManagerPage() {
               />
             )}
 
+            {/* Expiry Duration */}
+            <Box>
+              <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: MUT, mb: 1, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Expiry Duration
+              </Typography>
+              <TextField
+                select
+                label="Duration"
+                value={expiryDays}
+                onChange={e => {
+                  const val = e.target.value;
+                  setExpiryDays(val);
+                  if (val) {
+                    setForm(f => ({ ...f, valid_to: calculateValidTo(f.valid_from, val) }));
+                  }
+                }}
+                fullWidth
+                size="small"
+                sx={inputSx}
+              >
+                <MenuItem value="">Custom Expiry Date</MenuItem>
+                <MenuItem value="2">2 Days</MenuItem>
+                <MenuItem value="5">5 Days</MenuItem>
+                <MenuItem value="7">7 Days</MenuItem>
+              </TextField>
+            </Box>
+
             {/* Valid dates */}
             <Grid container spacing={1.5}>
               <Grid item xs={6}>
@@ -673,7 +855,16 @@ export default function AdsManagerPage() {
                   label="Valid From"
                   type="datetime-local"
                   value={form.valid_from}
-                  onChange={e => setForm(f => ({ ...f, valid_from: e.target.value }))}
+                  onChange={e => {
+                    const fromVal = e.target.value;
+                    setForm(f => {
+                      const next = { ...f, valid_from: fromVal };
+                      if (expiryDays) {
+                        next.valid_to = calculateValidTo(fromVal, expiryDays);
+                      }
+                      return next;
+                    });
+                  }}
                   fullWidth
                   size="small"
                   InputLabelProps={{ shrink: true }}
@@ -689,6 +880,9 @@ export default function AdsManagerPage() {
                   fullWidth
                   size="small"
                   InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    readOnly: !!expiryDays
+                  }}
                   sx={inputSx}
                 />
               </Grid>

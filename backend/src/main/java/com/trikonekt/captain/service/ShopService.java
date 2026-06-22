@@ -73,6 +73,7 @@ public class ShopService {
                 normalizeDeliveryRadius(request.getDelivery_radius_km()),
                 normalizeMoney(request.getMin_order_value()),
                 normalizeMoney(request.getBase_delivery_fee()),
+                normalizeMoney(request.getDiscount_percent()),
                 now
             );
 
@@ -249,6 +250,9 @@ public class ShopService {
             Double baseDeliveryFee = request.getBase_delivery_fee() != null
                 ? normalizeMoney(request.getBase_delivery_fee())
                 : normalizeMoney(existing.getBaseDeliveryFee());
+            Double discountPercent = request.getDiscount_percent() != null
+                ? normalizeMoney(request.getDiscount_percent())
+                : normalizeMoney(existing.getDiscountPercent());
 
             int rowsUpdated = shopRepository.updateShop(
                 shopId,
@@ -266,7 +270,8 @@ public class ShopService {
                 homeDeliveryEnabled,
                 deliveryRadiusKm,
                 minOrderValue,
-                baseDeliveryFee
+                baseDeliveryFee,
+                discountPercent
             );
 
             if (rowsUpdated == 0) {

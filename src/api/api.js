@@ -385,6 +385,11 @@ function redact(value) {
 /* Performance: defaults, GET caching, and request de-duplication (latest wins). */
 API.interceptors.request.use((config) => {
   try {
+    // Dynamically set baseURL based on current page namespace/pathname (SPA routing support)
+    if (!config.baseURL) {
+      config.baseURL = getBaseURLForNamespace();
+    }
+
     // Apply default timeout if not provided
     if (config.timeout == null) {
       config.timeout = DEFAULT_TIMEOUT;
@@ -1445,6 +1450,7 @@ export async function createShop({
   delivery_radius_km = 5,
   min_order_value = 0,
   base_delivery_fee = 0,
+  discount_percent = 0,
   business_logo = null,
   business_documents = [],
 } = {}) {
@@ -1470,6 +1476,7 @@ export async function createShop({
   fd.append("delivery_radius_km", String(Math.min(Number(delivery_radius_km) || 5, 25)));
   fd.append("min_order_value", String(Math.max(Number(min_order_value) || 0, 0)));
   fd.append("base_delivery_fee", String(Math.max(Number(base_delivery_fee) || 0, 0)));
+  fd.append("discount_percent", String(Math.max(0, Math.min(100, Number(discount_percent) || 0))));
   if (business_logo) fd.append("business_logo", business_logo);
   if (Array.isArray(business_documents)) {
     business_documents.forEach((doc, idx) => {
@@ -1502,8 +1509,10 @@ export async function updateShop(id, {
   delivery_radius_km,
   min_order_value,
   base_delivery_fee,
+  discount_percent,
   business_logo,
   business_documents,
+  is_active,
 } = {}) {
   const fd = new FormData();
   if (shop_name !== undefined) fd.append("shop_name", String(shop_name));
@@ -1527,7 +1536,12 @@ export async function updateShop(id, {
   if (delivery_radius_km !== undefined) fd.append("delivery_radius_km", String(Math.min(Number(delivery_radius_km) || 5, 25)));
   if (min_order_value !== undefined) fd.append("min_order_value", String(Math.max(Number(min_order_value) || 0, 0)));
   if (base_delivery_fee !== undefined) fd.append("base_delivery_fee", String(Math.max(Number(base_delivery_fee) || 0, 0)));
+  if (discount_percent !== undefined) fd.append("discount_percent", String(Math.max(0, Math.min(100, Number(discount_percent) || 0))));
   if (business_logo !== undefined && business_logo !== null) fd.append("business_logo", business_logo);
+  if (is_active !== undefined) {
+    fd.append("is_active", String(Boolean(is_active)));
+    fd.append("active", String(Boolean(is_active)));
+  }
   if (Array.isArray(business_documents)) {
     business_documents.forEach((doc, idx) => {
       fd.append(`document_${idx}`, doc);
@@ -1577,6 +1591,7 @@ export async function createMyShopProduct(shopId, {
   stock_qty = 0,
   is_active = true,
   image = null,
+  category = "",
 } = {}) {
   const fd = new FormData();
   if (title != null) fd.append("title", String(title));
@@ -1590,6 +1605,7 @@ export async function createMyShopProduct(shopId, {
   if (stock_qty != null) fd.append("stock_qty", String(stock_qty));
   if (is_active != null) fd.append("is_active", String(Boolean(is_active)));
   if (image) fd.append("image", image);
+  if (category) fd.append("category", String(category));
 
   const res = await API.post(
     `/captain/merchant/shops/${encodeURIComponent(shopId)}/products`,
@@ -1618,6 +1634,7 @@ export async function updateMyShopProduct(productId, patch = {}) {
   append("stock_qty", patch.stock_qty);
   if ("is_active" in patch) append("is_active", Boolean(patch.is_active));
   if ("image" in patch && patch.image != null) append("image", patch.image);
+  if (patch.category !== undefined) append("category", patch.category);
 
   const res = await API.patch(
     `/captain/merchant/products/${encodeURIComponent(productId)}`,

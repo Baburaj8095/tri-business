@@ -23,7 +23,7 @@ public class ProductRepository {
      */
     public Optional<ShopProductResponse> findProductById(Long id) {
         String sql = "SELECT id, shop_id, title, description, mrp, price, discount_percent, " +
-                "online_delivery, offline_delivery, stock_qty, image, is_active, created_at " +
+                "online_delivery, offline_delivery, stock_qty, image, is_active, created_at, category " +
                 "FROM market_shopproduct WHERE id = ?";
         List<ShopProductResponse> list = jdbc.query(sql, new Object[]{id}, this::mapProduct);
         return list.stream().findFirst();
@@ -34,11 +34,11 @@ public class ProductRepository {
      */
     public int insertProduct(Long shopId, String title, String description, Double mrp, Double price,
                               Double discountPercent, Boolean onlineDelivery, Boolean offlineDelivery,
-                              Integer stockQty, String image, Boolean isActive) {
+                              Integer stockQty, String image, Boolean isActive, String category) {
         String sql = "INSERT INTO market_shopproduct (" +
                 "shop_id, title, description, mrp, price, discount_percent, " +
-                "online_delivery, offline_delivery, stock_qty, image, is_active, created_at" +
-                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+                "online_delivery, offline_delivery, stock_qty, image, is_active, created_at, category" +
+                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)";
 
         return jdbc.update(sql,
                 shopId,
@@ -51,7 +51,8 @@ public class ProductRepository {
                 offlineDelivery,
                 stockQty,
                 image,
-                isActive
+                isActive,
+                category
         );
     }
 
@@ -60,10 +61,10 @@ public class ProductRepository {
      */
     public int updateProduct(Long id, String title, String description, Double mrp, Double price,
                               Double discountPercent, Boolean onlineDelivery, Boolean offlineDelivery,
-                              Integer stockQty, String image, Boolean isActive) {
+                              Integer stockQty, String image, Boolean isActive, String category) {
         String sql = "UPDATE market_shopproduct SET " +
                 "title = ?, description = ?, mrp = ?, price = ?, discount_percent = ?, " +
-                "online_delivery = ?, offline_delivery = ?, stock_qty = ?, image = ?, is_active = ? " +
+                "online_delivery = ?, offline_delivery = ?, stock_qty = ?, image = ?, is_active = ?, category = ? " +
                 "WHERE id = ?";
 
         return jdbc.update(sql,
@@ -77,8 +78,22 @@ public class ProductRepository {
                 stockQty,
                 image,
                 isActive,
+                category,
                 id
         );
+    }
+
+    public int insertProduct(Long shopId, String title, String description, Double mrp, Double price,
+                              Double discountPercent, Boolean onlineDelivery, Boolean offlineDelivery,
+                              Integer stockQty, String image, Boolean isActive) {
+        return insertProduct(shopId, title, description, mrp, price, discountPercent, onlineDelivery, offlineDelivery, stockQty, image, isActive, null);
+    }
+
+    public int updateProduct(Long id, String title, String description, Double mrp, Double price,
+                              Double discountPercent, Boolean onlineDelivery, Boolean offlineDelivery,
+                              Integer stockQty, String image, Boolean isActive) {
+        String existingCategory = findProductById(id).map(ShopProductResponse::getCategory).orElse(null);
+        return updateProduct(id, title, description, mrp, price, discountPercent, onlineDelivery, offlineDelivery, stockQty, image, isActive, existingCategory);
     }
 
     /**
@@ -171,6 +186,7 @@ public class ProductRepository {
                 .image(rs.getString("image"))
                 .is_active(rs.getBoolean("is_active"))
                 .createdAt(rs.getString("created_at"))
+                .category(rs.getString("category"))
                 .build();
     }
 }

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
+  Grid,
   Typography,
   Card,
   CardContent,
@@ -12,9 +13,32 @@ import {
   MenuItem,
   TextareaAutosize,
   FormHelperText,
+  CircularProgress,
+  Alert,
+  Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
+  IconButton,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+
+import {
+  getMerchantProfile,
+  listMyShops,
+  createShop,
+  getMerchantCategories,
+  createMyShopProduct,
+  listMyShopProducts,
+} from "../../api/api";
 
 const PRODUCT_CATEGORIES = [
   "Electronics",
@@ -47,7 +71,7 @@ function TabPanel(props) {
   );
 }
 
-function AddProductForm({ tabType, onSubmit }) {
+function AddProductForm({ tabType, onSubmit, submitting, categories = [] }) {
   const [formData, setFormData] = useState({
     productName: "",
     category: "",
@@ -72,6 +96,7 @@ function AddProductForm({ tabType, onSubmit }) {
       newErrors.quantity = "Quantity must be a valid number";
     }
     if (!formData.description.trim()) newErrors.description = "Description is required";
+    if (!formData.image) newErrors.image = "Product image is mandatory";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -97,24 +122,28 @@ function AddProductForm({ tabType, onSubmit }) {
         ...prev,
         image: file,
       }));
+      if (errors.image) {
+        setErrors((prev) => ({
+          ...prev,
+          image: "",
+        }));
+      }
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit({
-        ...formData,
-        type: tabType,
-      });
-      // Reset form
-      setFormData({
-        productName: "",
-        category: "",
-        price: "",
-        quantity: "",
-        description: "",
-        image: null,
+      onSubmit(formData, () => {
+        // Reset form callback
+        setFormData({
+          productName: "",
+          category: "",
+          price: "",
+          quantity: "",
+          description: "",
+          image: null,
+        });
       });
     }
   };
@@ -145,17 +174,20 @@ function AddProductForm({ tabType, onSubmit }) {
           helperText={errors.category}
           variant="outlined"
         >
-          {PRODUCT_CATEGORIES.map((cat) => (
-            <MenuItem key={cat} value={cat}>
-              {cat}
-            </MenuItem>
-          ))}
+          {(categories.length > 0 ? categories : PRODUCT_CATEGORIES).map((cat) => {
+            const name = typeof cat === "string" ? cat : cat.name || cat;
+            return (
+              <MenuItem key={name} value={name}>
+                {name}
+              </MenuItem>
+            );
+          })}
         </TextField>
 
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
           <TextField
             fullWidth
-            label="Price"
+            label="Price (₹)"
             name="price"
             type="number"
             value={formData.price}
@@ -169,7 +201,7 @@ function AddProductForm({ tabType, onSubmit }) {
 
           <TextField
             fullWidth
-            label="Quantity"
+            label="Stock Quantity"
             name="quantity"
             type="number"
             value={formData.quantity}
@@ -225,25 +257,32 @@ function AddProductForm({ tabType, onSubmit }) {
               startIcon={<CloudUploadIcon />}
               sx={{
                 py: 2,
-                border: "2px dashed #ccc",
+                border: errors.image ? "2px dashed #d32f2f" : "2px dashed #ccc",
                 "&:hover": {
-                  borderColor: "#1976d2",
-                  bgcolor: "rgba(25, 118, 210, 0.04)",
+                  borderColor: "#228B22",
+                  bgcolor: "rgba(34, 139, 34, 0.04)",
                 },
               }}
             >
-              {formData.image ? formData.image.name : "Upload Product Image"}
+              {formData.image ? formData.image.name : "Upload Product Image *"}
             </Button>
           </label>
+          {errors.image && (
+            <FormHelperText error sx={{ mt: 0.5 }}>{errors.image}</FormHelperText>
+          )}
+          <FormHelperText sx={{ mt: 0.5 }}>
+            Supported formats: JPG, PNG, WebP. Recommended: Square image (1:1 aspect ratio).
+          </FormHelperText>
         </Box>
 
         <Button
           type="submit"
           variant="contained"
+          disabled={submitting}
           fullWidth
-          sx={{ py: 1.5, fontWeight: 600 }}
+          sx={{ py: 1.5, fontWeight: 800, bgcolor: "#228B22", "&:hover": { bgcolor: "#1B4D3E" } }}
         >
-          Add Product ({tabType})
+          {submitting ? <CircularProgress size={24} color="inherit" /> : `Add Product (${tabType})`}
         </Button>
       </Stack>
     </form>
@@ -253,16 +292,128 @@ function AddProductForm({ tabType, onSubmit }) {
 export default function InventoryPage() {
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
+  const [profile, setProfile] = useState(null);
+  const [onlineShop, setOnlineShop] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [onlineCategories, setOnlineCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submittingProduct, setSubmittingProduct] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const fetchInventory = useCallback(async (shopId) => {
+    try {
+      const data = await listMyShopProducts(shopId);
+      setProducts(Array.isArray(data) ? data : data?.results || []);
+    } catch (err) {
+      console.error("Failed to fetch shop products:", err);
+    }
+  }, []);
+
+  const initInventory = useCallback(async () => {
+    setLoading(true);
+    setErrorMessage("");
+    try {
+      const p = await getMerchantProfile().catch(() => null);
+      setProfile(p);
+
+      const shopsList = await listMyShops().catch(() => []);
+      // Search for an existing ONLINE shop
+      let activeShop = shopsList.find((s) => s.serviceMode === "ONLINE" || s.service_mode === "ONLINE");
+
+      if (!activeShop && p) {
+        // Fetch categories to set a valid category reference
+        const categories = await getMerchantCategories().catch(() => []);
+        const catId = categories[0]?.id || 1;
+
+        // Auto-create a default online shop under-the-hood
+        await createShop({
+          shop_name: "Default Online Store",
+          address: p.address || "Online Store Address",
+          city: p.city || "Online",
+          state: "Online",
+          pincode: p.pincode || "100000",
+          contact_number: p.phone || p.mobileNumber || "0000000000",
+          category: catId,
+          home_delivery_enabled: true,
+          delivery_radius_km: 25,
+          min_order_value: 0,
+          base_delivery_fee: 0,
+        });
+
+        // Refetch shops to obtain the created shop's ID
+        const updatedShops = await listMyShops().catch(() => []);
+        activeShop = updatedShops.find((s) => s.serviceMode === "ONLINE" || s.service_mode === "ONLINE");
+      }
+
+      // Fetch online categories
+      try {
+        const captainApiUrl =
+          process.env.REACT_APP_CAPTAIN_API_URL || "https://api-captain.trikonektbusiness.com/api";
+        const response = await fetch(`${captainApiUrl}/captain/shops/online/categories`);
+        if (response.ok) {
+          const data = await response.json();
+          setOnlineCategories(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        console.error("Failed to load online categories:", err);
+      }
+
+      if (activeShop) {
+        setOnlineShop(activeShop);
+        await fetchInventory(activeShop.id);
+      } else {
+        setErrorMessage("Unable to find or auto-create your default online store.");
+      }
+    } catch (err) {
+      console.error("Initialization error:", err);
+      setErrorMessage("Failed to load inventory. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchInventory]);
+
+  useEffect(() => {
+    initInventory();
+  }, [initInventory]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
-  const handleProductSubmit = (data) => {
-    console.log("Product added:", data);
-    setSuccessMessage(`Product added successfully to ${data.type}!`);
-    setTimeout(() => setSuccessMessage(""), 3000);
+  const handleProductSubmit = async (formData, resetCallback) => {
+    if (!onlineShop) {
+      setErrorMessage("No active online store is registered to link this product.");
+      return;
+    }
+    setSubmittingProduct(true);
+    setErrorMessage("");
+    try {
+      const payload = {
+        title: formData.productName,
+        description: formData.description,
+        mrp: Number(formData.price),
+        price: Number(formData.price),
+        discount_percent: 0,
+        online_delivery: true,
+        offline_delivery: false,
+        stock_qty: Number(formData.quantity),
+        image: formData.image,
+        category: formData.category,
+      };
+
+      await createMyShopProduct(onlineShop.id, payload);
+      setSuccessMessage(`Product "${formData.productName}" added successfully to your online store catalog!`);
+      resetCallback();
+      // Reload inventory list
+      await fetchInventory(onlineShop.id);
+      setTimeout(() => setSuccessMessage(""), 4000);
+    } catch (err) {
+      console.error("Failed to add product:", err);
+      setErrorMessage(err?.response?.data?.message || err?.message || "Failed to add product to catalog.");
+    } finally {
+      setSubmittingProduct(false);
+    }
   };
 
   const tabTypes = ["Online", "Offline", "Trizone"];
@@ -270,92 +421,173 @@ export default function InventoryPage() {
   return (
     <Box
       sx={{
-        p: 2,
+        p: { xs: 2, md: 3 },
         bgcolor: "#f1f5f9",
         minHeight: "100vh",
       }}
     >
       {/* HEADER */}
-      <Box mb={3}>
-        <Typography fontSize={24} fontWeight={900}>
-          Inventory & Billing
-        </Typography>
-        <Typography color="text.secondary">
-          Manage products across Online, Offline, and Trizone channels
-        </Typography>
-      </Box>
-
-      {/* SUCCESS MESSAGE */}
-      {successMessage && (
-        <Card
+      <Stack direction="row" alignItems="center" spacing={2} mb={3}>
+        <IconButton
+          onClick={() => navigate("/business-dashboard")}
           sx={{
-            mb: 2,
-            borderRadius: 2,
-            background: "linear-gradient(90deg, #10b981, #34d399)",
-            color: "#fff",
+            bgcolor: "#fff",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+            color: "#228B22",
+            "&:hover": { bgcolor: "rgba(34, 139, 34, 0.08)" }
           }}
         >
-          <CardContent sx={{ py: 1.5 }}>
-            <Typography fontWeight={600}>{successMessage}</Typography>
-          </CardContent>
-        </Card>
+          <ArrowBackIcon />
+        </IconButton>
+        <Box>
+          <Typography fontSize={24} fontWeight={900}>
+            Inventory & Billing
+          </Typography>
+          <Typography color="text.secondary" fontSize="0.95rem">
+            Manage online products, stock counts, and view catalogs
+          </Typography>
+        </Box>
+      </Stack>
+
+      {/* ERROR/SUCCESS MESSAGES */}
+      {successMessage && (
+        <Alert severity="success" sx={{ mb: 3, borderRadius: "12px", fontWeight: 700 }} onClose={() => setSuccessMessage("")}>
+          {successMessage}
+        </Alert>
+      )}
+      {errorMessage && (
+        <Alert severity="error" sx={{ mb: 3, borderRadius: "12px", fontWeight: 700 }} onClose={() => setErrorMessage("")}>
+          {errorMessage}
+        </Alert>
       )}
 
-      {/* ADD PRODUCT FORM */}
-      <Card sx={{ borderRadius: 3 }}>
-        <CardContent>
-          <Typography fontWeight={800} mb={2}>
-            Add New Product
-          </Typography>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress color="success" />
+        </Box>
+      ) : (
+        <Grid container spacing={3}>
+          {/* Left: Product Creation Form */}
+          <Grid item xs={12} md={5}>
+            <Card sx={{ borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography fontWeight={800} mb={2} variant="h6">
+                  Add New Product
+                </Typography>
 
-          {/* TABS */}
-          <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              aria-label="product type tabs"
-              sx={{
-                "& .MuiTab-root": {
-                  textTransform: "none",
-                  fontWeight: 600,
-                  fontSize: "14px",
-                },
-                "& .MuiTab-root.Mui-selected": {
-                  color: "#1976d2",
-                },
-              }}
-            >
-              {tabTypes.map((type) => (
-                <Tab
-                  key={type}
-                  label={type}
-                  id={`tab-${type}`}
-                  aria-controls={`tabpanel-${type}`}
-                />
-              ))}
-            </Tabs>
-          </Box>
+                {/* TABS */}
+                <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
+                  <Tabs
+                    value={tabValue}
+                    onChange={handleTabChange}
+                    aria-label="product type tabs"
+                    sx={{
+                      "& .MuiTab-root": {
+                        textTransform: "none",
+                        fontWeight: 700,
+                        fontSize: "14px",
+                      },
+                      "& .MuiTab-root.Mui-selected": {
+                        color: "#228B22",
+                      },
+                      "& .MuiTabs-indicator": {
+                        bgcolor: "#228B22",
+                      }
+                    }}
+                  >
+                    <Tab label="Online" id="tab-Online" aria-controls="tabpanel-Online" />
+                    <Tab label="Offline" id="tab-Offline" aria-controls="tabpanel-Offline" disabled />
+                    <Tab label="TriZone (Coming Soon)" id="tab-Trizone" aria-controls="tabpanel-Trizone" disabled />
+                  </Tabs>
+                </Box>
 
-          {/* TAB CONTENT */}
-          {tabTypes.map((type, index) => (
-            <TabPanel key={type} value={tabValue} index={index}>
-              <AddProductForm
-                tabType={type}
-                onSubmit={handleProductSubmit}
-              />
-            </TabPanel>
-          ))}
-        </CardContent>
-      </Card>
+                {/* TAB CONTENT */}
+                <TabPanel value={tabValue} index={0}>
+                  <AddProductForm
+                    tabType="Online"
+                    onSubmit={handleProductSubmit}
+                    submitting={submittingProduct}
+                    categories={onlineCategories}
+                  />
+                </TabPanel>
+              </CardContent>
+            </Card>
+          </Grid>
 
-      {/* BACK BUTTON */}
-      <Button
-        variant="outlined"
-        onClick={() => navigate("/business-dashboard")}
-        sx={{ mt: 3 }}
-      >
-        Back to Dashboard
-      </Button>
+          {/* Right: Products Catalog Listing */}
+          <Grid item xs={12} md={7}>
+            <Card sx={{ borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.03)", height: "100%" }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography fontWeight={900} variant="h6" mb={2.5}>
+                  📦 Active Product Catalog ({products.length})
+                </Typography>
+
+                {products.length === 0 ? (
+                  <Box sx={{ py: 6, textAlign: 'center' }}>
+                    <Typography color="text.secondary" fontWeight={600}>
+                      No products in your catalog yet.
+                    </Typography>
+                    <Typography fontSize="0.82rem" color="text.secondary" mt={0.5}>
+                      Add products on the left to register them to your default online shop.
+                    </Typography>
+                  </Box>
+                ) : (
+                  <TableContainer component={Paper} sx={{ boxShadow: "none", border: "1px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
+                    <Table size="small">
+                      <TableHead sx={{ bgcolor: "#f8fafc" }}>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 800, py: 1.5 }}>Image</TableCell>
+                          <TableCell sx={{ fontWeight: 800 }}>Product Name</TableCell>
+                          <TableCell sx={{ fontWeight: 800 }}>Category</TableCell>
+                          <TableCell sx={{ fontWeight: 800 }} align="right">Price (₹)</TableCell>
+                          <TableCell sx={{ fontWeight: 800 }} align="right">Stock Qty</TableCell>
+                          <TableCell sx={{ fontWeight: 800 }} align="center">Status</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {products.map((p) => (
+                          <TableRow key={p.id} hover>
+                            <TableCell sx={{ py: 1 }}>
+                              <Box
+                                sx={{
+                                  width: 40,
+                                  height: 40,
+                                  borderRadius: "8px",
+                                  background: p.image ? `url(${p.image}) center/cover no-repeat` : "#f1f5f9",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  border: "1px solid #e2e8f0"
+                                }}
+                              >
+                                {!p.image && <ShoppingBagIcon sx={{ color: "#94a3b8", fontSize: 20 }} />}
+                              </Box>
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>{p.title}</TableCell>
+                            <TableCell sx={{ color: "#475569", fontWeight: 600 }}>{p.category || "General"}</TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 800, color: "#228B22" }}>
+                              ₹{Number(p.price).toFixed(2)}
+                            </TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 700 }}>{p.stock_qty || p.stockQty || 0}</TableCell>
+                            <TableCell align="center">
+                              <Chip
+                                label={p.is_active || p.is_active === undefined ? "Active" : "Inactive"}
+                                size="small"
+                                color="success"
+                                sx={{ fontWeight: 800, fontSize: "0.68rem" }}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
     </Box>
   );
 }

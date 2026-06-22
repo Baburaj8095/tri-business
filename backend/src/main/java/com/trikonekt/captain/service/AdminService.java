@@ -164,6 +164,41 @@ public class AdminService {
         adminRepository.deleteSubAdmin(subAdminId);
     }
 
+    public List<Map<String, Object>> getOnlineProducts(String token) {
+        verifyAdminToken(token, "captains");
+        return adminRepository.listAllOnlineProducts();
+    }
+
+    public void updateProductStatus(String token, long productId, boolean active) {
+        verifyAdminToken(token, "captains");
+        adminRepository.updateProductStatus(productId, active);
+    }
+
+    public void deleteProduct(String token, long productId) {
+        verifyAdminToken(token, "captains");
+        adminRepository.deleteProduct(productId);
+    }
+
+    public List<Map<String, Object>> getShops(String token) {
+        verifyAdminToken(token, "captains");
+        return adminRepository.listAllShops();
+    }
+
+    public void updateShopStatus(String token, long shopId, boolean active) {
+        verifyAdminToken(token, "captains");
+        adminRepository.updateShopStatus(shopId, active);
+    }
+
+    public void deleteShop(String token, long shopId) {
+        verifyAdminToken(token, "captains");
+        adminRepository.deleteShop(shopId);
+    }
+
+    public List<Map<String, Object>> getShopProducts(String token, long shopId) {
+        verifyAdminToken(token, "captains");
+        return adminRepository.listShopProducts(shopId);
+    }
+
     // Helper to extract claims and check module permissions
     private Claims verifyAdminToken(String authHeader, String requiredModule) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {

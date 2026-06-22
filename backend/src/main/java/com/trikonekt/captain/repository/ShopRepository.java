@@ -26,7 +26,7 @@ public class ShopRepository {
         return jdbc.query(
             "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
             "contact_number, shop_image, category_id, subcategory_id, " +
-            "status, created_at, service_mode, home_delivery_enabled, delivery_radius_km, min_order_value, base_delivery_fee " +
+            "status, created_at, service_mode, home_delivery_enabled, delivery_radius_km, min_order_value, base_delivery_fee, discount_percent " +
             "FROM market_shop WHERE merchant_id = ? ORDER BY created_at DESC",
             new Object[]{merchantId},
             (rs, rowNum) -> ShopResponse.builder()
@@ -55,6 +55,7 @@ public class ShopRepository {
                 .deliveryRadiusKm(rs.getDouble("delivery_radius_km"))
                 .minOrderValue(rs.getDouble("min_order_value"))
                 .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
+                .discountPercent(rs.getDouble("discount_percent"))
                 .createdAt(rs.getString("created_at"))
                 .updatedAt(rs.getString("created_at"))
                 .build()
@@ -68,7 +69,7 @@ public class ShopRepository {
         List<ShopResponse> result = jdbc.query(
             "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
             "contact_number, shop_image, category_id, subcategory_id, " +
-            "status, created_at, service_mode, home_delivery_enabled, delivery_radius_km, min_order_value, base_delivery_fee " +
+            "status, created_at, service_mode, home_delivery_enabled, delivery_radius_km, min_order_value, base_delivery_fee, discount_percent " +
             "FROM market_shop WHERE id = ? AND status = 'ACTIVE'",
             new Object[]{shopId},
             (rs, rowNum) -> ShopResponse.builder()
@@ -97,6 +98,7 @@ public class ShopRepository {
                 .deliveryRadiusKm(rs.getDouble("delivery_radius_km"))
                 .minOrderValue(rs.getDouble("min_order_value"))
                 .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
+                .discountPercent(rs.getDouble("discount_percent"))
                 .createdAt(rs.getString("created_at"))
                 .updatedAt(rs.getString("created_at"))
                 .build()
@@ -114,7 +116,7 @@ public class ShopRepository {
             "SELECT s.id, s.shop_name, s.address, s.city, s.pincode, s.latitude, s.longitude, " +
             "s.contact_number, s.shop_image, s.category_id, s.subcategory_id, " +
             "s.status, s.created_at, COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') AS service_mode, " +
-            "s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee " +
+            "s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.discount_percent " +
             "FROM market_shop s " +
             "JOIN accounts_customuser u ON s.merchant_id = u.id " +
             "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
@@ -122,7 +124,7 @@ public class ShopRepository {
             "  AND u.category = 'business' " +
             "  AND u.is_active = TRUE " +
             "  AND s.status = 'ACTIVE' " +
-            "  AND COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') IN ('ONLINE', 'BOTH')",
+            "  AND COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') <> 'ONLINE'",
             new Object[]{shopId},
             (rs, rowNum) -> ShopResponse.builder()
                 .id(rs.getLong("id"))
@@ -150,6 +152,7 @@ public class ShopRepository {
                 .deliveryRadiusKm(rs.getDouble("delivery_radius_km"))
                 .minOrderValue(rs.getDouble("min_order_value"))
                 .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
+                .discountPercent(rs.getDouble("discount_percent"))
                 .createdAt(rs.getString("created_at"))
                 .updatedAt(rs.getString("created_at"))
                 .build()
@@ -162,10 +165,16 @@ public class ShopRepository {
      */
     public List<ShopResponse> findAllActiveShops() {
         return jdbc.query(
-            "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
-            "contact_number, shop_image, category_id, subcategory_id, " +
-            "status, created_at, service_mode, home_delivery_enabled, delivery_radius_km, min_order_value, base_delivery_fee " +
-            "FROM market_shop WHERE status = 'ACTIVE' ORDER BY created_at DESC",
+            "SELECT s.id, s.shop_name, s.address, s.city, s.pincode, s.latitude, s.longitude, " +
+            "s.contact_number, s.shop_image, s.category_id, s.subcategory_id, " +
+            "s.status, s.created_at, COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') AS service_mode, " +
+            "s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.discount_percent " +
+            "FROM market_shop s " +
+            "JOIN accounts_customuser u ON s.merchant_id = u.id " +
+            "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
+            "WHERE s.status = 'ACTIVE' " +
+            "  AND COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') <> 'ONLINE' " +
+            "ORDER BY s.created_at DESC",
             (rs, rowNum) -> ShopResponse.builder()
                 .id(rs.getLong("id"))
                 .shop_name(rs.getString("shop_name"))
@@ -192,6 +201,7 @@ public class ShopRepository {
                 .deliveryRadiusKm(rs.getDouble("delivery_radius_km"))
                 .minOrderValue(rs.getDouble("min_order_value"))
                 .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
+                .discountPercent(rs.getDouble("discount_percent"))
                 .createdAt(rs.getString("created_at"))
                 .updatedAt(rs.getString("created_at"))
                 .build()
@@ -327,17 +337,17 @@ public class ShopRepository {
                           Double latitude, Double longitude, String contactNumber, String email, String description,
                           Long categoryId, Long subcategoryId, String gstNumber, String panNumber, String businessRegNumber,
                           Boolean homeDeliveryEnabled, Double deliveryRadiusKm, Double minOrderValue, Double baseDeliveryFee,
-                          String now) {
+                          Double discountPercent, String now) {
         String sql = "INSERT INTO market_shop (" +
             "merchant_id, shop_name, address, city, pincode, latitude, longitude, " +
             "contact_number, category_id, subcategory_id, home_delivery_enabled, delivery_radius_km, " +
-            "min_order_value, base_delivery_fee, status, created_at" +
-            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', NOW())";
+            "min_order_value, base_delivery_fee, discount_percent, status, created_at" +
+            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', NOW())";
 
         return jdbc.update(sql,
             merchantId, shopName, address, city, pincode, latitude, longitude,
             contactNumber, categoryId, subcategoryId, homeDeliveryEnabled, deliveryRadiusKm,
-            minOrderValue, baseDeliveryFee
+            minOrderValue, baseDeliveryFee, discountPercent
         );
     }
 
@@ -348,7 +358,7 @@ public class ShopRepository {
         List<ShopResponse> result = jdbc.query(
             "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
             "contact_number, shop_image, category_id, subcategory_id, " +
-            "status, created_at, service_mode, home_delivery_enabled, delivery_radius_km, min_order_value, base_delivery_fee " +
+            "status, created_at, service_mode, home_delivery_enabled, delivery_radius_km, min_order_value, base_delivery_fee, discount_percent " +
             "FROM market_shop WHERE id = ? AND merchant_id = ?",
             new Object[]{shopId, merchantId},
             (rs, rowNum) -> ShopResponse.builder()
@@ -377,6 +387,7 @@ public class ShopRepository {
                 .deliveryRadiusKm(rs.getDouble("delivery_radius_km"))
                 .minOrderValue(rs.getDouble("min_order_value"))
                 .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
+                .discountPercent(rs.getDouble("discount_percent"))
                 .createdAt(rs.getString("created_at"))
                 .updatedAt(rs.getString("created_at"))
                 .build()
@@ -389,19 +400,21 @@ public class ShopRepository {
      */
     public int updateShop(Long shopId, Long merchantId, String shopName, String address, String city, String state, String pincode,
                           Double latitude, Double longitude, String contactNumber, Long categoryId, Long subcategoryId,
-                          Boolean homeDeliveryEnabled, Double deliveryRadiusKm, Double minOrderValue, Double baseDeliveryFee) {
+                          Boolean homeDeliveryEnabled, Double deliveryRadiusKm, Double minOrderValue, Double baseDeliveryFee,
+                          Double discountPercent) {
         String sql = "UPDATE market_shop SET " +
             "shop_name = ?, address = ?, city = ?, pincode = ?, " +
             "latitude = ?, longitude = ?, contact_number = ?, " +
             "category_id = ?, subcategory_id = ?, home_delivery_enabled = ?, " +
-            "delivery_radius_km = ?, min_order_value = ?, base_delivery_fee = ? " +
+            "delivery_radius_km = ?, min_order_value = ?, base_delivery_fee = ?, " +
+            "discount_percent = ? " +
             "WHERE id = ? AND merchant_id = ?";
 
         return jdbc.update(sql,
             shopName, address, city, pincode,
             latitude, longitude, contactNumber,
             categoryId, subcategoryId, homeDeliveryEnabled, deliveryRadiusKm,
-            minOrderValue, baseDeliveryFee,
+            minOrderValue, baseDeliveryFee, discountPercent,
             shopId, merchantId
         );
     }

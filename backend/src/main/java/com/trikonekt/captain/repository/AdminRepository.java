@@ -272,4 +272,47 @@ public class AdminRepository {
         Integer count = jdbc.queryForObject(sql.toString(), Integer.class, params.toArray());
         return count != null ? count : 0;
     }
+
+    public List<Map<String, Object>> listAllOnlineProducts() {
+        String sql = "SELECT p.id, p.title, p.description, p.mrp, p.price, p.discount_percent, p.stock_qty, p.image, p.is_active, s.shop_name, p.category " +
+                     "FROM market_shopproduct p " +
+                     "JOIN market_shop s ON p.shop_id = s.id " +
+                     "WHERE p.online_delivery = TRUE " +
+                     "ORDER BY p.id DESC";
+        return jdbc.queryForList(sql);
+    }
+
+    public void updateProductStatus(long productId, boolean active) {
+        jdbc.update("UPDATE market_shopproduct SET is_active = ? WHERE id = ?", active, productId);
+    }
+
+    public void deleteProduct(long productId) {
+        jdbc.update("DELETE FROM market_shopproduct WHERE id = ?", productId);
+    }
+
+    public List<Map<String, Object>> listAllShops() {
+        String sql = "SELECT s.id, s.shop_name, s.address, s.city, s.contact_number, s.status, s.discount_percent, s.shop_image, s.banner, s.service_mode, u.full_name AS owner_name " +
+                     "FROM market_shop s " +
+                     "JOIN accounts_customuser u ON s.merchant_id = u.id " +
+                     "ORDER BY s.id DESC";
+        return jdbc.queryForList(sql);
+    }
+
+    public void updateShopStatus(long shopId, boolean active) {
+        String status = active ? "ACTIVE" : "PENDING";
+        jdbc.update("UPDATE market_shop SET is_active = ?, status = ?, updated_at = NOW() WHERE id = ?", active, status, shopId);
+    }
+
+    public void deleteShop(long shopId) {
+        jdbc.update("DELETE FROM market_shopproduct WHERE shop_id = ?", shopId);
+        jdbc.update("DELETE FROM market_shop WHERE id = ?", shopId);
+    }
+
+    public List<Map<String, Object>> listShopProducts(long shopId) {
+        String sql = "SELECT id, title, description, mrp, price, discount_percent, online_delivery, offline_delivery, stock_qty, image, is_active, category " +
+                     "FROM market_shopproduct " +
+                     "WHERE shop_id = ? " +
+                     "ORDER BY id DESC";
+        return jdbc.queryForList(sql, shopId);
+    }
 }

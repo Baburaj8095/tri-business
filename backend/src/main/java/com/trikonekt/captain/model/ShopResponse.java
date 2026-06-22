@@ -47,6 +47,9 @@ public class ShopResponse {
     @JsonProperty("base_delivery_fee")
     private Double baseDeliveryFee;
 
+    @JsonProperty("discount_percent")
+    private Double discountPercent;
+
     @JsonProperty("distance_km")
     private Double distanceKm;
 

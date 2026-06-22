@@ -50,6 +50,7 @@ import {
   deleteShop,
   getMerchantCategories,
   createMerchantCategory,
+  getMerchantProfile,
 } from "../../api/api";
 
 /* ── Design Tokens ── */
@@ -129,9 +130,11 @@ export default function BusinessShops() {
   // Search filter state for category selection
   const [categorySearch, setCategorySearch] = useState("");
 
-  const logoRef = useRef(null);
+  const shopImageRef = useRef(null);
   const bannerRef = useRef(null);
   const docsRef = useRef(null);
+
+  const [profile, setProfile] = useState(null);
 
   const emptyForm = useMemo(
     () => ({
@@ -158,8 +161,7 @@ export default function BusinessShops() {
       delivery_radius_km: "5",
       min_order_value: "0",
       base_delivery_fee: "0",
-      business_logo: null,
-      business_logo_url: "",
+      discount_percent: "",
       business_documents: [],
     }),
     []
@@ -186,6 +188,9 @@ export default function BusinessShops() {
 
   useEffect(() => {
     fetchShops();
+    getMerchantProfile()
+      .then(p => setProfile(p))
+      .catch(err => console.error("Error loading profile in BusinessShops:", err));
   }, []);
 
   useEffect(() => {
@@ -252,13 +257,13 @@ export default function BusinessShops() {
     }
   };
 
-  const handlePickLogo = (e) => {
+  const handlePickShopImage = (e) => {
     const f = e?.target?.files?.[0] || null;
     if (f) {
       setForm((p) => ({
         ...p,
-        business_logo: f,
-        business_logo_url: URL.createObjectURL(f),
+        shop_image: f,
+        shop_image_url: URL.createObjectURL(f),
       }));
     }
   };
@@ -338,8 +343,7 @@ export default function BusinessShops() {
       delivery_radius_km: String(shop.delivery_radius_km ?? 5),
       min_order_value: String(shop.min_order_value ?? 0),
       base_delivery_fee: String(shop.base_delivery_fee ?? 0),
-      business_logo: null,
-      business_logo_url: shop.business_logo || "",
+      discount_percent: String(shop.discountPercent ?? shop.discount_percent ?? 0),
       business_documents: [],
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -371,6 +375,8 @@ export default function BusinessShops() {
     if (!form.state.trim()) { setError("State is required."); return; }
     if (!form.pincode.trim()) { setError("Pincode is required."); return; }
     if (!form.description.trim()) { setError("Description is required."); return; }
+    if (!form.shop_image && !form.shop_image_url) { setError("Shop photo is required."); return; }
+    if (!form.banner && !form.banner_url) { setError("Banner image is required."); return; }
 
     setSaving(true);
     setError("");
@@ -397,7 +403,7 @@ export default function BusinessShops() {
       delivery_radius_km: Math.min(Number(form.delivery_radius_km) || 5, 25),
       min_order_value: Math.max(Number(form.min_order_value) || 0, 0),
       base_delivery_fee: Math.max(Number(form.base_delivery_fee) || 0, 0),
-      business_logo: form.business_logo,
+      discount_percent: Math.max(0, Math.min(100, Number(form.discount_percent) || 0)),
       business_documents: form.business_documents,
     };
 
@@ -472,9 +478,27 @@ export default function BusinessShops() {
               }}
             >
               <CardContent sx={{ p: 3.5 }}>
-                <Typography variant="h6" sx={{ fontWeight: 900, color: T.text, mb: 3.5 }}>
-                  {form.id ? "✏️ Edit Store Details" : "🏪 Add Store"}
-                </Typography>
+                {profile?.service_mode === 'ONLINE' ? (
+                  <Box sx={{ p: 3, textAlign: 'center' }}>
+                    <Alert severity="warning" sx={{ borderRadius: '12px', fontWeight: 700, mb: 3 }}>
+                      Online Store Mode Enabled
+                    </Alert>
+                    <Typography sx={{ fontSize: '0.92rem', color: T.textSecondary, mb: 2.5, fontWeight: 600, lineHeight: 1.5 }}>
+                      As an ONLINE merchant, you do not manage physical shops manually. Your default online store is auto-registered under-the-hood to manage your catalog.
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      onClick={() => navigate('/business/inventory')}
+                      sx={{ bgcolor: T.primary, textTransform: 'none', fontWeight: 800, borderRadius: '10px', '&:hover': { bgcolor: T.primaryDark } }}
+                    >
+                      Manage Online Inventory
+                    </Button>
+                  </Box>
+                ) : (
+                  <>
+                    <Typography variant="h6" sx={{ fontWeight: 900, color: T.text, mb: 3.5 }}>
+                      {form.id ? "✏️ Edit Store Details" : "🏪 Add Store"}
+                    </Typography>
 
                 <Box component="form" onSubmit={handleSubmit}>
                   <Stack spacing={3}>
@@ -703,11 +727,12 @@ export default function BusinessShops() {
                     </Box>
 
                     {/* Logo Select */}
+                    {/* Shop Photo Select */}
                     <Box>
-                      <Typography sx={labelSx}>Logo *</Typography>
-                      <input type="file" ref={logoRef} hidden accept="image/*" onChange={handlePickLogo} />
+                      <Typography sx={labelSx}>Shop Photo *</Typography>
+                      <input type="file" ref={shopImageRef} hidden accept="image/*" onChange={handlePickShopImage} />
                       <Box
-                        onClick={() => logoRef.current?.click()}
+                        onClick={() => shopImageRef.current?.click()}
                         sx={{
                           border: `1.5px solid ${T.border}`,
                           borderRadius: '12px',
@@ -719,14 +744,14 @@ export default function BusinessShops() {
                           '&:hover': { borderColor: T.primary, bgcolor: alpha(T.primary, 0.02) }
                         }}
                       >
-                        {form.business_logo_url ? (
+                        {form.shop_image_url ? (
                           <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
-                            <Avatar src={form.business_logo_url} sx={{ width: 44, height: 44, borderRadius: '8px' }} />
-                            <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: T.text }}>Logo Attached. Tap to change.</Typography>
+                            <Avatar src={form.shop_image_url} sx={{ width: 44, height: 44, borderRadius: '8px' }} />
+                            <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: T.text }}>Shop Photo Attached. Tap to change.</Typography>
                           </Stack>
                         ) : (
                           <Typography sx={{ fontSize: '0.88rem', fontWeight: 600, color: T.textMuted }}>
-                            Tap to select logo
+                            Tap to select shop photo
                           </Typography>
                         )}
                       </Box>
@@ -817,6 +842,25 @@ export default function BusinessShops() {
                           sx={inputSx}
                         />
                       </Stack>
+                    </Box>
+
+                    <Divider sx={{ my: 2, borderColor: T.border }} />
+
+                    {/* Storewide Discount */}
+                    <Box sx={{ p: 2, bgcolor: 'rgba(239, 68, 68, 0.04)', borderRadius: '12px', border: `1px solid rgba(239, 68, 68, 0.15)` }}>
+                      <Typography sx={{ fontWeight: 850, fontSize: '0.92rem', color: '#dc2626', mb: 2 }}>
+                        🏷️ Storewide Discount
+                      </Typography>
+                      <TextField
+                        label="Storewide Discount Percent (%)"
+                        type="number"
+                        fullWidth
+                        value={form.discount_percent}
+                        onChange={(e) => setForm(p => ({ ...p, discount_percent: e.target.value }))}
+                        inputProps={{ min: 0, max: 100, step: 0.1 }}
+                        placeholder="e.g. 10 for 10% off storewide"
+                        sx={inputSx}
+                      />
                     </Box>
 
                     <Divider sx={{ my: 2, borderColor: T.border }} />
@@ -934,6 +978,8 @@ export default function BusinessShops() {
                     </Stack>
                   </Stack>
                 </Box>
+                  </>
+                )}
               </CardContent>
             </Card>
           </Grid>
@@ -1011,7 +1057,24 @@ export default function BusinessShops() {
                           </Typography>
 
                           <Stack spacing={0.75} sx={{ mb: 2 }}>
-                            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mb: 1 }}>
+                              <Chip
+                                size="small"
+                                label={s.serviceMode === 'ONLINE' ? 'ONLINE STORE' : s.serviceMode === 'BOTH' ? 'ONLINE + NEARBY STORE' : 'B2C NEARBY STORE'}
+                                sx={{ 
+                                  fontWeight: 800, 
+                                  fontSize: '0.68rem', 
+                                  bgcolor: s.serviceMode === 'ONLINE' ? '#eff6ff' : s.serviceMode === 'BOTH' ? '#f5f3ff' : '#ecfdf5',
+                                  color: s.serviceMode === 'ONLINE' ? '#2563eb' : s.serviceMode === 'BOTH' ? '#7c3aed' : '#059669'
+                                }}
+                              />
+                              {Number(s.discountPercent || s.discount_percent) > 0 && (
+                                <Chip
+                                  size="small"
+                                  label={`${s.discountPercent || s.discount_percent}% Storewide Discount`}
+                                  sx={{ fontWeight: 800, fontSize: '0.68rem', bgcolor: '#fef2f2', color: '#dc2626' }}
+                                />
+                              )}
                               <Chip
                                 size="small"
                                 label={s.home_delivery_enabled ? 'Home Delivery On' : 'No Home Delivery'}

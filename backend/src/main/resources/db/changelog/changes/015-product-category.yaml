@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 015-product-category
+      author: trikonekt
+      validCheckSum: ANY
+      changes:
+        - addColumn:
+            tableName: market_shopproduct
+            columns:
+              - column:
+                  name: category
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: true

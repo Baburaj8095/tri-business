@@ -29,4 +29,5 @@ public class CreateShopRequest {
     private Double delivery_radius_km;
     private Double min_order_value;
     private Double base_delivery_fee;
+    private Double discount_percent;
 }

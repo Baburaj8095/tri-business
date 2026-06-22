@@ -60,6 +60,7 @@ import {
   Menu as MenuIcon,
   SupervisorAccount as AdminSettingsIcon,
   Storefront as StoreIcon,
+  ShoppingBag as ProductIcon,
   Category as CategoryIcon,
   SubdirectoryArrowRight as SubcategoryIcon
 } from '@mui/icons-material';
@@ -133,6 +134,17 @@ export default function AdminDashboard() {
   const [onlineCatModalOpen, setOnlineCatModalOpen] = useState(false);
   const [editingOnlineCat, setEditingOnlineCat] = useState(null);
   const [onlineCatForm, setOnlineCatForm] = useState({ name: '', iconName: 'category', color: '#0d9488', sortOrder: '' });
+
+  // Tab 7 & 8: Products & Shops Admin States
+  const [adminProducts, setAdminProducts] = useState([]);
+  const [adminProductsLoading, setAdminProductsLoading] = useState(false);
+  const [adminShops, setAdminShops] = useState([]);
+  const [adminShopsLoading, setAdminShopsLoading] = useState(false);
+  const [productCategoryFilter, setProductCategoryFilter] = useState('');
+  const [selectedShop, setSelectedShop] = useState(null);
+  const [shopProductsDialogOpen, setShopProductsDialogOpen] = useState(false);
+  const [shopProducts, setShopProducts] = useState([]);
+  const [shopProductsLoading, setShopProductsLoading] = useState(false);
 
   // Detail Modal
   const [selectedCaptain, setSelectedCaptain] = useState(null);
@@ -252,6 +264,46 @@ export default function AdminDashboard() {
           }
         } finally {
           setOnlineCatLoading(false);
+        }
+      }
+
+      // 7. Fetch Online Products (tab 7)
+      if (activeTab === 7) {
+        setAdminProductsLoading(true);
+        try {
+          const prodRes = await fetch(`${API_URL}/admin/online-products`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (prodRes.ok) {
+            const prodData = await prodRes.json();
+            setAdminProducts(prodData || []);
+          }
+          // Also fetch online categories for filtering
+          const ocRes = await fetch(`${API_URL}/captain/admin/online-categories`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (ocRes.ok) {
+            const ocData = await ocRes.json();
+            setOnlineCategories(Array.isArray(ocData) ? ocData : ocData.categories || []);
+          }
+        } finally {
+          setAdminProductsLoading(false);
+        }
+      }
+
+      // 8. Fetch Offline Shops (tab 8)
+      if (activeTab === 8) {
+        setAdminShopsLoading(true);
+        try {
+          const shopRes = await fetch(`${API_URL}/admin/shops`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (shopRes.ok) {
+            const shopData = await shopRes.json();
+            setAdminShops(shopData || []);
+          }
+        } finally {
+          setAdminShopsLoading(false);
         }
       }
     } catch (err) {
@@ -749,6 +801,110 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleToggleProductStatus = async (productId, currentActive) => {
+    const token = localStorage.getItem('admin_token');
+    try {
+      const res = await fetch(`${API_URL}/admin/products/${productId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ active: !currentActive })
+      });
+      if (res.ok) {
+        setToast({ open: true, type: 'success', message: 'Product status updated successfully.' });
+        fetchData();
+      } else {
+        const errData = await res.json();
+        setToast({ open: true, type: 'error', message: errData.message || 'Failed to update product status.' });
+      }
+    } catch (e) {
+      setToast({ open: true, type: 'error', message: 'Error updating product status.' });
+    }
+  };
+
+  const handleDeleteProduct = async (productId) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    const token = localStorage.getItem('admin_token');
+    try {
+      const res = await fetch(`${API_URL}/admin/products/${productId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setToast({ open: true, type: 'success', message: 'Product deleted successfully.' });
+        fetchData();
+      } else {
+        setToast({ open: true, type: 'error', message: 'Failed to delete product.' });
+      }
+    } catch (e) {
+      setToast({ open: true, type: 'error', message: 'Error deleting product.' });
+    }
+  };
+
+  const handleToggleShopStatus = async (shopId, currentActive) => {
+    const token = localStorage.getItem('admin_token');
+    try {
+      const res = await fetch(`${API_URL}/admin/shops/${shopId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ active: !currentActive })
+      });
+      if (res.ok) {
+        setToast({ open: true, type: 'success', message: 'Shop status updated successfully.' });
+        fetchData();
+      } else {
+        const errData = await res.json();
+        setToast({ open: true, type: 'error', message: errData.message || 'Failed to update shop status.' });
+      }
+    } catch (e) {
+      setToast({ open: true, type: 'error', message: 'Error updating shop status.' });
+    }
+  };
+
+  const handleDeleteShop = async (shopId) => {
+    if (!window.confirm("Are you sure you want to delete this shop? This will also delete all products in this shop.")) return;
+    const token = localStorage.getItem('admin_token');
+    try {
+      const res = await fetch(`${API_URL}/admin/shops/${shopId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setToast({ open: true, type: 'success', message: 'Shop deleted successfully.' });
+        fetchData();
+      } else {
+        setToast({ open: true, type: 'error', message: 'Failed to delete shop.' });
+      }
+    } catch (e) {
+      setToast({ open: true, type: 'error', message: 'Error deleting shop.' });
+    }
+  };
+
+  const handleViewShopProducts = async (shopId, shopName) => {
+    setSelectedShop({ id: shopId, name: shopName });
+    setShopProductsDialogOpen(true);
+    setShopProductsLoading(true);
+    const token = localStorage.getItem('admin_token');
+    try {
+      const res = await fetch(`${API_URL}/admin/shops/${shopId}/products`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setShopProducts(data || []);
+      }
+    } catch (e) {
+      console.error("Failed to fetch shop products:", e);
+    } finally {
+      setShopProductsLoading(false);
+    }
+  };
+
   const checkModulePermission = (mod) => {
     if (role === 'SUPER_ADMIN') return true;
     if (myModules.includes('all') || myModules.includes(mod)) return true;
@@ -900,6 +1056,42 @@ export default function AdminDashboard() {
             <ListItemText primary="Online Categories" primaryTypographyProps={{ fontWeight: activeTab === 6 ? '800' : '500', fontSize: '0.85rem' }} />
           </ListItemButton>
         </ListItem>
+
+        {/* View 7: Online Products */}
+        <ListItem disablePadding sx={{ mb: 0.5 }}>
+          <ListItemButton
+            selected={activeTab === 7}
+            onClick={() => handleTabChange(7)}
+            sx={{
+              borderRadius: '8px',
+              color: activeTab === 7 ? 'white' : '#94a3b8',
+              bgcolor: activeTab === 7 ? 'rgba(59,130,246,0.15) !important' : 'transparent',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
+              '& .MuiListItemIcon-root': { color: activeTab === 7 ? 'white' : '#64748b' }
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}><ProductIcon /></ListItemIcon>
+            <ListItemText primary="Online Products" primaryTypographyProps={{ fontWeight: activeTab === 7 ? '800' : '500', fontSize: '0.85rem' }} />
+          </ListItemButton>
+        </ListItem>
+
+        {/* View 8: Offline Shops */}
+        <ListItem disablePadding sx={{ mb: 0.5 }}>
+          <ListItemButton
+            selected={activeTab === 8}
+            onClick={() => handleTabChange(8)}
+            sx={{
+              borderRadius: '8px',
+              color: activeTab === 8 ? 'white' : '#94a3b8',
+              bgcolor: activeTab === 8 ? 'rgba(59,130,246,0.15) !important' : 'transparent',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
+              '& .MuiListItemIcon-root': { color: activeTab === 8 ? 'white' : '#64748b' }
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}><StoreIcon /></ListItemIcon>
+            <ListItemText primary="Offline Shops" primaryTypographyProps={{ fontWeight: activeTab === 8 ? '800' : '500', fontSize: '0.85rem' }} />
+          </ListItemButton>
+        </ListItem>
       </List>
 
       <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)' }} />
@@ -1006,7 +1198,7 @@ export default function AdminDashboard() {
               <MenuIcon />
             </IconButton>
             <Typography variant="subtitle1" sx={{ fontWeight: '800', color: T.text, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
-              {activeTab === 0 ? 'Dashboard Overview' : activeTab === 1 ? 'Captain Registrations' : activeTab === 2 ? 'B2B Merchants' : activeTab === 3 ? 'B2C Merchants' : activeTab === 4 ? 'Sub-Admin User Management' : 'Niches, Categories & Subcategories'}
+              {activeTab === 0 ? 'Dashboard Overview' : activeTab === 1 ? 'Captain Registrations' : activeTab === 2 ? 'B2B Merchants' : activeTab === 3 ? 'B2C Merchants' : activeTab === 4 ? 'Sub-Admin User Management' : activeTab === 5 ? 'Niches, Categories & Subcategories' : activeTab === 6 ? 'Online Categories' : activeTab === 7 ? 'Online Products Catalog' : 'Offline Shop Registrations'}
             </Typography>
           </Box>
 
@@ -1776,6 +1968,173 @@ export default function AdminDashboard() {
             </Paper>
           )}
 
+          {/* VIEW 7: Online Products Admin Panel */}
+          {activeTab === 7 && (
+            <Paper sx={{ p: 3, borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Online Products Management</Typography>
+                  <Typography variant="caption" color="textSecondary">Manage all online product catalogs, toggle visibility, or remove listings</Typography>
+                </Box>
+                <TextField
+                  select
+                  size="small"
+                  label="Category Filter"
+                  value={productCategoryFilter}
+                  onChange={(e) => setProductCategoryFilter(e.target.value)}
+                  sx={{ minWidth: 200, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                >
+                  <MenuItem value="">All Categories</MenuItem>
+                  {onlineCategories.map((c) => (
+                    <MenuItem key={c.id} value={c.name}>{c.name}</MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+
+              <TableContainer component={Box} sx={{ maxHeight: 520 }}>
+                <Table stickyHeader size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Image</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Product Name</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Merchant Shop</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Category</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Price</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Stock</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Active Status</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }} align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {adminProductsLoading ? (
+                      <TableRow><TableCell colSpan={8} align="center"><CircularProgress size={24} /></TableCell></TableRow>
+                    ) : adminProducts.length === 0 ? (
+                      <TableRow><TableCell colSpan={8} align="center">No online products found.</TableCell></TableRow>
+                    ) : (
+                      adminProducts
+                        .filter(p => !productCategoryFilter || String(p.category || '').toLowerCase() === productCategoryFilter.toLowerCase())
+                        .map(p => (
+                          <TableRow key={p.id} hover>
+                            <TableCell>
+                              <Avatar src={p.image} variant="rounded" sx={{ width: 44, height: 44, bgcolor: '#f1f5f9' }} />
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>{p.title}</TableCell>
+                            <TableCell>{p.shop_name || 'N/A'}</TableCell>
+                            <TableCell>
+                              <Chip label={p.category || 'General'} size="small" sx={{ fontWeight: 'bold', bgcolor: '#f1f5f9' }} />
+                            </TableCell>
+                            <TableCell>
+                              <Typography sx={{ fontWeight: 'bold', fontSize: '0.85rem' }}>₹{p.price}</Typography>
+                              {p.discount_percent > 0 && (
+                                <Typography variant="caption" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>₹{p.mrp}</Typography>
+                              )}
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 'bold', color: p.stock_qty <= 0 ? 'red' : 'text.primary' }}>
+                              {p.stock_qty}
+                            </TableCell>
+                            <TableCell>
+                              <Switch
+                                size="small"
+                                checked={Boolean(p.is_active)}
+                                onChange={() => handleToggleProductStatus(p.id, p.is_active)}
+                              />
+                            </TableCell>
+                            <TableCell align="right">
+                              <IconButton size="small" onClick={() => handleDeleteProduct(p.id)} color="error">
+                                <DeleteIcon sx={{ fontSize: 16 }} />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          )}
+
+          {/* VIEW 8: Offline Shops Admin Panel */}
+          {activeTab === 8 && (
+            <Paper sx={{ p: 3, borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Offline Shops registrations</Typography>
+                  <Typography variant="caption" color="textSecondary">Manage all registered merchant stores, check catalogs, or delete shops</Typography>
+                </Box>
+              </Box>
+
+              <TableContainer component={Box} sx={{ maxHeight: 520 }}>
+                <Table stickyHeader size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Shop Logo / Photo</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Shop Name</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Owner Name</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Address & City</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Contact Number</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Discount</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Service Mode</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Active Status</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }} align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {adminShopsLoading ? (
+                      <TableRow><TableCell colSpan={9} align="center"><CircularProgress size={24} /></TableCell></TableRow>
+                    ) : adminShops.length === 0 ? (
+                      <TableRow><TableCell colSpan={9} align="center">No shops registered yet.</TableCell></TableRow>
+                    ) : (
+                      adminShops.map(s => (
+                        <TableRow key={s.id} hover>
+                          <TableCell>
+                            <Avatar src={s.shop_image} variant="rounded" sx={{ width: 44, height: 44, bgcolor: '#f1f5f9' }} />
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>{s.shop_name}</TableCell>
+                          <TableCell>{s.owner_name || 'N/A'}</TableCell>
+                          <TableCell>
+                            <Typography sx={{ fontSize: '0.8rem', fontWeight: 600 }}>{s.address}</Typography>
+                            <Typography variant="caption" color="textSecondary">{s.city}</Typography>
+                          </TableCell>
+                          <TableCell>{s.contact_number}</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>{s.discount_percent || 0}%</TableCell>
+                          <TableCell>
+                            <Chip
+                              label={s.service_mode}
+                              size="small"
+                              sx={{
+                                fontWeight: 'bold',
+                                fontSize: '0.65rem',
+                                bgcolor: s.service_mode === 'ONLINE' ? '#eff6ff' : '#ecfdf5',
+                                color: s.service_mode === 'ONLINE' ? '#2563eb' : '#059669'
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Switch
+                              size="small"
+                              checked={s.status === 'ACTIVE'}
+                              onChange={() => handleToggleShopStatus(s.id, s.status === 'ACTIVE')}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                              <IconButton size="small" onClick={() => handleViewShopProducts(s.id, s.shop_name)} color="primary">
+                                <ViewIcon sx={{ fontSize: 16 }} />
+                              </IconButton>
+                              <IconButton size="small" onClick={() => handleDeleteShop(s.id)} color="error">
+                                <DeleteIcon sx={{ fontSize: 16 }} />
+                              </IconButton>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          )}
+
           {/* Online Category Modal */}
           <Dialog open={onlineCatModalOpen} onClose={() => setOnlineCatModalOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
             <DialogTitle sx={{ fontWeight: 'bold' }}>{editingOnlineCat ? 'Edit Online Category' : 'Add Online Category'}</DialogTitle>
@@ -2165,6 +2524,68 @@ export default function AdminDashboard() {
           {!showRejectionPrompt && selectedCaptain?.kycStatus !== 'APPROVED' && (
             <Button variant="contained" color="success" onClick={() => handleKycAction('APPROVED')}>Approve KYC</Button>
           )}
+        </DialogActions>
+      </Dialog>
+
+      {/* Shop Products Catalog Dialog */}
+      <Dialog open={shopProductsDialogOpen} onClose={() => setShopProductsDialogOpen(false)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 'bold', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Products Catalog: {selectedShop?.name}</Typography>
+        </DialogTitle>
+        <Divider />
+        <DialogContent>
+          {shopProductsLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
+          ) : shopProducts.length === 0 ? (
+            <Typography sx={{ py: 4, textAlign: 'center', color: 'text.secondary' }}>No products found in this store catalog.</Typography>
+          ) : (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Image</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Title</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Category</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Price</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Stock</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Delivery Mode</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {shopProducts.map(p => (
+                    <TableRow key={p.id}>
+                      <TableCell>
+                        <Avatar src={p.image} variant="rounded" sx={{ width: 40, height: 40, bgcolor: '#f1f5f9' }} />
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>{p.title}</TableCell>
+                      <TableCell>{p.category || 'General'}</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>₹{p.price}</TableCell>
+                      <TableCell>{p.stock_qty}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={p.online_delivery ? 'Online' : 'Offline'}
+                          size="small"
+                          sx={{ fontSize: '0.65rem', fontWeight: 'bold', bgcolor: p.online_delivery ? '#eff6ff' : '#f1f5f9', color: p.online_delivery ? '#2563eb' : '#475569' }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={p.is_active ? 'Active' : 'Inactive'}
+                          size="small"
+                          sx={{ fontSize: '0.65rem', fontWeight: 'bold', bgcolor: p.is_active ? '#ecfdf5' : '#fef2f2', color: p.is_active ? '#059669' : '#dc2626' }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </DialogContent>
+        <Divider />
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setShopProductsDialogOpen(false)}>Close Catalog</Button>
         </DialogActions>
       </Dialog>
 

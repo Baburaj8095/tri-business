@@ -196,4 +196,86 @@ public class BusinessAdminController {
         adminService.deleteSubAdmin(authHeader, id);
         return ResponseEntity.ok(Map.of("message", "Sub-Admin deleted successfully."));
     }
+
+    /**
+     * GET /api/admin/online-products
+     */
+    @GetMapping("/online-products")
+    public ResponseEntity<List<Map<String, Object>>> getOnlineProducts(
+            @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok(adminService.getOnlineProducts(authHeader));
+    }
+
+    /**
+     * PATCH /api/admin/products/{productId}/status
+     */
+    @PatchMapping("/products/{productId}/status")
+    public ResponseEntity<Map<String, String>> updateProductStatus(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable long productId,
+            @RequestBody Map<String, Boolean> body) {
+        Boolean active = body.get("active");
+        if (active == null) {
+            throw new IllegalArgumentException("Field 'active' is required.");
+        }
+        adminService.updateProductStatus(authHeader, productId, active);
+        return ResponseEntity.ok(Map.of("message", "Product status updated successfully."));
+    }
+
+    /**
+     * DELETE /api/admin/products/{productId}
+     */
+    @DeleteMapping("/products/{productId}")
+    public ResponseEntity<Map<String, String>> deleteProduct(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable long productId) {
+        adminService.deleteProduct(authHeader, productId);
+        return ResponseEntity.ok(Map.of("message", "Product deleted successfully."));
+    }
+
+    /**
+     * GET /api/admin/shops
+     */
+    @GetMapping("/shops")
+    public ResponseEntity<List<Map<String, Object>>> getShops(
+            @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok(adminService.getShops(authHeader));
+    }
+
+    /**
+     * PATCH /api/admin/shops/{shopId}/status
+     */
+    @PatchMapping("/shops/{shopId}/status")
+    public ResponseEntity<Map<String, String>> updateShopStatus(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable long shopId,
+            @RequestBody Map<String, Boolean> body) {
+        Boolean active = body.get("active");
+        if (active == null) {
+            throw new IllegalArgumentException("Field 'active' is required.");
+        }
+        adminService.updateShopStatus(authHeader, shopId, active);
+        return ResponseEntity.ok(Map.of("message", "Shop status updated successfully."));
+    }
+
+    /**
+     * DELETE /api/admin/shops/{shopId}
+     */
+    @DeleteMapping("/shops/{shopId}")
+    public ResponseEntity<Map<String, String>> deleteShop(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable long shopId) {
+        adminService.deleteShop(authHeader, shopId);
+        return ResponseEntity.ok(Map.of("message", "Shop deleted successfully."));
+    }
+
+    /**
+     * GET /api/admin/shops/{shopId}/products
+     */
+    @GetMapping("/shops/{shopId}/products")
+    public ResponseEntity<List<Map<String, Object>>> getShopProducts(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable long shopId) {
+        return ResponseEntity.ok(adminService.getShopProducts(authHeader, shopId));
+    }
 }

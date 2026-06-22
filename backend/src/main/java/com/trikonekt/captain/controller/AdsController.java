@@ -4,9 +4,11 @@ import com.trikonekt.captain.model.MarketplaceAd;
 import com.trikonekt.captain.repository.AdsRepository;
 import com.trikonekt.captain.repository.UserRepository;
 import com.trikonekt.captain.service.JwtService;
+import com.trikonekt.captain.service.CloudinaryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -41,11 +43,13 @@ public class AdsController {
     private final AdsRepository adsRepository;
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final CloudinaryService cloudinaryService;
 
-    public AdsController(AdsRepository adsRepository, UserRepository userRepository, JwtService jwtService) {
+    public AdsController(AdsRepository adsRepository, UserRepository userRepository, JwtService jwtService, CloudinaryService cloudinaryService) {
         this.adsRepository = adsRepository;
         this.userRepository = userRepository;
         this.jwtService = jwtService;
+        this.cloudinaryService = cloudinaryService;
     }
 
     // ── Public read endpoints ────────────────────────────────────────────────
@@ -97,29 +101,43 @@ public class AdsController {
         }
     }
 
-    @PostMapping("/captain/merchant/ads")
+    @PostMapping(value = "/captain/merchant/ads", consumes = {"multipart/form-data"})
     public ResponseEntity<?> createAd(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
-            @RequestBody Map<String, Object> body) {
+            @RequestParam("ad_type") String adType,
+            @RequestParam("title") String title,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "image_url", required = false) String imageUrl,
+            @RequestParam(value = "target_url", required = false) String targetUrl,
+            @RequestParam(value = "display_target", required = false) String displayTarget,
+            @RequestParam(value = "priority", defaultValue = "10") int priority,
+            @RequestParam(value = "shop_id", required = false) Long shopId,
+            @RequestParam(value = "product_id", required = false) Long productId,
+            @RequestParam(value = "valid_from", required = false) String validFromStr,
+            @RequestParam(value = "valid_to", required = false) String validToStr) {
         try {
             long merchantId = extractUserId(authHeader);
-            String title = str(body, "title", "");
             if (title == null || title.isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "title is required"));
             }
+            String finalImageUrl = imageUrl;
+            if (image != null && !image.isEmpty()) {
+                finalImageUrl = cloudinaryService.uploadFile(image);
+            }
             long newId = adsRepository.createAd(
                 merchantId,
-                str(body, "ad_type", "BANNER"),
+                adType != null ? adType : "BANNER",
                 title,
-                str(body, "description", ""),
-                str(body, "image_url", ""),
-                str(body, "target_url", ""),
-                str(body, "display_target", "CONSUMER_ONLINE_B2C"),
-                intVal(body, "priority", 10),
-                longVal(body, "shop_id"),
-                longVal(body, "product_id"),
-                parseDateTime(str(body, "valid_from", null)),
-                parseDateTime(str(body, "valid_to", null))
+                description != null ? description : "",
+                finalImageUrl != null ? finalImageUrl : "",
+                targetUrl != null ? targetUrl : "",
+                displayTarget != null ? displayTarget : "CONSUMER_ONLINE_B2C",
+                priority,
+                shopId,
+                productId,
+                parseDateTime(validFromStr),
+                parseDateTime(validToStr)
             );
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(Map.of("id", newId, "message", "Ad created successfully"));
@@ -128,28 +146,43 @@ public class AdsController {
         }
     }
 
-    @PutMapping("/captain/merchant/ads/{id}")
+    @PutMapping(value = "/captain/merchant/ads/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<?> updateAd(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @PathVariable long id,
-            @RequestBody Map<String, Object> body) {
+            @RequestParam("ad_type") String adType,
+            @RequestParam("title") String title,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "image_url", required = false) String imageUrl,
+            @RequestParam(value = "target_url", required = false) String targetUrl,
+            @RequestParam(value = "display_target", required = false) String displayTarget,
+            @RequestParam(value = "priority", defaultValue = "10") int priority,
+            @RequestParam(value = "is_active", defaultValue = "true") boolean isActive,
+            @RequestParam(value = "shop_id", required = false) Long shopId,
+            @RequestParam(value = "product_id", required = false) Long productId,
+            @RequestParam(value = "valid_from", required = false) String validFromStr,
+            @RequestParam(value = "valid_to", required = false) String validToStr) {
         try {
             long merchantId = extractUserId(authHeader);
-            boolean isActive = body.getOrDefault("is_active", true).toString().equalsIgnoreCase("true");
+            String finalImageUrl = imageUrl;
+            if (image != null && !image.isEmpty()) {
+                finalImageUrl = cloudinaryService.uploadFile(image);
+            }
             int updated = adsRepository.updateAd(
                 id, merchantId,
-                str(body, "ad_type", "BANNER"),
-                str(body, "title", ""),
-                str(body, "description", ""),
-                str(body, "image_url", ""),
-                str(body, "target_url", ""),
-                str(body, "display_target", "CONSUMER_ONLINE_B2C"),
-                intVal(body, "priority", 10),
+                adType != null ? adType : "BANNER",
+                title,
+                description != null ? description : "",
+                finalImageUrl != null ? finalImageUrl : "",
+                targetUrl != null ? targetUrl : "",
+                displayTarget != null ? displayTarget : "CONSUMER_ONLINE_B2C",
+                priority,
                 isActive,
-                longVal(body, "shop_id"),
-                longVal(body, "product_id"),
-                parseDateTime(str(body, "valid_from", null)),
-                parseDateTime(str(body, "valid_to", null))
+                shopId,
+                productId,
+                parseDateTime(validFromStr),
+                parseDateTime(validToStr)
             );
             if (updated == 0) return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "Ad not found or access denied"));
