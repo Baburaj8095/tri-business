@@ -26,6 +26,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { alpha } from "@mui/material/styles";
+import { getGPSLocation } from "../../utils/locationHelper";
 
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -123,6 +124,7 @@ export default function BusinessShops() {
   const [newCategory, setNewCategory] = useState({ name: "", audience: "MERCHANT", sortOrder: "" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [gpsLoading, setGpsLoading] = useState(false);
 
   // Search filter state for category selection
   const [categorySearch, setCategorySearch] = useState("");
@@ -287,26 +289,28 @@ export default function BusinessShops() {
     }));
   };
 
-  const handleUseMyLocation = () => {
-    if (!navigator.geolocation) {
-      setError("Geolocation is not supported by your browser.");
-      return;
+  const handleUseMyLocation = async () => {
+    setGpsLoading(true);
+    setError("");
+    setSuccess("");
+    try {
+      const loc = await getGPSLocation();
+      setForm((p) => ({
+        ...p,
+        latitude: String(loc.lat),
+        longitude: String(loc.lng),
+        address: loc.formattedAddress || p.address,
+        city: loc.city || p.city,
+        state: loc.state || p.state,
+        pincode: loc.pincode || p.pincode,
+      }));
+      setSuccess("Map coordinates and address fetched correctly.");
+      setShowMapPicker(false);
+    } catch (err) {
+      setError(err.message || "Unable to retrieve coordinates. Please enter manually.");
+    } finally {
+      setGpsLoading(false);
     }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setForm((p) => ({
-          ...p,
-          latitude: String(latitude),
-          longitude: String(longitude),
-        }));
-        setSuccess("Map coordinates fetched correctly.");
-        setShowMapPicker(false);
-      },
-      (err) => {
-        setError("Unable to retrieve coordinates. Please enter manually.");
-      }
-    );
   };
 
   const startEdit = (shop) => {
@@ -640,7 +644,8 @@ export default function BusinessShops() {
                         <Button
                           variant="contained"
                           onClick={handleUseMyLocation}
-                          startIcon={<GpsFixedIcon />}
+                          disabled={gpsLoading}
+                          startIcon={gpsLoading ? <CircularProgress size={16} color="inherit" /> : <GpsFixedIcon />}
                           sx={{
                             borderRadius: '10px',
                             textTransform: 'none',
@@ -649,7 +654,7 @@ export default function BusinessShops() {
                             '&:hover': { bgcolor: T.primaryDark },
                           }}
                         >
-                          Use Current Location
+                          {gpsLoading ? "Fetching..." : "Use Current Location"}
                         </Button>
                         {(form.latitude && form.longitude) && (
                           <Typography sx={{ color: T.primaryDark, fontSize: '0.75rem', mt: 1.5, fontWeight: 700 }}>

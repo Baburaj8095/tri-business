@@ -20,7 +20,8 @@ import {
   Stack,
   Typography,
   Snackbar,
-  Alert
+  Alert,
+  CircularProgress
 } from "@mui/material";
 import {
   HiOutlineBars3BottomLeft,
@@ -86,6 +87,7 @@ import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import SearchBar from "../../components/business/SearchBar";
 import { getPublicB2bMerchants, getMerchantProfile, updateMerchantProfile } from "../../api/api";
 import "../consumer-ecommerce/consumerEcommerce.css";
+import { getGPSLocation } from "../../utils/locationHelper";
 
 const UI = {
   bg: "#f8fafc",
@@ -487,7 +489,20 @@ function QuickLocationCard({ item }) {
 
 function SearchCityModal({ open, onClose, onSelectCity }) {
   const [query, setQuery] = useState("");
+  const [gpsLoading, setGpsLoading] = useState(false);
   const filteredCities = TOP_CITIES.filter((city) => city.name.toLowerCase().includes(query.toLowerCase()));
+
+  const handleDetect = async () => {
+    setGpsLoading(true);
+    try {
+      const loc = await getGPSLocation();
+      onSelectCity(loc.pincode || loc.city || "Bangalore");
+    } catch (err) {
+      alert(err.message || "Failed to detect location.");
+    } finally {
+      setGpsLoading(false);
+    }
+  };
 
   return (
     <Dialog 
@@ -539,6 +554,8 @@ function SearchCityModal({ open, onClose, onSelectCity }) {
         <Box sx={{ flex: 1, overflowY: "auto" }}>
           <Button
             fullWidth
+            onClick={handleDetect}
+            disabled={gpsLoading}
             sx={{
               justifyContent: "flex-start",
               textTransform: "none",
@@ -549,8 +566,8 @@ function SearchCityModal({ open, onClose, onSelectCity }) {
             }}
           >
             <Stack direction="row" spacing={2} alignItems="center">
-              <MyLocationOutlinedIcon />
-              <Typography fontWeight={800}>Nearby / Detect my location</Typography>
+              {gpsLoading ? <CircularProgress size={20} color="inherit" /> : <MyLocationOutlinedIcon />}
+              <Typography fontWeight={800}>{gpsLoading ? "Detecting..." : "Nearby / Detect my location"}</Typography>
             </Stack>
           </Button>
 
