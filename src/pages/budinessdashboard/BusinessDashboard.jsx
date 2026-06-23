@@ -61,7 +61,8 @@ import {
   LuWallet,
   LuPercent,
   LuPhone,
-  LuCircleHelp
+  LuCircleHelp,
+  LuPackage
 } from 'react-icons/lu';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -228,6 +229,7 @@ const DRAWER_ITEMS = [
   { label: "Password Reset", action: "passwordReset", icon: LuLock },
   { label: "Add Shop", action: "addShop", icon: LuStore },
   { label: "Manage Online Products", action: "onlineProducts", icon: LuTag },
+  { label: "Inventory", action: "inventory", icon: LuPackage },
   { label: "kyc", action: "kyc", icon: LuShieldCheck },
   { label: "Completed Orders", action: "completedOrders", icon: LuFileText },
   { label: "Terms & Condition", action: "terms", icon: LuBookOpen },
@@ -1724,6 +1726,10 @@ function BusinessDashboard() {
     }
     if (action === "onlineProducts") {
       navigate("/business/online-products");
+      return;
+    }
+    if (action === "inventory") {
+      navigate("/business/inventory");
       return;
     }
     if (action === "kyc") {
