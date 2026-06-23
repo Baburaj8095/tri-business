@@ -104,13 +104,13 @@ export default function InventoryPage() {
     try {
       const p = await getMerchantProfile().catch(() => null);
       setProfile(p);
-      const serviceMode = p?.service_mode || localStorage.getItem('service_mode_business') || 'OFFLINE';
+      const serviceMode = String(p?.service_mode || localStorage.getItem('service_mode_business') || 'OFFLINE').toUpperCase();
 
       let shopsList = await listMyShops().catch(() => []);
       
       // Filter shops based on service mode if needed, or if ONLINE auto-create one.
       if (serviceMode === 'ONLINE') {
-        let activeShop = shopsList.find((s) => s.serviceMode === "ONLINE" || s.service_mode === "ONLINE");
+        let activeShop = shopsList.find((s) => String(s.serviceMode || s.service_mode || "").toUpperCase() === "ONLINE");
         if (!activeShop) {
           const cats = await getMerchantCategories().catch(() => []);
           const catId = cats[0]?.id || 1;
@@ -129,7 +129,7 @@ export default function InventoryPage() {
             base_delivery_fee: 0,
           });
           shopsList = await listMyShops().catch(() => []);
-          activeShop = shopsList.find((s) => s.serviceMode === "ONLINE" || s.service_mode === "ONLINE");
+          activeShop = shopsList.find((s) => String(s.serviceMode || s.service_mode || "").toUpperCase() === "ONLINE");
         }
         setShops([activeShop]);
         setSelectedShop(activeShop);
@@ -197,7 +197,7 @@ export default function InventoryPage() {
     setSubmittingProduct(true);
     setErrorMessage("");
     try {
-      const isOnline = profile?.service_mode === 'ONLINE';
+      const isOnline = String(profile?.service_mode || "").toUpperCase() === 'ONLINE';
       const payload = {
         title: formData.productName,
         description: formData.description,
@@ -280,7 +280,8 @@ export default function InventoryPage() {
     }
   };
 
-  const serviceModeDisplay = profile?.service_mode === 'ONLINE' ? 'Online' : (profile?.service_mode === 'TRIZONE' ? 'TriZone' : 'Offline / Nearby');
+  const currentServiceMode = String(profile?.service_mode || localStorage.getItem('service_mode_business') || 'OFFLINE').toUpperCase();
+  const serviceModeDisplay = currentServiceMode === 'ONLINE' ? 'Online' : (currentServiceMode === 'TRIZONE' ? 'TriZone' : 'Offline / Nearby');
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "#f8fafc", minHeight: "100vh" }}>
