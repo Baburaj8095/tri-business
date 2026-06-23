@@ -1760,7 +1760,11 @@ function BusinessDashboard() {
       navigate("/business/ads");
       return;
     }
-    if (["inventoryManagement", "reports", "help"].includes(action)) {
+    if (action === "inventoryManagement") {
+      navigate("/business/inventory");
+      return;
+    }
+    if (["reports", "help"].includes(action)) {
       setToastMsg("This feature is coming soon!");
       return;
     }
