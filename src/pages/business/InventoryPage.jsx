@@ -61,6 +61,55 @@ const PRODUCT_CATEGORIES = [
   "Other",
 ];
 
+const compressImage = (file, maxSizeMB = 0.8) => {
+  return new Promise((resolve) => {
+    if (file.size / 1024 / 1024 < maxSizeMB) {
+      resolve(file);
+      return;
+    }
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 1024;
+        const MAX_HEIGHT = 1024;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            const compressedFile = new File([blob], file.name, {
+              type: "image/jpeg",
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          },
+          "image/jpeg",
+          0.8
+        );
+      };
+    };
+  });
+};
+
 export default function InventoryPage() {
   const navigate = useNavigate();
   
@@ -418,9 +467,12 @@ export default function InventoryPage() {
                       </Button>
                     ) : (
                       <Box>
-                        <input accept="image/*" style={{ display: "none" }} id="add-image-input" type="file" onChange={(e) => {
+                        <input accept="image/*" style={{ display: "none" }} id="add-image-input" type="file" onChange={async (e) => {
                           const file = e.target.files?.[0];
-                          if (file) setFormData(prev => ({ ...prev, image: file }));
+                          if (file) {
+                            const compressed = await compressImage(file);
+                            setFormData(prev => ({ ...prev, image: compressed }));
+                          }
                         }} />
                         <label htmlFor="add-image-input">
                           <Button component="span" size="small" variant="outlined" sx={{ color: '#475569', borderColor: '#cbd5e1', fontWeight: 600, textTransform: 'none' }}>
@@ -524,9 +576,12 @@ export default function InventoryPage() {
                                   <TextField fullWidth size="small" label="Stock" name="stock_qty" type="number" value={editFormData.stock_qty} onChange={handleEditChange} />
                                 </Grid>
                                 <Grid item xs={12} sm={4}>
-                                  <input accept="image/*" style={{ display: "none" }} id={`edit-img-${p.id}`} type="file" onChange={(e) => {
+                                  <input accept="image/*" style={{ display: "none" }} id={`edit-img-${p.id}`} type="file" onChange={async (e) => {
                                     const file = e.target.files?.[0];
-                                    if (file) setEditFormData(prev => ({ ...prev, image: file }));
+                                    if (file) {
+                                      const compressed = await compressImage(file);
+                                      setEditFormData(prev => ({ ...prev, image: compressed }));
+                                    }
                                   }} />
                                   <label htmlFor={`edit-img-${p.id}`}>
                                     <Button component="span" fullWidth variant="outlined" startIcon={<CloudUploadIcon />} size="small" sx={{ textTransform: 'none', borderColor: '#cbd5e1', color: '#475569' }}>
