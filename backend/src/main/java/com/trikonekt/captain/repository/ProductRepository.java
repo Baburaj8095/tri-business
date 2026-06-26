@@ -115,9 +115,11 @@ public class ProductRepository {
             "p.online_delivery, p.offline_delivery, p.stock_qty, p.image, p.is_active, p.created_at " +
             "FROM market_shopproduct p " +
             "JOIN market_shop s ON p.shop_id = s.id " +
+            "JOIN accounts_customuser u ON s.merchant_id = u.id " +
+            "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
             "LEFT JOIN business_merchantcategory sc ON s.category_id = sc.id " +
             "WHERE p.online_delivery = TRUE AND p.is_active = TRUE " +
-            "AND s.status = 'ACTIVE' AND s.service_mode IN ('ONLINE', 'BOTH') "
+            "AND s.status = 'ACTIVE' AND UPPER(COALESCE(mp.service_mode, s.service_mode, 'OFFLINE')) IN ('ONLINE', 'BOTH') "
         );
         java.util.List<Object> params = new java.util.ArrayList<>();
         if (search != null && !search.isBlank()) {
@@ -143,9 +145,11 @@ public class ProductRepository {
             "SELECT DISTINCT sc.name " +
             "FROM market_shopproduct p " +
             "JOIN market_shop s ON p.shop_id = s.id " +
+            "JOIN accounts_customuser u ON s.merchant_id = u.id " +
+            "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
             "LEFT JOIN business_merchantcategory sc ON s.category_id = sc.id " +
             "WHERE p.online_delivery = TRUE AND p.is_active = TRUE " +
-            "AND s.status = 'ACTIVE' AND s.service_mode IN ('ONLINE', 'BOTH') " +
+            "AND s.status = 'ACTIVE' AND UPPER(COALESCE(mp.service_mode, s.service_mode, 'OFFLINE')) IN ('ONLINE', 'BOTH') " +
             "AND sc.name IS NOT NULL " +
             "ORDER BY sc.name ASC";
         return jdbc.queryForList(sql, String.class);
