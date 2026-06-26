@@ -1,37 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  TextField,
-  Button,
-  Stack,
-  MenuItem,
-  TextareaAutosize,
-  FormHelperText,
-  CircularProgress,
-  Alert,
-  Paper,
-  Chip,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Collapse,
-  Grid,
-  InputLabel,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow
+  Box, Typography, Card, CardContent, TextField, Button, Stack, MenuItem,
+  TextareaAutosize, FormHelperText, CircularProgress, Alert, Paper, Chip,
+  IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Collapse,
+  Grid, InputLabel, CardMedia, InputAdornment, useMediaQuery, useTheme
 } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
+import SearchIcon from "@mui/icons-material/Search";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -138,6 +116,29 @@ export default function InventoryPage() {
   // Edit Form State
   const [editFormData, setEditFormData] = useState({});
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("All");
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          p.category?.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!matchesSearch) return false;
+    
+    if (filterStatus === "All") return true;
+    if (filterStatus === "Active") return p.is_active;
+    if (filterStatus === "Out of Stock") return (p.stock_qty || p.stockQty || 0) === 0;
+    if (filterStatus === "Low Stock") {
+       const qty = p.stock_qty || p.stockQty || 0;
+       return qty > 0 && qty <= 10;
+    }
+    if (filterStatus === "Draft") return !p.is_active;
+    return true;
+  });
 
   const fetchInventory = useCallback(async (shopId) => {
     try {
@@ -499,120 +500,193 @@ export default function InventoryPage() {
         </Card>
       </Collapse>
 
-      {/* DATA GRID */}
+      {/* DATA GRID & MOBILE CARDS */}
       {loading ? (
         <Box display="flex" justifyContent="center" py={8}><CircularProgress color="success" /></Box>
       ) : (
         <Card sx={{ borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
-          <Box sx={{ p: 3, borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography fontWeight={800} fontSize="1.1rem" color="#0f172a">All Products ({products.length})</Typography>
+          <Box sx={{ p: { xs: 2, md: 3 }, borderBottom: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+              <Typography fontWeight={800} fontSize="1.1rem" color="#0f172a">All Products ({filteredProducts.length})</Typography>
+              <TextField
+                size="small"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start"><SearchIcon color="action" /></InputAdornment>,
+                }}
+                sx={{ minWidth: { xs: '100%', sm: 250 }, bgcolor: '#f8fafc', borderRadius: 1 }}
+              />
+            </Box>
+            <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { display: 'none' } }}>
+              {["All", "Active", "Low Stock", "Out of Stock", "Draft"].map((status) => (
+                <Chip
+                  key={status}
+                  label={status}
+                  onClick={() => setFilterStatus(status)}
+                  sx={{
+                    fontWeight: 600,
+                    bgcolor: filterStatus === status ? '#228B22' : '#f1f5f9',
+                    color: filterStatus === status ? '#fff' : '#475569',
+                    '&:hover': { bgcolor: filterStatus === status ? '#1a701a' : '#e2e8f0' }
+                  }}
+                />
+              ))}
+            </Stack>
           </Box>
-          <TableContainer>
-            <Table>
-              <TableHead sx={{ bgcolor: '#f8fafc' }}>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 800, color: '#475569' }}>Image</TableCell>
-                  <TableCell sx={{ fontWeight: 800, color: '#475569' }}>Product Details</TableCell>
-                  <TableCell sx={{ fontWeight: 800, color: '#475569' }}>Category</TableCell>
-                  <TableCell sx={{ fontWeight: 800, color: '#475569' }} align="right">Price</TableCell>
-                  <TableCell sx={{ fontWeight: 800, color: '#475569' }} align="right">Stock</TableCell>
-                  <TableCell sx={{ fontWeight: 800, color: '#475569' }} align="center">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {products.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center" sx={{ py: 10 }}>
-                      <Box sx={{ width: 80, height: 80, bgcolor: 'rgba(34, 139, 34, 0.08)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', mb: 3 }}>
-                        <ShoppingBagIcon sx={{ fontSize: 40, color: '#228B22' }} />
+          
+          {filteredProducts.length === 0 ? (
+            <Box sx={{ py: 10, textAlign: 'center' }}>
+              <Box sx={{ width: 80, height: 80, bgcolor: 'rgba(34, 139, 34, 0.08)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', mb: 3 }}>
+                <ShoppingBagIcon sx={{ fontSize: 40, color: '#228B22' }} />
+              </Box>
+              <Typography variant="h6" fontWeight={800} color="#0f172a" mb={1}>No products found</Typography>
+              <Typography color="text.secondary" fontWeight={500}>Try adjusting your search or filters.</Typography>
+            </Box>
+          ) : isMobile ? (
+            <Stack spacing={2} p={2}>
+              {filteredProducts.map((p) => {
+                const qty = p.stock_qty || p.stockQty || 0;
+                let statusColor = "success";
+                let statusLabel = "In Stock";
+                if (qty === 0) { statusColor = "error"; statusLabel = "Out of Stock"; }
+                else if (qty <= 10) { statusColor = "warning"; statusLabel = "Low Stock"; }
+                if (!p.is_active) { statusColor = "default"; statusLabel = "Draft"; }
+
+                return (
+                  <Card key={p.id} variant="outlined" sx={{ borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                    <Stack direction="row" spacing={2} p={2}>
+                      <Box sx={{ width: 80, height: 80, borderRadius: '8px', flexShrink: 0, background: p.image ? `url(${p.image}) center/cover no-repeat` : "#f1f5f9", display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
+                        {!p.image && <ShoppingBagIcon sx={{ color: "#94a3b8" }} />}
                       </Box>
-                      <Typography variant="h6" fontWeight={800} color="#0f172a" mb={1}>No products found in this catalog</Typography>
-                      <Typography color="text.secondary" fontWeight={500}>Start by adding your first product.</Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  products.map((p) => (
-                    <React.Fragment key={p.id}>
-                      <TableRow hover sx={{ '& > *': { borderBottom: 'unset' }, bgcolor: editingProductId === p.id ? '#f8fafc' : 'inherit' }}>
-                        <TableCell>
-                          <Box sx={{ width: 48, height: 48, borderRadius: '8px', background: p.image ? `url(${p.image}) center/cover no-repeat` : "#f1f5f9", display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
-                            {!p.image && <ShoppingBagIcon sx={{ color: "#94a3b8" }} />}
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Typography fontWeight={700} color="#0f172a">{p.title}</Typography>
-                          <Typography fontSize="0.8rem" color="text.secondary" noWrap sx={{ maxWidth: 200 }}>{p.description || "No description"}</Typography>
-                        </TableCell>
-                        <TableCell><Chip label={p.category || "General"} size="small" sx={{ fontWeight: 600, bgcolor: '#e2e8f0' }} /></TableCell>
-                        <TableCell align="right">
+                      <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                        <Typography fontWeight={700} color="#0f172a" noWrap>{p.title}</Typography>
+                        <Typography fontSize="0.8rem" color="text.secondary" noWrap mb={1}>{p.category || "General"}</Typography>
+                        <Stack direction="row" alignItems="center" justifyContent="space-between">
                           <Typography fontWeight={800} color="#228B22">₹{Number(p.price).toFixed(2)}</Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Typography fontWeight={700} color={p.stock_qty > 10 ? "#0f172a" : "#ef4444"}>{p.stock_qty || p.stockQty || 0}</Typography>
-                        </TableCell>
-                        <TableCell align="center">
-                          <Stack direction="row" spacing={1} justifyContent="center">
-                            <IconButton onClick={() => handleEditClick(p)} color={editingProductId === p.id ? "primary" : "default"} size="small">
-                              <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton onClick={() => handleDelete(p.id)} color="error" size="small">
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                      
-                      {/* INLINE EDIT ROW */}
-                      <TableRow>
-                        <TableCell style={{ paddingBottom: 0, paddingTop: 0, border: 0 }} colSpan={6}>
-                          <Collapse in={editingProductId === p.id} timeout="auto" unmountOnExit>
-                            <Box sx={{ m: 2, p: 3, bgcolor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-                              <Typography variant="subtitle2" fontWeight={800} mb={2}>Edit Product (ID: {p.id})</Typography>
-                              <Grid container spacing={2} alignItems="center">
-                                <Grid item xs={12} sm={4}>
-                                  <TextField fullWidth size="small" label="Title" name="title" value={editFormData.title} onChange={handleEditChange} />
-                                </Grid>
-                                <Grid item xs={12} sm={2}>
-                                  <TextField fullWidth size="small" label="Price (₹)" name="price" type="number" value={editFormData.price} onChange={handleEditChange} />
-                                </Grid>
-                                <Grid item xs={12} sm={2}>
-                                  <TextField fullWidth size="small" label="Stock" name="stock_qty" type="number" value={editFormData.stock_qty} onChange={handleEditChange} />
-                                </Grid>
-                                <Grid item xs={12} sm={4}>
-                                  <input accept="image/*" style={{ display: "none" }} id={`edit-img-${p.id}`} type="file" onChange={async (e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                      const compressed = await compressImage(file);
-                                      setEditFormData(prev => ({ ...prev, image: compressed }));
-                                    }
-                                  }} />
-                                  <label htmlFor={`edit-img-${p.id}`}>
-                                    <Button component="span" fullWidth variant="outlined" startIcon={<CloudUploadIcon />} size="small" sx={{ textTransform: 'none', borderColor: '#cbd5e1', color: '#475569' }}>
-                                      {editFormData.image ? editFormData.image.name : "Replace Image"}
-                                    </Button>
-                                  </label>
-                                </Grid>
-                                <Grid item xs={12}>
-                                  <Stack direction="row" spacing={2} justifyContent="flex-end" mt={1}>
-                                    <Button size="small" variant="text" onClick={() => setEditingProductId(null)} sx={{ color: '#64748b', fontWeight: 600 }}>Cancel</Button>
-                                    <Button size="small" variant="contained" onClick={() => handleEditSave(p.id)} disabled={isUpdating} startIcon={isUpdating ? <CircularProgress size={16} color="inherit" /> : <CheckIcon />} sx={{ bgcolor: '#228B22', fontWeight: 700 }}>
-                                      Save Changes
-                                    </Button>
-                                  </Stack>
-                                </Grid>
-                              </Grid>
-                            </Box>
-                          </Collapse>
-                        </TableCell>
-                      </TableRow>
-                    </React.Fragment>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                          <Chip label={statusLabel} color={statusColor} size="small" sx={{ height: 20, fontSize: '0.7rem', fontWeight: 700 }} />
+                        </Stack>
+                      </Box>
+                    </Stack>
+                    <Box sx={{ borderTop: '1px solid #e2e8f0', p: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                      <Button size="small" variant="outlined" startIcon={<EditOutlinedIcon />} onClick={() => handleEditClick(p)} sx={{ textTransform: 'none', fontWeight: 600 }}>Edit</Button>
+                      <Button size="small" variant="outlined" color="error" startIcon={<DeleteOutlineIcon />} onClick={() => handleDelete(p.id)} sx={{ textTransform: 'none', fontWeight: 600 }}>Delete</Button>
+                    </Box>
+                  </Card>
+                );
+              })}
+            </Stack>
+          ) : (
+            <Box sx={{ width: '100%', height: 600 }}>
+              <DataGrid
+                rows={filteredProducts}
+                columns={[
+                  {
+                    field: 'image', headerName: 'Image', width: 80, sortable: false,
+                    renderCell: (params) => (
+                      <Box sx={{ width: 40, height: 40, borderRadius: '8px', background: params.row.image ? `url(${params.row.image}) center/cover no-repeat` : "#f1f5f9", display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
+                        {!params.row.image && <ShoppingBagIcon sx={{ color: "#94a3b8", fontSize: 20 }} />}
+                      </Box>
+                    ),
+                  },
+                  {
+                    field: 'title', headerName: 'Product Details', flex: 1, minWidth: 200,
+                    renderCell: (params) => (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+                        <Typography fontWeight={700} color="#0f172a" noWrap>{params.row.title}</Typography>
+                        <Typography fontSize="0.8rem" color="text.secondary" noWrap>{params.row.description || "No description"}</Typography>
+                      </Box>
+                    )
+                  },
+                  {
+                    field: 'category', headerName: 'Category', width: 150,
+                    renderCell: (params) => <Chip label={params.row.category || "General"} size="small" sx={{ fontWeight: 600, bgcolor: '#e2e8f0' }} />
+                  },
+                  {
+                    field: 'price', headerName: 'Price', width: 120,
+                    renderCell: (params) => <Typography fontWeight={800} color="#228B22">₹{Number(params.row.price).toFixed(2)}</Typography>
+                  },
+                  {
+                    field: 'stock_qty', headerName: 'Stock', width: 120,
+                    renderCell: (params) => {
+                      const qty = params.row.stock_qty || params.row.stockQty || 0;
+                      let statusColor = "success";
+                      let statusLabel = "In Stock";
+                      if (qty === 0) { statusColor = "error"; statusLabel = "Out of Stock"; }
+                      else if (qty <= 10) { statusColor = "warning"; statusLabel = "Low Stock"; }
+                      if (!params.row.is_active) { statusColor = "default"; statusLabel = "Draft"; }
+                      return (
+                        <Stack direction="row" alignItems="center" spacing={1} height="100%">
+                          <Typography fontWeight={700} color={qty > 10 ? "#0f172a" : "#ef4444"}>{qty}</Typography>
+                          <Chip label={statusLabel} color={statusColor} size="small" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 700 }} />
+                        </Stack>
+                      );
+                    }
+                  },
+                  {
+                    field: 'actions', headerName: 'Actions', width: 120, sortable: false,
+                    renderCell: (params) => (
+                      <Stack direction="row" spacing={1} alignItems="center" height="100%">
+                        <IconButton onClick={() => handleEditClick(params.row)} color="primary" size="small">
+                          <EditOutlinedIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton onClick={() => handleDelete(params.row.id)} color="error" size="small">
+                          <DeleteOutlineIcon fontSize="small" />
+                        </IconButton>
+                      </Stack>
+                    )
+                  }
+                ]}
+                disableRowSelectionOnClick
+                sx={{
+                  border: 0,
+                  '& .MuiDataGrid-columnHeaders': { bgcolor: '#f8fafc', color: '#475569', fontWeight: 800 },
+                  '& .MuiDataGrid-cell': { borderBottom: '1px solid #f1f5f9' },
+                }}
+              />
+            </Box>
+          )}
         </Card>
       )}
+
+      {/* EDIT PRODUCT DIALOG */}
+      <Dialog open={!!editingProductId} onClose={() => setEditingProductId(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: '#0f172a' }}>Edit Product</DialogTitle>
+        <DialogContent dividers>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <TextField fullWidth label="Title" name="title" value={editFormData.title || ""} onChange={handleEditChange} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Price (₹)" name="price" type="number" value={editFormData.price || ""} onChange={handleEditChange} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Stock Quantity" name="stock_qty" type="number" value={editFormData.stock_qty || ""} onChange={handleEditChange} />
+            </Grid>
+            <Grid item xs={12}>
+              <input accept="image/*" style={{ display: "none" }} id={`edit-img-dialog`} type="file" onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const compressed = await compressImage(file);
+                  setEditFormData(prev => ({ ...prev, image: compressed }));
+                }
+              }} />
+              <label htmlFor={`edit-img-dialog`}>
+                <Button component="span" fullWidth variant="outlined" startIcon={<CloudUploadIcon />} sx={{ textTransform: 'none', borderColor: '#cbd5e1', color: '#475569', py: 1.5 }}>
+                  {editFormData.image ? editFormData.image.name : "Replace Image"}
+                </Button>
+              </label>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, px: 3 }}>
+          <Button onClick={() => setEditingProductId(null)} sx={{ color: '#64748b', fontWeight: 600 }}>Cancel</Button>
+          <Button onClick={() => handleEditSave(editingProductId)} variant="contained" disabled={isUpdating} startIcon={isUpdating ? <CircularProgress size={16} color="inherit" /> : <CheckIcon />} sx={{ bgcolor: '#228B22', fontWeight: 700 }}>
+            Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

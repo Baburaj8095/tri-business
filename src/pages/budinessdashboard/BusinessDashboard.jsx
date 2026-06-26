@@ -1072,6 +1072,8 @@ function AppDrawer({ open, onClose, onAction, profile }) {
   const shopsCount = 1;
   const adsCount = 3;
 
+  const isOnline = String(profile?.service_mode || localStorage.getItem('service_mode_business') || '').toUpperCase() === 'ONLINE';
+
   const menuGroups = [
     {
       title: "Account",
@@ -1085,7 +1087,7 @@ function AppDrawer({ open, onClose, onAction, profile }) {
     {
       title: "Business",
       items: [
-        { label: "My Shops", action: "addShop", icon: LuStore },
+        ...(isOnline ? [] : [{ label: "My Shops", action: "addShop", icon: LuStore }]),
         { label: "Inventory Management", action: "inventoryManagement", icon: LuFileText },
         { label: "Ads Manager", action: "ads", icon: CampaignOutlinedIcon },
         { label: "Reports & Analytics", action: "reports", icon: AssignmentOutlinedIcon },
@@ -1313,7 +1315,7 @@ function AppDrawer({ open, onClose, onAction, profile }) {
                 { label: "Wallet", action: "wallet", icon: AccountBalanceWalletOutlinedIcon },
                 { label: "Orders", action: "orders", icon: LuFileText },
                 { label: "KYC", action: "kyc", icon: LuShieldCheck },
-                { label: "Add Shop", action: "addShop", icon: StorefrontOutlinedIcon },
+                ...(isOnline ? [] : [{ label: "Add Shop", action: "addShop", icon: StorefrontOutlinedIcon }]),
                 { label: "Ads Manager", action: "ads", icon: CampaignOutlinedIcon },
                 { label: "Reports", action: "reports", icon: AssignmentOutlinedIcon },
               ].map((btn) => {
@@ -1845,7 +1847,7 @@ function BusinessDashboard() {
         </IconButton>
         
         <Typography sx={{ ml: 1.5, fontWeight: 900, fontSize: '1.2rem', color: '#0f172a', flexGrow: 1 }}>
-          Business Dashboard
+          Trikonekt Merchant
         </Typography>
         
         <Stack direction="row" spacing={0.5}>
@@ -2033,7 +2035,7 @@ function BusinessDashboard() {
               title="Deals for You"
               subtitle="Discounted products picked for your area"
             >
-              <StickyDeliveryButton onClick={() => navigate("/business/tri-sarathi-delivery")} />
+              {/* <StickyDeliveryButton onClick={() => navigate("/business/tri-sarathi-delivery")} /> */}
               <Box
                 sx={{
                   display: "grid",
