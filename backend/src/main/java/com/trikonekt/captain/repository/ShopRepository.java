@@ -124,7 +124,7 @@ public class ShopRepository {
             "  AND u.category = 'business' " +
             "  AND u.is_active = TRUE " +
             "  AND s.status = 'ACTIVE' " +
-            "  AND COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') <> 'ONLINE'",
+            "  AND UPPER(COALESCE(mp.service_mode, s.service_mode, 'OFFLINE')) <> 'ONLINE'",
             new Object[]{shopId},
             (rs, rowNum) -> ShopResponse.builder()
                 .id(rs.getLong("id"))
@@ -173,7 +173,7 @@ public class ShopRepository {
             "JOIN accounts_customuser u ON s.merchant_id = u.id " +
             "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
             "WHERE s.status = 'ACTIVE' " +
-            "  AND COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') <> 'ONLINE' " +
+            "  AND UPPER(COALESCE(mp.service_mode, s.service_mode, 'OFFLINE')) <> 'ONLINE' " +
             "ORDER BY s.created_at DESC",
             (rs, rowNum) -> ShopResponse.builder()
                 .id(rs.getLong("id"))
@@ -250,7 +250,7 @@ public class ShopRepository {
             "  AND u.category = 'business' " +
             "  AND u.is_active = TRUE " +
             "  AND s.status = 'ACTIVE' " +
-            "  AND COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') IN ('ONLINE', 'BOTH') " +
+            "  AND UPPER(COALESCE(mp.service_mode, s.service_mode, 'OFFLINE')) IN ('ONLINE', 'BOTH') " +
             "  AND p.online_delivery = TRUE " +
             "  AND p.is_active = TRUE " +
             "  AND p.stock_qty > 0 " +
