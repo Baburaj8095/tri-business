@@ -12,12 +12,6 @@ import {
   FormHelperText,
   CircularProgress,
   Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
   Chip,
   IconButton,
@@ -26,7 +20,8 @@ import {
   DialogContent,
   DialogActions,
   Collapse,
-  Grid
+  Grid,
+  InputLabel
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -116,6 +111,7 @@ export default function InventoryPage() {
           const catId = cats[0]?.id || 1;
           await createShop({
             shop_name: "Default Online Store",
+            service_mode: "ONLINE",
             address: p?.address || "Online Store Address",
             city: p?.city || "Online",
             state: "Online",
@@ -129,11 +125,15 @@ export default function InventoryPage() {
             base_delivery_fee: 0,
           });
           shopsList = await listMyShops().catch(() => []);
-          activeShop = shopsList.find((s) => String(s.serviceMode || s.service_mode || "").toUpperCase() === "ONLINE");
+          activeShop = shopsList.find((s) => String(s.serviceMode || s.service_mode || "").toUpperCase() === "ONLINE") || shopsList[0];
         }
-        setShops([activeShop]);
-        setSelectedShop(activeShop);
-        if (activeShop) await fetchInventory(activeShop.id);
+        if (activeShop) {
+          setShops([activeShop]);
+          setSelectedShop(activeShop);
+          await fetchInventory(activeShop.id);
+        } else {
+          setErrorMessage("Failed to create or retrieve online store.");
+        }
       } else {
         // OFFLINE or TRIZONE
         if (shopsList.length > 0) {
@@ -196,6 +196,13 @@ export default function InventoryPage() {
 
     setSubmittingProduct(true);
     setErrorMessage("");
+
+    if (!selectedShop || !selectedShop.id) {
+      setErrorMessage("No active shop found. Please check your shop registration or refresh.");
+      setSubmittingProduct(false);
+      return;
+    }
+
     try {
       const isOnline = String(profile?.service_mode || "").toUpperCase() === 'ONLINE';
       const payload = {
@@ -287,9 +294,9 @@ export default function InventoryPage() {
     <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "#f8fafc", minHeight: "100vh" }}>
       {/* HEADER */}
       <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" mb={4} spacing={2}>
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <IconButton onClick={() => navigate("/business-dashboard")} sx={{ bgcolor: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
-            <ArrowBackIcon />
+        <Stack direction="row" alignItems="center" spacing={3}>
+          <IconButton onClick={() => navigate("/business-dashboard")} sx={{ bgcolor: "#fff", border: '1px solid #e2e8f0', boxShadow: "0 2px 4px rgba(0,0,0,0.02)", width: 44, height: 44 }}>
+            <ArrowBackIcon sx={{ color: '#0f172a' }} />
           </IconButton>
           <Box>
             <Typography variant="h5" fontWeight={900} color="#0f172a">
@@ -316,10 +323,23 @@ export default function InventoryPage() {
             </TextField>
           )}
           <Button
-            variant="contained"
+            variant={isAddFormOpen ? "outlined" : "contained"}
             startIcon={isAddFormOpen ? <CloseIcon /> : <AddIcon />}
             onClick={() => setIsAddFormOpen(!isAddFormOpen)}
-            sx={{ bgcolor: "#228B22", fontWeight: 700, textTransform: "none", borderRadius: '8px', px: 3 }}
+            color={isAddFormOpen ? "error" : "success"}
+            sx={{ 
+              fontWeight: 700, 
+              textTransform: "none", 
+              borderRadius: '8px', 
+              px: 3, 
+              py: 0.8,
+              bgcolor: isAddFormOpen ? "transparent" : "#228B22",
+              borderColor: isAddFormOpen ? "#ef4444" : "transparent",
+              color: isAddFormOpen ? "#ef4444" : "#fff",
+              "&:hover": {
+                bgcolor: isAddFormOpen ? "rgba(239,68,68,0.05)" : "#1a701a"
+              }
+            }}
           >
             {isAddFormOpen ? "Cancel" : "Add Product"}
           </Button>
@@ -333,15 +353,21 @@ export default function InventoryPage() {
       {/* ADD PRODUCT COLLAPSE */}
       <Collapse in={isAddFormOpen}>
         <Card sx={{ mb: 4, borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', border: '1px solid #e2e8f0' }}>
-          <CardContent sx={{ p: 4 }}>
-            <Typography variant="h6" fontWeight={800} mb={3}>Add New Product</Typography>
+          <CardContent sx={{ p: { xs: 3, md: 5 } }}>
+            <Stack direction="row" alignItems="center" spacing={2} mb={4}>
+              <Box sx={{ bgcolor: 'rgba(34, 139, 34, 0.1)', p: 1.5, borderRadius: '12px' }}>
+                <ShoppingBagIcon sx={{ color: '#228B22' }} />
+              </Box>
+              <Typography variant="h6" fontWeight={800} color="#0f172a">Add New Product</Typography>
+            </Stack>
+
             <form onSubmit={handleAddSubmit}>
-              <Grid container spacing={3}>
+              <Grid container spacing={4}>
                 <Grid item xs={12} md={6}>
-                  <TextField fullWidth label="Product Name" name="productName" value={formData.productName} onChange={handleAddChange} error={!!formErrors.productName} helperText={formErrors.productName} />
+                  <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Product Name" name="productName" value={formData.productName} onChange={handleAddChange} error={!!formErrors.productName} helperText={formErrors.productName} />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <TextField fullWidth select label="Category" name="category" value={formData.category} onChange={handleAddChange} error={!!formErrors.category} helperText={formErrors.category}>
+                  <TextField fullWidth size="small" select InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Category" name="category" value={formData.category} onChange={handleAddChange} error={!!formErrors.category} helperText={formErrors.category}>
                     {categories.map((cat) => {
                       const name = typeof cat === "string" ? cat : cat.name || cat;
                       return <MenuItem key={name} value={name}>{name}</MenuItem>;
@@ -349,28 +375,60 @@ export default function InventoryPage() {
                   </TextField>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <TextField fullWidth label="Price (₹)" name="price" type="number" value={formData.price} onChange={handleAddChange} error={!!formErrors.price} helperText={formErrors.price} inputProps={{ min: "0" }} />
+                  <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Price (₹)" name="price" type="number" value={formData.price} onChange={handleAddChange} error={!!formErrors.price} helperText={formErrors.price} inputProps={{ min: "0" }} />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <TextField fullWidth label="Stock Quantity" name="quantity" type="number" value={formData.quantity} onChange={handleAddChange} error={!!formErrors.quantity} helperText={formErrors.quantity} inputProps={{ min: "0" }} />
+                  <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Stock Quantity" name="quantity" type="number" value={formData.quantity} onChange={handleAddChange} error={!!formErrors.quantity} helperText={formErrors.quantity} inputProps={{ min: "0" }} />
                 </Grid>
                 <Grid item xs={12}>
-                  <TextField fullWidth label="Description" name="description" multiline rows={3} value={formData.description} onChange={handleAddChange} error={!!formErrors.description} helperText={formErrors.description} />
+                  <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Description" name="description" multiline rows={4} value={formData.description} onChange={handleAddChange} error={!!formErrors.description} helperText={formErrors.description} />
                 </Grid>
+                
                 <Grid item xs={12}>
-                  <input accept="image/*" style={{ display: "none" }} id="add-image-input" type="file" onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) setFormData(prev => ({ ...prev, image: file }));
-                  }} />
-                  <label htmlFor="add-image-input">
-                    <Button component="span" variant="outlined" startIcon={<CloudUploadIcon />} sx={{ py: 1.5, border: '2px dashed #cbd5e1', color: '#475569', fontWeight: 600, width: { xs: '100%', md: 'auto' } }}>
-                      {formData.image ? formData.image.name : "Upload Image *"}
-                    </Button>
-                  </label>
+                  <Box sx={{ 
+                    border: '2px dashed #94a3b8', 
+                    borderRadius: '8px', 
+                    p: 2, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    bgcolor: '#f8fafc'
+                  }}>
+                    <Stack direction="row" alignItems="center" spacing={2}>
+                      <Box sx={{ bgcolor: 'rgba(34, 139, 34, 0.1)', p: 1.5, borderRadius: '8px' }}>
+                        <CloudUploadIcon sx={{ color: '#228B22' }} />
+                      </Box>
+                      <Box>
+                        <Typography fontWeight={700} fontSize="0.95rem" color="#0f172a">
+                          {formData.image ? formData.image.name.toUpperCase() : "CLICK TO UPLOAD IMAGE"}
+                        </Typography>
+                        {!formData.image && <Typography fontSize="0.8rem" color="text.secondary">Click to change or drag and drop</Typography>}
+                      </Box>
+                    </Stack>
+                    
+                    {formData.image ? (
+                      <Button size="small" variant="outlined" color="error" startIcon={<DeleteOutlineIcon />} sx={{ textTransform: 'none', fontWeight: 600 }} onClick={() => setFormData(prev => ({ ...prev, image: null }))}>
+                        Remove
+                      </Button>
+                    ) : (
+                      <Box>
+                        <input accept="image/*" style={{ display: "none" }} id="add-image-input" type="file" onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) setFormData(prev => ({ ...prev, image: file }));
+                        }} />
+                        <label htmlFor="add-image-input">
+                          <Button component="span" size="small" variant="outlined" sx={{ color: '#475569', borderColor: '#cbd5e1', fontWeight: 600, textTransform: 'none' }}>
+                            Browse
+                          </Button>
+                        </label>
+                      </Box>
+                    )}
+                  </Box>
                   {formErrors.image && <FormHelperText error sx={{ mt: 1 }}>{formErrors.image}</FormHelperText>}
                 </Grid>
+
                 <Grid item xs={12}>
-                  <Button type="submit" variant="contained" disabled={submittingProduct} sx={{ bgcolor: "#228B22", py: 1.5, px: 4, fontWeight: 700 }}>
+                  <Button type="submit" variant="contained" fullWidth disabled={submittingProduct} startIcon={!submittingProduct && <CheckIcon />} sx={{ bgcolor: "#228B22", py: 1.5, fontWeight: 800, borderRadius: '8px', fontSize: '1rem', '&:hover': { bgcolor: '#1a701a' } }}>
                     {submittingProduct ? <CircularProgress size={24} color="inherit" /> : "Save Product"}
                   </Button>
                 </Grid>
@@ -403,9 +461,12 @@ export default function InventoryPage() {
               <TableBody>
                 {products.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
-                      <ShoppingBagIcon sx={{ fontSize: 48, color: '#cbd5e1', mb: 2 }} />
-                      <Typography fontWeight={600} color="text.secondary">No products found in this catalog.</Typography>
+                    <TableCell colSpan={6} align="center" sx={{ py: 10 }}>
+                      <Box sx={{ width: 80, height: 80, bgcolor: 'rgba(34, 139, 34, 0.08)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', mb: 3 }}>
+                        <ShoppingBagIcon sx={{ fontSize: 40, color: '#228B22' }} />
+                      </Box>
+                      <Typography variant="h6" fontWeight={800} color="#0f172a" mb={1}>No products found in this catalog</Typography>
+                      <Typography color="text.secondary" fontWeight={500}>Start by adding your first product.</Typography>
                     </TableCell>
                   </TableRow>
                 ) : (
