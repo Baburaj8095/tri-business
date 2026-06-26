@@ -161,6 +161,9 @@ export default function InventoryPage() {
       // Filter shops based on service mode if needed, or if ONLINE auto-create one.
       if (serviceMode === 'ONLINE') {
         let activeShop = shopsList.find((s) => String(s.serviceMode || s.service_mode || "").toUpperCase() === "ONLINE");
+        if (!activeShop && shopsList.length > 0) {
+          activeShop = shopsList[shopsList.length - 1]; // Use oldest shop as the default one to avoid picking up freshly created empty duplicates
+        }
         if (!activeShop) {
           const cats = await getMerchantCategories().catch(() => []);
           const catId = cats[0]?.id || 1;
@@ -259,7 +262,7 @@ export default function InventoryPage() {
     }
 
     try {
-      const isOnline = String(profile?.service_mode || "").toUpperCase() === 'ONLINE';
+      const isOnline = String(profile?.service_mode || localStorage.getItem('service_mode_business') || "").toUpperCase() === 'ONLINE';
       const payload = {
         title: formData.productName,
         description: formData.description,
