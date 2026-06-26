@@ -312,7 +312,7 @@ export default function MerchantOrdersPage() {
               >
                 <LuChevronLeft size={20} />
               </IconButton>
-              <Typography sx={{ fontSize: '1.4rem', fontWeight: 900, color: TEXT }}>
+              <Typography sx={{ fontSize: '1rem', fontWeight: 700, color: TEXT }}>
                 Offline Orders
               </Typography>
             </Stack>
@@ -326,8 +326,8 @@ export default function MerchantOrdersPage() {
                 sx={{
                   borderRadius: '20px',
                   textTransform: 'none',
-                  fontWeight: 800,
-                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  fontSize: '0.7rem',
                   px: 2,
                   py: 0.75,
                   bgcolor: channelMode === 'OFFLINE' ? PRIMARY : 'transparent',
@@ -344,8 +344,8 @@ export default function MerchantOrdersPage() {
                 sx={{
                   borderRadius: '20px',
                   textTransform: 'none',
-                  fontWeight: 800,
-                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  fontSize: '0.7rem',
                   px: 2,
                   py: 0.75,
                   bgcolor: channelMode === 'ONLINE' ? PRIMARY : 'transparent',
