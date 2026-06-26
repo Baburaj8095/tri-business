@@ -313,7 +313,7 @@ export default function MerchantOrdersPage() {
                 <LuChevronLeft size={20} />
               </IconButton>
               <Typography sx={{ fontSize: '1.4rem', fontWeight: 900, color: TEXT }}>
-                Merchant Control Hub
+                Offline Orders
               </Typography>
             </Stack>
 
