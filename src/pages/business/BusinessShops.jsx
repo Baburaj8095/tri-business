@@ -260,6 +260,11 @@ export default function BusinessShops() {
   const handlePickShopImage = (e) => {
     const f = e?.target?.files?.[0] || null;
     if (f) {
+      if (f.size > 10 * 1024 * 1024) {
+        setError("Shop image exceeds the 10MB maximum limit.");
+        return;
+      }
+      setError("");
       setForm((p) => ({
         ...p,
         shop_image: f,
@@ -271,6 +276,11 @@ export default function BusinessShops() {
   const handlePickBanner = (e) => {
     const f = e?.target?.files?.[0] || null;
     if (f) {
+      if (f.size > 10 * 1024 * 1024) {
+        setError("Banner image exceeds the 10MB maximum limit.");
+        return;
+      }
+      setError("");
       setForm((p) => ({
         ...p,
         banner: f,
@@ -281,6 +291,12 @@ export default function BusinessShops() {
 
   const handleDocs = (e) => {
     const files = Array.from(e.target.files || []);
+    const oversized = files.filter(f => f.size > 10 * 1024 * 1024);
+    if (oversized.length > 0) {
+      setError("Some verification documents exceed the 10MB maximum limit.");
+      return;
+    }
+    setError("");
     setForm(p => ({
       ...p,
       business_documents: [...p.business_documents, ...files].slice(0, 5)
