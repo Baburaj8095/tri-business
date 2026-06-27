@@ -28,6 +28,7 @@ public class B2BOrderRepository {
     public Optional<Map<String, Object>> findOrderableProduct(Long productId) {
         String sql = "SELECT p.id, p.shop_id, p.title, p.mrp, p.price, p.online_delivery, p.stock_qty, p.is_active, " +
                 "s.shop_name, s.merchant_id AS seller_id, s.status AS shop_status, " +
+                "s.home_delivery_enabled, s.delivery_radius_km, s.latitude, s.longitude, " +
                 "COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') AS service_mode, " +
                 "u.full_name AS seller_name, u.category AS seller_category, u.is_active AS seller_active " +
                 "FROM market_shopproduct p " +
@@ -247,5 +248,11 @@ public class B2BOrderRepository {
                 .createdAt(rs.getString("created_at"))
                 .updatedAt(rs.getString("updated_at"))
                 .build();
+    }
+
+    public Optional<Map<String, Object>> findBuyerShop(Long buyerId) {
+        String sql = "SELECT id, latitude, longitude, city, pincode FROM market_shop WHERE merchant_id = ? LIMIT 1";
+        List<Map<String, Object>> rows = jdbc.queryForList(sql, buyerId);
+        return rows.stream().findFirst();
     }
 }

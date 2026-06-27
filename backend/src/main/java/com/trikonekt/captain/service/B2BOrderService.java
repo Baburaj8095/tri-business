@@ -31,6 +31,10 @@ public class B2BOrderService {
         String shopName = null;
         double subtotal = 0.0;
 
+        boolean isDeliverable = true;
+        String deliverabilityMessage = null;
+        boolean deliveryCheckDone = false;
+
         for (CartItemRequest itemReq : req.getItems()) {
             Integer quantity = itemReq != null ? itemReq.getQuantity() : null;
             Long productId = itemReq != null ? itemReq.getProductId() : null;
@@ -68,6 +72,38 @@ public class B2BOrderService {
                 continue;
             }
 
+            if (!deliveryCheckDone) {
+                Boolean homeDeliveryEnabled = (Boolean) row.get("home_delivery_enabled");
+                Double deliveryRadiusKm = (Double) row.get("delivery_radius_km");
+                Double sellerLat = (Double) row.get("latitude");
+                Double sellerLng = (Double) row.get("longitude");
+                String serviceMode = str(row.get("service_mode"), "OFFLINE").toUpperCase();
+
+                if (Boolean.TRUE.equals(homeDeliveryEnabled) && (serviceMode.equals("BOTH") || serviceMode.equals("OFFLINE"))) {
+                    Optional<Map<String, Object>> buyerShopOpt = repository.findBuyerShop(buyerId);
+                    if (buyerShopOpt.isPresent()) {
+                        Map<String, Object> buyerShop = buyerShopOpt.get();
+                        Double buyerLat = (Double) buyerShop.get("latitude");
+                        Double buyerLng = (Double) buyerShop.get("longitude");
+                        if (buyerLat != null && buyerLng != null && sellerLat != null && sellerLng != null) {
+                            double distanceKm = ShopService.calculateDistanceKm(buyerLat, buyerLng, sellerLat, sellerLng);
+                            double radius = deliveryRadiusKm != null ? Math.min(deliveryRadiusKm, 25.0) : 5.0;
+                            if (distanceKm > radius) {
+                                isDeliverable = false;
+                                deliverabilityMessage = "This wholesale seller is outside your delivery area (distance: " + String.format("%.1f", distanceKm) + " KM, max: " + radius + " KM).";
+                            }
+                        } else {
+                            isDeliverable = false;
+                            deliverabilityMessage = "Please configure your shop coordinates in the profile to verify local delivery availability.";
+                        }
+                    } else {
+                        isDeliverable = false;
+                        deliverabilityMessage = "Please register your store profile to verify local delivery availability.";
+                    }
+                }
+                deliveryCheckDone = true;
+            }
+
             if (expectedSellerId == null) expectedSellerId = sellerId;
             if (!Objects.equals(expectedSellerId, sellerId) || !Objects.equals(req.getShopId(), shopId)) {
                 responses.add(unavailable(productId, title, quantity, "Only one seller/shop is allowed per B2B cart."));
@@ -89,17 +125,22 @@ public class B2BOrderService {
                     .build());
         }
 
+        boolean finalValid = allValid && isDeliverable;
+        String finalMessage = finalValid 
+                ? "B2B cart validated successfully." 
+                : (deliverabilityMessage != null ? deliverabilityMessage : "Some B2B cart items are invalid.");
+
         return CartValidationResponse.builder()
                 .shopId(req.getShopId())
                 .shopName(shopName)
-                .isDeliverable(true)
+                .isDeliverable(isDeliverable)
                 .subTotal(subtotal)
                 .deliveryFee(0.0)
                 .minOrderValue(0.0)
                 .total(subtotal)
                 .items(responses)
-                .isValid(allValid)
-                .message(allValid ? "B2B cart validated successfully." : "Some B2B cart items are invalid.")
+                .isValid(finalValid)
+                .message(finalMessage)
                 .build();
     }
 

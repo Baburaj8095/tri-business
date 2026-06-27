@@ -71,7 +71,7 @@ public class OnlineMarketplaceRepository {
             "  AND sp.stock_qty > 0 " +
             "  AND s.status = 'ACTIVE' " +
             "  AND u.category = 'business' " +
-            "  AND UPPER(COALESCE(mp.service_mode, s.service_mode, 'OFFLINE')) IN ('ONLINE', 'BOTH') "
+            "  AND UPPER(COALESCE(mp.service_mode, 'OFFLINE')) = 'ONLINE' "
         );
 
         List<Object> params = new ArrayList<>();
@@ -118,7 +118,7 @@ public class OnlineMarketplaceRepository {
             "  AND sp.stock_qty > 0 " +
             "  AND s.status = 'ACTIVE' " +
             "  AND u.category = 'merchant' " +
-            "  AND UPPER(COALESCE(mp.service_mode, s.service_mode, 'OFFLINE')) IN ('ONLINE', 'BOTH') "
+            "  AND UPPER(COALESCE(mp.service_mode, 'OFFLINE')) = 'ONLINE' "
         );
 
         List<Object> params = new ArrayList<>();
