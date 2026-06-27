@@ -621,10 +621,19 @@ export default function BusinessShopProducts() {
   };
 
   return (
-    <Box sx={{ px: 3, py: 4, bgcolor: T.bg, minHeight: '100vh' }}>
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
+    <Box sx={{ px: 1.5, pb: 4 }}>
+      <Box 
+        sx={{ 
+          display: "flex", 
+          flexDirection: { xs: "column", sm: "row" }, 
+          alignItems: { xs: "flex-start", sm: "center" }, 
+          justifyContent: "space-between", 
+          gap: 1.5, 
+          mb: 2.5 
+        }}
+      >
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 900, color: T.text }}>
+          <Typography variant="h6" sx={{ fontWeight: 900, fontSize: { xs: "1.25rem", sm: "1.5rem" }, color: T.text }}>
             {shop ? `Shop Products: ${shop.shop_name}` : "Shop Products"}
           </Typography>
           {shop && (
@@ -633,18 +642,26 @@ export default function BusinessShopProducts() {
             </Typography>
           )}
         </Box>
-        <Stack direction="row" spacing={2}>
+        <Stack 
+          direction="row" 
+          spacing={1.5} 
+          sx={{ 
+            width: { xs: "100%", sm: "auto" }, 
+            justifyContent: { xs: "space-between", sm: "flex-end" } 
+          }}
+        >
           <Button 
             variant="outlined" 
-            startIcon={<ArrowBackIcon />}
             onClick={() => navigate("/business/shops")}
             sx={{
+              flex: { xs: 1, sm: "initial" },
               borderColor: T.primary,
               color: T.primary,
               borderRadius: '12px',
               textTransform: 'none',
               fontWeight: 800,
               px: 3,
+              py: 1,
               "&:hover": { bgcolor: alpha(T.primary, 0.05), borderColor: T.primaryDark }
             }}
           >
@@ -655,6 +672,7 @@ export default function BusinessShopProducts() {
             startIcon={<Inventory2Icon />} 
             onClick={handleAdd}
             sx={{
+              flex: { xs: 1, sm: "initial" },
               background: T.btnGradient,
               '&:hover': { background: T.primaryDark },
               color: '#fff',
@@ -662,6 +680,7 @@ export default function BusinessShopProducts() {
               textTransform: 'none',
               fontWeight: 800,
               px: 3,
+              py: 1,
               boxShadow: '0 4px 12px rgba(34, 139, 34, 0.15)'
             }}
           >
