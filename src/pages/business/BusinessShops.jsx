@@ -1076,12 +1076,12 @@ export default function BusinessShops() {
                             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mb: 1 }}>
                               <Chip
                                 size="small"
-                                label={s.serviceMode === 'ONLINE' ? 'ONLINE STORE' : s.serviceMode === 'BOTH' ? 'ONLINE + NEARBY STORE' : 'B2C NEARBY STORE'}
+                               label={(s.serviceMode || s.service_mode) === 'ONLINE' ? 'ONLINE STORE' : (s.serviceMode || s.service_mode) === 'BOTH' ? 'ONLINE + NEARBY STORE' : 'B2C NEARBY STORE'}
                                 sx={{ 
                                   fontWeight: 800, 
                                   fontSize: '0.68rem', 
-                                  bgcolor: s.serviceMode === 'ONLINE' ? '#eff6ff' : s.serviceMode === 'BOTH' ? '#f5f3ff' : '#ecfdf5',
-                                  color: s.serviceMode === 'ONLINE' ? '#2563eb' : s.serviceMode === 'BOTH' ? '#7c3aed' : '#059669'
+                                  bgcolor: (s.serviceMode || s.service_mode) === 'ONLINE' ? '#eff6ff' : (s.serviceMode || s.service_mode) === 'BOTH' ? '#f5f3ff' : '#ecfdf5',
+                                  color: (s.serviceMode || s.service_mode) === 'ONLINE' ? '#2563eb' : (s.serviceMode || s.service_mode) === 'BOTH' ? '#7c3aed' : '#059669'
                                 }}
                               />
                               {Number(s.discountPercent || s.discount_percent) > 0 && (
