@@ -1397,7 +1397,7 @@ export async function deleteMerchantSubcategory(id) {
 }
 
 export async function getShopDetail(id) {
-  const res = await API.get(`/shops/${encodeURIComponent(id)}/`, { dedupe: "cancelPrevious" });
+  const res = await API.get(`/captain/merchant/shops/${encodeURIComponent(id)}`, { dedupe: "cancelPrevious" });
   return res?.data || res;
 }
 
