@@ -87,7 +87,7 @@ public class OrderRepository {
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
             ps.setLong(1, userId);
             ps.setLong(2, shopId);
             ps.setLong(3, addressId);
