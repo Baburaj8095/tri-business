@@ -1636,7 +1636,7 @@ export async function updateMyShopProduct(productId, patch = {}) {
   if ("image" in patch && patch.image != null) append("image", patch.image);
   if (patch.category !== undefined) append("category", patch.category);
 
-  const res = await API.patch(
+  const res = await API.put(
     `/captain/merchant/products/${encodeURIComponent(productId)}`,
     fd,
     { headers: { "Content-Type": "multipart/form-data" } }
