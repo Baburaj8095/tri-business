@@ -70,7 +70,7 @@ public class UserRepository {
             "JOIN market_shop s ON u.id = s.merchant_id " +
             "LEFT JOIN market_merchantprofile mp ON u.id = mp.user_id " +
             "WHERE u.category = 'business' AND u.is_active = true AND UPPER(COALESCE(s.status, '')) = 'ACTIVE' " +
-            "AND UPPER(COALESCE(mp.service_mode, s.service_mode, 'OFFLINE')) <> 'ONLINE' " +
+            "AND UPPER(COALESCE(s.service_mode, mp.service_mode, 'OFFLINE')) <> 'ONLINE' " +
             "LIMIT 50"
         );
     }

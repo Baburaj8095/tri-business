@@ -115,7 +115,7 @@ public class ShopRepository {
         List<ShopResponse> result = jdbc.query(
             "SELECT s.id, s.shop_name, s.address, s.city, s.pincode, s.latitude, s.longitude, " +
             "s.contact_number, s.shop_image, s.category_id, s.subcategory_id, " +
-            "s.status, s.created_at, COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') AS service_mode, " +
+            "s.status, s.created_at, COALESCE(s.service_mode, mp.service_mode, 'OFFLINE') AS service_mode, " +
             "s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.discount_percent " +
             "FROM market_shop s " +
             "JOIN accounts_customuser u ON s.merchant_id = u.id " +
@@ -124,7 +124,7 @@ public class ShopRepository {
             "  AND u.category = 'business' " +
             "  AND u.is_active = TRUE " +
             "  AND s.status = 'ACTIVE' " +
-            "  AND UPPER(COALESCE(mp.service_mode, s.service_mode, 'OFFLINE')) <> 'ONLINE'",
+            "  AND UPPER(COALESCE(s.service_mode, mp.service_mode, 'OFFLINE')) <> 'ONLINE'",
             new Object[]{shopId},
             (rs, rowNum) -> ShopResponse.builder()
                 .id(rs.getLong("id"))
@@ -167,13 +167,13 @@ public class ShopRepository {
         return jdbc.query(
             "SELECT s.id, s.shop_name, s.address, s.city, s.pincode, s.latitude, s.longitude, " +
             "s.contact_number, s.shop_image, s.category_id, s.subcategory_id, " +
-            "s.status, s.created_at, COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') AS service_mode, " +
+            "s.status, s.created_at, COALESCE(s.service_mode, mp.service_mode, 'OFFLINE') AS service_mode, " +
             "s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.discount_percent " +
             "FROM market_shop s " +
             "JOIN accounts_customuser u ON s.merchant_id = u.id " +
             "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
             "WHERE s.status = 'ACTIVE' " +
-            "  AND UPPER(COALESCE(mp.service_mode, s.service_mode, 'OFFLINE')) <> 'ONLINE' " +
+            "  AND UPPER(COALESCE(s.service_mode, mp.service_mode, 'OFFLINE')) <> 'ONLINE' " +
             "ORDER BY s.created_at DESC",
             (rs, rowNum) -> ShopResponse.builder()
                 .id(rs.getLong("id"))
@@ -250,7 +250,7 @@ public class ShopRepository {
             "  AND u.category = 'business' " +
             "  AND u.is_active = TRUE " +
             "  AND s.status = 'ACTIVE' " +
-            "  AND UPPER(COALESCE(mp.service_mode, s.service_mode, 'OFFLINE')) IN ('ONLINE', 'BOTH') " +
+            "  AND UPPER(COALESCE(s.service_mode, mp.service_mode, 'OFFLINE')) IN ('ONLINE', 'BOTH') " +
             "  AND p.online_delivery = TRUE " +
             "  AND p.is_active = TRUE " +
             "  AND p.stock_qty > 0 " +

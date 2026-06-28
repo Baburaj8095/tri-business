@@ -29,7 +29,7 @@ public class B2BOrderRepository {
         String sql = "SELECT p.id, p.shop_id, p.title, p.mrp, p.price, p.online_delivery, p.stock_qty, p.is_active, " +
                 "s.shop_name, s.merchant_id AS seller_id, s.status AS shop_status, " +
                 "s.home_delivery_enabled, s.delivery_radius_km, s.latitude, s.longitude, " +
-                "COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') AS service_mode, " +
+                "COALESCE(s.service_mode, mp.service_mode, 'OFFLINE') AS service_mode, " +
                 "u.full_name AS seller_name, u.category AS seller_category, u.is_active AS seller_active " +
                 "FROM market_shopproduct p " +
                 "JOIN market_shop s ON p.shop_id = s.id " +

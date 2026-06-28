@@ -119,7 +119,7 @@ public class ProductRepository {
             "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
             "LEFT JOIN business_merchantcategory sc ON s.category_id = sc.id " +
             "WHERE p.online_delivery = TRUE AND p.is_active = TRUE " +
-            "AND s.status = 'ACTIVE' AND UPPER(COALESCE(mp.service_mode, s.service_mode, 'OFFLINE')) IN ('ONLINE', 'BOTH') "
+            "AND s.status = 'ACTIVE' AND UPPER(COALESCE(s.service_mode, mp.service_mode, 'OFFLINE')) IN ('ONLINE', 'BOTH') "
         );
         java.util.List<Object> params = new java.util.ArrayList<>();
         if (search != null && !search.isBlank()) {
@@ -149,7 +149,7 @@ public class ProductRepository {
             "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
             "LEFT JOIN business_merchantcategory sc ON s.category_id = sc.id " +
             "WHERE p.online_delivery = TRUE AND p.is_active = TRUE " +
-            "AND s.status = 'ACTIVE' AND UPPER(COALESCE(mp.service_mode, s.service_mode, 'OFFLINE')) IN ('ONLINE', 'BOTH') " +
+            "AND s.status = 'ACTIVE' AND UPPER(COALESCE(s.service_mode, mp.service_mode, 'OFFLINE')) IN ('ONLINE', 'BOTH') " +
             "AND sc.name IS NOT NULL " +
             "ORDER BY sc.name ASC";
         return jdbc.queryForList(sql, String.class);

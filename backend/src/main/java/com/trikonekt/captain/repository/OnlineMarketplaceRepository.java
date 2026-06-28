@@ -106,7 +106,7 @@ public class OnlineMarketplaceRepository {
             "s.id AS shop_id, s.shop_name, s.city AS shop_city, s.shop_image, s.merchant_id, " +
             "u.full_name AS merchant_name, u.category AS merchant_category, " +
             "COALESCE(mp.business_name, u.full_name, s.shop_name) AS business_name, " +
-            "COALESCE(mp.service_mode, s.service_mode, 'OFFLINE') AS service_mode, " +
+            "COALESCE(s.service_mode, mp.service_mode, 'OFFLINE') AS service_mode, " +
             "CASE WHEN s.merchant_id = ? THEN TRUE ELSE FALSE END AS is_own_product " +
             "FROM market_shopproduct sp " +
             "JOIN market_shop s ON sp.shop_id = s.id " +
