@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -104,5 +105,49 @@ public class ConsumerOrderController {
         Long userId = getUserIdFromToken(authHeader);
         OnlineOrder order = orderService.transitionOrderStatus(orderId, "CANCELLED", userId, null);
         return ResponseEntity.ok(order);
+    }
+
+    /**
+     * POST /api/orders/shiprocket/webhook
+     * Public webhook to receive delivery tracking updates from Shiprocket.
+     */
+    @PostMapping("/shiprocket/webhook")
+    public ResponseEntity<Map<String, String>> shiprocketWebhook(@RequestBody Map<String, Object> payload) {
+        try {
+            String orderNumber = (String) payload.get("order_id");
+            String shiprocketStatus = (String) payload.get("current_status");
+
+            if (orderNumber == null || shiprocketStatus == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Missing order_id or current_status."));
+            }
+
+            Optional<OnlineOrder> orderOpt = orderRepository.findOrderByOrderNumber(orderNumber);
+            if (orderOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Order not found."));
+            }
+
+            OnlineOrder order = orderOpt.get();
+            String targetStatus = null;
+            String statusNorm = shiprocketStatus.toUpperCase();
+
+            if (statusNorm.contains("SHIPPED") || statusNorm.contains("TRANSIT")) {
+                targetStatus = "SHIPPED";
+            } else if (statusNorm.contains("OUT FOR DELIVERY") || statusNorm.contains("DISPATCHED")) {
+                targetStatus = "DISPATCHED";
+            } else if (statusNorm.contains("DELIVERED") || statusNorm.contains("COMPLETED")) {
+                targetStatus = "COMPLETED";
+            } else if (statusNorm.contains("CANCELLED")) {
+                targetStatus = "CANCELLED";
+            }
+
+            if (targetStatus != null) {
+                orderService.transitionOrderStatus(order.getId(), targetStatus, null, null);
+            }
+
+            return ResponseEntity.ok(Map.of("status", "success", "message", "Status processed."));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Failed to process webhook: " + e.getMessage()));
+        }
     }
 }

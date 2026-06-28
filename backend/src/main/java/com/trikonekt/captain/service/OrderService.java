@@ -7,6 +7,8 @@ import com.trikonekt.captain.repository.ProductRepository;
 import com.trikonekt.captain.repository.ShopRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,17 +19,22 @@ import java.util.UUID;
 @Service
 public class OrderService {
 
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
+
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final ShopRepository shopRepository;
     private final AddressRepository addressRepository;
+    private final ShiprocketService shiprocketService;
 
     public OrderService(OrderRepository orderRepository, ProductRepository productRepository,
-                        ShopRepository shopRepository, AddressRepository addressRepository) {
+                        ShopRepository shopRepository, AddressRepository addressRepository,
+                        ShiprocketService shiprocketService) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.shopRepository = shopRepository;
         this.addressRepository = addressRepository;
+        this.shiprocketService = shiprocketService;
     }
 
     /**
@@ -248,6 +255,14 @@ public class OrderService {
                 }
                 // Merchant has accepted. Deduct stock permanently and remove lease holds.
                 deductPhysicalStock(order);
+                if ("ONLINE_DELIVERY".equalsIgnoreCase(order.getOrderChannel())) {
+                    try {
+                        shiprocketService.scheduleShiprocketShipment(order);
+                    } catch (Exception e) {
+                        // Log and swallow so order confirmation itself is never blocked
+                        log.error("Failed to trigger Shiprocket dispatch: {}", e.getMessage());
+                    }
+                }
                 break;
 
             case "PREPARING":
@@ -256,15 +271,21 @@ public class OrderService {
                 }
                 break;
 
+            case "SHIPPED":
+                if (!"CONFIRMED".equals(currentStatus) && !"PREPARING".equals(currentStatus)) {
+                    throw new RuntimeException("Order must be CONFIRMED or PREPARING before entering SHIPPED state.");
+                }
+                break;
+
             case "DISPATCHED":
-                if (!"PREPARING".equals(currentStatus)) {
-                    throw new RuntimeException("Order must be under PREPARING state before DISPATCHED.");
+                if (!"PREPARING".equals(currentStatus) && !"SHIPPED".equals(currentStatus)) {
+                    throw new RuntimeException("Order must be under PREPARING or SHIPPED state before DISPATCHED.");
                 }
                 break;
 
             case "COMPLETED":
-                if (!"DISPATCHED".equals(currentStatus)) {
-                    throw new RuntimeException("Order must be DISPATCHED before completion.");
+                if (!"DISPATCHED".equals(currentStatus) && !"SHIPPED".equals(currentStatus)) {
+                    throw new RuntimeException("Order must be DISPATCHED or SHIPPED before completion.");
                 }
                 if ("COD".equalsIgnoreCase(order.getPaymentMethod()) && !"NEARBY_DELIVERY".equalsIgnoreCase(order.getOrderChannel())) {
                     paymentStatus = "PAID";
@@ -278,8 +299,8 @@ public class OrderService {
                     throw new RuntimeException("Cannot cancel an order that is already: " + currentStatus);
                 }
 
-                // If cancelled after previous logical deduction (during CONFIRMED, PREPARING, DISPATCHED), replenish stock
-                if ("CONFIRMED".equals(currentStatus) || "PREPARING".equals(currentStatus) || "DISPATCHED".equals(currentStatus)) {
+                // If cancelled after previous logical deduction (during CONFIRMED, PREPARING, SHIPPED, DISPATCHED), replenish stock
+                if ("CONFIRMED".equals(currentStatus) || "PREPARING".equals(currentStatus) || "SHIPPED".equals(currentStatus) || "DISPATCHED".equals(currentStatus)) {
                     replenishPhysicalStock(order);
                 }
 

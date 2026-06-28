@@ -44,6 +44,9 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/015-product-category.yaml
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/016-online-orders-shipments.yaml
+      relativeToChangelogFile: false
 
 
 

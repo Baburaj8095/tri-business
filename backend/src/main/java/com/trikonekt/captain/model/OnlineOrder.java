@@ -66,6 +66,21 @@ public class OnlineOrder {
     @JsonProperty("cancellation_reason")
     private String cancellationReason;
 
+    @JsonProperty("shipment_id")
+    private String shipmentId;
+
+    @JsonProperty("awb_number")
+    private String awbNumber;
+
+    @JsonProperty("courier_name")
+    private String courierName;
+
+    @JsonProperty("label_url")
+    private String labelUrl;
+
+    @JsonProperty("tracking_url")
+    private String trackingUrl;
+
     private String notes;
 
     @JsonProperty("created_at")

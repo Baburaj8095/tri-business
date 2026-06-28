@@ -281,11 +281,20 @@ public class OrderRepository {
         jdbc.update(sql, paymentRef, orderId);
     }
 
+    /**
+     * Update Shiprocket shipment and courier details on an order.
+     */
+    public void updateShipmentDetails(Long orderId, String shipmentId, String awbNumber, String courierName, String labelUrl, String trackingUrl) {
+        String sql = "UPDATE online_orders SET shipment_id = ?, awb_number = ?, courier_name = ?, label_url = ?, tracking_url = ?, updated_at = NOW() WHERE id = ?";
+        jdbc.update(sql, shipmentId, awbNumber, courierName, labelUrl, trackingUrl, orderId);
+    }
+
     // Shared SELECT clause reused across all order fetch methods
     private static final String ORDER_SELECT_SQL =
             "SELECT o.id, o.order_number, o.user_id, o.shop_id, s.shop_name, o.delivery_address_id, o.order_channel, o.status, " +
             "o.total_mrp, o.total_discount, o.subtotal, o.delivery_fee, o.grand_total, o.total, " +
             "o.payment_method, o.payment_status, o.payment_ref_id, o.offline_payment_id, o.cancellation_reason, o.notes, " +
+            "o.shipment_id, o.awb_number, o.courier_name, o.label_url, o.tracking_url, " +
             "o.created_at, o.updated_at " +
             "FROM online_orders o " +
             "JOIN market_shop s ON o.shop_id = s.id";
@@ -311,6 +320,11 @@ public class OrderRepository {
                 .paymentRefId(rs.getString("payment_ref_id"))
                 .offlinePaymentId(rs.getObject("offline_payment_id") != null ? rs.getLong("offline_payment_id") : null)
                 .cancellationReason(rs.getString("cancellation_reason"))
+                .shipmentId(rs.getString("shipment_id"))
+                .awbNumber(rs.getString("awb_number"))
+                .courierName(rs.getString("courier_name"))
+                .labelUrl(rs.getString("label_url"))
+                .trackingUrl(rs.getString("tracking_url"))
                 .notes(rs.getString("notes"))
                 .createdAt(rs.getString("created_at"))
                 .updatedAt(rs.getString("updated_at"))

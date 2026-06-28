@@ -33,6 +33,7 @@ com\trikonekt\captain\model\ShopProductResponse$ShopProductResponseBuilder.class
 com\trikonekt\captain\model\OrderStatusHistory.class
 com\trikonekt\captain\repository\ShopRepository.class
 com\trikonekt\captain\repository\AdminRepository.class
+com\trikonekt\captain\service\ShiprocketService.class
 com\trikonekt\captain\repository\B2BOrderRepository.class
 com\trikonekt\captain\model\SponsorInfo$SponsorInfoBuilder.class
 com\trikonekt\captain\model\B2BPaymentActionRequest$B2BPaymentActionRequestBuilder.class

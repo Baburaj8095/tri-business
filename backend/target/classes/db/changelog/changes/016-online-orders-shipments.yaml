@@ -1,0 +1,34 @@
+databaseChangeLog:
+  - changeSet:
+      id: 016-online-orders-shipments
+      author: trikonekt
+      validCheckSum: ANY
+      changes:
+        - addColumn:
+            tableName: online_orders
+            columns:
+              - column:
+                  name: shipment_id
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: awb_number
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: courier_name
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: label_url
+                  type: TEXT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: tracking_url
+                  type: TEXT
+                  constraints:
+                    nullable: true
