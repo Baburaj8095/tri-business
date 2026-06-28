@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Typography, IconButton, Stack, Button, Divider, Container, CircularProgress } from '@mui/material';
+import { Box, Typography, IconButton, Stack, Button, Divider, Container, CircularProgress, Grid, Chip, Skeleton } from '@mui/material';
 import { 
   LuChevronLeft, LuPhone, LuMessageCircle, 
   LuMessageSquare, LuInfo, LuMapPin, LuStar, LuShare2 
 } from 'react-icons/lu';
-import { getPublicB2bMerchants } from '../../api/api';
+import { getPublicB2bMerchants, listShopProductsPublic } from '../../api/api';
 
 export default function ShopDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [shop, setShop] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
   useEffect(() => {
     setLoading(true);
@@ -24,6 +26,17 @@ export default function ShopDetailsPage() {
       })
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    setLoadingProducts(true);
+    listShopProductsPublic(id)
+      .then(data => {
+        const arr = Array.isArray(data) ? data : data?.results || [];
+        setProducts(arr);
+      })
+      .catch(err => console.error("Failed to load products:", err))
+      .finally(() => setLoadingProducts(false));
   }, [id]);
 
   if (loading) {
@@ -106,7 +119,7 @@ export default function ShopDetailsPage() {
         </Box>
 
         {/* Summary Box */}
-        <Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: 3, border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+        <Box sx={{ bgcolor: '#fff', borderRadius: '16px', p: 3, border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', mb: 3 }}>
           <Typography sx={{ fontWeight: 850, fontSize: '1.05rem', color: '#0f172a', mb: 1.5 }}>Business Summary</Typography>
           <Typography sx={{ fontSize: '0.88rem', color: '#475569', lineHeight: 1.6, mb: 2 }}>
             Premium local merchant offering dynamic selections, cashback rewards, and prompt customer services for Indiranagar residents.
@@ -129,6 +142,86 @@ export default function ShopDetailsPage() {
               </Typography>
             </Box>
           </Stack>
+        </Box>
+
+        {/* Products Section */}
+        <Box sx={{ mt: 3, bgcolor: '#fff', borderRadius: '16px', p: 3, border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+          <Typography sx={{ fontWeight: 850, fontSize: '1.05rem', color: '#0f172a', mb: 2.5 }}>Products Catalog</Typography>
+          
+          <Grid container spacing={2}>
+            {loadingProducts ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <Grid item key={i} xs={6} sm={4}>
+                  <Skeleton variant="rectangular" height={130} sx={{ borderRadius: '12px', mb: 1 }} />
+                  <Skeleton variant="text" width="80%" />
+                  <Skeleton variant="text" width="40%" />
+                </Grid>
+              ))
+            ) : products.length === 0 ? (
+              <Grid item xs={12}>
+                <Typography sx={{ color: '#64748b', fontSize: '0.88rem', fontWeight: 600 }}>No products available in this store.</Typography>
+              </Grid>
+            ) : (
+              products.map((p) => (
+                <Grid item key={p.id} xs={6} sm={4}>
+                  <Box sx={{ p: 1.5, borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', height: '100%', transition: 'all 0.2s', '&:hover': { borderColor: '#228B22', boxShadow: '0 4px 12px rgba(34, 139, 34, 0.05)' } }}>
+                    {/* Image */}
+                    <Box sx={{ height: 120, borderRadius: '8px', overflow: 'hidden', bgcolor: '#f8fafc', mb: 1.5, border: '1px solid #f1f5f9' }}>
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Box sx={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700 }}>
+                          No Image
+                        </Box>
+                      )}
+                    </Box>
+                    
+                    {/* Details */}
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a', mb: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.title}>
+                      {p.title}
+                    </Typography>
+                    
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#228B22' }}>
+                        ₹{Number(p.price).toFixed(2)}
+                      </Typography>
+                      {Number(p.discount_percent) > 0 && (
+                        <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8', textDecoration: 'line-through', fontWeight: 600 }}>
+                          ₹{Number(p.mrp).toFixed(2)}
+                        </Typography>
+                      )}
+                      {Number(p.discount_percent) > 0 && (
+                        <Typography sx={{ fontSize: '0.72rem', color: '#22c55e', fontWeight: 800 }}>
+                          {Number(p.discount_percent).toFixed(0)}% OFF
+                        </Typography>
+                      )}
+                    </Stack>
+                    
+                    <Stack direction="row" spacing={0.5} sx={{ mt: 'auto', flexWrap: 'wrap', gap: '4px' }}>
+                      {p.online_delivery && (
+                        <Chip label="Online" size="small" sx={{ height: 18, fontSize: '0.65rem', fontWeight: 800, bgcolor: '#eff6ff', color: '#3b82f6', border: '1px solid #dbeafe' }} />
+                      )}
+                      {p.offline_delivery && (
+                        <Chip label="Offline" size="small" sx={{ height: 18, fontSize: '0.65rem', fontWeight: 800, bgcolor: '#f0fdf4', color: '#16a34a', border: '1px solid #dcfce7' }} />
+                      )}
+                      <Chip 
+                        label={p.stock_qty > 0 ? "In Stock" : "Out of Stock"} 
+                        size="small" 
+                        sx={{ 
+                          height: 18, 
+                          fontSize: '0.65rem', 
+                          fontWeight: 800, 
+                          bgcolor: p.stock_qty > 0 ? '#f1f5f9' : '#fffbeb', 
+                          color: p.stock_qty > 0 ? '#475569' : '#d97706',
+                          border: p.stock_qty > 0 ? '1px solid #e2e8f0' : '1px solid #fef3c7'
+                        }} 
+                      />
+                    </Stack>
+                  </Box>
+                </Grid>
+              ))
+            )}
+          </Grid>
         </Box>
       </Container>
 

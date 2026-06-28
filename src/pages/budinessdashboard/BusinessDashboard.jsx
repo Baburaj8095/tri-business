@@ -1583,13 +1583,27 @@ function MobileFooterNav({ activeItem, onNavigate }) {
 function BusinessDashboard() {
   const navigate = useNavigate();
   const [activeFooterItem, setActiveFooterItem] = useState("home-top");
-  const [selectedCity, setSelectedCity] = useState("560091");
+  const [selectedCity, setSelectedCity] = useState(() => {
+    try {
+      return localStorage.getItem("selectedCity") || localStorage.getItem("user_pincode") || "560091";
+    } catch (_) {
+      return "560091";
+    }
+  });
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [b2bShops, setB2bShops] = useState([]);
   const [profile, setProfile] = useState(null);
   const [toastMsg, setToastMsg] = useState("");
   const [activeModal, setActiveModal] = useState(null);
+
+  const handleCitySelect = (cityName) => {
+    setSelectedCity(cityName);
+    try {
+      localStorage.setItem("selectedCity", cityName);
+      localStorage.setItem("user_pincode", cityName);
+    } catch (_) {}
+  };
   const [loading, setLoading] = useState(false);
   const [editForm, setEditForm] = useState({
     business_name: '',
@@ -1888,7 +1902,7 @@ function BusinessDashboard() {
               <SearchBar
                 onClick={() => setSearchModalOpen(true)}
                 topCities={TOP_CITIES}
-                onCitySelect={(cityName) => setSelectedCity(cityName)}
+                onCitySelect={(cityName) => handleCitySelect(cityName)}
               />
               <AllCategoriesSection />
               <Box id="city-search-section" sx={{ px: { xs: 0, sm: 0 } }}>
@@ -2058,7 +2072,7 @@ function BusinessDashboard() {
         open={searchModalOpen}
         onClose={() => setSearchModalOpen(false)}
         onSelectCity={(cityName) => {
-          setSelectedCity(cityName);
+          handleCitySelect(cityName);
           setSearchModalOpen(false);
         }}
       />
