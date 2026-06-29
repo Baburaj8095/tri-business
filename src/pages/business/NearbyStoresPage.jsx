@@ -11,7 +11,7 @@ import {
   LuZap 
 } from 'react-icons/lu';
 import NearbyStoreCard from './NearbyStoreCard.jsx';
-import { getPublicB2bMerchants } from '../../api/api';
+import { getPublicB2bMerchants, getMerchantCategories } from '../../api/api';
 
 const getCategoryIcon = (name) => {
   const value = String(name || '').toLowerCase();
@@ -41,9 +41,12 @@ export default function NearbyStoresPage() {
 
   useEffect(() => {
     setLoading(true);
-    getPublicB2bMerchants()
-      .then(res => {
-        const data = res || [];
+    Promise.all([
+      getPublicB2bMerchants(),
+      getMerchantCategories()
+    ])
+      .then(([merchantsRes, categoriesRes]) => {
+        const data = merchantsRes || [];
         const mapped = data.map(shop => ({
           id: shop.id,
           name: shop.shop_name || shop.business_name || shop.full_name || 'B2B Merchant',
@@ -56,13 +59,14 @@ export default function NearbyStoresPage() {
         }));
         setStores(mapped);
         setFilteredStores(mapped);
-        const uniq = Array.from(new Set(mapped.map(s => s.category).filter(Boolean)));
+
+        const cats = categoriesRes || [];
         setCategories([
           { name: 'All Stores', icon: <LuStore size={22} /> },
-          ...uniq.map(name => ({ name, icon: getCategoryIcon(name) }))
+          ...cats.map(cat => ({ name: cat.name, icon: getCategoryIcon(cat.name) }))
         ]);
       })
-      .catch(err => console.error('Failed to load B2C merchants:', err))
+      .catch(err => console.error('Failed to load B2B merchants & categories:', err))
       .finally(() => setLoading(false));
   }, []);
 
