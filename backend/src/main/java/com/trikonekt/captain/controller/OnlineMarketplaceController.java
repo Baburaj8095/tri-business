@@ -60,11 +60,12 @@ public class OnlineMarketplaceController {
     public ResponseEntity<List<Map<String, Object>>> getProducts(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String city,
             @RequestParam(defaultValue = "60") int limit,
             @RequestParam(defaultValue = "0")  int offset) {
         int safeLimit  = Math.min(Math.max(limit, 1), 120);
         int safeOffset = Math.max(offset, 0);
-        return ResponseEntity.ok(repo.findOnlineProducts(category, search, safeLimit, safeOffset));
+        return ResponseEntity.ok(repo.findOnlineProducts(category, search, city, safeLimit, safeOffset));
     }
 
     /**

@@ -149,7 +149,7 @@ export default function NearbyStoresPage() {
                 onClick={() => setActiveCat(cat.name)}
                 sx={{ 
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75, 
-                  minWidth: '76px', cursor: 'pointer',
+                  width: '90px', flexShrink: 0, cursor: 'pointer',
                   color: activeCat === cat.name ? '#228B22' : '#64748b'
                 }}
               >
@@ -163,7 +163,21 @@ export default function NearbyStoresPage() {
                 }}>
                   {cat.icon}
                 </Box>
-                <Typography sx={{ fontSize: '0.72rem', fontWeight: activeCat === cat.name ? 800 : 600, whiteSpace: 'nowrap' }}>
+                <Typography 
+                  align="center"
+                  sx={{ 
+                    fontSize: '0.72rem', 
+                    fontWeight: activeCat === cat.name ? 800 : 600, 
+                    lineHeight: 1.2,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    height: '2.4em',
+                    mt: 0.25
+                  }}
+                >
                   {cat.name}
                 </Typography>
               </Box>

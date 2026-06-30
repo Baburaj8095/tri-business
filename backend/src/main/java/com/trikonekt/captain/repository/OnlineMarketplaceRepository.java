@@ -56,7 +56,7 @@ public class OnlineMarketplaceRepository {
      * Online products with optional category filter and search.
      * Returns all active, in-stock products with online_delivery = TRUE.
      */
-    public List<Map<String, Object>> findOnlineProducts(String category, String search, int limit, int offset) {
+    public List<Map<String, Object>> findOnlineProducts(String category, String search, String city, int limit, int offset) {
         StringBuilder sql = new StringBuilder(
             "SELECT sp.id, sp.title, sp.description, sp.mrp, sp.price, sp.discount_percent, " +
             "sp.stock_qty, mc.name AS category, sp.image, sp.image AS image_url, sp.online_delivery, sp.offline_delivery, " +
@@ -85,6 +85,10 @@ public class OnlineMarketplaceRepository {
             String like = "%" + search.trim() + "%";
             params.add(like);
             params.add(like);
+        }
+        if (city != null && !city.isBlank()) {
+            sql.append("AND LOWER(s.city) = LOWER(?) ");
+            params.add(city.trim());
         }
 
         sql.append("ORDER BY sp.created_at DESC LIMIT ? OFFSET ?");

@@ -66,11 +66,13 @@ public class UserRepository {
             "       s.latitude, s.longitude, s.service_mode, s.home_delivery_enabled, " +
             "       LEAST(s.delivery_radius_km, 25.00) AS delivery_radius_km, " +
             "       s.min_order_value, s.base_delivery_fee, s.shop_image, s.category_id, mc.name as category_name, " +
+            "       s.tri_app_id, ta.name as tri_app_name, ta.slug as tri_app_slug, " +
             "       CASE WHEN UPPER(COALESCE(s.status, '')) = 'ACTIVE' THEN true ELSE false END as is_active " +
             "FROM accounts_customuser u " +
             "JOIN market_shop s ON u.id = s.merchant_id " +
             "LEFT JOIN market_merchantprofile mp ON u.id = mp.user_id " +
             "LEFT JOIN business_merchantcategory mc ON s.category_id = mc.id " +
+            "LEFT JOIN business_triapp ta ON s.tri_app_id = ta.id " +
             "WHERE u.category = 'business' AND u.is_active = true AND UPPER(COALESCE(s.status, '')) = 'ACTIVE' " +
             "AND UPPER(COALESCE(s.service_mode, mp.service_mode, 'OFFLINE')) <> 'ONLINE' " +
             "LIMIT 50"

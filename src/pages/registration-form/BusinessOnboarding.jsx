@@ -552,9 +552,10 @@ const BusinessOnboarding = () => {
   return (
     <Box sx={{ 
       bgcolor: T.bg, 
-      height: '100vh', 
+      minHeight: '100vh',
+      height: submitted ? 'auto' : { xs: 'auto', md: '100vh' }, 
       position: 'relative', 
-      overflow: 'hidden',
+      overflowY: 'auto',
       display: 'flex',
       flexDirection: 'column'
     }}>
