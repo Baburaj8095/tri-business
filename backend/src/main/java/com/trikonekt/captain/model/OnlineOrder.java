@@ -30,6 +30,9 @@ public class OnlineOrder {
     @JsonProperty("shop_phone")
     private String shopPhone;
 
+    @JsonProperty("shop_address")
+    private String shopAddress;
+
     @JsonProperty("delivery_address_id")
     private Long deliveryAddressId;
 
