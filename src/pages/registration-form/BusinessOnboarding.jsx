@@ -241,11 +241,22 @@ const BusinessOnboarding = () => {
     clearErr('pincode');
     if (val.length === 6) {
       try {
-        const res = await fetch(`https://api.postalpincode.in/pincode/${val}`);
+        const mapboxToken = process.env.REACT_APP_MAPBOX_API_KEY || '';
+        const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${val}.json?access_token=${mapboxToken}&country=IN&types=postcode&limit=1`);
         const data = await res.json();
-        if (data[0].Status === 'Success') {
-          const po = data[0].PostOffice[0];
-          setForm(prev => ({ ...prev, city: po.District || '', state: po.State || '' }));
+        if (data && data.features && data.features.length > 0) {
+          const feature = data.features[0];
+          const context = feature.context || [];
+          let city = feature.text || '';
+          let state = '';
+          context.forEach((item) => {
+            if (item.id.startsWith('place')) {
+              city = item.text;
+            } else if (item.id.startsWith('region')) {
+              state = item.text;
+            }
+          });
+          setForm(prev => ({ ...prev, city: city, state: state }));
         }
       } catch (e) { /* ignore */ }
     }

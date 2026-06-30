@@ -25,8 +25,16 @@ export default function MerchantOrdersPage() {
   const navigate = useNavigate();
   const token = localStorage.getItem('token_business') || localStorage.getItem('token_captain');
 
-  // CHANNEL MODE: 'OFFLINE' (Counter Manual Payments) or 'ONLINE' (B2C Delivery Orders)
-  const [channelMode, setChannelMode] = useState('OFFLINE');
+  const [profile, setProfile] = useState(null);
+
+  // CHANNEL MODE: 'OFFLINE', 'ONLINE' or 'B2B'
+  const [channelMode, setChannelMode] = useState(() => {
+    const cat = localStorage.getItem('user_category') || 'merchant';
+    const mode = localStorage.getItem('service_mode_business') || 'OFFLINE';
+    if (cat === 'business') return 'B2B';
+    if (cat === 'merchant' && mode === 'ONLINE') return 'ONLINE';
+    return 'OFFLINE';
+  });
 
   // 1. Common / Loading States
   const [loading, setLoading] = useState(true);
@@ -45,6 +53,10 @@ export default function MerchantOrdersPage() {
   const [onlineTabValue, setOnlineTabValue] = useState(0); // 0 = Incoming, 1 = In Progress, 2 = Completed, 3 = Cancelled
   const [loadingOnlineOrders, setLoadingOnlineOrders] = useState(false);
   const [pollAlertActive, setPollAlertActive] = useState(false);
+
+  // 4. B2B Orders State
+  const [b2bOrders, setB2bOrders] = useState([]);
+  const [loadingB2bOrders, setLoadingB2bOrders] = useState(false);
 
   // Polling interval reference
   const pollIntervalRef = useRef(null);
@@ -147,16 +159,49 @@ export default function MerchantOrdersPage() {
     }
   };
 
-  // Initial loading triggers
+  // Load profile & default channelMode
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    setLoading(true);
+    axios.get(`${CAPTAIN_API_URL}/captain/merchant/profile`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => {
+        const p = res.data || {};
+        setProfile(p);
+        
+        const resolvedCategory = p.category || localStorage.getItem('user_category') || 'merchant';
+        const resolvedMode = p.service_mode || localStorage.getItem('service_mode_business') || 'OFFLINE';
+        
+        if (resolvedCategory === 'business') {
+          setChannelMode('B2B');
+        } else if (resolvedCategory === 'merchant' && resolvedMode === 'ONLINE') {
+          setChannelMode('ONLINE');
+        } else {
+          setChannelMode('OFFLINE');
+        }
+      })
+      .catch(err => {
+        console.warn("Failed to load merchant profile", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [token, navigate]);
+
+  // Initial loading triggers depending on channelMode
   useEffect(() => {
     if (channelMode === 'OFFLINE') {
       fetchPendingPayments();
-    } else {
-      fetchMerchantShops().then(() => {
-        setLoading(false);
-      });
+    } else if (channelMode === 'ONLINE') {
+      fetchMerchantShops();
+    } else if (channelMode === 'B2B') {
+      fetchB2bOrders();
     }
-  }, [channelMode, navigate, token]);
+  }, [channelMode]);
 
   // Handle online orders fetch whenever shopId changes
   useEffect(() => {
@@ -256,6 +301,41 @@ export default function MerchantOrdersPage() {
     }
   };
 
+  const fetchB2bOrders = async () => {
+    if (!token) return;
+    setLoadingB2bOrders(true);
+    try {
+      const res = await axios.get(`${CAPTAIN_API_URL}/captain/business/seller/orders`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setB2bOrders(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch B2B seller orders:', err);
+    } finally {
+      setLoadingB2bOrders(false);
+    }
+  };
+
+  const handleB2bOrderTransition = async (orderId, targetStatus) => {
+    setActioningId(orderId);
+    setError('');
+    setSuccess('');
+    try {
+      await axios.post(
+        `${CAPTAIN_API_URL}/captain/business/seller/orders/${orderId}/transition`,
+        { status: targetStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSuccess(`B2B Order #${orderId} was successfully moved to state: ${targetStatus}.`);
+      setActioningId(null);
+      fetchB2bOrders();
+    } catch (err) {
+      console.error('Failed to transition B2B order status:', err);
+      setError(err.response?.data?.message || 'Failed to shift B2B order status.');
+      setActioningId(null);
+    }
+  };
+
   const formatDate = (dateStr) => {
     try {
       const d = new Date(dateStr);
@@ -285,6 +365,26 @@ export default function MerchantOrdersPage() {
   const completedOrders = onlineOrders.filter(o => o.status === 'COMPLETED');
   const cancelledOrders = onlineOrders.filter(o => ['CANCELLED', 'REJECTED'].includes(o.status));
 
+  // B2B Status groupings
+  const incomingB2b = b2bOrders.filter(o => o.status === 'PENDING' || o.status === 'PENDING_CONFIRMATION');
+  const processingB2b = b2bOrders.filter(o => ['PROCESSING', 'SHIPPED', 'CONFIRMED', 'PREPARING', 'DISPATCHED'].includes(o.status));
+  const completedB2b = b2bOrders.filter(o => o.status === 'COMPLETED');
+  const cancelledB2b = b2bOrders.filter(o => ['CANCELLED', 'REJECTED'].includes(o.status));
+
+  const cat = profile?.category || localStorage.getItem('user_category') || 'merchant';
+  const mode = profile?.service_mode || localStorage.getItem('service_mode_business') || 'OFFLINE';
+  
+  const isB2BUser = cat === 'business';
+  const isOnlineOnly = mode === 'ONLINE';
+  const showToggles = !isB2BUser && !isOnlineOnly;
+
+  const getPageTitle = () => {
+    if (isB2BUser) {
+      return isOnlineOnly ? 'Online B2B Orders' : 'Offline B2B Orders';
+    }
+    return isOnlineOnly ? 'Online B2C Orders' : 'Offline C2C/B2C Orders';
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'grid', placeItems: 'center', minHeight: '100vh', bgcolor: BG }}>
@@ -313,49 +413,51 @@ export default function MerchantOrdersPage() {
                 <LuChevronLeft size={20} />
               </IconButton>
               <Typography sx={{ fontSize: '1rem', fontWeight: 700, color: TEXT }}>
-                Offline Orders
+                {getPageTitle()}
               </Typography>
             </Stack>
 
             {/* Toggle Channel selector pill buttons (Offline payments / Online deliveries) */}
-            <Stack direction="row" spacing={1} sx={{ bgcolor: '#f1f5f9', p: 0.5, borderRadius: '24px' }}>
-              <Button
-                size="small"
-                onClick={() => setChannelMode('OFFLINE')}
-                startIcon={<LuStore size={14} />}
-                sx={{
-                  borderRadius: '20px',
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  fontSize: '0.7rem',
-                  px: 2,
-                  py: 0.75,
-                  bgcolor: channelMode === 'OFFLINE' ? PRIMARY : 'transparent',
-                  color: channelMode === 'OFFLINE' ? '#fff' : TEXT_SECONDARY,
-                  '&:hover': { bgcolor: channelMode === 'OFFLINE' ? PRIMARY_DARK : '#e2e8f0' }
-                }}
-              >
-                Counter Pay
-              </Button>
-              <Button
-                size="small"
-                onClick={() => setChannelMode('ONLINE')}
-                startIcon={<LuShoppingBag size={14} />}
-                sx={{
-                  borderRadius: '20px',
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  fontSize: '0.7rem',
-                  px: 2,
-                  py: 0.75,
-                  bgcolor: channelMode === 'ONLINE' ? PRIMARY : 'transparent',
-                  color: channelMode === 'ONLINE' ? '#fff' : TEXT_SECONDARY,
-                  '&:hover': { bgcolor: channelMode === 'ONLINE' ? PRIMARY_DARK : '#e2e8f0' }
-                }}
-              >
-                Delivery Track {channelMode === 'ONLINE' && pollAlertActive && "🚨"}
-              </Button>
-            </Stack>
+            {showToggles && (
+              <Stack direction="row" spacing={1} sx={{ bgcolor: '#f1f5f9', p: 0.5, borderRadius: '24px' }}>
+                <Button
+                  size="small"
+                  onClick={() => setChannelMode('OFFLINE')}
+                  startIcon={<LuStore size={14} />}
+                  sx={{
+                    borderRadius: '20px',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.7rem',
+                    px: 2,
+                    py: 0.75,
+                    bgcolor: channelMode === 'OFFLINE' ? PRIMARY : 'transparent',
+                    color: channelMode === 'OFFLINE' ? '#fff' : TEXT_SECONDARY,
+                    '&:hover': { bgcolor: channelMode === 'OFFLINE' ? PRIMARY_DARK : '#e2e8f0' }
+                  }}
+                >
+                  Counter Pay
+                </Button>
+                <Button
+                  size="small"
+                  onClick={() => setChannelMode('ONLINE')}
+                  startIcon={<LuShoppingBag size={14} />}
+                  sx={{
+                    borderRadius: '20px',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.7rem',
+                    px: 2,
+                    py: 0.75,
+                    bgcolor: channelMode === 'ONLINE' ? PRIMARY : 'transparent',
+                    color: channelMode === 'ONLINE' ? '#fff' : TEXT_SECONDARY,
+                    '&:hover': { bgcolor: channelMode === 'ONLINE' ? PRIMARY_DARK : '#e2e8f0' }
+                  }}
+                >
+                  Delivery Track {channelMode === 'ONLINE' && pollAlertActive && "🚨"}
+                </Button>
+              </Stack>
+            )}
           </Stack>
         </Container>
       </Box>
@@ -786,6 +888,187 @@ export default function MerchantOrdersPage() {
               )}
             </Card>
 
+          </Stack>
+        )}
+
+        {/* ========================================================= */}
+        {/* VIEW C: B2B ONLINE / OFFLINE ORDERS RECEIVED             */}
+        {/* ========================================================= */}
+        {channelMode === 'B2B' && (
+          <Stack spacing={3}>
+            <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none' }}>
+              <Tabs 
+                value={onlineTabValue} 
+                onChange={(e, val) => setOnlineTabValue(val)}
+                variant="fullWidth"
+                sx={{
+                  borderBottom: `1px solid ${BORDER}`,
+                  '& .MuiTab-root': {
+                    fontWeight: 800,
+                    fontSize: '0.8rem',
+                    color: TEXT_MUTED,
+                    textTransform: 'none',
+                    py: 1.5
+                  },
+                  '& .Mui-selected': {
+                    color: PRIMARY,
+                  },
+                  '& .MuiTabs-indicator': {
+                    bgcolor: PRIMARY,
+                    height: 3,
+                  }
+                }}
+              >
+                <Tab label={`New (${incomingB2b.length})`} />
+                <Tab label={`Active (${processingB2b.length})`} />
+                <Tab label="Fulfilled" />
+                <Tab label="Cancelled" />
+              </Tabs>
+
+              {loadingB2bOrders ? (
+                <Box sx={{ py: 6, display: 'grid', placeItems: 'center' }}>
+                  <CircularProgress size={32} sx={{ color: PRIMARY }} />
+                </Box>
+              ) : (
+                (() => {
+                  let subtabArray = [];
+                  if (onlineTabValue === 0) subtabArray = incomingB2b;
+                  else if (onlineTabValue === 1) subtabArray = processingB2b;
+                  else if (onlineTabValue === 2) subtabArray = completedB2b;
+                  else subtabArray = cancelledB2b;
+
+                  if (subtabArray.length === 0) {
+                    return (
+                      <CardContent sx={{ p: 4, textAlign: 'center' }}>
+                        <LuClipboard size={40} color="#cbd5e1" style={{ marginBottom: '12px' }} />
+                        <Typography sx={{ color: TEXT_MUTED, fontWeight: 700, fontSize: '0.9rem' }}>
+                          No B2B orders found in this category.
+                        </Typography>
+                      </CardContent>
+                    );
+                  }
+
+                  return (
+                    <CardContent sx={{ p: 2 }}>
+                      <Stack spacing={2.5}>
+                        {subtabArray.map((order) => {
+                          const isIncoming = order.status === 'PENDING' || order.status === 'PENDING_CONFIRMATION';
+                          return (
+                            <Card 
+                              key={order.id} 
+                              sx={{ 
+                                borderRadius: '12px', border: `1px solid #cbd5e1`, 
+                                boxShadow: isIncoming ? '0 4px 14px rgba(22, 139, 34, 0.08)' : 'none', 
+                                bgcolor: SURFACE 
+                              }}
+                            >
+                              <CardContent sx={{ p: 2.5 }}>
+                                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                                  <Box>
+                                    <Typography fontWeight={800} color="#0f172a">
+                                      Order #{order.id}
+                                    </Typography>
+                                    <Typography fontSize="0.75rem" color="text.secondary">
+                                      {formatDate(order.created_at || order.createdAt)}
+                                    </Typography>
+                                  </Box>
+                                  <Chip 
+                                    label={order.status} 
+                                    size="small" 
+                                    sx={{ 
+                                      fontWeight: 800, 
+                                      bgcolor: isIncoming ? 'rgba(34, 139, 34, 0.1)' : 'rgba(71, 85, 105, 0.1)',
+                                      color: isIncoming ? PRIMARY : TEXT_SECONDARY 
+                                    }} 
+                                  />
+                                </Stack>
+
+                                <Divider sx={{ my: 1.5, borderStyle: 'dashed' }} />
+
+                                <Stack spacing={1} mb={2}>
+                                  <Stack direction="row" spacing={1} alignItems="center">
+                                    <LuUser size={14} color="#64748b" />
+                                    <Typography fontSize="0.8rem" color="text.secondary" fontWeight={600}>
+                                      Buyer Prefixed ID: {order.buyer_prefixed_id || order.buyerPrefixedId || "N/A"}
+                                    </Typography>
+                                  </Stack>
+                                  {order.items && order.items.map((item, idx) => (
+                                    <Box key={idx} sx={{ pl: 3 }}>
+                                      <Typography fontSize="0.8rem" color="#0f172a" fontWeight={700}>
+                                        • {item.product_title || item.title || `Product #${item.product_id}`} x {item.quantity} (₹{item.price})
+                                      </Typography>
+                                    </Box>
+                                  ))}
+                                </Stack>
+
+                                <Divider sx={{ my: 1.5, borderStyle: 'dashed' }} />
+
+                                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                  <Box>
+                                    <Typography fontSize="0.75rem" color="text.secondary">Total Amount</Typography>
+                                    <Typography fontWeight={900} color={PRIMARY} fontSize="1.1rem">
+                                      ₹{Number(order.total_amount || order.total || 0).toFixed(2)}
+                                    </Typography>
+                                  </Box>
+
+                                  {isIncoming && (
+                                    <Stack direction="row" spacing={1}>
+                                      <Button
+                                        size="small"
+                                        variant="contained"
+                                        onClick={() => handleB2bOrderTransition(order.id, 'PROCESSING')}
+                                        disabled={actioningId === order.id}
+                                        sx={{ bgcolor: PRIMARY, fontWeight: 700, textTransform: 'none', borderRadius: '8px' }}
+                                      >
+                                        Accept
+                                      </Button>
+                                      <Button
+                                        size="small"
+                                        variant="outlined"
+                                        color="error"
+                                        onClick={() => handleB2bOrderTransition(order.id, 'CANCELLED')}
+                                        disabled={actioningId === order.id}
+                                        sx={{ fontWeight: 700, textTransform: 'none', borderRadius: '8px' }}
+                                      >
+                                        Reject
+                                      </Button>
+                                    </Stack>
+                                  )}
+
+                                  {order.status === 'PROCESSING' && (
+                                    <Button
+                                      size="small"
+                                      variant="contained"
+                                      onClick={() => handleB2bOrderTransition(order.id, 'SHIPPED')}
+                                      disabled={actioningId === order.id}
+                                      sx={{ bgcolor: PRIMARY, fontWeight: 700, textTransform: 'none', borderRadius: '8px' }}
+                                    >
+                                      Ship Order
+                                    </Button>
+                                  )}
+
+                                  {order.status === 'SHIPPED' && (
+                                    <Button
+                                      size="small"
+                                      variant="contained"
+                                      onClick={() => handleB2bOrderTransition(order.id, 'COMPLETED')}
+                                      disabled={actioningId === order.id}
+                                      sx={{ bgcolor: PRIMARY, fontWeight: 700, textTransform: 'none', borderRadius: '8px' }}
+                                    >
+                                      Mark Completed
+                                    </Button>
+                                  )}
+                                </Stack>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </Stack>
+                    </CardContent>
+                  );
+                })()
+              )}
+            </Card>
           </Stack>
         )}
 

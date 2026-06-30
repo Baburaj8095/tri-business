@@ -109,7 +109,7 @@ export default function InventoryPage() {
   
   // Add Form State
   const [formData, setFormData] = useState({
-    productName: "", category: "", price: "", quantity: "", description: "", image: null,
+    productName: "", category: "", price: "", discountPercent: "0", quantity: "", description: "", image: null,
   });
   const [formErrors, setFormErrors] = useState({});
 
@@ -264,12 +264,16 @@ export default function InventoryPage() {
 
     try {
       const isOnline = String(profile?.service_mode || localStorage.getItem('service_mode_business') || "").toUpperCase() === 'ONLINE';
+      const mrpVal = Number(formData.price);
+      const discountPct = Number(formData.discountPercent || 0);
+      const sellingPrice = mrpVal - (mrpVal * discountPct / 100);
+
       const payload = {
         title: formData.productName,
         description: formData.description,
-        mrp: Number(formData.price),
-        price: Number(formData.price),
-        discount_percent: 0,
+        mrp: mrpVal,
+        price: sellingPrice,
+        discount_percent: discountPct,
         online_delivery: isOnline,
         offline_delivery: !isOnline,
         stock_qty: Number(formData.quantity),
@@ -279,7 +283,7 @@ export default function InventoryPage() {
 
       await createMyShopProduct(selectedShop.id, payload);
       setSuccessMessage(`Product added successfully!`);
-      setFormData({ productName: "", category: "", price: "", quantity: "", description: "", image: null });
+      setFormData({ productName: "", category: "", price: "", discountPercent: "0", quantity: "", description: "", image: null });
       setIsAddFormOpen(false);
       await fetchInventory(selectedShop.id);
       setTimeout(() => setSuccessMessage(""), 4000);
@@ -298,6 +302,8 @@ export default function InventoryPage() {
       setEditingProductId(product.id);
       setEditFormData({
         title: product.title || "",
+        mrp: product.mrp || product.price || "",
+        discount_percent: product.discount_percent || 0,
         price: product.price || "",
         stock_qty: product.stock_qty || product.stockQty || 0,
         image: null // only populated if user uploads a new one
@@ -313,9 +319,15 @@ export default function InventoryPage() {
   const handleEditSave = async (productId) => {
     setIsUpdating(true);
     try {
+      const mrpVal = Number(editFormData.mrp || editFormData.price);
+      const discountPct = Number(editFormData.discount_percent || 0);
+      const sellingPrice = mrpVal - (mrpVal * discountPct / 100);
+
       const patch = {
         title: editFormData.title,
-        price: Number(editFormData.price),
+        mrp: mrpVal,
+        price: sellingPrice,
+        discount_percent: discountPct,
         stock_qty: Number(editFormData.stock_qty),
       };
       if (editFormData.image) {
@@ -433,10 +445,13 @@ export default function InventoryPage() {
                     })}
                   </TextField>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Price (₹)" name="price" type="number" value={formData.price} onChange={handleAddChange} error={!!formErrors.price} helperText={formErrors.price} inputProps={{ min: "0" }} />
+                <Grid item xs={12} md={4}>
+                  <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="MRP (₹)" name="price" type="number" value={formData.price} onChange={handleAddChange} error={!!formErrors.price} helperText={formErrors.price} inputProps={{ min: "0" }} />
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
+                  <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Discount (%)" name="discountPercent" type="number" value={formData.discountPercent} onChange={handleAddChange} error={!!formErrors.discountPercent} helperText={formErrors.discountPercent} inputProps={{ min: "0", max: "100" }} />
+                </Grid>
+                <Grid item xs={12} md={4}>
                   <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Stock Quantity" name="quantity" type="number" value={formData.quantity} onChange={handleAddChange} error={!!formErrors.quantity} helperText={formErrors.quantity} inputProps={{ min: "0" }} />
                 </Grid>
                 <Grid item xs={12}>
@@ -658,10 +673,13 @@ export default function InventoryPage() {
             <Grid item xs={12}>
               <TextField fullWidth label="Title" name="title" value={editFormData.title || ""} onChange={handleEditChange} />
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField fullWidth label="Price (₹)" name="price" type="number" value={editFormData.price || ""} onChange={handleEditChange} />
+            <Grid item xs={12} sm={4}>
+              <TextField fullWidth label="MRP (₹)" name="mrp" type="number" value={editFormData.mrp || ""} onChange={handleEditChange} />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={4}>
+              <TextField fullWidth label="Discount (%)" name="discount_percent" type="number" value={editFormData.discount_percent || ""} onChange={handleEditChange} />
+            </Grid>
+            <Grid item xs={12} sm={4}>
               <TextField fullWidth label="Stock Quantity" name="stock_qty" type="number" value={editFormData.stock_qty || ""} onChange={handleEditChange} />
             </Grid>
             <Grid item xs={12}>

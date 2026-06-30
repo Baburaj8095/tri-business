@@ -149,17 +149,29 @@ export default function CaptainKyc() {
   };
 
   const lookupPincode = async (pin) => {
+    const mapboxToken = process.env.REACT_APP_MAPBOX_API_KEY || '';
+    if (!mapboxToken) return;
     try {
-      const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+      const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${pin}.json?access_token=${mapboxToken}&country=IN&types=postcode&limit=1`);
       const data = await res.json();
-      if (data && data[0]?.Status === 'Success') {
-        const postOffice = data[0].PostOffice[0];
+      if (data && data.features && data.features.length > 0) {
+        const feature = data.features[0];
+        const context = feature.context || [];
+        let city = feature.text || '';
+        let state = '';
+        context.forEach((item) => {
+          if (item.id.startsWith('place')) {
+            city = item.text;
+          } else if (item.id.startsWith('region')) {
+            state = item.text;
+          }
+        });
         setFormData(prev => ({
           ...prev,
-          city: postOffice.District,
-          stateName: postOffice.State
+          city: city,
+          stateName: state
         }));
-        setToast({ open: true, type: 'success', message: `Pincode details auto-filled: ${postOffice.District}, ${postOffice.State}` });
+        setToast({ open: true, type: 'success', message: `Pincode details auto-filled: ${city}, ${state}` });
       }
     } catch (e) {
       console.error("Pincode lookup error:", e);

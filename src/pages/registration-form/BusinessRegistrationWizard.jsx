@@ -218,13 +218,21 @@ const BusinessRegistrationWizard = () => {
     if (value.length === 6) {
       setPincodeLoading(true);
       try {
-        const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
+        const mapboxToken = process.env.REACT_APP_MAPBOX_API_KEY || '';
+        const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${value}.json?access_token=${mapboxToken}&country=IN&types=postcode&limit=1`);
         const data = await res.json();
-        if (data[0].Status === 'Success') {
-          const postOffice = data[0].PostOffice[0];
+        if (data && data.features && data.features.length > 0) {
+          const feature = data.features[0];
+          const context = feature.context || [];
+          let city = feature.text || '';
+          context.forEach((item) => {
+            if (item.id.startsWith('place')) {
+              city = item.text;
+            }
+          });
           setFormData(prev => ({
             ...prev,
-            city: postOffice.District || postOffice.Block || '',
+            city: city,
           }));
         } else {
           setErrors(prev => ({ ...prev, pincode: 'Invalid Pincode. Please check.' }));

@@ -1,7 +1,7 @@
 package com.trikonekt.captain.controller;
 
 import com.trikonekt.captain.repository.OnlineCategoryRepository;
-import com.trikonekt.captain.repository.UserRepository;
+import com.trikonekt.captain.repository.AdminRepository;
 import com.trikonekt.captain.service.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,14 +27,14 @@ import java.util.Map;
 public class OnlineCategoryController {
 
     private final OnlineCategoryRepository repo;
-    private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
     private final JwtService jwtService;
 
     public OnlineCategoryController(OnlineCategoryRepository repo,
-                                     UserRepository userRepository,
+                                     AdminRepository adminRepository,
                                      JwtService jwtService) {
         this.repo = repo;
-        this.userRepository = userRepository;
+        this.adminRepository = adminRepository;
         this.jwtService = jwtService;
     }
 
@@ -125,9 +125,9 @@ public class OnlineCategoryController {
         if (auth == null || !auth.startsWith("Bearer ")) throw new RuntimeException("Authorization required");
         String token = auth.substring(7);
         String username = jwtService.extractUsername(token);
-        Map<String, Object> user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        String role = String.valueOf(user.getOrDefault("role", ""));
+        Map<String, Object> admin = adminRepository.findAdminByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+        String role = String.valueOf(admin.getOrDefault("role", ""));
         if (!role.equals("SUPER_ADMIN") && !role.equals("ADMIN") && !role.equals("SUB_ADMIN")) {
             throw new RuntimeException("Admin access required");
         }

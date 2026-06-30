@@ -126,23 +126,28 @@ public class CartController {
                 deliverabilityMessage = "Selected delivery address was not found in your address book.";
             } else {
                 UserDeliveryAddress address = addrOpt.get();
-                // Simple validation: check pincode and city
-                String shopPincode = shop.getPincode() != null ? shop.getPincode().trim() : "";
-                String userPincode = address.getPincode() != null ? address.getPincode().trim() : "";
-                String shopCity = shop.getCity() != null ? shop.getCity().trim() : "";
-                String userCity = address.getCity() != null ? address.getCity().trim() : "";
+                String shopServiceMode = shop.getServiceMode() != null ? shop.getServiceMode().toUpperCase() : "OFFLINE";
+                if ("ONLINE".equals(shopServiceMode)) {
+                    deliverabilityMessage = "Online shipping is available for this address.";
+                } else {
+                    // Simple validation: check pincode and city
+                    String shopPincode = shop.getPincode() != null ? shop.getPincode().trim() : "";
+                    String userPincode = address.getPincode() != null ? address.getPincode().trim() : "";
+                    String shopCity = shop.getCity() != null ? shop.getCity().trim() : "";
+                    String userCity = address.getCity() != null ? address.getCity().trim() : "";
 
-                if (!shopCity.equalsIgnoreCase(userCity)) {
-                    isDeliverable = false;
-                    deliverabilityMessage = "This shop cannot deliver across cities. (Merchant in " + shopCity + ", address in " + userCity + ")";
-                } else if (!shopPincode.equals(userPincode)) {
-                    // If pincodes differ but within the same city, check if the first 3 digits match (hub/district level)
-                    if (shopPincode.length() >= 3 && userPincode.length() >= 3 &&
-                        !shopPincode.substring(0, 3).equals(userPincode.substring(0, 3))) {
+                    if (!shopCity.equalsIgnoreCase(userCity)) {
                         isDeliverable = false;
-                        deliverabilityMessage = "Address is outside the allowable " + shop.getDeliveryRadiusKm() + "km delivery range.";
-                    } else {
-                        deliverabilityMessage = "Address is within deliverable range of the merchant.";
+                        deliverabilityMessage = "This shop cannot deliver across cities. (Merchant in " + shopCity + ", address in " + userCity + ")";
+                    } else if (!shopPincode.equals(userPincode)) {
+                        // If pincodes differ but within the same city, check if the first 3 digits match (hub/district level)
+                        if (shopPincode.length() >= 3 && userPincode.length() >= 3 &&
+                            !shopPincode.substring(0, 3).equals(userPincode.substring(0, 3))) {
+                            isDeliverable = false;
+                            deliverabilityMessage = "Address is outside the allowable " + shop.getDeliveryRadiusKm() + "km delivery range.";
+                        } else {
+                            deliverabilityMessage = "Address is within deliverable range of the merchant.";
+                        }
                     }
                 }
             }

@@ -291,13 +291,15 @@ public class OrderRepository {
 
     // Shared SELECT clause reused across all order fetch methods
     private static final String ORDER_SELECT_SQL =
-            "SELECT o.id, o.order_number, o.user_id, o.shop_id, s.shop_name, o.delivery_address_id, o.order_channel, o.status, " +
+            "SELECT o.id, o.order_number, o.user_id, o.shop_id, s.shop_name, s.contact_number AS shop_phone, o.delivery_address_id, o.order_channel, o.status, " +
             "o.total_mrp, o.total_discount, o.subtotal, o.delivery_fee, o.grand_total, o.total, " +
             "o.payment_method, o.payment_status, o.payment_ref_id, o.offline_payment_id, o.cancellation_reason, o.notes, " +
             "o.shipment_id, o.awb_number, o.courier_name, o.label_url, o.tracking_url, " +
-            "o.created_at, o.updated_at " +
+            "o.created_at, o.updated_at, " +
+            "COALESCE(da.address_line1, '') || COALESCE(', ' || da.address_line2, '') || COALESCE(', ' || da.city, '') || COALESCE(', ' || da.state_name, '') || COALESCE(' - ' || da.pincode, '') AS delivery_address " +
             "FROM online_orders o " +
-            "JOIN market_shop s ON o.shop_id = s.id";
+            "JOIN market_shop s ON o.shop_id = s.id " +
+            "LEFT JOIN user_delivery_addresses da ON o.delivery_address_id = da.id";
 
     private OnlineOrder mapOrder(ResultSet rs, int rowNum) throws SQLException {
         return OnlineOrder.builder()
@@ -306,7 +308,9 @@ public class OrderRepository {
                 .userId(rs.getLong("user_id"))
                 .shopId(rs.getLong("shop_id"))
                 .shopName(rs.getString("shop_name"))
+                .shopPhone(rs.getString("shop_phone"))
                 .deliveryAddressId(rs.getLong("delivery_address_id"))
+                .address(rs.getString("delivery_address"))
                 .orderChannel(rs.getString("order_channel"))
                 .status(rs.getString("status"))
                 .totalMrp(rs.getDouble("total_mrp"))

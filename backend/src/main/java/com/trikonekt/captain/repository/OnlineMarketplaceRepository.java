@@ -35,19 +35,12 @@ public class OnlineMarketplaceRepository {
         );
         if (!curated.isEmpty()) return curated;
 
-        // Fallback: derive from product data
+        // Fallback: select all active consumer-facing merchant categories
         return jdbc.queryForList(
-            "SELECT DISTINCT mc.name AS name, LOWER(REPLACE(mc.name,' ','-')) AS slug " +
-            "FROM market_shopproduct sp " +
-            "JOIN market_shop s ON sp.shop_id = s.id " +
-            "LEFT JOIN business_merchantcategory mc ON s.category_id = mc.id " +
-            "WHERE sp.online_delivery = TRUE " +
-            "  AND sp.is_active = TRUE " +
-            "  AND sp.stock_qty > 0 " +
-            "  AND s.status = 'ACTIVE' " +
-            "  AND mc.name IS NOT NULL " +
-            "  AND mc.name <> '' " +
-            "ORDER BY name ASC " +
+            "SELECT name, LOWER(REPLACE(name, ' ', '-')) AS slug " +
+            "FROM business_merchantcategory " +
+            "WHERE is_active = TRUE AND audience = 'CONSUMER' " +
+            "ORDER BY sort_order ASC, name ASC " +
             "LIMIT 40"
         );
     }
