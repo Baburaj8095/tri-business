@@ -260,9 +260,9 @@ export default function BusinessOnlineMarketplacePage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: BG, pb: 6 }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: BG, pb: 6, maxWidth: '430px', margin: '0 auto', boxShadow: '0 0 20px rgba(0,0,0,0.05)', borderLeft: `1px solid ${BOR}`, borderRight: `1px solid ${BOR}` }}>
       <Box sx={{ bgcolor: PD, color: '#fff', py: 2 }}>
-        <Container sx={{ maxWidth: '430px !important', px: 2 }} disableGutters>
+        <Container disableGutters sx={{ px: 2 }}>
           <Stack direction="row" alignItems="center" gap={2}>
             <IconButton onClick={() => navigate('/business-dashboard')} sx={{ color: '#fff' }}>
               <BackIcon />
@@ -286,7 +286,7 @@ export default function BusinessOnlineMarketplacePage() {
         </Container>
       </Box>
  
-      <Container sx={{ maxWidth: '430px !important', py: 3, px: 2 }}>
+      <Container sx={{ py: 3, px: 2 }}>
         <Alert severity="info" sx={{ mb: 2.5, borderRadius: 2 }}>
           This page is for browsing B2B products from other online merchants. To manage your own listings, use <strong>Manage My Online Products</strong>.
         </Alert>
@@ -354,7 +354,7 @@ export default function BusinessOnlineMarketplacePage() {
           <>
             <Grid container spacing={1.5}>
               {products.map((product) => (
-                <Grid item xs={6} key={`${product.id}-${product.shop_id}`}>
+                <Grid item xs={6} sx={{ width: '50%', flexBasis: '50%', maxWidth: '50%' }} key={`${product.id}-${product.shop_id}`}>
                   <MarketplaceProductCard product={product} onAddToCart={handleAddToCart} />
                 </Grid>
               ))}
