@@ -31,8 +31,9 @@ export default function MerchantOrdersPage() {
   const [channelMode, setChannelMode] = useState(() => {
     const cat = localStorage.getItem('user_category') || 'merchant';
     const mode = localStorage.getItem('service_mode_business') || 'OFFLINE';
-    if (cat === 'business') return 'B2B';
-    if (cat === 'merchant' && mode === 'ONLINE') return 'ONLINE';
+    const isB2B = cat === 'merchant' || cat === 'merchant_business';
+    if (isB2B) return 'B2B';
+    if (mode === 'ONLINE') return 'ONLINE';
     return 'OFFLINE';
   });
 
@@ -176,9 +177,10 @@ export default function MerchantOrdersPage() {
         const resolvedCategory = p.category || localStorage.getItem('user_category') || 'merchant';
         const resolvedMode = p.service_mode || localStorage.getItem('service_mode_business') || 'OFFLINE';
         
-        if (resolvedCategory === 'business') {
+        const isB2B = resolvedCategory === 'merchant' || resolvedCategory === 'merchant_business';
+        if (isB2B) {
           setChannelMode('B2B');
-        } else if (resolvedCategory === 'merchant' && resolvedMode === 'ONLINE') {
+        } else if (resolvedMode === 'ONLINE') {
           setChannelMode('ONLINE');
         } else {
           setChannelMode('OFFLINE');
@@ -374,7 +376,7 @@ export default function MerchantOrdersPage() {
   const cat = profile?.category || localStorage.getItem('user_category') || 'merchant';
   const mode = profile?.service_mode || localStorage.getItem('service_mode_business') || 'OFFLINE';
   
-  const isB2BUser = cat === 'business';
+  const isB2BUser = cat === 'merchant' || cat === 'merchant_business';
   const isOnlineOnly = mode === 'ONLINE';
   const showToggles = !isB2BUser && !isOnlineOnly;
 
