@@ -85,8 +85,9 @@ import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
 import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import SearchBar from "../../components/business/SearchBar";
-import { getPublicB2bMerchants, getMerchantProfile, updateMerchantProfile } from "../../api/api";
+import { getPublicB2bMerchants, getMerchantProfile, updateMerchantProfile, listMyShops } from "../../api/api";
 import "../consumer-ecommerce/consumerEcommerce.css";
 import { getGPSLocation } from "../../utils/locationHelper";
 
@@ -1596,6 +1597,9 @@ function BusinessDashboard() {
   const [profile, setProfile] = useState(null);
   const [toastMsg, setToastMsg] = useState("");
   const [activeModal, setActiveModal] = useState(null);
+  const [activeShop, setActiveShop] = useState(null);
+  const [shops, setShops] = useState([]);
+  const [locationDrawerOpen, setLocationDrawerOpen] = useState(false);
 
   const handleCitySelect = (cityName) => {
     setSelectedCity(cityName);
@@ -1686,6 +1690,20 @@ function BusinessDashboard() {
         }
       })
       .catch((err) => console.error("Failed to load merchant profile:", err));
+
+    listMyShops()
+      .then((data) => {
+        if (data && data.length > 0) {
+          setShops(data);
+          const savedShopId = localStorage.getItem('active_merchant_shop_id');
+          const active = data.find(s => String(s.id) === savedShopId) || data[0];
+          if (active) {
+            setActiveShop(active);
+            localStorage.setItem('active_merchant_shop_id', String(active.id));
+          }
+        }
+      })
+      .catch((err) => console.error("Failed to load merchant shops:", err));
   }, []);
 
   const handleScrollTo = (targetId) => {
@@ -1826,6 +1844,11 @@ function BusinessDashboard() {
     navigate('/login');
   };
 
+  const displayName = profile?.business_name || profile?.full_name || localStorage.getItem('business_full_name') || 'Business User';
+  const initials = displayName
+    ? displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    : 'BU';
+
   return (
     <ThemeProvider theme={dashboardTheme}>
       <div className="ce-app" style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
@@ -1838,53 +1861,93 @@ function BusinessDashboard() {
           transform: 'translateX(-50%)',
           width: '100%', 
           maxWidth: 640,
-          height: 64, 
-          bgcolor: '#ffffff', 
-          borderBottom: '1px solid #e2e8f0', 
+          bgcolor: '#1B4D3E', 
+          background: 'linear-gradient(135deg, #1B4D3E 0%, #143d31 100%)',
+          color: '#ffffff',
           zIndex: 1000,
           display: 'flex',
-          alignItems: 'center',
-          px: 2,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+          flexDirection: 'column',
+          alignItems: 'stretch',
+          px: 2.5,
+          py: 1.5,
+          boxShadow: '0 4px 14px rgba(0,0,0,0.06)'
         }}
       >
-        <IconButton
-          onClick={() => setDrawerOpen(true)}
-          sx={{
-            width: 40,
-            height: 40,
-            color: "#0f172a",
-            "&:hover": { bgcolor: "rgba(15,23,42,0.05)" }
+        {/* Top Greeting Row */}
+        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.25 }}>
+          <Avatar 
+            onClick={() => setDrawerOpen(true)}
+            sx={{ 
+              width: 38, 
+              height: 38, 
+              bgcolor: 'rgba(255,255,255,0.15)', 
+              color: '#ffffff',
+              fontWeight: 800,
+              fontSize: '0.9rem',
+              border: '1.5px solid rgba(255,255,255,0.7)',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              '&:hover': { transform: 'scale(1.05)' },
+              transition: 'transform 0.2s ease'
+            }}
+          >
+            {initials}
+          </Avatar>
+          <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+            <Typography sx={{ fontSize: '10.5px', fontWeight: 650, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Good Evening
+            </Typography>
+            <Typography sx={{ fontSize: '15px', fontWeight: 800, color: '#ffffff', lineHeight: 1.2 }} noWrap>
+              {displayName}
+            </Typography>
+          </Box>
+
+          <Stack direction="row" spacing={0.5}>
+            <IconButton 
+              aria-label="Notifications" 
+              sx={{ color: '#ffffff', "&:hover": { bgcolor: "rgba(255,255,255,0.1)" } }}
+            >
+              <NotificationsNoneRoundedIcon sx={{ fontSize: 22 }} />
+            </IconButton>
+            <IconButton
+              aria-label="Wallet"
+              onClick={() => navigate("/user/franchise-wallet")}
+              sx={{ color: '#ffffff', "&:hover": { bgcolor: "rgba(255,255,255,0.1)" } }}
+            >
+              <AccountBalanceWalletOutlinedIcon sx={{ fontSize: 22 }} />
+            </IconButton>
+            <IconButton 
+              aria-label="Switch Store" 
+              onClick={() => setLocationDrawerOpen(true)}
+              sx={{ color: '#ffffff', "&:hover": { bgcolor: "rgba(255,255,255,0.1)" } }}
+            >
+              <LocationOnOutlinedIcon sx={{ fontSize: 22 }} />
+            </IconButton>
+          </Stack>
+        </Stack>
+
+        {/* Operating Location Row (Consumer Design style) */}
+        <Box 
+          onClick={() => setLocationDrawerOpen(true)}
+          sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            cursor: 'pointer', 
+            borderTop: '1.2px solid rgba(255,255,255,0.12)', 
+            pt: 1.25 
           }}
         >
-          <MenuRoundedIcon sx={{ fontSize: 24 }} />
-        </IconButton>
-        
-        <Typography sx={{ ml: 1.5, fontWeight: 900, fontSize: '1.2rem', color: '#0f172a', flexGrow: 1 }}>
-          Trikonekt Merchant
-        </Typography>
-        
-        <Stack direction="row" spacing={0.5}>
-          <IconButton 
-            aria-label="Notifications" 
-            sx={{ color: '#475569', "&:hover": { bgcolor: "rgba(15,23,42,0.05)" } }}
-          >
-            <NotificationsNoneRoundedIcon sx={{ fontSize: 22 }} />
-          </IconButton>
-          <IconButton
-            aria-label="Wallet"
-            onClick={() => navigate("/user/franchise-wallet")}
-            sx={{ color: '#475569', "&:hover": { bgcolor: "rgba(15,23,42,0.05)" } }}
-          >
-            <AccountBalanceWalletOutlinedIcon sx={{ fontSize: 22 }} />
-          </IconButton>
-          <IconButton 
-            aria-label="Location" 
-            sx={{ color: '#475569', "&:hover": { bgcolor: "rgba(15,23,42,0.05)" } }}
-          >
-            <LocationOnOutlinedIcon sx={{ fontSize: 22 }} />
-          </IconButton>
-        </Stack>
+          <Typography sx={{ fontSize: '9px', fontWeight: 750, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+            Operating Store / Outlet
+          </Typography>
+          <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.25 }}>
+            <LocationOnOutlinedIcon sx={{ fontSize: 15, color: '#10b981' }} />
+            <Typography sx={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
+              {activeShop ? `${activeShop.shop_name}, ${activeShop.city}` : 'Select Operating Store Location'}
+            </Typography>
+            <ExpandMoreRoundedIcon sx={{ fontSize: 16, color: '#ffffff', opacity: 0.8 }} />
+          </Stack>
+        </Box>
       </Box>
 
       <main 
@@ -1892,7 +1955,7 @@ function BusinessDashboard() {
         style={{ 
           maxWidth: 640, 
           margin: '0 auto',
-          paddingTop: '80px',
+          paddingTop: '135px',
           paddingBottom: '132px'
         }}
       >
@@ -2077,6 +2140,112 @@ function BusinessDashboard() {
         }}
       />
       <AppDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onAction={handleDrawerAction} profile={profile} />
+      
+      {/* Switch Operating Store Location Drawer */}
+      <Drawer
+        anchor="bottom"
+        open={locationDrawerOpen}
+        onClose={() => setLocationDrawerOpen(false)}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: '24px',
+            borderTopRightRadius: '24px',
+            maxWidth: '640px',
+            margin: '0 auto',
+            left: 0,
+            right: 0,
+            maxHeight: '75vh',
+            boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
+          }
+        }}
+      >
+        <Box sx={{ px: 3, pt: 3, pb: 4 }}>
+          {/* Handle bar */}
+          <Box sx={{ width: 40, height: 4, bgcolor: '#cbd5e1', borderRadius: 2, mx: 'auto', mb: 2.5 }} />
+
+          <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', mb: 0.5 }}>
+            Switch Operating Store
+          </Typography>
+          <Typography sx={{ fontSize: '12.5px', color: '#64748b', mb: 3, fontWeight: 650 }}>
+            Select which store location/branch profile you are operating from.
+          </Typography>
+
+          <Stack spacing={2} sx={{ mb: 3, overflowY: 'auto', maxHeight: '40vh' }}>
+            {shops.length === 0 ? (
+              <Box sx={{ textAlign: 'center', py: 4, border: '2px dashed #cbd5e1', borderRadius: 3 }}>
+                <Typography sx={{ fontWeight: 700, color: '#64748b', fontSize: '13.5px' }}>
+                  No stores registered yet
+                </Typography>
+              </Box>
+            ) : (
+              shops.map((shop) => {
+                const isSelected = activeShop && String(activeShop.id) === String(shop.id);
+                return (
+                  <Box
+                    key={shop.id}
+                    onClick={() => {
+                      setActiveShop(shop);
+                      localStorage.setItem('active_merchant_shop_id', String(shop.id));
+                      setLocationDrawerOpen(false);
+                      setToastMsg(`Switched to active store: ${shop.shop_name}`);
+                    }}
+                    sx={{
+                      p: 2,
+                      borderRadius: '16px',
+                      border: isSelected ? '2px solid #1B4D3E' : '1px solid #e2e8f0',
+                      bgcolor: isSelected ? 'rgba(27,77,62,0.03)' : '#ffffff',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        bgcolor: isSelected ? 'rgba(27,77,62,0.05)' : '#f8fafc',
+                        transform: 'translateY(-1px)',
+                      }
+                    }}
+                  >
+                    <Avatar sx={{ bgcolor: isSelected ? '#1B4D3E' : '#f1f5f9', color: isSelected ? '#fff' : '#64748b' }}>
+                      <LuStore size={20} />
+                    </Avatar>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography sx={{ fontSize: '14.5px', fontWeight: 800, color: '#0f172a' }} noWrap>
+                        {shop.shop_name}
+                      </Typography>
+                      <Typography sx={{ fontSize: '12px', color: '#64748b', fontWeight: 600, mt: 0.25 }} noWrap>
+                        {shop.address || shop.city}
+                      </Typography>
+                    </Box>
+                    {isSelected && (
+                      <Box sx={{ width: 8, height: 8, bgcolor: '#10b981', borderRadius: '50%' }} />
+                    )}
+                  </Box>
+                );
+              })
+            )}
+          </Stack>
+
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={() => {
+              setLocationDrawerOpen(false);
+              navigate('/business/shops');
+            }}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 850,
+              py: 1.5,
+              bgcolor: '#1B4D3E',
+              '&:hover': { bgcolor: '#143d31' }
+            }}
+          >
+            Manage Shop Profiles
+          </Button>
+        </Box>
+      </Drawer>
+
       <MobileFooterNav activeItem={activeFooterItem} onNavigate={handleFooterNavigate} />
 
       {/* Edit Profile Modal */}
