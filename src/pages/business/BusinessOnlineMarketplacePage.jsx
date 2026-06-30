@@ -261,8 +261,8 @@ export default function BusinessOnlineMarketplacePage() {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: BG, pb: 6 }}>
-      <Box sx={{ bgcolor: PD, color: '#fff', py: 2, px: { xs: 2, md: 4 } }}>
-        <Container maxWidth="lg" disableGutters>
+      <Box sx={{ bgcolor: PD, color: '#fff', py: 2 }}>
+        <Container sx={{ maxWidth: '430px !important', px: 2 }} disableGutters>
           <Stack direction="row" alignItems="center" gap={2}>
             <IconButton onClick={() => navigate('/business-dashboard')} sx={{ color: '#fff' }}>
               <BackIcon />
@@ -285,8 +285,8 @@ export default function BusinessOnlineMarketplacePage() {
           </Stack>
         </Container>
       </Box>
-
-      <Container maxWidth="lg" sx={{ py: 3 }}>
+ 
+      <Container sx={{ maxWidth: '430px !important', py: 3, px: 2 }}>
         <Alert severity="info" sx={{ mb: 2.5, borderRadius: 2 }}>
           This page is for browsing B2B products from other online merchants. To manage your own listings, use <strong>Manage My Online Products</strong>.
         </Alert>

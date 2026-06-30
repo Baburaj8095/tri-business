@@ -74,17 +74,17 @@ public class B2BOrderService {
 
             if (!deliveryCheckDone) {
                 Boolean homeDeliveryEnabled = (Boolean) row.get("home_delivery_enabled");
-                Double deliveryRadiusKm = (Double) row.get("delivery_radius_km");
-                Double sellerLat = (Double) row.get("latitude");
-                Double sellerLng = (Double) row.get("longitude");
+                Double deliveryRadiusKm = dblOrNull(row.get("delivery_radius_km"));
+                Double sellerLat = dblOrNull(row.get("latitude"));
+                Double sellerLng = dblOrNull(row.get("longitude"));
                 String serviceMode = str(row.get("service_mode"), "OFFLINE").toUpperCase();
 
                 if (Boolean.TRUE.equals(homeDeliveryEnabled) && (serviceMode.equals("BOTH") || serviceMode.equals("OFFLINE"))) {
                     Optional<Map<String, Object>> buyerShopOpt = repository.findBuyerShop(buyerId);
                     if (buyerShopOpt.isPresent()) {
                         Map<String, Object> buyerShop = buyerShopOpt.get();
-                        Double buyerLat = (Double) buyerShop.get("latitude");
-                        Double buyerLng = (Double) buyerShop.get("longitude");
+                        Double buyerLat = dblOrNull(buyerShop.get("latitude"));
+                        Double buyerLng = dblOrNull(buyerShop.get("longitude"));
                         if (buyerLat != null && buyerLng != null && sellerLat != null && sellerLng != null) {
                             double distanceKm = ShopService.calculateDistanceKm(buyerLat, buyerLng, sellerLat, sellerLng);
                             double radius = deliveryRadiusKm != null ? Math.min(deliveryRadiusKm, 25.0) : 5.0;
@@ -394,6 +394,11 @@ public class B2BOrderService {
 
     private double dbl(Object value) {
         return value instanceof Number ? ((Number) value).doubleValue() : 0.0;
+    }
+
+    private Double dblOrNull(Object value) {
+        if (value == null) return null;
+        return value instanceof Number ? ((Number) value).doubleValue() : null;
     }
 
     private boolean bool(Object value) {

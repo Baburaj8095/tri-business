@@ -121,7 +121,7 @@ export default function BusinessB2BCartPage() {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: BG, pb: 5 }}>
       <Box sx={{ bgcolor: PD, color: '#fff', py: 2 }}>
-        <Container maxWidth="md">
+        <Container sx={{ maxWidth: '430px !important', px: 2 }}>
           <Stack direction="row" spacing={1.5} alignItems="center">
             <IconButton onClick={() => navigate('/business/online-marketplace')} sx={{ color: '#fff' }}><ArrowBack /></IconButton>
             <Box>
@@ -132,7 +132,7 @@ export default function BusinessB2BCartPage() {
         </Container>
       </Box>
 
-      <Container maxWidth="md" sx={{ py: 3 }}>
+      <Container sx={{ maxWidth: '430px !important', py: 3, px: 2 }}>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
