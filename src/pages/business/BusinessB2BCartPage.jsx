@@ -123,7 +123,19 @@ export default function BusinessB2BCartPage() {
       <Box sx={{ bgcolor: PD, color: '#fff', py: 2 }}>
         <Container sx={{ px: 2 }}>
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <IconButton onClick={() => navigate('/business/online-marketplace')} sx={{ color: '#fff' }}><ArrowBack /></IconButton>
+            <IconButton 
+              onClick={() => navigate('/business/online-marketplace')} 
+              sx={{ 
+                bgcolor: 'rgba(255,255,255,0.12)', 
+                border: '1px solid rgba(255,255,255,0.25)', 
+                color: '#ffffff', 
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
+                width: 38,
+                height: 38
+              }}
+            >
+              <ArrowBack />
+            </IconButton>
             <Box>
               <Typography variant="h6" fontWeight={900}>B2B Cart</Typography>
               <Typography variant="caption" sx={{ opacity: 0.85 }}>One seller/shop per cart</Typography>

@@ -264,7 +264,17 @@ export default function BusinessOnlineMarketplacePage() {
       <Box sx={{ bgcolor: PD, color: '#fff', py: 2 }}>
         <Container disableGutters sx={{ px: 2 }}>
           <Stack direction="row" alignItems="center" gap={2}>
-            <IconButton onClick={() => navigate('/business-dashboard')} sx={{ color: '#fff' }}>
+            <IconButton 
+              onClick={() => navigate('/business-dashboard')} 
+              sx={{ 
+                bgcolor: 'rgba(255,255,255,0.12)', 
+                border: '1px solid rgba(255,255,255,0.25)', 
+                color: '#ffffff', 
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
+                width: 38,
+                height: 38
+              }}
+            >
               <BackIcon />
             </IconButton>
             <Avatar sx={{ bgcolor: `${P}55`, color: '#fff' }}>

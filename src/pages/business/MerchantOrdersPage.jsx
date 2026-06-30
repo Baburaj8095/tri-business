@@ -394,76 +394,83 @@ export default function MerchantOrdersPage() {
   }
 
   return (
-    <Box sx={{ bgcolor: BG, minHeight: '100vh', pb: 4 }}>
+    <Box sx={{ bgcolor: BG, minHeight: '100vh', pb: 4, maxWidth: '430px', margin: '0 auto', boxShadow: '0 0 20px rgba(0,0,0,0.05)', borderLeft: `1px solid ${BORDER}`, borderRight: `1px solid ${BORDER}` }}>
       
       {/* 1. Header Navigation */}
-      <Box sx={{ bgcolor: SURFACE, py: 2, borderBottom: `1px solid ${BORDER}`, mb: 2 }}>
-        <Container maxWidth="md">
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Stack direction="row" alignItems="center" spacing={2}>
-              <IconButton
-                size="small"
-                onClick={() => navigate('/business-dashboard')}
-                sx={{
-                  bgcolor: '#f1f5f9',
-                  color: TEXT,
-                  '&:hover': { bgcolor: BORDER },
-                }}
-              >
-                <LuChevronLeft size={20} />
-              </IconButton>
-              <Typography sx={{ fontSize: '1rem', fontWeight: 700, color: TEXT }}>
+      <Box sx={{ bgcolor: '#1B4D3E', background: 'linear-gradient(135deg, #1B4D3E 0%, #143d31 100%)', color: '#ffffff', py: 2, mb: 2 }}>
+        <Container>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <IconButton
+              onClick={() => navigate('/business-dashboard')}
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.12)', 
+                border: '1px solid rgba(255,255,255,0.25)', 
+                color: '#ffffff', 
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
+                width: 38,
+                height: 38
+              }}
+            >
+              <LuChevronLeft size={20} />
+            </IconButton>
+            <Box>
+              <Typography sx={{ fontSize: '1.2rem', fontWeight: 900, color: '#ffffff', lineHeight: 1.2 }}>
                 {getPageTitle()}
               </Typography>
-            </Stack>
-
-            {/* Toggle Channel selector pill buttons (Offline payments / Online deliveries) */}
-            {showToggles && (
-              <Stack direction="row" spacing={1} sx={{ bgcolor: '#f1f5f9', p: 0.5, borderRadius: '24px' }}>
-                <Button
-                  size="small"
-                  onClick={() => setChannelMode('OFFLINE')}
-                  startIcon={<LuStore size={14} />}
-                  sx={{
-                    borderRadius: '20px',
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    fontSize: '0.7rem',
-                    px: 2,
-                    py: 0.75,
-                    bgcolor: channelMode === 'OFFLINE' ? PRIMARY : 'transparent',
-                    color: channelMode === 'OFFLINE' ? '#fff' : TEXT_SECONDARY,
-                    '&:hover': { bgcolor: channelMode === 'OFFLINE' ? PRIMARY_DARK : '#e2e8f0' }
-                  }}
-                >
-                  Counter Pay
-                </Button>
-                <Button
-                  size="small"
-                  onClick={() => setChannelMode('ONLINE')}
-                  startIcon={<LuShoppingBag size={14} />}
-                  sx={{
-                    borderRadius: '20px',
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    fontSize: '0.7rem',
-                    px: 2,
-                    py: 0.75,
-                    bgcolor: channelMode === 'ONLINE' ? PRIMARY : 'transparent',
-                    color: channelMode === 'ONLINE' ? '#fff' : TEXT_SECONDARY,
-                    '&:hover': { bgcolor: channelMode === 'ONLINE' ? PRIMARY_DARK : '#e2e8f0' }
-                  }}
-                >
-                  Delivery Track {channelMode === 'ONLINE' && pollAlertActive && "🚨"}
-                </Button>
-              </Stack>
-            )}
+              <Typography sx={{ color: 'rgba(255,255,255,0.75)', fontSize: '11px', fontWeight: 500 }}>
+                Track and manage customer orders
+              </Typography>
+            </Box>
           </Stack>
         </Container>
       </Box>
-
+ 
       {/* 2. Main Body Container */}
-      <Container maxWidth="md">
+      <Container sx={{ px: 2 }}>
+        
+        {/* Toggle Channel selector pill buttons (Offline payments / Online deliveries) */}
+        {showToggles && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2.5 }}>
+            <Stack direction="row" spacing={1} sx={{ bgcolor: '#f1f5f9', p: 0.5, borderRadius: '24px', width: '100%' }}>
+              <Button
+                fullWidth
+                size="small"
+                onClick={() => setChannelMode('OFFLINE')}
+                startIcon={<LuStore size={14} />}
+                sx={{
+                  borderRadius: '20px',
+                  textTransform: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.75rem',
+                  py: 1,
+                  bgcolor: channelMode === 'OFFLINE' ? '#1B4D3E' : 'transparent',
+                  color: channelMode === 'OFFLINE' ? '#fff' : TEXT_SECONDARY,
+                  '&:hover': { bgcolor: channelMode === 'OFFLINE' ? '#143d31' : '#e2e8f0' }
+                }}
+              >
+                Counter Pay
+              </Button>
+              <Button
+                fullWidth
+                size="small"
+                onClick={() => setChannelMode('ONLINE')}
+                startIcon={<LuShoppingBag size={14} />}
+                sx={{
+                  borderRadius: '20px',
+                  textTransform: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.75rem',
+                  py: 1,
+                  bgcolor: channelMode === 'ONLINE' ? '#1B4D3E' : 'transparent',
+                  color: channelMode === 'ONLINE' ? '#fff' : TEXT_SECONDARY,
+                  '&:hover': { bgcolor: channelMode === 'ONLINE' ? '#143d31' : '#e2e8f0' }
+                }}
+              >
+                Delivery Track {channelMode === 'ONLINE' && pollAlertActive && "🚨"}
+              </Button>
+            </Stack>
+          </Box>
+        )}
         
         {/* Error / Success Feedback alerts */}
         {error && <Alert severity="error" sx={{ mb: 3, borderRadius: '12px', fontWeight: 700 }}>{error}</Alert>}

@@ -100,33 +100,40 @@ export default function NearbyStoresPage() {
   }, [activeCat, searchQuery, stores]);
 
   return (
-    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pb: 6 }}>
+    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pb: 6, maxWidth: '430px', margin: '0 auto', boxShadow: '0 0 20px rgba(0,0,0,0.05)', borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>
       {/* Top sticky header */}
-      <Box sx={{ bgcolor: '#fff', borderBottom: '1px solid #e2e8f0', sticky: 'top', zIndex: 10, py: 1.5 }}>
-        <Container maxWidth="md">
+      <Box sx={{ bgcolor: '#1B4D3E', background: 'linear-gradient(135deg, #1B4D3E 0%, #143d31 100%)', zIndex: 10, py: 2 }}>
+        <Container>
           <Stack direction="row" alignItems="center" spacing={2} justifyContent="space-between">
             <Stack direction="row" alignItems="center" spacing={1.5}>
               <IconButton 
                 onClick={() => navigate('/business-dashboard')} 
-                sx={{ bgcolor: '#f1f5f9', color: '#0f172a', '&:hover': { bgcolor: '#cbd5e1' } }}
+                sx={{ 
+                  bgcolor: 'rgba(255,255,255,0.12)', 
+                  border: '1px solid rgba(255,255,255,0.25)', 
+                  color: '#ffffff', 
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
+                  width: 38,
+                  height: 38
+                }}
               >
                 <LuChevronLeft size={20} />
               </IconButton>
               <Box>
-                <Typography sx={{ fontWeight: 900, fontSize: '1.15rem', color: '#0f172a', lineHeight: 1.2 }}>
+                <Typography sx={{ fontWeight: 900, fontSize: '1.2rem', color: '#ffffff', lineHeight: 1.2 }}>
                   Near Store
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>
                   Explore B2B stores nearby
                 </Typography>
               </Box>
             </Stack>
-            <LuStore size={22} color="#228B22" />
+            <LuStore size={22} color="#10b981" />
           </Stack>
         </Container>
       </Box>
 
-      <Container maxWidth="md" sx={{ mt: 3 }}>
+      <Container sx={{ mt: 3, px: 2 }}>
         {/* Search Bar */}
         <Box sx={{ bgcolor: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.5, mb: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#f1f5f9', borderRadius: '12px', px: 2, py: 1.25 }}>

@@ -469,20 +469,30 @@ export default function AdsManagerPage() {
 
   /* ── Render ──────────────────────────────────────────────────────────── */
   return (
-    <Box sx={{ bgcolor: BG, minHeight: '100vh', pb: 6 }}>
+    <Box sx={{ bgcolor: BG, minHeight: '100vh', pb: 6, maxWidth: '430px', margin: '0 auto', boxShadow: '0 0 20px rgba(0,0,0,0.05)', borderLeft: `1px solid ${BOR}`, borderRight: `1px solid ${BOR}` }}>
       {/* Header */}
-      <Box sx={{ bgcolor: SUR, py: 2, borderBottom: `1px solid ${BOR}`, mb: 3, position: 'sticky', top: 0, zIndex: 10 }}>
-        <Container maxWidth="md">
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <IconButton onClick={() => navigate(-1)} sx={{ color: TXT }}>
+      <Box sx={{ bgcolor: '#1B4D3E', background: 'linear-gradient(135deg, #1B4D3E 0%, #143d31 100%)', py: 2, mb: 3, position: 'sticky', top: 0, zIndex: 10 }}>
+        <Container>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <IconButton 
+              onClick={() => navigate(-1)} 
+              sx={{ 
+                bgcolor: 'rgba(255,255,255,0.12)', 
+                border: '1px solid rgba(255,255,255,0.25)', 
+                color: '#ffffff', 
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
+                width: 38,
+                height: 38
+              }}
+            >
               <BackIcon />
             </IconButton>
-            <Box sx={{ flex: 1 }}>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.2rem', color: TXT, lineHeight: 1 }}>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography sx={{ fontWeight: 900, fontSize: '1.2rem', color: '#ffffff', lineHeight: 1.1 }} noWrap>
                 Ads Manager
               </Typography>
-              <Typography sx={{ fontSize: '0.8rem', color: MUT, fontWeight: 600, mt: 0.25 }}>
-                Create and manage your promotional ads
+              <Typography sx={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', fontWeight: 500, mt: 0.25 }} noWrap>
+                Create and manage promotional ads
               </Typography>
             </Box>
             <Button
@@ -490,9 +500,13 @@ export default function AdsManagerPage() {
               startIcon={<AddIcon />}
               onClick={openCreate}
               sx={{
-                bgcolor: P, fontWeight: 800, textTransform: 'none',
-                borderRadius: '12px', px: 2.5,
-                '&:hover': { bgcolor: PD },
+                bgcolor: '#10b981', 
+                fontWeight: 850, 
+                textTransform: 'none',
+                borderRadius: '12px', 
+                px: 2,
+                py: 0.8,
+                '&:hover': { bgcolor: '#059669' },
               }}
             >
               New Ad
@@ -501,7 +515,7 @@ export default function AdsManagerPage() {
         </Container>
       </Box>
 
-      <Container maxWidth="md">
+      <Container sx={{ px: 2 }}>
         {/* Info banner */}
         <Alert
           icon={<CampaignIcon />}

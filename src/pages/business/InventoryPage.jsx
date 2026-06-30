@@ -362,31 +362,47 @@ export default function InventoryPage() {
   const serviceModeDisplay = currentServiceMode === 'ONLINE' ? 'Online' : (currentServiceMode === 'TRIZONE' ? 'TriZone' : 'Offline / Nearby');
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "#f8fafc", minHeight: "100vh" }}>
+    <Box sx={{ bgcolor: "#f8fafc", minHeight: "100vh", pb: 6, maxWidth: '430px', margin: '0 auto', boxShadow: '0 0 20px rgba(0,0,0,0.05)', borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>
       {/* HEADER */}
-      <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" mb={4} spacing={2}>
-        <Stack direction="row" alignItems="center" spacing={3}>
-          <IconButton onClick={() => navigate("/business-dashboard")} sx={{ bgcolor: "#fff", border: '1px solid #e2e8f0', boxShadow: "0 2px 4px rgba(0,0,0,0.02)", width: 44, height: 44 }}>
-            <ArrowBackIcon sx={{ color: '#0f172a' }} />
-          </IconButton>
-          <Box>
-            <Typography variant="h5" fontWeight={900} color="#0f172a">
-              {serviceModeDisplay} Inventory
-            </Typography>
-            <Typography color="text.secondary" fontSize="0.9rem" fontWeight={500}>
-              Manage products, pricing, and stock for your {serviceModeDisplay.toLowerCase()} channel.
-            </Typography>
-          </Box>
+      <Box sx={{ bgcolor: '#1B4D3E', background: 'linear-gradient(135deg, #1B4D3E 0%, #143d31 100%)', color: '#ffffff', py: 2, px: 2 }}>
+        <Stack direction="row" alignItems="center" spacing={1.5} justifyContent="space-between">
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <IconButton 
+              onClick={() => navigate("/business-dashboard")} 
+              sx={{ 
+                bgcolor: 'rgba(255,255,255,0.12)', 
+                border: '1px solid rgba(255,255,255,0.25)', 
+                color: '#ffffff', 
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
+                width: 38,
+                height: 38
+              }}
+            >
+              <ArrowBackIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+            <Box>
+              <Typography sx={{ fontWeight: 900, fontSize: '1.2rem', color: '#ffffff', lineHeight: 1.2 }}>
+                {serviceModeDisplay} Inventory
+              </Typography>
+              <Typography sx={{ color: 'rgba(255,255,255,0.75)', fontSize: '11px', fontWeight: 500 }}>
+                Manage products, pricing, and stock
+              </Typography>
+            </Box>
+          </Stack>
         </Stack>
+      </Box>
 
-        <Stack direction="row" spacing={2}>
+      {/* CONTROLS */}
+      <Box sx={{ px: 2, mt: 3, mb: 3 }}>
+        <Stack spacing={1.5}>
           {shops.length > 1 && (
             <TextField
               select
               size="small"
+              fullWidth
               value={selectedShop?.id || ""}
               onChange={handleShopChange}
-              sx={{ minWidth: 200, bgcolor: '#fff', borderRadius: 1 }}
+              sx={{ bgcolor: '#fff', borderRadius: 1.5 }}
             >
               {shops.map((s) => (
                 <MenuItem key={s.id} value={s.id}>{s.shop_name || `Shop #${s.id}`}</MenuItem>
@@ -394,28 +410,28 @@ export default function InventoryPage() {
             </TextField>
           )}
           <Button
+            fullWidth
             variant={isAddFormOpen ? "outlined" : "contained"}
             startIcon={isAddFormOpen ? <CloseIcon /> : <AddIcon />}
             onClick={() => setIsAddFormOpen(!isAddFormOpen)}
             color={isAddFormOpen ? "error" : "success"}
             sx={{ 
-              fontWeight: 700, 
+              fontWeight: 850, 
               textTransform: "none", 
-              borderRadius: '8px', 
-              px: 3, 
-              py: 0.8,
-              bgcolor: isAddFormOpen ? "transparent" : "#228B22",
+              borderRadius: '12px', 
+              py: 1.2,
+              bgcolor: isAddFormOpen ? "transparent" : "#1B4D3E",
               borderColor: isAddFormOpen ? "#ef4444" : "transparent",
               color: isAddFormOpen ? "#ef4444" : "#fff",
               "&:hover": {
-                bgcolor: isAddFormOpen ? "rgba(239,68,68,0.05)" : "#1a701a"
+                bgcolor: isAddFormOpen ? "rgba(239,68,68,0.05)" : "#143d31"
               }
             }}
           >
             {isAddFormOpen ? "Cancel" : "Add Product"}
           </Button>
         </Stack>
-      </Stack>
+      </Box>
 
       {/* ALERTS */}
       {successMessage && <Alert severity="success" sx={{ mb: 3, borderRadius: '8px', fontWeight: 600 }}>{successMessage}</Alert>}
