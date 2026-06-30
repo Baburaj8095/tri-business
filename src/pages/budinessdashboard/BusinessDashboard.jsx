@@ -1061,17 +1061,13 @@ function StickyDeliveryButton({ onClick }) {
   );
 }
 
-function AppDrawer({ open, onClose, onAction, profile }) {
+function AppDrawer({ open, onClose, onAction, profile, orderCount = 0, shopsCount = 0, adsCount = 0 }) {
   const displayName = profile?.business_name || profile?.full_name || localStorage.getItem('business_full_name') || 'Business User';
   const displayPhone = profile?.mobile_number || profile?.username || localStorage.getItem('business_phone') || '';
   const username = profile?.username || localStorage.getItem('username_business') || '';
   const initials = displayName
     ? displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : 'BU';
-
-  const orderCount = 28;
-  const shopsCount = 1;
-  const adsCount = 3;
 
   const isOnline = String(profile?.service_mode || localStorage.getItem('service_mode_business') || '').toUpperCase() === 'ONLINE';
 
@@ -1599,6 +1595,8 @@ function BusinessDashboard() {
   const [activeModal, setActiveModal] = useState(null);
   const [activeShop, setActiveShop] = useState(null);
   const [shops, setShops] = useState([]);
+  const [orderCount, setOrderCount] = useState(0);
+  const [adsCount, setAdsCount] = useState(0);
   const [locationDrawerOpen, setLocationDrawerOpen] = useState(false);
 
   const handleCitySelect = (cityName) => {
@@ -1627,6 +1625,72 @@ function BusinessDashboard() {
   const [sponsoredShops, setSponsoredShops] = useState(ONLINE_B2B_ADS);
   const [featuredProducts, setFeaturedProducts] = useState(PRODUCTS);
   const [bannerAds, setBannerAds] = useState(ADS);
+
+  // Dynamic metrics fetching (Ads count)
+  useEffect(() => {
+    const token = localStorage.getItem('token_business') || localStorage.getItem('token_captain');
+    if (!token) return;
+
+    fetch(`${CAPTAIN_API_URL}/captain/merchant/ads`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.ok ? res.json() : [])
+      .then(data => {
+        if (Array.isArray(data)) {
+          setAdsCount(data.length);
+        }
+      })
+      .catch(err => console.warn("Failed to fetch ads count:", err));
+  }, [CAPTAIN_API_URL]);
+
+  // Dynamic metrics fetching (Orders count)
+  useEffect(() => {
+    const token = localStorage.getItem('token_business') || localStorage.getItem('token_captain');
+    if (!token || !profile) return;
+
+    const cat = profile.category || localStorage.getItem('user_category') || 'merchant';
+    const isB2B = cat === 'merchant' || cat === 'merchant_business';
+
+    if (isB2B) {
+      fetch(`${CAPTAIN_API_URL}/captain/business/seller/orders`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.ok ? res.json() : [])
+        .then(data => {
+          if (Array.isArray(data)) {
+            setOrderCount(data.length);
+          }
+        })
+        .catch(err => console.warn("Failed to fetch B2B orders count:", err));
+    } else {
+      if (!shops || shops.length === 0) {
+        setOrderCount(0);
+        return;
+      }
+      
+      const fetchShopOrders = async () => {
+        let total = 0;
+        for (const shop of shops) {
+          try {
+            const res = await fetch(`${CAPTAIN_API_URL}/captain/merchant/shops/${shop.id}/orders`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (Array.isArray(data)) {
+                total += data.length;
+              }
+            }
+          } catch (e) {
+            console.warn(`Failed to fetch B2C orders for shop ${shop.id}:`, e);
+          }
+        }
+        setOrderCount(total);
+      };
+      
+      fetchShopOrders();
+    }
+  }, [shops, profile, CAPTAIN_API_URL]);
 
   useEffect(() => {
     // Fetch all marketplace ads in a single call
@@ -2139,7 +2203,15 @@ function BusinessDashboard() {
           setSearchModalOpen(false);
         }}
       />
-      <AppDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onAction={handleDrawerAction} profile={profile} />
+      <AppDrawer 
+        open={drawerOpen} 
+        onClose={() => setDrawerOpen(false)} 
+        onAction={handleDrawerAction} 
+        profile={profile} 
+        orderCount={orderCount} 
+        shopsCount={shops.length} 
+        adsCount={adsCount} 
+      />
       
       {/* Switch Operating Store Location Drawer */}
       <Drawer
