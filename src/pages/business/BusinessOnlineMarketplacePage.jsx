@@ -352,13 +352,13 @@ export default function BusinessOnlineMarketplacePage() {
           </Box>
         ) : (
           <>
-            <Grid container spacing={1.5}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '12px', mb: 2 }}>
               {products.map((product) => (
-                <Grid item xs={6} sx={{ width: '50%', flexBasis: '50%', maxWidth: '50%' }} key={`${product.id}-${product.shop_id}`}>
+                <Box sx={{ width: 'calc(50% - 6px)', boxSizing: 'border-box' }} key={`${product.id}-${product.shop_id}`}>
                   <MarketplaceProductCard product={product} onAddToCart={handleAddToCart} />
-                </Grid>
+                </Box>
               ))}
-            </Grid>
+            </Box>
 
             {hasMore && (
               <Box sx={{ textAlign: 'center', mt: 3 }}>
