@@ -127,7 +127,7 @@ public class CartController {
             } else {
                 UserDeliveryAddress address = addrOpt.get();
                 String shopServiceMode = shop.getServiceMode() != null ? shop.getServiceMode().toUpperCase() : "OFFLINE";
-                if ("ONLINE".equals(shopServiceMode)) {
+                if ("ONLINE_DELIVERY".equals(orderChannel) || "ONLINE".equals(shopServiceMode)) {
                     deliverabilityMessage = "Online shipping is available for this address.";
                 } else {
                     // Simple validation: check pincode and city

@@ -87,7 +87,7 @@ function MarketplaceProductCard({ product, onAddToCart }) {
 
   return (
     <Card elevation={0} sx={{ height: '100%', border: `1px solid ${BOR}`, borderRadius: 3, overflow: 'hidden', bgcolor: SUR }}>
-      <Box sx={{ height: 168, bgcolor: '#f1f5f9', position: 'relative', display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
+      <Box sx={{ height: 120, bgcolor: '#f1f5f9', position: 'relative', display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
         {image ? (
           <Box component="img" src={image} alt={title} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
@@ -352,9 +352,9 @@ export default function BusinessOnlineMarketplacePage() {
           </Box>
         ) : (
           <>
-            <Grid container spacing={2}>
+            <Grid container spacing={1.5}>
               {products.map((product) => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={`${product.id}-${product.shop_id}`}>
+                <Grid item xs={6} key={`${product.id}-${product.shop_id}`}>
                   <MarketplaceProductCard product={product} onAddToCart={handleAddToCart} />
                 </Grid>
               ))}

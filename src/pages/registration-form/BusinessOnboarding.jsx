@@ -1020,12 +1020,16 @@ const BusinessOnboarding = () => {
                     ) : step === TOTAL_STEPS ? (
                       <Button
                         onClick={handleSubmit}
-                        disabled={loading}
+                        disabled={loading || !form.termsAccepted || !form.privacyAccepted}
                         variant="contained"
                         sx={{
                           borderRadius: '12px', textTransform: 'none', fontWeight: 800, px: 4, py: 1.5,
-                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                          boxShadow: '0 4px 14px rgba(16,185,129,0.25)',
+                          background: (loading || !form.termsAccepted || !form.privacyAccepted)
+                            ? '#cbd5e1'
+                            : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                          boxShadow: (loading || !form.termsAccepted || !form.privacyAccepted)
+                            ? 'none'
+                            : '0 4px 14px rgba(16,185,129,0.25)',
                           '&:hover': { background: '#059669', transform: 'translateY(-1px)' },
                           transition: 'all 0.2s ease',
                         }}

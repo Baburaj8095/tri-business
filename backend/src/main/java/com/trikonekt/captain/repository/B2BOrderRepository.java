@@ -50,7 +50,7 @@ public class B2BOrderRepository {
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
             ps.setLong(1, buyerId);
             ps.setLong(2, sellerId);
             ps.setLong(3, shopId);
