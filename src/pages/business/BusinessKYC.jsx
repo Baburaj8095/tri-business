@@ -29,7 +29,7 @@ import axios from "axios";
 import { getAccessToken } from "../../api/api";
 import { useNavigate } from "react-router-dom";
 
-const API_BASE_URL = process.env.REACT_APP_CONSUMER_API_URL || "https://api.trikonekt.com/api";
+const API_BASE_URL = process.env.REACT_APP_CONSUMER_API_URL || "https://www.trikonekt.com/api";
 
 const API = axios.create({
   baseURL: API_BASE_URL
@@ -94,8 +94,9 @@ export default function BusinessKYC() {
       setSaving(true);
       clearAlerts();
       const res = await API.post("/kyc/start");
-      if (res?.data?.authorization_url) {
-        window.location.href = res.data.authorization_url;
+      const url = res?.data?.data?.authorization_url || res?.data?.authorization_url;
+      if (url) {
+        window.location.href = url;
       } else {
         setError("Failed to generate DigiLocker verification link.");
       }
