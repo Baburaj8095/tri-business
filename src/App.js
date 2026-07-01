@@ -33,6 +33,7 @@ import BusinessOnlineMarketplacePage from './pages/business/BusinessOnlineMarket
 import BusinessB2BCartPage from './pages/business/BusinessB2BCartPage.jsx';
 import BusinessB2BOrdersPage from './pages/business/BusinessB2BOrdersPage.jsx';
 import BusinessB2BSellerOrdersPage from './pages/business/BusinessB2BSellerOrdersPage.jsx';
+import BusinessKYC from './pages/business/BusinessKYC.jsx';
 
 import { Navigate } from 'react-router-dom';
 
@@ -61,6 +62,7 @@ function App() {
         <Route path="/scanner" element={<ScannerPage />} />
         <Route path="/merchant" element={<BusinessDashboardMerchant />} />
         <Route path="/business/profile" element={<BusinessProfile />} />
+        <Route path="/business/kyc" element={<BusinessKYC />} />
         <Route path="/business/shops" element={<BusinessShops />} />
         <Route path="/business/shops/:id/products" element={<BusinessShopProducts />} />
         <Route path="/business/nearby-stores" element={<NearbyStoresPage />} />

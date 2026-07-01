@@ -1831,7 +1831,7 @@ function BusinessDashboard() {
       return;
     }
     if (action === "kyc") {
-      setActiveModal("kyc");
+      navigate("/business/kyc");
       return;
     }
     if (action === "completedOrders") {
