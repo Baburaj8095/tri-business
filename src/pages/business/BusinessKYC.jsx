@@ -24,7 +24,7 @@ import {
   Cancel,
   ArrowForward
 } from "@mui/icons-material";
-import { LuChevronLeft } from "react-icons/lu";
+import { LuChevronLeft, LuShieldCheck } from "react-icons/lu";
 import axios from "axios";
 import { getAccessToken } from "../../api/api";
 import { useNavigate } from "react-router-dom";
@@ -184,25 +184,52 @@ export default function BusinessKYC() {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: BG, py: 4 }}>
-      <Container maxWidth="md">
-        <Box sx={{ display: "flex", alignItems: "center", mb: 4 }}>
-          <IconButton onClick={() => navigate(-1)} sx={{ mr: 2, bgcolor: SURFACE, border: `1px solid ${BORDER}` }}>
-            <LuChevronLeft size={20} color={TEXT} />
-          </IconButton>
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 800, color: TEXT }}>
-              Business KYC Verification
-            </Typography>
-            <Typography variant="caption" sx={{ color: TEXT_SECONDARY }}>
-              Verify your identity using DigiLocker to activate merchant status
-            </Typography>
-          </Box>
-        </Box>
+    <Box sx={{ 
+      bgcolor: '#f8fafc', 
+      minHeight: '100vh', 
+      pb: 6, 
+      maxWidth: '430px', 
+      margin: '0 auto', 
+      boxShadow: '0 0 20px rgba(0,0,0,0.05)', 
+      borderLeft: '1px solid #e2e8f0', 
+      borderRight: '1px solid #e2e8f0' 
+    }}>
+      {/* Top sticky header */}
+      <Box sx={{ bgcolor: '#1B4D3E', background: 'linear-gradient(135deg, #1B4D3E 0%, #143d31 100%)', zIndex: 10, py: 2 }}>
+        <Container>
+          <Stack direction="row" alignItems="center" spacing={2} justifyContent="space-between">
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              <IconButton 
+                onClick={() => navigate(-1)} 
+                sx={{ 
+                  bgcolor: 'rgba(255,255,255,0.12)', 
+                  border: '1px solid rgba(255,255,255,0.25)', 
+                  color: '#ffffff', 
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
+                  width: 38,
+                  height: 38
+                }}
+              >
+                <LuChevronLeft size={20} />
+              </IconButton>
+              <Box>
+                <Typography sx={{ fontWeight: 900, fontSize: '1.2rem', color: '#ffffff', lineHeight: 1.2 }}>
+                  Business KYC
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>
+                  Verify identity to activate merchant status
+                </Typography>
+              </Box>
+            </Stack>
+            <LuShieldCheck size={22} color="#10b981" />
+          </Stack>
+        </Container>
+      </Box>
 
+      <Container sx={{ mt: 3, px: 2 }}>
         {renderStatusHeader()}
 
-        <Paper elevation={3} sx={{ borderRadius: 3, overflow: "hidden", p: 4, bgcolor: SURFACE }}>
+        <Paper elevation={0} sx={{ borderRadius: 4, border: '1px solid #e2e8f0', p: 3, bgcolor: SURFACE, boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
           {message && <Alert severity="success" sx={{ mb: 3 }}>{message}</Alert>}
           {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
           
