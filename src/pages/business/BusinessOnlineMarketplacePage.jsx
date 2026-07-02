@@ -14,6 +14,7 @@ import {
   Grid,
   IconButton,
   InputAdornment,
+  Snackbar,
   Stack,
   TextField,
   Typography,
@@ -347,7 +348,17 @@ export default function BusinessOnlineMarketplacePage() {
         </Stack>
 
         {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
-        {success && <Alert severity="success" onClose={() => setSuccess('')} sx={{ mb: 2, borderRadius: 2 }}>{success}</Alert>}
+        
+        <Snackbar
+          open={!!success}
+          autoHideDuration={3000}
+          onClose={() => setSuccess('')}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={() => setSuccess('')} severity="success" sx={{ width: '100%', borderRadius: 2 }}>
+            {success}
+          </Alert>
+        </Snackbar>
 
         {loading ? (
           <Box sx={{ textAlign: 'center', py: 8 }}>

@@ -192,6 +192,16 @@ public class B2BOrderService {
         }
 
         repository.insertHistory(orderId, "PENDING_CONFIRMATION", "PENDING", "B2B order placed by buyer", "BUYER", buyerId);
+
+        // Send in-app notification to the B2B seller
+        try {
+            String title = "New B2B Order Received";
+            String body = String.format("You have received a new B2B order %s from %s for Rs. %.2f.", orderNumber, validation.getShopName() != null ? validation.getShopName() : "a customer", subtotal);
+            repository.createNotification(sellerId, title, body, "/business/orders");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return repository.findOrderById(orderId).orElseThrow(() -> new RuntimeException("B2B order creation failed."));
     }
 
@@ -216,10 +226,10 @@ public class B2BOrderService {
     @Transactional
     public B2BOnlineOrder cancelBuyerOrder(Long buyerId, Long orderId, String reason) {
         B2BOnlineOrder order = getBuyerOrder(buyerId, orderId);
-        if (!Set.of("PENDING_CONFIRMATION", "CONFIRMED").contains(order.getStatus())) {
+        if (!Set.of("PENDING_CONFIRMATION", "CONFIRMED", "PROCESSING").contains(order.getStatus())) {
             throw new RuntimeException("This B2B order can no longer be cancelled by buyer.");
         }
-        if ("CONFIRMED".equals(order.getStatus())) replenish(order);
+        if (Set.of("CONFIRMED", "PROCESSING").contains(order.getStatus())) replenish(order);
         repository.updateOrderStatus(orderId, "CANCELLED");
         repository.setCancellationReason(orderId, reason != null ? reason : "Cancelled by buyer");
         repository.insertHistory(orderId, "CANCELLED", order.getPaymentStatus(), "Cancelled by buyer", "BUYER", buyerId);
@@ -236,31 +246,45 @@ public class B2BOrderService {
 
         switch (target) {
             case "CONFIRMED":
+            case "PROCESSING":
                 require(current, "PENDING_CONFIRMATION", "Only pending B2B orders can be accepted.");
                 validateStockForConfirmation(order);
                 deduct(order);
+                target = "PROCESSING";
                 break;
             case "REJECTED":
                 require(current, "PENDING_CONFIRMATION", "Only pending B2B orders can be rejected.");
                 break;
             case "PACKING":
-                require(current, "CONFIRMED", "B2B order must be confirmed before packing.");
+            case "PREPARING":
+                if (!Set.of("CONFIRMED", "PROCESSING").contains(current)) {
+                    throw new RuntimeException("B2B order must be confirmed or processing before packing.");
+                }
+                target = "PACKING";
                 break;
             case "DISPATCHED":
-                require(current, "PACKING", "B2B order must be packing before dispatch.");
+            case "SHIPPED":
+                if (!Set.of("CONFIRMED", "PROCESSING", "PACKING", "PREPARING").contains(current)) {
+                    throw new RuntimeException("B2B order must be accepted before dispatch/shipping.");
+                }
                 if (!"PAID".equals(order.getPaymentStatus())) throw new RuntimeException("Payment must be approved before dispatch.");
+                target = "SHIPPED";
                 break;
             case "DELIVERED":
-                require(current, "DISPATCHED", "B2B order must be dispatched before delivered.");
+                if (!Set.of("DISPATCHED", "SHIPPED").contains(current)) {
+                    throw new RuntimeException("B2B order must be dispatched/shipped before delivered.");
+                }
                 break;
             case "COMPLETED":
-                require(current, "DELIVERED", "B2B order must be delivered before completion.");
+                if (!Set.of("DELIVERED", "DISPATCHED", "SHIPPED").contains(current)) {
+                    throw new RuntimeException("B2B order must be delivered or shipped before completion.");
+                }
                 break;
             case "CANCELLED":
-                if (!Set.of("PENDING_CONFIRMATION", "CONFIRMED", "PACKING").contains(current)) {
+                if (!Set.of("PENDING_CONFIRMATION", "CONFIRMED", "PROCESSING", "PACKING", "PREPARING").contains(current)) {
                     throw new RuntimeException("This B2B order can no longer be cancelled.");
                 }
-                if (Set.of("CONFIRMED", "PACKING").contains(current)) replenish(order);
+                if (Set.of("CONFIRMED", "PROCESSING", "PACKING", "PREPARING").contains(current)) replenish(order);
                 repository.setCancellationReason(orderId, req != null ? req.getCancellationReason() : "Cancelled by seller");
                 break;
             default:

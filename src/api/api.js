@@ -1418,7 +1418,7 @@ export async function getMerchantProfile() {
 }
 
 export async function updateMerchantProfile(payload = {}) {
-  const res = await API.patch("/captain/merchant/profile", payload);
+  const res = await API.put("/captain/merchant/profile", payload);
   return res?.data || res;
 }
 

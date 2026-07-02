@@ -77,7 +77,7 @@ public class OfflinePaymentController {
             .shopId(((Number) row.get("shop_id")).longValue())
             .shopName((String) row.get("shop_name"))
             .onlineOrderId(row.get("online_order_id") != null ? ((Number) row.get("online_order_id")).longValue() : null)
-            .amount((BigDecimal) row.get("amount"))
+            .amount(asBigDecimal(row.get("amount")))
             .paymentMethod((String) row.get("payment_method"))
             .status((String) row.get("status"))
             .createdAt(createdAt)
@@ -265,7 +265,7 @@ public class OfflinePaymentController {
             }
 
             // Calculate cashback commission
-            BigDecimal amount = (BigDecimal) payment.get("amount");
+            BigDecimal amount = asBigDecimal(payment.get("amount"));
             BigDecimal discountPercent = BigDecimal.valueOf(5); // default 5%
             if (payment.get("discount_percent") != null) {
                 Object discountObj = payment.get("discount_percent");
@@ -286,9 +286,9 @@ public class OfflinePaymentController {
             Optional<Map<String, Object>> walletOpt = offlinePaymentRepository.getWalletByUserId(consumerId);
             if (walletOpt.isPresent()) {
                 Map<String, Object> wallet = walletOpt.get();
-                BigDecimal currentBalance = (BigDecimal) wallet.get("balance");
-                BigDecimal currentMain = (BigDecimal) wallet.get("main_balance");
-                BigDecimal currentWithdrawable = (BigDecimal) wallet.get("withdrawable_balance");
+                BigDecimal currentBalance = asBigDecimal(wallet.get("balance"));
+                BigDecimal currentMain = asBigDecimal(wallet.get("main_balance"));
+                BigDecimal currentWithdrawable = asBigDecimal(wallet.get("withdrawable_balance"));
 
                 BigDecimal newBalance = currentBalance.add(cashback);
                 BigDecimal newMain = currentMain.add(cashback);
@@ -323,6 +323,17 @@ public class OfflinePaymentController {
             ));
         } else {
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid action: " + req.getAction()));
+        }
+    }
+
+    private BigDecimal asBigDecimal(Object value) {
+        if (value == null) return BigDecimal.ZERO;
+        if (value instanceof BigDecimal) return (BigDecimal) value;
+        if (value instanceof Number) return BigDecimal.valueOf(((Number) value).doubleValue());
+        try {
+            return new BigDecimal(value.toString());
+        } catch (Exception e) {
+            return BigDecimal.ZERO;
         }
     }
 }

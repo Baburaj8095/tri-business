@@ -80,7 +80,7 @@ public class AdsRepository {
             "a.image_url, a.target_url, a.priority, a.is_active, a.display_target, a.merchant_id, " +
             "CAST(a.valid_from AS VARCHAR), CAST(a.valid_to AS VARCHAR), " +
             "p.title AS product_title, p.price AS product_price, p.mrp AS product_mrp, " +
-            "p.discount_percent AS product_discount_percent " +
+            "p.discount_percent AS product_discount_percent, p.image AS product_image " +
             "FROM marketplace_ads a " +
             "LEFT JOIN market_shopproduct p ON a.product_id = p.id " +
             "WHERE a.ad_type = 'FEATURED_PRODUCT' AND a.is_active = TRUE " +
@@ -98,6 +98,7 @@ public class AdsRepository {
             ad.setProductPrice(rs.getDouble("product_price"));
             ad.setProductMrp(rs.getDouble("product_mrp"));
             ad.setProductDiscountPercent(rs.getDouble("product_discount_percent"));
+            ad.setProductImage(rs.getString("product_image"));
             return ad;
         });
     }

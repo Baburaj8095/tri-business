@@ -770,6 +770,7 @@ export default function ProductRegistration() {
               placeholder="0"
               value={formData.discount}
               onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
+              inputProps={{ min: "0", max: "100", step: "any" }}
             />
             <FormInput
               label="Extra Discount"
@@ -777,6 +778,7 @@ export default function ProductRegistration() {
               placeholder="0"
               value={formData.extraDiscount}
               onChange={(e) => setFormData({ ...formData, extraDiscount: e.target.value })}
+              inputProps={{ min: "0", max: "100", step: "any" }}
             />
             <FormInput
               label="Consumer Commission"

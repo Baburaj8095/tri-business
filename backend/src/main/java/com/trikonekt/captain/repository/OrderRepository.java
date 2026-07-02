@@ -104,11 +104,11 @@ public class OrderRepository {
             return ps;
         }, keyHolder);
 
-        Number key = keyHolder.getKey();
+        Long key = getGeneratedId(keyHolder);
         if (key == null) {
             throw new RuntimeException("Failed to retrieve generated order reference key.");
         }
-        return key.longValue();
+        return key;
     }
 
     /**
@@ -336,5 +336,23 @@ public class OrderRepository {
                 .createdAt(rs.getString("created_at"))
                 .updatedAt(rs.getString("updated_at"))
                 .build();
+    }
+
+    private Long getGeneratedId(KeyHolder keyHolder) {
+        if (keyHolder == null) return null;
+        try {
+            Number key = keyHolder.getKey();
+            if (key != null) return key.longValue();
+        } catch (org.springframework.dao.InvalidDataAccessApiUsageException e) {
+            java.util.Map<String, Object> keys = keyHolder.getKeys();
+            if (keys != null && !keys.isEmpty()) {
+                Object val = keys.get("id");
+                if (val instanceof Number) return ((Number) val).longValue();
+                for (Object o : keys.values()) {
+                    if (o instanceof Number) return ((Number) o).longValue();
+                }
+            }
+        }
+        return null;
     }
 }

@@ -64,9 +64,9 @@ public class B2BOrderRepository {
             return ps;
         }, keyHolder);
 
-        Number key = keyHolder.getKey();
+        Long key = getGeneratedId(keyHolder);
         if (key == null) throw new RuntimeException("Failed to create B2B order.");
-        return key.longValue();
+        return key;
     }
 
     public void createOrderItem(Long orderId, Long productId, String productTitle,
@@ -202,9 +202,9 @@ public class B2BOrderRepository {
             ps.setString(8, notes != null ? notes : "");
             return ps;
         }, keyHolder);
-        Number key = keyHolder.getKey();
+        Long key = getGeneratedId(keyHolder);
         if (key == null) throw new RuntimeException("Failed to create B2B payment.");
-        return key.longValue();
+        return key;
     }
 
     public int updateLatestPendingPayment(Long orderId, String status) {
@@ -254,5 +254,32 @@ public class B2BOrderRepository {
         String sql = "SELECT id, latitude, longitude, city, pincode FROM market_shop WHERE merchant_id = ? LIMIT 1";
         List<Map<String, Object>> rows = jdbc.queryForList(sql, buyerId);
         return rows.stream().findFirst();
+    }
+
+    public void createNotification(Long userId, String title, String body, String deepLink) {
+        jdbc.update(
+            "INSERT INTO notifications_notification (" +
+            "user_id, role_cached, channel, is_broadcast, title, body, deep_link, priority, delivered_at, created_at, provider_message_id, error_message" +
+            ") VALUES (?, 'business', 'in_app', FALSE, ?, ?, ?, 'normal', NOW(), NOW(), '', '')",
+            userId, title, body, deepLink
+        );
+    }
+
+    private Long getGeneratedId(KeyHolder keyHolder) {
+        if (keyHolder == null) return null;
+        try {
+            Number key = keyHolder.getKey();
+            if (key != null) return key.longValue();
+        } catch (org.springframework.dao.InvalidDataAccessApiUsageException e) {
+            Map<String, Object> keys = keyHolder.getKeys();
+            if (keys != null && !keys.isEmpty()) {
+                Object val = keys.get("id");
+                if (val instanceof Number) return ((Number) val).longValue();
+                for (Object o : keys.values()) {
+                    if (o instanceof Number) return ((Number) o).longValue();
+                }
+            }
+        }
+        return null;
     }
 }

@@ -79,4 +79,7 @@ public class MarketplaceAd {
 
     @JsonProperty("product_discount_percent")
     private Double productDiscountPercent;
+
+    @JsonProperty("product_image")
+    private String productImage;
 }

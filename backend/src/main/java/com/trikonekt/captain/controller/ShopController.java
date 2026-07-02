@@ -173,7 +173,7 @@ public class ShopController {
      * PATCH /api/captain/merchant/profile/
      * Update merchant profile info (authenticated)
      */
-    @PatchMapping("/profile")
+    @RequestMapping(value = "/profile", method = {RequestMethod.PATCH, RequestMethod.PUT})
     public ResponseEntity<MerchantProfileResponse> updateMerchantProfile(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody MerchantProfileUpdateRequest request

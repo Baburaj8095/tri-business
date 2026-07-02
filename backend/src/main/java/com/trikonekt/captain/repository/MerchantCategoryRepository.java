@@ -108,7 +108,7 @@ public class MerchantCategoryRepository {
             return ps;
         }, keyHolder);
 
-        Long id = keyHolder.getKey() != null ? keyHolder.getKey().longValue() : null;
+        Long id = getGeneratedId(keyHolder);
         if (id == null) {
             throw new RuntimeException("Failed to create merchant category");
         }
@@ -198,7 +198,7 @@ public class MerchantCategoryRepository {
             return ps;
         }, keyHolder);
 
-        Long id = keyHolder.getKey() != null ? keyHolder.getKey().longValue() : null;
+        Long id = getGeneratedId(keyHolder);
         if (id == null) {
             throw new RuntimeException("Failed to create merchant subcategory");
         }
@@ -251,10 +251,25 @@ public class MerchantCategoryRepository {
         );
     }
 
-    /**
-     * Delete/Deactivate a merchant subcategory.
-     */
     public void deleteSubCategory(long id) {
         jdbc.update("UPDATE business_merchantsubcategory SET is_active = FALSE WHERE id = ?", id);
+    }
+
+    private Long getGeneratedId(KeyHolder keyHolder) {
+        if (keyHolder == null) return null;
+        try {
+            Number key = keyHolder.getKey();
+            if (key != null) return key.longValue();
+        } catch (org.springframework.dao.InvalidDataAccessApiUsageException e) {
+            java.util.Map<String, Object> keys = keyHolder.getKeys();
+            if (keys != null && !keys.isEmpty()) {
+                Object val = keys.get("id");
+                if (val instanceof Number) return ((Number) val).longValue();
+                for (Object o : keys.values()) {
+                    if (o instanceof Number) return ((Number) o).longValue();
+                }
+            }
+        }
+        return null;
     }
 }

@@ -91,6 +91,22 @@ import { getPublicB2bMerchants, getMerchantProfile, updateMerchantProfile, listM
 import "../consumer-ecommerce/consumerEcommerce.css";
 import { getGPSLocation } from "../../utils/locationHelper";
 
+const resolveImageUrl = (img) => {
+  if (!img) return null;
+  if (img.startsWith("http://") || img.startsWith("https://")) return img;
+  const apiBase = process.env.REACT_APP_API_URL || 'https://www.trikonekt.com/api';
+  let origin = '';
+  try {
+    const url = new URL(apiBase, window.location.origin);
+    origin = url.origin;
+  } catch (e) {
+    origin = window.location.origin;
+  }
+  const cleanImg = img.startsWith("/") ? img.slice(1) : img;
+  const mediaPath = cleanImg.startsWith("media/") ? cleanImg : `media/${cleanImg}`;
+  return `${origin}/${mediaPath}`;
+};
+
 const UI = {
   bg: "#f8fafc",
   surface: "#ffffff",
@@ -938,7 +954,19 @@ function ProductCard({ product }) {
     <Card sx={{ ...sectionCardStyles(), height: "100%" }}>
       <CardContent sx={{ p: 1.15, height: "100%", "&:last-child": { pb: 1.15 } }}>
         <Stack spacing={0.85} height="100%">
-          <PlaceholderImage label="Product Image" minHeight={104} />
+          {product.image ? (
+            <Box
+              sx={{
+                width: "100%",
+                minHeight: 104,
+                borderRadius: "8px",
+                background: `url(${product.image}) center/cover no-repeat`,
+                border: "1px solid #e2e8f0",
+              }}
+            />
+          ) : (
+            <PlaceholderImage label="Product Image" minHeight={104} />
+          )}
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography sx={{ fontSize: 12, fontWeight: 800, color: UI.text, lineHeight: 1.25, minHeight: 30 }}>
               {product.name}
@@ -1703,7 +1731,7 @@ function BusinessDashboard() {
             id: ad.id,
             title: ad.title || ad.shop_name || 'Sponsored Shop',
             offer: ad.description || '',
-            image: ad.image_url || ad.shop_image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=700&q=80',
+            image: resolveImageUrl(ad.image_url || ad.shop_image) || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=700&q=80',
             shopId: ad.shop_id,
             sponsored: true,
           })));
@@ -1715,7 +1743,7 @@ function BusinessDashboard() {
             mrp: ad.product_mrp ? `Rs. ${Math.round(ad.product_mrp).toLocaleString()}` : '',
             price: ad.product_price ? `Rs. ${Math.round(ad.product_price).toLocaleString()}` : '',
             discount: ad.product_discount_percent ? `${Math.round(ad.product_discount_percent)}% OFF` : '',
-            image: ad.image_url || null,
+            image: resolveImageUrl(ad.image_url || ad.product_image) || null,
             productId: ad.product_id,
           })));
         }
@@ -1724,7 +1752,7 @@ function BusinessDashboard() {
             id: ad.id,
             title: ad.title,
             caption: ad.description || '',
-            image: ad.image_url || null,
+            image: resolveImageUrl(ad.image_url) || null,
           })));
         }
       })

@@ -465,7 +465,7 @@ export default function InventoryPage() {
                   <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="MRP (₹)" name="price" type="number" value={formData.price} onChange={handleAddChange} error={!!formErrors.price} helperText={formErrors.price} inputProps={{ min: "0" }} />
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Discount (%)" name="discountPercent" type="number" value={formData.discountPercent} onChange={handleAddChange} error={!!formErrors.discountPercent} helperText={formErrors.discountPercent} inputProps={{ min: "0", max: "100" }} />
+                  <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Discount (%)" name="discountPercent" type="number" value={formData.discountPercent} onChange={handleAddChange} error={!!formErrors.discountPercent} helperText={formErrors.discountPercent} inputProps={{ min: "0", max: "100", step: "any" }} />
                 </Grid>
                 <Grid item xs={12} md={4}>
                   <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Stock Quantity" name="quantity" type="number" value={formData.quantity} onChange={handleAddChange} error={!!formErrors.quantity} helperText={formErrors.quantity} inputProps={{ min: "0" }} />
@@ -693,7 +693,7 @@ export default function InventoryPage() {
               <TextField fullWidth label="MRP (₹)" name="mrp" type="number" value={editFormData.mrp || ""} onChange={handleEditChange} />
             </Grid>
             <Grid item xs={12} sm={4}>
-              <TextField fullWidth label="Discount (%)" name="discount_percent" type="number" value={editFormData.discount_percent || ""} onChange={handleEditChange} />
+              <TextField fullWidth label="Discount (%)" name="discount_percent" type="number" value={editFormData.discount_percent || ""} onChange={handleEditChange} inputProps={{ min: "0", max: "100", step: "any" }} />
             </Grid>
             <Grid item xs={12} sm={4}>
               <TextField fullWidth label="Stock Quantity" name="stock_qty" type="number" value={editFormData.stock_qty || ""} onChange={handleEditChange} />
