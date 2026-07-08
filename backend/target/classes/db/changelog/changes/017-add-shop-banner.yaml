@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 017-add-shop-banner
+      author: antigravity
+      validCheckSum: ANY
+      changes:
+        - addColumn:
+            tableName: market_shop
+            columns:
+              - column:
+                  name: banner
+                  type: varchar(255)

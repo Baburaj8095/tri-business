@@ -424,14 +424,14 @@ export default function BusinessShops() {
     };
 
     try {
-      if (form.id) {
+      const isEdit = !!form.id;
+      if (isEdit) {
         await updateShop(form.id, payload);
-        setSuccess("Shop details updated successfully.");
       } else {
         await createShop(payload);
-        setSuccess("Shop registered successfully.");
       }
       resetForm();
+      setSuccess(isEdit ? "Shop details updated successfully." : "Shop registered successfully.");
       fetchShops();
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || "Failed to save shop details.");

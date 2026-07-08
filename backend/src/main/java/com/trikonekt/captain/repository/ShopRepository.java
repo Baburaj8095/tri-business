@@ -25,7 +25,7 @@ public class ShopRepository {
     public List<ShopResponse> findShopsByMerchantId(Long merchantId) {
         return jdbc.query(
             "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
-            "contact_number, shop_image, category_id, subcategory_id, " +
+            "contact_number, shop_image, banner, category_id, subcategory_id, " +
             "status, created_at, service_mode, home_delivery_enabled, delivery_radius_km, min_order_value, base_delivery_fee, discount_percent " +
             "FROM market_shop WHERE merchant_id = ? ORDER BY created_at DESC",
             new Object[]{merchantId},
@@ -40,8 +40,8 @@ public class ShopRepository {
                 .longitude(rs.getDouble("longitude"))
                 .contact_number(rs.getString("contact_number"))
                 .email(null)
-                .shop_image(rs.getString("shop_image"))
-                .banner(null)
+                .shop_image(normalizeImageUrl(rs.getString("shop_image")))
+                .banner(normalizeImageUrl(rs.getString("banner")))
                 .category(rs.getLong("category_id"))
                 .subcategory(rs.getLong("subcategory_id"))
                 .description(null)
@@ -68,7 +68,7 @@ public class ShopRepository {
     public Optional<ShopResponse> findActiveShopById(Long shopId) {
         List<ShopResponse> result = jdbc.query(
             "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
-            "contact_number, shop_image, category_id, subcategory_id, " +
+            "contact_number, shop_image, banner, category_id, subcategory_id, " +
             "status, created_at, service_mode, home_delivery_enabled, delivery_radius_km, min_order_value, base_delivery_fee, discount_percent " +
             "FROM market_shop WHERE id = ? AND status = 'ACTIVE'",
             new Object[]{shopId},
@@ -83,8 +83,8 @@ public class ShopRepository {
                 .longitude(rs.getDouble("longitude"))
                 .contact_number(rs.getString("contact_number"))
                 .email(null)
-                .shop_image(rs.getString("shop_image"))
-                .banner(null)
+                .shop_image(normalizeImageUrl(rs.getString("shop_image")))
+                .banner(normalizeImageUrl(rs.getString("banner")))
                 .category(rs.getLong("category_id"))
                 .subcategory(rs.getLong("subcategory_id"))
                 .description(null)
@@ -114,7 +114,7 @@ public class ShopRepository {
     public Optional<ShopResponse> findConsumerActiveShopById(Long shopId) {
         List<ShopResponse> result = jdbc.query(
             "SELECT s.id, s.shop_name, s.address, s.city, s.pincode, s.latitude, s.longitude, " +
-            "s.contact_number, s.shop_image, s.category_id, s.subcategory_id, " +
+            "s.contact_number, s.shop_image, s.banner, s.category_id, s.subcategory_id, " +
             "s.status, s.created_at, COALESCE(s.service_mode, mp.service_mode, 'OFFLINE') AS service_mode, " +
             "s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.discount_percent " +
             "FROM market_shop s " +
@@ -137,8 +137,8 @@ public class ShopRepository {
                 .longitude(rs.getDouble("longitude"))
                 .contact_number(rs.getString("contact_number"))
                 .email(null)
-                .shop_image(rs.getString("shop_image"))
-                .banner(null)
+                .shop_image(normalizeImageUrl(rs.getString("shop_image")))
+                .banner(normalizeImageUrl(rs.getString("banner")))
                 .category(rs.getLong("category_id"))
                 .subcategory(rs.getLong("subcategory_id"))
                 .description(null)
@@ -166,7 +166,7 @@ public class ShopRepository {
     public List<ShopResponse> findAllActiveShops() {
         return jdbc.query(
             "SELECT s.id, s.shop_name, s.address, s.city, s.pincode, s.latitude, s.longitude, " +
-            "s.contact_number, s.shop_image, s.category_id, s.subcategory_id, " +
+            "s.contact_number, s.shop_image, s.banner, s.category_id, s.subcategory_id, " +
             "s.status, s.created_at, COALESCE(s.service_mode, mp.service_mode, 'OFFLINE') AS service_mode, " +
             "s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.discount_percent " +
             "FROM market_shop s " +
@@ -186,8 +186,8 @@ public class ShopRepository {
                 .longitude(rs.getDouble("longitude"))
                 .contact_number(rs.getString("contact_number"))
                 .email(null)
-                .shop_image(rs.getString("shop_image"))
-                .banner(null)
+                .shop_image(normalizeImageUrl(rs.getString("shop_image")))
+                .banner(normalizeImageUrl(rs.getString("banner")))
                 .category(rs.getLong("category_id"))
                 .subcategory(rs.getLong("subcategory_id"))
                 .description(null)
@@ -337,17 +337,17 @@ public class ShopRepository {
                           Double latitude, Double longitude, String contactNumber, String email, String description,
                           Long categoryId, Long subcategoryId, String gstNumber, String panNumber, String businessRegNumber,
                           Boolean homeDeliveryEnabled, Double deliveryRadiusKm, Double minOrderValue, Double baseDeliveryFee,
-                          Double discountPercent, String now) {
+                          Double discountPercent, String now, String shopImage, String banner) {
         String sql = "INSERT INTO market_shop (" +
             "merchant_id, shop_name, address, city, pincode, latitude, longitude, " +
             "contact_number, category_id, subcategory_id, home_delivery_enabled, delivery_radius_km, " +
-            "min_order_value, base_delivery_fee, discount_percent, status, created_at" +
-            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', NOW())";
+            "min_order_value, base_delivery_fee, discount_percent, status, created_at, shop_image, banner" +
+            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', NOW(), ?, ?)";
 
         return jdbc.update(sql,
             merchantId, shopName, address, city, pincode, latitude, longitude,
             contactNumber, categoryId, subcategoryId, homeDeliveryEnabled, deliveryRadiusKm,
-            minOrderValue, baseDeliveryFee, discountPercent
+            minOrderValue, baseDeliveryFee, discountPercent, shopImage, banner
         );
     }
 
@@ -357,7 +357,7 @@ public class ShopRepository {
     public Optional<ShopResponse> findShopByIdAndMerchantId(Long shopId, Long merchantId) {
         List<ShopResponse> result = jdbc.query(
             "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
-            "contact_number, shop_image, category_id, subcategory_id, " +
+            "contact_number, shop_image, banner, category_id, subcategory_id, " +
             "status, created_at, service_mode, home_delivery_enabled, delivery_radius_km, min_order_value, base_delivery_fee, discount_percent " +
             "FROM market_shop WHERE id = ? AND merchant_id = ?",
             new Object[]{shopId, merchantId},
@@ -372,8 +372,8 @@ public class ShopRepository {
                 .longitude(rs.getDouble("longitude"))
                 .contact_number(rs.getString("contact_number"))
                 .email(null)
-                .shop_image(rs.getString("shop_image"))
-                .banner(null)
+                .shop_image(normalizeImageUrl(rs.getString("shop_image")))
+                .banner(normalizeImageUrl(rs.getString("banner")))
                 .category(rs.getLong("category_id"))
                 .subcategory(rs.getLong("subcategory_id"))
                 .description(null)
@@ -401,20 +401,20 @@ public class ShopRepository {
     public int updateShop(Long shopId, Long merchantId, String shopName, String address, String city, String state, String pincode,
                           Double latitude, Double longitude, String contactNumber, Long categoryId, Long subcategoryId,
                           Boolean homeDeliveryEnabled, Double deliveryRadiusKm, Double minOrderValue, Double baseDeliveryFee,
-                          Double discountPercent) {
+                          Double discountPercent, String shopImage, String banner) {
         String sql = "UPDATE market_shop SET " +
             "shop_name = ?, address = ?, city = ?, pincode = ?, " +
             "latitude = ?, longitude = ?, contact_number = ?, " +
             "category_id = ?, subcategory_id = ?, home_delivery_enabled = ?, " +
             "delivery_radius_km = ?, min_order_value = ?, base_delivery_fee = ?, " +
-            "discount_percent = ? " +
+            "discount_percent = ?, shop_image = ?, banner = ? " +
             "WHERE id = ? AND merchant_id = ?";
 
         return jdbc.update(sql,
             shopName, address, city, pincode,
             latitude, longitude, contactNumber,
             categoryId, subcategoryId, homeDeliveryEnabled, deliveryRadiusKm,
-            minOrderValue, baseDeliveryFee, discountPercent,
+            minOrderValue, baseDeliveryFee, discountPercent, shopImage, banner,
             shopId, merchantId
         );
     }
@@ -429,5 +429,18 @@ public class ShopRepository {
         // Then delete the shop
         String sql = "DELETE FROM market_shop WHERE id = ? AND merchant_id = ?";
         return jdbc.update(sql, shopId, merchantId);
+    }
+
+    private String normalizeImageUrl(String path) {
+        if (path == null || path.isBlank()) return "";
+        if (path.startsWith("http://") || path.startsWith("https://")) return path;
+        String mediaBaseUrl = System.getenv("DJANGO_MEDIA_BASE_URL");
+        if (mediaBaseUrl == null || mediaBaseUrl.isBlank()) {
+            mediaBaseUrl = "http://localhost:8000/media/";
+        }
+        if (!mediaBaseUrl.endsWith("/")) mediaBaseUrl += "/";
+        String cleanPath = path;
+        if (cleanPath.startsWith("/")) cleanPath = cleanPath.substring(1);
+        return mediaBaseUrl + cleanPath;
     }
 }

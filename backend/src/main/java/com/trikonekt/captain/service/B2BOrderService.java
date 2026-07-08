@@ -267,7 +267,9 @@ public class B2BOrderService {
                 if (!Set.of("CONFIRMED", "PROCESSING", "PACKING", "PREPARING").contains(current)) {
                     throw new RuntimeException("B2B order must be accepted before dispatch/shipping.");
                 }
-                if (!"PAID".equals(order.getPaymentStatus())) throw new RuntimeException("Payment must be approved before dispatch.");
+                if ("PENDING_APPROVAL".equals(order.getPaymentStatus())) {
+                    throw new RuntimeException("Payment must be approved before dispatch.");
+                }
                 target = "SHIPPED";
                 break;
             case "DELIVERED":

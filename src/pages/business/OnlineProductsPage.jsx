@@ -116,7 +116,7 @@ function ProductCard({ product, onToggleOnline, onEdit, onDelete }) {
         <Typography variant="caption" color={MUT} sx={{ display: 'block', mb: 1 }} noWrap>
           {product.category || '—'}
         </Typography>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5, flexWrap: 'wrap', gap: 0.5 }}>
           <Typography variant="body2" fontWeight={700} color={P}>{fmtCurrency(product.price)}</Typography>
           <Chip label={`Stock: ${product.stock_qty ?? 0}`} size="small"
             sx={{ bgcolor: '#f1f5f9', color: TXT, fontSize: '0.7rem', fontWeight: 600 }} />

@@ -245,8 +245,8 @@ public class B2BOrderRepository {
                 .grandTotal(rs.getDouble("grand_total"))
                 .notes(rs.getString("notes"))
                 .cancellationReason(rs.getString("cancellation_reason"))
-                .createdAt(rs.getString("created_at"))
-                .updatedAt(rs.getString("updated_at"))
+                .createdAt(rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toInstant().toString() : null)
+                .updatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toInstant().toString() : null)
                 .build();
     }
 

@@ -41,21 +41,21 @@ import {
 import { useNavigate } from "react-router-dom";
 
 const UI = {
-  primary: "#93c193",
-  secondary: "#93c193",
-  darkGreen: "#93c193",
-  lightGreen: "#93c193",
-  bg: "#93c193",
-  surface: "#ffffff",
-  surfaceAlt: "#f8fafc",
-  text: "#1e293b",
+  primary: "#228B22",         // Forest Green
+  secondary: "#10b981",       // Emerald Green
+  darkGreen: "#1B4D3E",       // Dark Slate Green
+  lightGreen: "#e8f5e9",      // Soft light green bg
+  bg: "#f8fafc",              // Slate background
+  surface: "#ffffff",         // White surface
+  surfaceAlt: "#f1f5f9",
+  text: "#0f172a",            // Dark text
   textMuted: "#64748b",
-  border: "#93c193",
-  borderLight: "#93c193",
-  shadow: "rgba(147, 193, 147, 0.08)",
-  shadowSoft: "rgba(147, 193, 147, 0.04)",
-  gradient: "linear-gradient(135deg, #93c193 0%, #93c193 100%)",
-  gradientSoft: "linear-gradient(135deg, rgba(147, 193, 147, 0.1) 0%, rgba(147, 193, 147, 0.05) 100%)",
+  border: "#cbd5e1",          // Medium border
+  borderLight: "#e2e8f0",     // Light border
+  shadow: "rgba(34, 139, 34, 0.06)",
+  shadowSoft: "rgba(34, 139, 34, 0.03)",
+  gradient: "linear-gradient(135deg, #1B4D3E 0%, #228B22 100%)",
+  gradientSoft: "linear-gradient(135deg, rgba(232, 245, 233, 0.4) 0%, rgba(248, 250, 252, 0.4) 100%)",
 };
 
 const CATEGORIES = ["Food", "Grocery", "Electronics", "Fashion", "Others"];
@@ -173,129 +173,42 @@ const FormInput = ({ sx, InputLabelProps, ...props }) => (
     }}
     sx={{
       "& .MuiOutlinedInput-root": {
-        borderRadius: 0,
+        borderRadius: "12px",
         bgcolor: UI.surface,
-        border: `2px solid ${UI.borderLight}`,
-        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-        minHeight: 64,
-        fontSize: { xs: 14, sm: 15 },
         fontFamily: 'Poppins',
         fontWeight: 500,
-        alignItems: "center",
-        overflow: "visible",
+        fontSize: { xs: 14, sm: 15 },
+        transition: "all 0.2s ease",
         "& fieldset": {
-          border: "none",
-          borderRadius: 0,
+          borderColor: UI.borderLight,
+          borderWidth: "1.5px",
         },
-        "&.MuiInputBase-multiline": {
-          alignItems: "flex-start",
-          minHeight: 118,
-          padding: 0,
-        },
-        "&.MuiInputBase-adornedStart": {
-          paddingLeft: "16px",
-        },
-        "&.Mui-focused .MuiInputBase-input::placeholder": {
-          opacity: 1,
-        },
-        "&:hover": {
-          borderColor: alpha(UI.primary, 0.3),
-          bgcolor: alpha(UI.primary, 0.02),
-          boxShadow: `0 0 0 4px ${alpha(UI.primary, 0.08)}`,
-        },
-        "&.Mui-focused": {
+        "&:hover fieldset": {
           borderColor: UI.primary,
-          bgcolor: UI.surface,
-          boxShadow: `0 0 0 6px ${alpha(UI.primary, 0.12)}, 0 4px 12px ${alpha(UI.primary, 0.15)}`,
-          "& .MuiOutlinedInput-notchedOutline": {
-            border: "none",
-          },
         },
-        "&.Mui-focused:hover": {
+        "&.Mui-focused fieldset": {
           borderColor: UI.primary,
+          borderWidth: "2px",
         },
       },
       "& .MuiInputLabel-root": {
+        fontFamily: 'Poppins',
         fontWeight: 500,
         color: UI.textMuted,
-        fontSize: { xs: 13, sm: 14 },
-        fontFamily: 'Poppins',
-        lineHeight: 1.2,
-        maxWidth: "calc(100% - 32px)",
-        transform: "translate(16px, 22px) scale(1)",
-        transformOrigin: "left top",
-        transition: "color 0.2s ease, transform 0.2s ease, background-color 0.2s ease",
-        zIndex: 1,
-        "&.Mui-focused, &.MuiFormLabel-filled": {
-          transform: "translate(14px, -10px) scale(0.82)",
+        "&.Mui-focused": {
           color: UI.primary,
-          fontWeight: 600,
-          backgroundColor: UI.surface,
-          px: 0.75,
-          borderRadius: 1,
-          maxWidth: "calc(122% - 32px)",
-        },
-        "&.MuiInputLabel-shrink": {
-          transform: "translate(14px, -10px) scale(0.82)",
-          backgroundColor: UI.surface,
-          px: 0.75,
-          borderRadius: 1,
-          maxWidth: "calc(122% - 32px)",
         },
       },
       "& .MuiInputBase-input": {
         fontFamily: 'Poppins',
-        fontWeight: 500,
-        height: "auto",
-        minHeight: "24px",
-        padding: "26px 16px 12px",
-        boxSizing: "border-box",
-        lineHeight: 1.4,
-        "&::placeholder": {
-          color: alpha(UI.textMuted, 0.7),
-          opacity: 0,
-          transition: "opacity 0.2s ease",
-        },
-      },
-      "& .MuiAutocomplete-inputRoot": {
-        paddingTop: "0 !important",
-        paddingBottom: "0 !important",
-        paddingLeft: "0 !important",
-        minHeight: 64,
-      },
-      "& .MuiAutocomplete-inputRoot .MuiAutocomplete-input": {
-        minWidth: "0 !important",
-        padding: "26px 40px 12px 16px !important",
-      },
-      "& .MuiAutocomplete-endAdornment": {
-        right: 12,
-        top: "50%",
-        transform: "translateY(-50%)",
-      },
-      "& .MuiInputBase-inputMultiline": {
-        padding: "30px 16px 14px",
-        minHeight: "74px",
-        resize: "vertical",
-      },
-      "& .MuiInputBase-inputAdornedStart": {
-        paddingLeft: "8px !important",
+        color: UI.text,
       },
       "& .MuiInputAdornment-root": {
         color: UI.primary,
-        flexShrink: 0,
-        height: "auto",
-        maxHeight: "none",
-        marginRight: "2px",
-        marginTop: "20px",
-        alignSelf: "flex-start",
         "& .MuiTypography-root": {
-          fontWeight: 600,
+          fontWeight: 650,
           fontFamily: 'Poppins',
         },
-      },
-      "& input[type='date']": {
-        minWidth: 0,
-        width: "100%",
       },
       ...sx,
     }}

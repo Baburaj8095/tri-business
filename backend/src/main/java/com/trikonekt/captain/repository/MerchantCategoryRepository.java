@@ -99,7 +99,7 @@ public class MerchantCategoryRepository {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(con -> {
             PreparedStatement ps = con.prepareStatement(
-                "INSERT INTO business_merchantcategory (name, audience, sort_order, is_active) VALUES (?, ?, ?, TRUE)",
+                "INSERT INTO business_merchantcategory (name, audience, sort_order, is_active, created_at) VALUES (?, ?, ?, TRUE, NOW())",
                 Statement.RETURN_GENERATED_KEYS
             );
             ps.setString(1, name);
@@ -188,7 +188,7 @@ public class MerchantCategoryRepository {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(con -> {
             PreparedStatement ps = con.prepareStatement(
-                "INSERT INTO business_merchantsubcategory (name, category_id, audience, sort_order, is_active) VALUES (?, ?, ?, ?, TRUE)",
+                "INSERT INTO business_merchantsubcategory (name, category_id, audience, sort_order, is_active, created_at) VALUES (?, ?, ?, ?, TRUE, NOW())",
                 Statement.RETURN_GENERATED_KEYS
             );
             ps.setString(1, name);

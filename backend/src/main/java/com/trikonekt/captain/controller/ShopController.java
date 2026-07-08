@@ -7,8 +7,10 @@ import com.trikonekt.captain.model.ShopResponse;
 import com.trikonekt.captain.repository.UserRepository;
 import com.trikonekt.captain.service.JwtService;
 import com.trikonekt.captain.service.ShopService;
+import com.trikonekt.captain.service.CloudinaryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -25,11 +27,13 @@ public class ShopController {
     private final ShopService shopService;
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final CloudinaryService cloudinaryService;
 
-    public ShopController(ShopService shopService, JwtService jwtService, UserRepository userRepository) {
+    public ShopController(ShopService shopService, JwtService jwtService, UserRepository userRepository, CloudinaryService cloudinaryService) {
         this.shopService = shopService;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
+        this.cloudinaryService = cloudinaryService;
     }
 
     /**
@@ -91,10 +95,20 @@ public class ShopController {
     @PostMapping(value = "/shops", consumes = {"multipart/form-data", "application/x-www-form-urlencoded"})
     public ResponseEntity<Map<String, Object>> createShopForm(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
-            @ModelAttribute CreateShopRequest request
+            @ModelAttribute CreateShopRequest request,
+            @RequestParam(value = "shop_image", required = false) MultipartFile shopImage,
+            @RequestParam(value = "banner", required = false) MultipartFile banner
     ) {
         Long userId = extractUserIdFromToken(authHeader);
-        Map<String, Object> response = shopService.createShop(userId, request);
+        String shopImageUrl = null;
+        if (shopImage != null && !shopImage.isEmpty()) {
+            shopImageUrl = cloudinaryService.uploadFile(shopImage);
+        }
+        String bannerUrl = null;
+        if (banner != null && !banner.isEmpty()) {
+            bannerUrl = cloudinaryService.uploadFile(banner);
+        }
+        Map<String, Object> response = shopService.createShop(userId, request, shopImageUrl, bannerUrl);
         return ResponseEntity.ok(response);
     }
 
@@ -135,10 +149,20 @@ public class ShopController {
     public ResponseEntity<Map<String, Object>> updateShopForm(
             @PathVariable Long shopId,
             @RequestHeader(value = "Authorization", required = false) String authHeader,
-            @ModelAttribute CreateShopRequest request
+            @ModelAttribute CreateShopRequest request,
+            @RequestParam(value = "shop_image", required = false) MultipartFile shopImage,
+            @RequestParam(value = "banner", required = false) MultipartFile banner
     ) {
         Long userId = extractUserIdFromToken(authHeader);
-        Map<String, Object> response = shopService.updateShop(userId, shopId, request);
+        String shopImageUrl = null;
+        if (shopImage != null && !shopImage.isEmpty()) {
+            shopImageUrl = cloudinaryService.uploadFile(shopImage);
+        }
+        String bannerUrl = null;
+        if (banner != null && !banner.isEmpty()) {
+            bannerUrl = cloudinaryService.uploadFile(banner);
+        }
+        Map<String, Object> response = shopService.updateShop(userId, shopId, request, shopImageUrl, bannerUrl);
         return ResponseEntity.ok(response);
     }
 

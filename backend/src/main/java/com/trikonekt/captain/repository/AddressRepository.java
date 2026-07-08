@@ -32,6 +32,40 @@ public class AddressRepository {
      * Get a specific address by ID and verify it belongs to user
      */
     public Optional<UserDeliveryAddress> findAddressByIdAndUserId(Long addressId, Long userId) {
+        if (addressId != null && addressId == -1L) {
+            try {
+                List<Map<String, Object>> rows = jdbc.queryForList(
+                    "SELECT full_name, phone, address, pincode FROM accounts_customuser WHERE id = ? LIMIT 1",
+                    userId
+                );
+                if (!rows.isEmpty()) {
+                    Map<String, Object> user = rows.get(0);
+                    String profileAddress = (String) user.get("address");
+                    if (profileAddress != null && !profileAddress.isBlank()) {
+                        String fullName = (String) user.get("full_name");
+                        String phone = (String) user.get("phone");
+                        String pincode = (String) user.get("pincode");
+                        return Optional.of(UserDeliveryAddress.builder()
+                                .id(-1L)
+                                .userId(userId)
+                                .recipientsName(fullName != null && !fullName.isBlank() ? fullName : "Profile Owner")
+                                .recipientsPhone(phone != null && !phone.isBlank() ? phone : "")
+                                .addressLine1(profileAddress)
+                                .addressLine2("")
+                                .landmark("")
+                                .city("")
+                                .stateName("")
+                                .pincode(pincode != null && !pincode.isBlank() ? pincode : "")
+                                .isDefault(true)
+                                .build());
+                    }
+                }
+            } catch (Exception e) {
+                // fall back to default empty optional
+            }
+            return Optional.empty();
+        }
+
         String sql = "SELECT id, user_id, recipients_name, recipients_phone, address_line1, address_line2, " +
                 "landmark, city, state_name, pincode, is_default, created_at, updated_at " +
                 "FROM user_delivery_addresses WHERE id = ? AND user_id = ?";

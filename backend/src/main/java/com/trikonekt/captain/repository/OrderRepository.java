@@ -304,16 +304,35 @@ public class OrderRepository {
             "LEFT JOIN user_delivery_addresses da ON o.delivery_address_id = da.id";
 
     private OnlineOrder mapOrder(ResultSet rs, int rowNum) throws SQLException {
+        String deliveryAddress = rs.getString("delivery_address");
+        Long deliveryAddressId = rs.getLong("delivery_address_id");
+        Long userId = rs.getLong("user_id");
+
+        if (deliveryAddressId != null && deliveryAddressId == -1L && (deliveryAddress == null || deliveryAddress.trim().isEmpty())) {
+            try {
+                List<String> profileAddrs = jdbc.query(
+                    "SELECT address FROM accounts_customuser WHERE id = ?",
+                    new Object[]{userId},
+                    (rsUser, rowNumUser) -> rsUser.getString("address")
+                );
+                if (!profileAddrs.isEmpty() && profileAddrs.get(0) != null) {
+                    deliveryAddress = profileAddrs.get(0);
+                }
+            } catch (Exception e) {
+                // Ignore and keep empty/original
+            }
+        }
+
         return OnlineOrder.builder()
                 .id(rs.getLong("id"))
                 .orderNumber(rs.getString("order_number"))
-                .userId(rs.getLong("user_id"))
+                .userId(userId)
                 .shopId(rs.getLong("shop_id"))
                 .shopName(rs.getString("shop_name"))
                 .shopPhone(rs.getString("shop_phone"))
                 .shopAddress(rs.getString("shop_address"))
-                .deliveryAddressId(rs.getLong("delivery_address_id"))
-                .address(rs.getString("delivery_address"))
+                .deliveryAddressId(deliveryAddressId)
+                .address(deliveryAddress)
                 .orderChannel(rs.getString("order_channel"))
                 .status(rs.getString("status"))
                 .totalMrp(rs.getDouble("total_mrp"))
@@ -333,8 +352,8 @@ public class OrderRepository {
                 .labelUrl(rs.getString("label_url"))
                 .trackingUrl(rs.getString("tracking_url"))
                 .notes(rs.getString("notes"))
-                .createdAt(rs.getString("created_at"))
-                .updatedAt(rs.getString("updated_at"))
+                .createdAt(rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toInstant().toString() : null)
+                .updatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toInstant().toString() : null)
                 .build();
     }
 

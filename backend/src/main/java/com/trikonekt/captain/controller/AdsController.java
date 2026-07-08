@@ -121,6 +121,13 @@ public class AdsController {
             if (title == null || title.isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "title is required"));
             }
+            LocalDateTime from = parseDateTime(validFromStr);
+            LocalDateTime to = parseDateTime(validToStr);
+            if (from != null && to != null) {
+                if (to.isBefore(from) || to.isEqual(from)) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "End time must be strictly after start time."));
+                }
+            }
             String finalImageUrl = imageUrl;
             if (image != null && !image.isEmpty()) {
                 finalImageUrl = cloudinaryService.uploadFile(image);
@@ -136,8 +143,8 @@ public class AdsController {
                 priority,
                 shopId,
                 productId,
-                parseDateTime(validFromStr),
-                parseDateTime(validToStr)
+                from,
+                to
             );
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(Map.of("id", newId, "message", "Ad created successfully"));
@@ -165,6 +172,13 @@ public class AdsController {
             @RequestParam(value = "valid_to", required = false) String validToStr) {
         try {
             long merchantId = extractUserId(authHeader);
+            LocalDateTime from = parseDateTime(validFromStr);
+            LocalDateTime to = parseDateTime(validToStr);
+            if (from != null && to != null) {
+                if (to.isBefore(from) || to.isEqual(from)) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "End time must be strictly after start time."));
+                }
+            }
             String finalImageUrl = imageUrl;
             if (image != null && !image.isEmpty()) {
                 finalImageUrl = cloudinaryService.uploadFile(image);
@@ -181,8 +195,8 @@ public class AdsController {
                 isActive,
                 shopId,
                 productId,
-                parseDateTime(validFromStr),
-                parseDateTime(validToStr)
+                from,
+                to
             );
             if (updated == 0) return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "Ad not found or access denied"));

@@ -43,6 +43,10 @@ public class ShopService {
      * Create a new shop (authenticated)
      */
     public Map<String, Object> createShop(Long userId, CreateShopRequest request) {
+        return createShop(userId, request, null, null);
+    }
+
+    public Map<String, Object> createShop(Long userId, CreateShopRequest request, String shopImageUrl, String bannerUrl) {
         if (userId == null || userId <= 0) {
             throw new IllegalArgumentException("Invalid user ID");
         }
@@ -74,7 +78,9 @@ public class ShopService {
                 normalizeMoney(request.getMin_order_value()),
                 normalizeMoney(request.getBase_delivery_fee()),
                 normalizeMoney(request.getDiscount_percent()),
-                now
+                now,
+                shopImageUrl,
+                bannerUrl
             );
 
             if (rowsInserted == 0) {
@@ -213,6 +219,10 @@ public class ShopService {
      * Update an existing shop (authenticated)
      */
     public Map<String, Object> updateShop(Long userId, Long shopId, CreateShopRequest request) {
+        return updateShop(userId, shopId, request, null, null);
+    }
+
+    public Map<String, Object> updateShop(Long userId, Long shopId, CreateShopRequest request, String shopImageUrl, String bannerUrl) {
         if (userId == null || userId <= 0) {
             throw new IllegalArgumentException("Invalid user ID");
         }
@@ -254,6 +264,9 @@ public class ShopService {
                 ? normalizeMoney(request.getDiscount_percent())
                 : normalizeMoney(existing.getDiscountPercent());
 
+            String finalShopImage = shopImageUrl != null ? shopImageUrl : stripMediaBaseUrl(existing.getShop_image());
+            String finalBanner = bannerUrl != null ? bannerUrl : stripMediaBaseUrl(existing.getBanner());
+
             int rowsUpdated = shopRepository.updateShop(
                 shopId,
                 userId,
@@ -271,13 +284,10 @@ public class ShopService {
                 deliveryRadiusKm,
                 minOrderValue,
                 baseDeliveryFee,
-                discountPercent
+                discountPercent,
+                finalShopImage,
+                finalBanner
             );
-
-            if (rowsUpdated == 0) {
-                // Return success anyway or throw if preferred (if database returns 0 rows updated but it works)
-                // Often update returns 0 if nothing changed. Let's just return success if we can still read it.
-            }
 
             Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
@@ -287,6 +297,19 @@ public class ShopService {
         } catch (DataAccessException e) {
             throw new RuntimeException("Failed to update shop: " + e.getMessage());
         }
+    }
+
+    private String stripMediaBaseUrl(String path) {
+        if (path == null) return null;
+        String mediaBaseUrl = System.getenv("DJANGO_MEDIA_BASE_URL");
+        if (mediaBaseUrl == null || mediaBaseUrl.isBlank()) {
+            mediaBaseUrl = "http://localhost:8000/media/";
+        }
+        if (!mediaBaseUrl.endsWith("/")) mediaBaseUrl += "/";
+        if (path.startsWith(mediaBaseUrl)) {
+            return path.substring(mediaBaseUrl.length());
+        }
+        return path;
     }
 
     /**

@@ -330,6 +330,7 @@ export default function AdsManagerPage() {
       ...BLANK_FORM,
       display_target: defaultTarget
     });
+    setExpiryDays('1'); // Default to 1 day duration
     setDialogOpen(true);
   };
 
@@ -350,12 +351,18 @@ export default function AdsManagerPage() {
       is_active:      ad.is_active !== false,
     });
     setImageFile(null);
-    setExpiryDays('');
+    
+    // Calculate matched duration
+    const diffMs = new Date(ad.valid_to).getTime() - new Date(ad.valid_from || new Date()).getTime();
+    const diffDays = Math.max(1, Math.round(diffMs / (24 * 60 * 60 * 1000)));
+    const validDurations = ['1', '2', '3', '4', '5', '7', '9', '12', '15'];
+    const matchedDuration = validDurations.includes(String(diffDays)) ? String(diffDays) : '1';
+    setExpiryDays(matchedDuration);
     setDialogOpen(true);
   };
 
   const calculateValidTo = (fromStr, days) => {
-    if (!days) return form.valid_to || null;
+    if (!days) return null;
     const baseDate = fromStr ? new Date(fromStr) : new Date();
     const expiryDate = new Date(baseDate.getTime() + Number(days) * 24 * 60 * 60 * 1000);
     // Format to YYYY-MM-DDTHH:MM
@@ -367,6 +374,7 @@ export default function AdsManagerPage() {
   /* ── Save (create / update) ───────────────────────────────────────────── */
   const handleSave = async () => {
     if (!form.title.trim()) { showToast('Post Name / Title is required', 'error'); return; }
+    if (!editId && !imageFile) { showToast('Ad image file is required', 'error'); return; }
     setSaving(true);
     try {
       const url = editId
@@ -374,10 +382,14 @@ export default function AdsManagerPage() {
         : `${CAPTAIN_API}/captain/merchant/ads`;
       const method = editId ? 'PUT' : 'POST';
 
-      let finalValidTo = form.valid_to;
-      if (expiryDays) {
-        finalValidTo = calculateValidTo(form.valid_from, expiryDays);
+      // Compute dates: valid_from defaults to now if creating or missing
+      let finalValidFrom = form.valid_from;
+      if (!editId || !finalValidFrom) {
+        const baseDate = new Date();
+        const tzoffset = baseDate.getTimezoneOffset() * 60000;
+        finalValidFrom = (new Date(baseDate.getTime() - tzoffset)).toISOString().slice(0, 16);
       }
+      const finalValidTo = calculateValidTo(finalValidFrom, expiryDays || '1');
 
       const fd = new FormData();
       fd.append('ad_type', form.ad_type);
@@ -388,8 +400,8 @@ export default function AdsManagerPage() {
       fd.append('priority', String(Number(form.priority) || 10));
       if (form.shop_id) fd.append('shop_id', String(form.shop_id));
       if (form.product_id) fd.append('product_id', String(form.product_id));
-      if (form.valid_from) fd.append('valid_from', form.valid_from);
-      if (finalValidTo) fd.append('valid_to', finalValidTo);
+      fd.append('valid_from', finalValidFrom);
+      fd.append('valid_to', finalValidTo);
       fd.append('is_active', String(form.is_active));
 
       if (imageFile) {
@@ -766,27 +778,6 @@ export default function AdsManagerPage() {
               )}
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Divider sx={{ flex: 1 }} />
-              <Typography sx={{ fontSize: '0.75rem', color: MUT, fontWeight: 700 }}>OR</Typography>
-              <Divider sx={{ flex: 1 }} />
-            </Box>
-
-            <TextField
-              label="Image URL"
-              value={form.image_url}
-              onChange={e => {
-                setForm(f => ({ ...f, image_url: e.target.value }));
-                if (e.target.value) setImageFile(null);
-              }}
-              fullWidth
-              size="small"
-              placeholder="https://..."
-              InputProps={{
-                startAdornment: <InputAdornment position="start"><ImageIcon fontSize="small" sx={{ color: MUT }} /></InputAdornment>
-              }}
-              sx={inputSx}
-            />
             {form.image_url && <ImagePreview url={form.image_url} />}
 
             <TextField
@@ -835,72 +826,31 @@ export default function AdsManagerPage() {
               />
             )}
 
-            {/* Expiry Duration */}
+            {/* Ad Duration */}
             <Box>
               <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: MUT, mb: 1, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Expiry Duration
+                Ad Duration
               </Typography>
               <TextField
                 select
-                label="Duration"
+                label="Select Duration"
                 value={expiryDays}
-                onChange={e => {
-                  const val = e.target.value;
-                  setExpiryDays(val);
-                  if (val) {
-                    setForm(f => ({ ...f, valid_to: calculateValidTo(f.valid_from, val) }));
-                  }
-                }}
+                onChange={e => setExpiryDays(e.target.value)}
                 fullWidth
                 size="small"
                 sx={inputSx}
               >
-                <MenuItem value="">Custom Expiry Date</MenuItem>
+                <MenuItem value="1">1 Day (24 hours)</MenuItem>
                 <MenuItem value="2">2 Days</MenuItem>
+                <MenuItem value="3">3 Days</MenuItem>
+                <MenuItem value="4">4 Days</MenuItem>
                 <MenuItem value="5">5 Days</MenuItem>
                 <MenuItem value="7">7 Days</MenuItem>
+                <MenuItem value="9">9 Days</MenuItem>
+                <MenuItem value="12">12 Days</MenuItem>
+                <MenuItem value="15">15 Days</MenuItem>
               </TextField>
             </Box>
-
-            {/* Valid dates */}
-            <Grid container spacing={1.5}>
-              <Grid item xs={6}>
-                <TextField
-                  label="Valid From"
-                  type="datetime-local"
-                  value={form.valid_from}
-                  onChange={e => {
-                    const fromVal = e.target.value;
-                    setForm(f => {
-                      const next = { ...f, valid_from: fromVal };
-                      if (expiryDays) {
-                        next.valid_to = calculateValidTo(fromVal, expiryDays);
-                      }
-                      return next;
-                    });
-                  }}
-                  fullWidth
-                  size="small"
-                  InputLabelProps={{ shrink: true }}
-                  sx={inputSx}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  label="Valid Until"
-                  type="datetime-local"
-                  value={form.valid_to}
-                  onChange={e => setForm(f => ({ ...f, valid_to: e.target.value }))}
-                  fullWidth
-                  size="small"
-                  InputLabelProps={{ shrink: true }}
-                  InputProps={{
-                    readOnly: !!expiryDays
-                  }}
-                  sx={inputSx}
-                />
-              </Grid>
-            </Grid>
 
             {/* Active toggle (only in edit mode) */}
             {editId && (

@@ -117,7 +117,7 @@ function MarketplaceProductCard({ product, onAddToCart }) {
             </Typography>
           </Box>
 
-          <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+          <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" sx={{ flexWrap: 'wrap', gap: 0.5 }}>
             <Typography sx={{ color: P, fontWeight: 900, fontSize: 15 }}>{fmtCurrency(product.price)}</Typography>
             <Chip size="small" label={`Stock: ${product.stock_qty ?? 0}`} sx={{ bgcolor: '#f1f5f9', color: TXT, fontWeight: 800 }} />
           </Stack>

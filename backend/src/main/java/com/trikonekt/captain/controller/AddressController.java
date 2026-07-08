@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +44,45 @@ public class AddressController {
     @GetMapping
     public ResponseEntity<List<UserDeliveryAddress>> getMyAddresses(@RequestHeader("Authorization") String authHeader) {
         Long userId = getUserIdFromToken(authHeader);
-        List<UserDeliveryAddress> addresses = addressRepository.findAddressesByUserId(userId);
+        List<UserDeliveryAddress> dbAddresses = addressRepository.findAddressesByUserId(userId);
+        List<UserDeliveryAddress> addresses = new ArrayList<>(dbAddresses);
+
+        try {
+            String token = authHeader.substring(7);
+            String username = jwtService.extractUsername(token);
+            Map<String, Object> user = userRepository.findByUsername(username).orElse(null);
+            if (user != null) {
+                String profileAddress = (String) user.get("address");
+                if (profileAddress != null && !profileAddress.isBlank()) {
+                    boolean exists = addresses.stream().anyMatch(a ->
+                            profileAddress.equalsIgnoreCase(a.getAddressLine1())
+                    );
+                    if (!exists) {
+                        String fullName = (String) user.get("full_name");
+                        String phone = (String) user.get("phone");
+                        String pincode = (String) user.get("pincode");
+
+                        UserDeliveryAddress virtualAddress = UserDeliveryAddress.builder()
+                                .id(-1L)
+                                .userId(userId)
+                                .recipientsName(fullName != null && !fullName.isBlank() ? fullName : "Profile Owner")
+                                .recipientsPhone(phone != null && !phone.isBlank() ? phone : "")
+                                .addressLine1(profileAddress)
+                                .addressLine2("")
+                                .landmark("")
+                                .city("")
+                                .stateName("")
+                                .pincode(pincode != null && !pincode.isBlank() ? pincode : "")
+                                .isDefault(addresses.isEmpty())
+                                .build();
+                        addresses.add(0, virtualAddress);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Keep original list on error
+        }
+
         return ResponseEntity.ok(addresses);
     }
 

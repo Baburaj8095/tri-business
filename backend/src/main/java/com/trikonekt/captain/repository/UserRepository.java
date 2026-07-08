@@ -22,7 +22,7 @@ public class UserRepository {
 
     public Optional<Map<String, Object>> findByUsername(String username) {
         List<Map<String, Object>> rows = jdbc.queryForList(
-            "SELECT u.id, u.username, u.password, u.email, u.full_name, u.phone, u.pincode, " +
+            "SELECT u.id, u.username, u.password, u.email, u.full_name, u.phone, u.pincode, u.address, " +
             "u.sponsor_id, u.prefixed_id, u.prefix_code, u.role, u.category, u.is_active, " +
             "COALESCE(mp.service_mode, 'OFFLINE') AS service_mode " +
             "FROM accounts_customuser u " +

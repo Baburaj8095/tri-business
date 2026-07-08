@@ -31,8 +31,12 @@ public class AdsRepository {
             "CAST(a.valid_from AS VARCHAR), CAST(a.valid_to AS VARCHAR) " +
             "FROM marketplace_ads a " +
             "WHERE a.ad_type = 'BANNER' AND a.is_active = TRUE " +
-            "AND (a.valid_to IS NULL OR a.valid_to > NOW()) ";
+            "AND (a.valid_from IS NULL OR a.valid_from <= ?) " +
+            "AND (a.valid_to IS NULL OR a.valid_to > ?) ";
         List<Object> params = new ArrayList<>();
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        params.add(now);
+        params.add(now);
         if (displayTarget != null && !displayTarget.isBlank()) {
             base += "AND a.display_target = ? ";
             params.add(displayTarget);
@@ -54,8 +58,12 @@ public class AdsRepository {
             "FROM marketplace_ads a " +
             "LEFT JOIN market_shop s ON a.shop_id = s.id " +
             "WHERE a.ad_type = 'SPONSORED_SHOP' AND a.is_active = TRUE " +
-            "AND (a.valid_to IS NULL OR a.valid_to > NOW()) ";
+            "AND (a.valid_from IS NULL OR a.valid_from <= ?) " +
+            "AND (a.valid_to IS NULL OR a.valid_to > ?) ";
         List<Object> params = new ArrayList<>();
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        params.add(now);
+        params.add(now);
         if (displayTarget != null && !displayTarget.isBlank()) {
             base += "AND a.display_target = ? ";
             params.add(displayTarget);
@@ -66,7 +74,7 @@ public class AdsRepository {
             MarketplaceAd ad = mapBasic(rs, rowNum);
             ad.setShopName(rs.getString("shop_name"));
             ad.setShopCity(rs.getString("shop_city"));
-            ad.setShopImage(rs.getString("shop_image"));
+            ad.setShopImage(normalizeImageUrl(rs.getString("shop_image")));
             return ad;
         });
     }
@@ -84,8 +92,12 @@ public class AdsRepository {
             "FROM marketplace_ads a " +
             "LEFT JOIN market_shopproduct p ON a.product_id = p.id " +
             "WHERE a.ad_type = 'FEATURED_PRODUCT' AND a.is_active = TRUE " +
-            "AND (a.valid_to IS NULL OR a.valid_to > NOW()) ";
+            "AND (a.valid_from IS NULL OR a.valid_from <= ?) " +
+            "AND (a.valid_to IS NULL OR a.valid_to > ?) ";
         List<Object> params = new ArrayList<>();
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        params.add(now);
+        params.add(now);
         if (displayTarget != null && !displayTarget.isBlank()) {
             base += "AND a.display_target = ? ";
             params.add(displayTarget);
@@ -98,7 +110,7 @@ public class AdsRepository {
             ad.setProductPrice(rs.getDouble("product_price"));
             ad.setProductMrp(rs.getDouble("product_mrp"));
             ad.setProductDiscountPercent(rs.getDouble("product_discount_percent"));
-            ad.setProductImage(rs.getString("product_image"));
+            ad.setProductImage(normalizeImageUrl(rs.getString("product_image")));
             return ad;
         });
     }
@@ -186,7 +198,7 @@ public class AdsRepository {
                 .productId(rs.getObject("product_id") != null ? rs.getLong("product_id") : null)
                 .title(rs.getString("title"))
                 .description(rs.getString("description"))
-                .imageUrl(rs.getString("image_url"))
+                .imageUrl(normalizeImageUrl(rs.getString("image_url")))
                 .targetUrl(rs.getString("target_url"))
                 .priority(rs.getInt("priority"))
                 .isActive(rs.getBoolean("is_active"))
@@ -195,5 +207,18 @@ public class AdsRepository {
                 .validFrom(rs.getString("valid_from"))
                 .validTo(rs.getString("valid_to"))
                 .build();
+    }
+
+    private String normalizeImageUrl(String path) {
+        if (path == null || path.isBlank()) return "";
+        if (path.startsWith("http://") || path.startsWith("https://")) return path;
+        String mediaBaseUrl = System.getenv("DJANGO_MEDIA_BASE_URL");
+        if (mediaBaseUrl == null || mediaBaseUrl.isBlank()) {
+            mediaBaseUrl = "http://localhost:8000/media/";
+        }
+        if (!mediaBaseUrl.endsWith("/")) mediaBaseUrl += "/";
+        String cleanPath = path;
+        if (cleanPath.startsWith("/")) cleanPath = cleanPath.substring(1);
+        return mediaBaseUrl + cleanPath;
     }
 }
