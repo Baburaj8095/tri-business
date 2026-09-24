@@ -22,7 +22,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  Tooltip
+  Tooltip,
+  Divider
 } from '@mui/material';
 import {
   Visibility,

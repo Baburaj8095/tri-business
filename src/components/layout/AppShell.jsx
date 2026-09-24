@@ -25,6 +25,7 @@ import {
   Inventory2Rounded as InventoryIcon,
   CampaignRounded as AdsIcon,
   StoreRounded as ShopsIcon,
+  StoreRounded as StoreIcon,
   PersonRounded as ProfileIcon,
   SearchRounded as SearchIcon,
   NotificationsNoneRounded as BellIcon,
