@@ -1,26 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Box, Typography, InputBase, IconButton, Stack, Container, CircularProgress } from '@mui/material';
-import { 
-  LuChevronLeft, 
-  LuSearch, 
-  LuStore, 
-  LuShoppingCart, 
-  LuSmartphone, 
-  LuHotel, 
-  LuZap 
-} from 'react-icons/lu';
-import NearbyStoreCard from './NearbyStoreCard.jsx';
+import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Typography,
+  IconButton,
+  Stack,
+  Container,
+  CircularProgress,
+  Button,
+  Grid,
+  Card,
+  CardContent,
+  Chip,
+  TextField,
+  InputAdornment,
+  Avatar
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+  Map as MapIcon,
+  Store as StoreIcon,
+  Phone as PhoneIcon,
+  Payment as PayIcon,
+  LocalShipping as DeliveryIcon,
+  StarRounded as StarIcon,
+  ArrowForward as ArrowRightIcon
+} from '@mui/icons-material';
+import AppShell from '../../components/layout/AppShell';
+import { T, cardHoverSx, primaryBtnSx, secondaryBtnSx } from '../../theme/tokens';
 import { getPublicB2bMerchants, getMerchantCategories } from '../../api/api';
-
-const getCategoryIcon = (name) => {
-  const value = String(name || '').toLowerCase();
-  if (value.includes('grocery') || value.includes('kirana') || value.includes('food')) return <LuShoppingCart size={22} />;
-  if (value.includes('mobile') || value.includes('phone')) return <LuSmartphone size={22} />;
-  if (value.includes('hotel') || value.includes('restaurant') || value.includes('eat')) return <LuHotel size={22} />;
-  if (value.includes('electronics') || value.includes('appliance')) return <LuZap size={22} />;
-  return <LuStore size={22} />;
-};
 
 const resolveCategoryName = (shop) => {
   const raw = shop?.category;
@@ -37,36 +45,39 @@ export default function NearbyStoresPage() {
   const [loading, setLoading] = useState(true);
   const [activeCat, setActiveCat] = useState('All Stores');
   const [searchQuery, setSearchQuery] = useState('');
-  const [categories, setCategories] = useState([{ name: 'All Stores', icon: <LuStore size={22} /> }]);
+  const [categories, setCategories] = useState(['All Stores', 'Mechanic', 'Food & Beverage', 'Grocery', 'Pharmacy', 'Fashion']);
 
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      getPublicB2bMerchants(),
-      getMerchantCategories()
+      getPublicB2bMerchants().catch(() => []),
+      getMerchantCategories().catch(() => [])
     ])
       .then(([merchantsRes, categoriesRes]) => {
         const data = merchantsRes || [];
         const mapped = data.map(shop => ({
           id: shop.id,
-          name: shop.shop_name || shop.business_name || shop.full_name || 'B2B Merchant',
+          name: shop.shop_name || shop.business_name || shop.full_name || 'Merchant Store',
           category: resolveCategoryName(shop),
           rating: '4.5',
+          reviewCount: 202,
           location: shop.city || shop.address || 'Local Area',
           distance: 'Nearby',
+          cashback: '5% Cashback',
           status: 'Open now',
-          image: shop.shop_image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=360&q=80',
+          phone: shop.contact_number || shop.phone || '',
+          image: shop.shop_image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80',
         }));
         setStores(mapped);
         setFilteredStores(mapped);
 
         const cats = categoriesRes || [];
-        setCategories([
-          { name: 'All Stores', icon: <LuStore size={22} /> },
-          ...cats.map(cat => ({ name: cat.name, icon: getCategoryIcon(cat.name) }))
-        ]);
+        if (cats.length > 0) {
+          const names = ['All Stores', ...cats.map(c => c.name)];
+          setCategories(Array.from(new Set(names)));
+        }
       })
-      .catch(err => console.error('Failed to load B2B merchants & categories:', err))
+      .catch(err => console.error('Failed to load stores:', err))
       .finally(() => setLoading(false));
   }, []);
 
@@ -75,23 +86,16 @@ export default function NearbyStoresPage() {
 
     // Filter by Category
     if (activeCat !== 'All Stores') {
-      result = result.filter(s => {
-        const catName = s.category.toLowerCase();
-        const activeName = activeCat.toLowerCase();
-        if (activeName === 'grocery') return catName.includes('grocery') || catName.includes('basket') || catName.includes('needs');
-        if (activeName === 'mobile') return catName.includes('mobile') || catName.includes('phone');
-        if (activeName === 'hotel') return catName.includes('hotel') || catName.includes('restaurant') || catName.includes('eat');
-        if (activeName === 'electronics') return catName.includes('electronics') || catName.includes('appliance');
-        return catName.includes(activeName);
-      });
+      const q = activeCat.toLowerCase();
+      result = result.filter(s => s.category.toLowerCase().includes(q));
     }
 
     // Filter by Search Query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      result = result.filter(s => 
-        s.name.toLowerCase().includes(q) || 
-        s.location.toLowerCase().includes(q) || 
+      result = result.filter(s =>
+        s.name.toLowerCase().includes(q) ||
+        s.location.toLowerCase().includes(q) ||
         s.category.toLowerCase().includes(q)
       );
     }
@@ -100,120 +104,269 @@ export default function NearbyStoresPage() {
   }, [activeCat, searchQuery, stores]);
 
   return (
-    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pb: 6, maxWidth: '430px', margin: '0 auto', boxShadow: '0 0 20px rgba(0,0,0,0.05)', borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>
-      {/* Top sticky header */}
-      <Box sx={{ bgcolor: '#1B4D3E', background: 'linear-gradient(135deg, #1B4D3E 0%, #143d31 100%)', zIndex: 10, py: 2 }}>
-        <Container>
-          <Stack direction="row" alignItems="center" spacing={2} justifyContent="space-between">
-            <Stack direction="row" alignItems="center" spacing={1.5}>
-              <IconButton 
-                onClick={() => navigate('/business-dashboard')} 
-                sx={{ 
-                  bgcolor: 'rgba(255,255,255,0.12)', 
-                  border: '1px solid rgba(255,255,255,0.25)', 
-                  color: '#ffffff', 
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
-                  width: 38,
-                  height: 38
-                }}
-              >
-                <LuChevronLeft size={20} />
-              </IconButton>
-              <Box>
-                <Typography sx={{ fontWeight: 900, fontSize: '1.2rem', color: '#ffffff', lineHeight: 1.2 }}>
-                  Near Store
-                </Typography>
-                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>
-                  Explore B2B stores nearby
-                </Typography>
-              </Box>
-            </Stack>
-            <LuStore size={22} color="#10b981" />
-          </Stack>
-        </Container>
-      </Box>
-
-      <Container sx={{ mt: 3, px: 2 }}>
-        {/* Search Bar */}
-        <Box sx={{ bgcolor: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.5, mb: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#f1f5f9', borderRadius: '12px', px: 2, py: 1.25 }}>
-            <LuSearch color="#64748b" size={18} />
-            <InputBase 
-              placeholder="Search nearby stores..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              sx={{ ml: 1.5, flex: 1, fontSize: '0.92rem', fontWeight: 600, color: '#0f172a' }} 
-            />
+    <AppShell activeTab="/business/nearby-stores">
+      <Container maxWidth="xl" sx={{ pt: 3.5, px: { xs: 2, sm: 3, lg: 4 } }}>
+        {/* ─── HEADER BAR (Matching Image 1 Screen 4) ─── */}
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          alignItems={{ xs: 'flex-start', sm: 'center' }}
+          justifyContent="space-between"
+          spacing={2}
+          sx={{ mb: 3 }}
+        >
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 900, color: T.text, letterSpacing: '-0.5px' }}>
+              Nearby Stores
+            </Typography>
+            <Typography sx={{ color: T.textSecondary, fontSize: '0.88rem', mt: 0.25 }}>
+              Explore and connect with B2B/B2C stores near your operating location
+            </Typography>
           </Box>
-        </Box>
 
-        {/* Categories Horizontal Scroll */}
-        <Box sx={{ bgcolor: '#fff', py: 2, px: 1, borderRadius: '16px', border: '1px solid #e2e8f0', mb: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-          <Stack direction="row" spacing={2.5} sx={{ overflowX: 'auto', px: 1, '&::-webkit-scrollbar': { display: 'none' } }}>
-            {categories.map(cat => (
-              <Box 
-                key={cat.name} 
-                onClick={() => setActiveCat(cat.name)}
-                sx={{ 
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75, 
-                  width: '90px', flexShrink: 0, cursor: 'pointer',
-                  color: activeCat === cat.name ? '#228B22' : '#64748b'
-                }}
-              >
-                <Box sx={{ 
-                  width: 48, height: 48, borderRadius: '12px', border: '1px solid',
-                  borderColor: activeCat === cat.name ? '#228B22' : '#e2e8f0',
-                  display: 'grid', placeItems: 'center',
-                  bgcolor: activeCat === cat.name ? 'rgba(34, 139, 34, 0.08)' : '#f8fafc',
-                  transition: 'all 0.2s',
-                  boxShadow: activeCat === cat.name ? '0 4px 10px rgba(34,139,34,0.1)' : 'none'
-                }}>
-                  {cat.icon}
-                </Box>
-                <Typography 
-                  align="center"
-                  sx={{ 
-                    fontSize: '0.72rem', 
-                    fontWeight: activeCat === cat.name ? 800 : 600, 
-                    lineHeight: 1.2,
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    height: '2.4em',
-                    mt: 0.25
+          <Button
+            variant="outlined"
+            startIcon={<MapIcon />}
+            onClick={() => alert('Map View is integrated with store GPS coordinates.')}
+            sx={{
+              ...secondaryBtnSx,
+              borderColor: T.primary,
+              color: T.primary,
+              fontWeight: 800,
+              px: 2.5,
+              '&:hover': { bgcolor: T.primaryLight, borderColor: T.primary }
+            }}
+          >
+            Map View
+          </Button>
+        </Stack>
+
+        {/* ─── SEARCH INPUT & CATEGORY PILLS ─── */}
+        <Stack spacing={2} sx={{ mb: 3.5 }}>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Search nearby stores by name, area or service..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: T.textMuted, fontSize: 20 }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              maxWidth: 540,
+              bgcolor: T.surface,
+              '& .MuiOutlinedInput-root': { borderRadius: T.radiusSm, '& fieldset': { borderColor: T.border } }
+            }}
+          />
+
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1.25,
+              overflowX: 'auto',
+              pb: 1,
+              '&::-webkit-scrollbar': { height: 4 },
+              '&::-webkit-scrollbar-thumb': { bgcolor: T.border, borderRadius: 2 },
+            }}
+          >
+            {categories.map((cat) => {
+              const isSelected = activeCat === cat;
+              return (
+                <Button
+                  key={cat}
+                  onClick={() => setActiveCat(cat)}
+                  sx={{
+                    flexShrink: 0,
+                    borderRadius: T.radiusFull,
+                    px: 2.2,
+                    py: 0.65,
+                    fontSize: '0.84rem',
+                    fontWeight: isSelected ? 800 : 600,
+                    textTransform: 'none',
+                    bgcolor: isSelected ? T.primary : T.surface,
+                    color: isSelected ? '#FFFFFF' : T.textSecondary,
+                    border: `1px solid ${isSelected ? T.primary : T.border}`,
+                    boxShadow: isSelected ? '0 2px 8px rgba(34,139,34,0.2)' : 'none',
+                    '&:hover': {
+                      bgcolor: isSelected ? T.primaryHover : T.surfaceAlt,
+                      borderColor: isSelected ? T.primaryHover : T.borderHover,
+                    }
                   }}
                 >
-                  {cat.name}
-                </Typography>
-              </Box>
+                  {cat}
+                </Button>
+              );
+            })}
+          </Box>
+        </Stack>
+
+        {/* ─── STORES LIST (Matching Image 1 Screen 4) ─── */}
+        {loading ? (
+          <Box sx={{ textAlign: 'center', py: 12 }}>
+            <CircularProgress sx={{ color: T.primary }} />
+            <Typography sx={{ mt: 2, color: T.textSecondary, fontWeight: 600, fontSize: '0.9rem' }}>
+              Finding stores near you...
+            </Typography>
+          </Box>
+        ) : filteredStores.length === 0 ? (
+          <Card elevation={0} sx={{ ...cardHoverSx, p: 6, textAlign: 'center' }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: T.text, mb: 0.5 }}>
+              No nearby stores found
+            </Typography>
+            <Typography sx={{ color: T.textMuted, fontSize: '0.85rem' }}>
+              Try searching a different category or operating location.
+            </Typography>
+          </Card>
+        ) : (
+          <Grid container spacing={2.5}>
+            {filteredStores.map((store) => (
+              <Grid item xs={12} md={6} key={store.id}>
+                <Card
+                  elevation={0}
+                  sx={{
+                    ...cardHoverSx,
+                    p: { xs: 2, sm: 2.5 },
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    gap: 2.5,
+                    alignItems: { xs: 'stretch', sm: 'center' },
+                  }}
+                >
+                  {/* Store Thumbnail */}
+                  <Box
+                    sx={{
+                      width: { xs: '100%', sm: 150 },
+                      height: 120,
+                      borderRadius: T.radiusMd,
+                      overflow: 'hidden',
+                      bgcolor: T.surfaceAlt,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={store.image}
+                      alt={store.name}
+                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  </Box>
+
+                  {/* Store Info */}
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: T.text }} noWrap>
+                        {store.name}
+                      </Typography>
+                      <Chip
+                        size="small"
+                        label="Nearby"
+                        sx={{
+                          bgcolor: T.surfaceAlt,
+                          color: T.textSecondary,
+                          fontWeight: 700,
+                          fontSize: '0.72rem',
+                          height: 22,
+                        }}
+                      />
+                    </Stack>
+
+                    <Typography sx={{ fontSize: '0.82rem', color: T.textSecondary, mb: 1 }} noWrap>
+                      {store.category} • <strong style={{ color: T.text }}>{store.location}</strong>
+                    </Typography>
+
+                    {/* Ratings & Cashback Row */}
+                    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+                      <Stack direction="row" alignItems="center" spacing={0.3} sx={{ color: '#D97706' }}>
+                        <StarIcon sx={{ fontSize: 16, color: '#F59E0B' }} />
+                        <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: T.text }}>
+                          {store.rating}
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.75rem', color: T.textMuted }}>
+                          ({store.reviewCount})
+                        </Typography>
+                      </Stack>
+
+                      <Chip
+                        size="small"
+                        label={store.cashback}
+                        sx={{
+                          bgcolor: T.successBg,
+                          color: T.successText,
+                          fontWeight: 800,
+                          fontSize: '0.72rem',
+                          height: 22,
+                          border: `1px solid ${T.successBorder}`,
+                        }}
+                      />
+                    </Stack>
+
+                    {/* Action Buttons Row */}
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Button
+                        size="small"
+                        startIcon={<PhoneIcon sx={{ fontSize: 16 }} />}
+                        onClick={() => store.phone && window.open(`tel:${store.phone}`)}
+                        sx={{
+                          ...secondaryBtnSx,
+                          py: 0.5,
+                          px: 1.5,
+                          fontSize: '0.78rem',
+                          color: T.primary,
+                        }}
+                      >
+                        Call
+                      </Button>
+                      <Button
+                        size="small"
+                        startIcon={<PayIcon sx={{ fontSize: 16 }} />}
+                        onClick={() => navigate(`/business/shop/${store.id}`)}
+                        sx={{
+                          ...secondaryBtnSx,
+                          py: 0.5,
+                          px: 1.5,
+                          fontSize: '0.78rem',
+                        }}
+                      >
+                        Pay
+                      </Button>
+                      <Button
+                        size="small"
+                        startIcon={<DeliveryIcon sx={{ fontSize: 16 }} />}
+                        onClick={() => navigate(`/business/delivery`)}
+                        sx={{
+                          ...secondaryBtnSx,
+                          py: 0.5,
+                          px: 1.5,
+                          fontSize: '0.78rem',
+                        }}
+                      >
+                        Delivery
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        onClick={() => navigate(`/business/shop/${store.id}`)}
+                        sx={{
+                          ...primaryBtnSx,
+                          py: 0.55,
+                          px: 2,
+                          fontSize: '0.8rem',
+                          ml: 'auto',
+                        }}
+                      >
+                        View
+                      </Button>
+                    </Stack>
+                  </Box>
+                </Card>
+              </Grid>
             ))}
-          </Stack>
-        </Box>
-
-        {/* Store List */}
-        <Box>
-          <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', mb: 2, color: '#0f172a' }}>
-            Stores near you <Typography component="span" sx={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 700 }}>({filteredStores.length} found)</Typography>
-          </Typography>
-
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-              <CircularProgress color="success" />
-            </Box>
-          ) : filteredStores.length === 0 ? (
-            <Box sx={{ p: 4, bgcolor: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-              <Typography sx={{ color: '#64748b', fontWeight: 700 }}>No matching stores found.</Typography>
-              <Typography variant="caption" sx={{ color: '#94a3b8', mt: 0.5 }}>Try broadening your search query or selecting a different category.</Typography>
-            </Box>
-          ) : (
-            filteredStores.map((store) => (
-              <NearbyStoreCard key={store.id} store={store} />
-            ))
-          )}
-        </Box>
+          </Grid>
+        )}
       </Container>
-    </Box>
+    </AppShell>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { alpha, createTheme, ThemeProvider } from "@mui/material/styles";
+import AppShell from "../../components/layout/AppShell";
 import {
   Avatar,
   Box,
@@ -36,7 +37,6 @@ import {
   HiOutlineSquares2X2,
   HiOutlineChevronRight,
   HiOutlineXMark,
-  HiOutlineHandshake,
   HiOutlineBuildingOffice2,
   HiOutlineBuildingStorefront,
   HiOutlineHeart,
@@ -86,6 +86,7 @@ import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
+import HandshakeOutlinedIcon from '@mui/icons-material/HandshakeOutlined';
 import SearchBar from "../../components/business/SearchBar";
 import { getPublicB2bMerchants, getMerchantProfile, updateMerchantProfile, listMyShops } from "../../api/api";
 import "../consumer-ecommerce/consumerEcommerce.css";
@@ -1943,8 +1944,9 @@ function BusinessDashboard() {
 
   return (
     <ThemeProvider theme={dashboardTheme}>
+      <AppShell activeTab="/business-dashboard" title="Dashboard">
       <div className="ce-app" style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-      {/* Header */}
+      {/* Mobile Top Header (hidden on desktop) */}
       <Box 
         sx={{ 
           position: 'fixed', 
@@ -1957,7 +1959,7 @@ function BusinessDashboard() {
           background: 'linear-gradient(135deg, #1B4D3E 0%, #143d31 100%)',
           color: '#ffffff',
           zIndex: 1000,
-          display: 'flex',
+          display: { xs: 'flex', lg: 'none' },
           flexDirection: 'column',
           alignItems: 'stretch',
           px: 2.5,
@@ -2042,15 +2044,59 @@ function BusinessDashboard() {
         </Box>
       </Box>
 
-      <main 
-        className="ce-container"
-        style={{ 
-          maxWidth: 640, 
+      <Box 
+        component="main"
+        sx={{ 
+          maxWidth: { xs: 640, lg: 1240 }, 
           margin: '0 auto',
-          paddingTop: '135px',
-          paddingBottom: '132px'
+          paddingTop: { xs: '135px', lg: '24px' },
+          paddingBottom: { xs: '132px', lg: '48px' },
+          px: { xs: 1, sm: 2, lg: 3 }
         }}
       >
+        {/* Desktop Hero Promo Banner (matches Image 1 Screen 1) */}
+        <Box
+          sx={{
+            display: { xs: 'none', lg: 'block' },
+            mb: 3,
+            p: 4,
+            borderRadius: '20px',
+            background: 'linear-gradient(135deg, #1B4D3E 0%, #143d31 100%)',
+            color: '#ffffff',
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: '0 8px 30px rgba(27,77,62,0.18)'
+          }}
+        >
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Box sx={{ maxWidth: 650 }}>
+              <Chip label="B2B COMMERCE PLATFORM" size="small" sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: '#fff', fontWeight: 800, mb: 1.5 }} />
+              <Typography variant="h4" sx={{ fontWeight: 900, mb: 1, letterSpacing: '-0.02em' }}>
+                Grow Your Business With Trikonekt
+              </Typography>
+              <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '1rem', mb: 2.5, lineHeight: 1.5 }}>
+                Connect with verified wholesale suppliers, manage online courier & hyperlocal retail delivery, and scale your sales pipeline across India.
+              </Typography>
+              <Stack direction="row" spacing={2}>
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/business/online-marketplace')}
+                  sx={{ bgcolor: '#10b981', color: '#fff', fontWeight: 800, px: 3, py: 1.2, borderRadius: '12px', textTransform: 'none', '&:hover': { bgcolor: '#059669' } }}
+                >
+                  Browse B2B Marketplace
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => navigate('/business/inventory')}
+                  sx={{ borderColor: 'rgba(255,255,255,0.4)', color: '#fff', fontWeight: 800, px: 3, py: 1.2, borderRadius: '12px', textTransform: 'none', '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' } }}
+                >
+                  Manage Inventory
+                </Button>
+              </Stack>
+            </Box>
+          </Stack>
+        </Box>
+
         <Stack spacing={1.15}>
           <Box id="home-top">
             <Box sx={{ px: { xs: 0, sm: 0 }, mt: -2 }}>
@@ -2128,7 +2174,7 @@ function BusinessDashboard() {
                 "&:hover": { bgcolor: alpha("#8b5cf6", 0.12), boxShadow: "none" }
               }}
             >
-              <span style={{ fontSize: "24px" }}>🤝</span>
+              <HandshakeOutlinedIcon sx={{ fontSize: 26, color: "#6d28d9" }} />
               <Typography sx={{ fontWeight: 800, fontSize: 12.2, lineHeight: 1.2, textAlign: "center" }}>For Better Society</Typography>
             </Button>
             <Button
@@ -2148,7 +2194,7 @@ function BusinessDashboard() {
                 "&:hover": { bgcolor: alpha("#10b981", 0.12), boxShadow: "none" }
               }}
             >
-              <span style={{ fontSize: "24px" }}>📑</span>
+              <LuFileText size={26} color="#047857" />
               <Typography sx={{ fontWeight: 800, fontSize: 12.2, lineHeight: 1.2, textAlign: "center" }}>Tri Inventory & Billing</Typography>
             </Button>
           </Stack>
@@ -2160,10 +2206,11 @@ function BusinessDashboard() {
                 title="Online B2B"
                 subtitle="Browse marketplace products or manage only your own listings"
               >
-                <Stack spacing={1}>
+                <Stack spacing={1.25}>
                   <Button
                     fullWidth
                     variant="contained"
+                    startIcon={<HiOutlineShoppingCart size={20} />}
                     onClick={() => navigate('/business/online-marketplace')}
                     sx={{
                       bgcolor: UI.primary,
@@ -2175,11 +2222,12 @@ function BusinessDashboard() {
                       '&:hover': { bgcolor: UI.secondary },
                     }}
                   >
-                    🛒 Browse B2B Online Marketplace
+                    Browse B2B Online Marketplace
                   </Button>
                   <Button
                     fullWidth
                     variant="outlined"
+                    startIcon={<LuPackage size={20} />}
                     onClick={() => navigate('/business/online-products')}
                     sx={{
                       borderColor: '#3b82f6',
@@ -2192,7 +2240,7 @@ function BusinessDashboard() {
                       '&:hover': { bgcolor: 'rgba(59,130,246,0.08)', borderColor: '#2563eb' },
                     }}
                   >
-                    📦 Manage My Online Products
+                    Manage My Online Products
                   </Button>
                 </Stack>
               </SectionShell>
@@ -2208,8 +2256,8 @@ function BusinessDashboard() {
               <Box
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                  gap: 0.9,
+                  gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", sm: "repeat(3, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" },
+                  gap: { xs: 1, md: 2 },
                   width: "100%",
                 }}
               >
@@ -2221,7 +2269,7 @@ function BusinessDashboard() {
           </Box>
 
         </Stack>
-      </main>
+      </Box>
 
       <SearchCityModal
         open={searchModalOpen}
@@ -2346,7 +2394,9 @@ function BusinessDashboard() {
         </Box>
       </Drawer>
 
-      <MobileFooterNav activeItem={activeFooterItem} onNavigate={handleFooterNavigate} />
+      <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
+        <MobileFooterNav activeItem={activeFooterItem} onNavigate={handleFooterNavigate} />
+      </Box>
 
       {/* Edit Profile Modal */}
       <Dialog open={activeModal === 'edit'} onClose={() => setActiveModal(null)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '16px' } }}>
@@ -2637,6 +2687,7 @@ function BusinessDashboard() {
         </Alert>
       </Snackbar>
       </div>
+      </AppShell>
     </ThemeProvider>
   );
 }

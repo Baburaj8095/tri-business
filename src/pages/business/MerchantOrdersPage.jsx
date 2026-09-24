@@ -9,6 +9,7 @@ import {
   LuStore, LuPhone, LuDollarSign, LuCalendar, LuCheck, LuX, LuChevronLeft, 
   LuShoppingBag, LuVolume2, LuClipboard, LuTruck, LuUser, LuAlertTriangle, LuTimer, LuHistory 
 } from 'react-icons/lu';
+import AppShell from '../../components/layout/AppShell';
 
 const CAPTAIN_API_URL = process.env.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
 
@@ -396,39 +397,25 @@ export default function MerchantOrdersPage() {
   }
 
   return (
-    <Box sx={{ bgcolor: BG, minHeight: '100vh', pb: 4, maxWidth: '430px', margin: '0 auto', boxShadow: '0 0 20px rgba(0,0,0,0.05)', borderLeft: `1px solid ${BORDER}`, borderRight: `1px solid ${BORDER}` }}>
-      
-      {/* 1. Header Navigation */}
-      <Box sx={{ bgcolor: '#1B4D3E', background: 'linear-gradient(135deg, #1B4D3E 0%, #143d31 100%)', color: '#ffffff', py: 2, mb: 2 }}>
-        <Container>
-          <Stack direction="row" alignItems="center" spacing={1.5}>
-            <IconButton
-              onClick={() => navigate('/business-dashboard')}
-              sx={{
-                bgcolor: 'rgba(255,255,255,0.12)', 
-                border: '1px solid rgba(255,255,255,0.25)', 
-                color: '#ffffff', 
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
-                width: 38,
-                height: 38
-              }}
-            >
-              <LuChevronLeft size={20} />
-            </IconButton>
-            <Box>
-              <Typography sx={{ fontSize: '1.2rem', fontWeight: 900, color: '#ffffff', lineHeight: 1.2 }}>
-                {getPageTitle()}
-              </Typography>
-              <Typography sx={{ color: 'rgba(255,255,255,0.75)', fontSize: '11px', fontWeight: 500 }}>
-                Track and manage customer orders
-              </Typography>
-            </Box>
-          </Stack>
-        </Container>
-      </Box>
- 
-      {/* 2. Main Body Container */}
-      <Container sx={{ px: 2 }}>
+    <AppShell activeTab="/business/orders">
+      <Container maxWidth="xl" sx={{ pt: 3.5, px: { xs: 2, sm: 3, lg: 4 }, pb: 6 }}>
+        {/* Header Bar matching Image 1 Screen 5 */}
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          alignItems={{ xs: 'flex-start', sm: 'center' }}
+          justifyContent="space-between"
+          spacing={2}
+          sx={{ mb: 3 }}
+        >
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 900, color: TEXT, letterSpacing: '-0.5px' }}>
+              {getPageTitle()}
+            </Typography>
+            <Typography sx={{ color: TEXT_SECONDARY, fontSize: '0.88rem', mt: 0.25 }}>
+              Track and manage customer orders across all channels
+            </Typography>
+          </Box>
+        </Stack>
         
         {/* Toggle Channel selector pill buttons (Offline payments / Online deliveries) */}
         {showToggles && (
@@ -1082,7 +1069,7 @@ export default function MerchantOrdersPage() {
         )}
 
       </Container>
-    </Box>
+    </AppShell>
   );
 }
 

@@ -20,6 +20,16 @@ import {
   listMyShops,
   listMyPromoPurchases,
 } from "../../api/api";
+import AppShell from "../../components/layout/AppShell";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import StarIcon from "@mui/icons-material/Star";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import CampaignIcon from "@mui/icons-material/Campaign";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import PersonIcon from "@mui/icons-material/Person";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import LanguageIcon from "@mui/icons-material/Language";
+import VerifiedIcon from "@mui/icons-material/Verified";
 
 const PRIMARY = "#228B22";
 const PRIMARY_DARK = "#1B4D3E";
@@ -107,23 +117,8 @@ export default function BusinessDashboard() {
   };
 
   return (
-    <Box sx={{ bgcolor: BG, minHeight: "100vh", pb: 4 }}>
-      {/* Location & Header */}
-      <Box sx={{ bgcolor: SURFACE, py: 2, borderBottom: `1px solid ${BORDER}`, mb: 2 }}>
-        <Container maxWidth="md">
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-            <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: TEXT_MUTED }}>📍</Typography>
-            <Typography sx={{ fontSize: '0.95rem', fontWeight: 700, color: TEXT }}>
-              {profile?.city ? `${profile.city}${profile?.state ? `, ${profile.state}` : ''}` : profile?.address || 'Operating Location'}
-            </Typography>
-          </Stack>
-          <Typography sx={{ fontSize: '1.6rem', fontWeight: 900, color: TEXT }}>
-            Business Dashboard
-          </Typography>
-        </Container>
-      </Box>
-
-      <Container maxWidth="md" sx={{ px: { xs: 2, md: 0 } }}>
+    <AppShell activeTab="/business-dashboard" title="Business Dashboard">
+      <Container maxWidth="xl" sx={{ py: { xs: 2.5, md: 4 } }}>
         {/* BUSINESS USER CARD */}
         <Card sx={{ mb: 3, borderRadius: '20px', border: `1px solid ${BORDER}`, boxShadow: 'none' }}>
           <CardContent sx={{ p: 3 }}>
@@ -250,9 +245,12 @@ export default function BusinessDashboard() {
         {hasPrime750 && (
           <Card sx={{ mb: 3, borderRadius: '20px', border: `1px solid ${BORDER}`, boxShadow: 'none' }}>
             <CardContent sx={{ p: 3, bgcolor: '#fef3c7' }}>
-              <Typography sx={{ fontWeight: 900, color: '#92400e', textAlign: 'center' }}>
-                ⭐ PRIME 750 Active — commissions & Business boosts enabled
-              </Typography>
+              <Stack direction="row" alignItems="center" justifyContent="center" spacing={1}>
+                <StarIcon sx={{ color: '#d97706', fontSize: 20 }} />
+                <Typography sx={{ fontWeight: 900, color: '#92400e', textAlign: 'center' }}>
+                  PRIME 750 Active — commissions & Business boosts enabled
+                </Typography>
+              </Stack>
             </CardContent>
           </Card>
         )}
@@ -261,9 +259,12 @@ export default function BusinessDashboard() {
         {pendingPaymentsCount > 0 && (
           <Card sx={{ mb: 3, borderRadius: '20px', border: `2px solid ${PRIMARY}`, bgcolor: '#f0fdf4', boxShadow: 'none' }}>
             <CardContent sx={{ p: 3 }}>
-              <Typography sx={{ fontWeight: 900, color: PRIMARY, fontSize: '1.1rem', mb: 1 }}>
-                ⚠️ Pending Customer Payments ({pendingPaymentsCount})
-              </Typography>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                <WarningAmberIcon sx={{ color: PRIMARY, fontSize: 22 }} />
+                <Typography sx={{ fontWeight: 900, color: PRIMARY, fontSize: '1.1rem' }}>
+                  Pending Customer Payments ({pendingPaymentsCount})
+                </Typography>
+              </Stack>
               <Typography sx={{ fontWeight: 600, color: TEXT_SECONDARY, mb: 2, fontSize: '0.95rem' }}>
                 Customers have initiated offline payments. Please review and approve them to distribute cashback.
               </Typography>
@@ -289,9 +290,12 @@ export default function BusinessDashboard() {
         {/* B2B ADS CAROUSEL */}
         {b2bAds.length > 0 && (
           <Box sx={{ mb: 3 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: TEXT, mb: 1.5 }}>
-              📢 B2B Offers & Featured Promos
-            </Typography>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+              <CampaignIcon sx={{ color: PRIMARY, fontSize: 22 }} />
+              <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: TEXT }}>
+                B2B Offers & Featured Promos
+              </Typography>
+            </Stack>
             <Stack direction="row" spacing={2} sx={{ overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { display: 'none' } }}>
               {b2bAds.map(ad => (
                 <Card 
@@ -330,7 +334,9 @@ export default function BusinessDashboard() {
             <Grid item xs={12} sm={6}>
               <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none' }}>
                 <CardContent sx={{ p: 2.5, textAlign: 'center' }}>
-                  <Box sx={{ fontSize: '2rem', mb: 1 }}>🏪</Box>
+                  <Box sx={{ mb: 1 }}>
+                    <StorefrontIcon sx={{ fontSize: 36, color: PRIMARY }} />
+                  </Box>
                   <Typography sx={{ fontWeight: 900, color: TEXT, mb: 0.5 }}>
                     {active} Active Shops
                   </Typography>
@@ -359,7 +365,9 @@ export default function BusinessDashboard() {
           <Grid item xs={12} sm={isOfflineMerchant ? 6 : 12}>
             <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none' }}>
               <CardContent sx={{ p: 2.5, textAlign: 'center' }}>
-                <Box sx={{ fontSize: '2rem', mb: 1 }}>👤</Box>
+                <Box sx={{ mb: 1 }}>
+                  <PersonIcon sx={{ fontSize: 36, color: PRIMARY }} />
+                </Box>
                 <Typography sx={{ fontWeight: 900, color: TEXT, mb: 0.5 }}>
                   My Profile
                 </Typography>
@@ -389,9 +397,12 @@ export default function BusinessDashboard() {
         {isOnlineMerchant && (
           <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none', mb: 3 }}>
             <CardContent sx={{ p: 3 }}>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: TEXT, mb: 2 }}>
-                📋 Inventory & Billing
-              </Typography>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                <InventoryIcon sx={{ color: PRIMARY, fontSize: 22 }} />
+                <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: TEXT }}>
+                  Inventory & Billing
+                </Typography>
+              </Stack>
               <Typography sx={{ fontSize: '0.95rem', color: TEXT_SECONDARY, mb: 2 }}>
                 Manage products and billing across all channels
               </Typography>
@@ -417,9 +428,12 @@ export default function BusinessDashboard() {
         {/* ONLINE B2B SECTION */}
         <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none', mb: 3 }}>
           <CardContent sx={{ p: 3 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: TEXT, mb: 2 }}>
-              🌐 Online B2B Marketplace
-            </Typography>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+              <LanguageIcon sx={{ color: PRIMARY, fontSize: 22 }} />
+              <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: TEXT }}>
+                Online B2B Marketplace
+              </Typography>
+            </Stack>
             <Typography sx={{ fontSize: '0.95rem', color: TEXT_SECONDARY, mb: 2 }}>
               {isOnlineMerchant 
                 ? "Browse products from other B2B sellers or manage your own online B2B listings."
@@ -467,9 +481,12 @@ export default function BusinessDashboard() {
         {isOfflineMerchant && active > 0 && (
           <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none', mb: 3 }}>
             <CardContent sx={{ p: 3 }}>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: TEXT, mb: 2 }}>
-                🌐 Go Public
-              </Typography>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                <LanguageIcon sx={{ color: PRIMARY, fontSize: 22 }} />
+                <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: TEXT }}>
+                  Go Public
+                </Typography>
+              </Stack>
               <Typography sx={{ fontSize: '0.95rem', color: TEXT_SECONDARY, mb: 2 }}>
                 Your {active} active shop{active > 1 ? 's are' : ' is'} visible in the marketplace
               </Typography>
@@ -493,7 +510,7 @@ export default function BusinessDashboard() {
           </Card>
         )}
       </Container>
-    </Box>
+    </AppShell>
   );
 }
 

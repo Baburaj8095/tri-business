@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getMerchantProfile } from '../../api/api';
+import AppShell from '../../components/layout/AppShell';
 
 /* ─── Design tokens (match BusinessDashboard) ─────────────────────────────── */
 const P  = '#228B22';
@@ -123,29 +124,53 @@ function AdCard({ ad, onEdit, onDelete, onToggle }) {
   const t = targetInfo(ad.display_target);
   const ty = typeInfo(ad.ad_type);
   return (
-    <Card sx={{ borderRadius: '16px', border: `1px solid ${BOR}`, boxShadow: 'none', mb: 2, overflow: 'hidden' }}>
+    <Card 
+      sx={{ 
+        borderRadius: '18px', 
+        border: `1px solid ${BOR}`, 
+        boxShadow: '0 2px 10px rgba(0,0,0,0.02)', 
+        height: '100%', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        overflow: 'hidden',
+        bgcolor: SUR,
+        transition: 'all 0.2s ease',
+        '&:hover': {
+          boxShadow: '0 10px 25px rgba(0,0,0,0.06)',
+          transform: 'translateY(-2px)',
+          borderColor: '#cbd5e1'
+        }
+      }}
+    >
       {/* Image strip */}
-      {ad.image_url && (
-        <Box
+      <Box
+        sx={{
+          height: 140,
+          background: ad.image_url 
+            ? `url(${ad.image_url}) center/cover no-repeat` 
+            : 'linear-gradient(135deg, #1B4D3E 0%, #143d31 100%)',
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        {!ad.image_url && (
+          <CampaignIcon sx={{ fontSize: 44, color: 'rgba(255,255,255,0.25)' }} />
+        )}
+        <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.4))' }} />
+        <Chip
+          size="small"
+          label={ad.is_active ? 'LIVE' : 'PAUSED'}
           sx={{
-            height: 130,
-            background: `url(${ad.image_url}) center/cover no-repeat`,
-            position: 'relative',
+            position: 'absolute', top: 12, right: 12,
+            fontWeight: 800, fontSize: '0.68rem', letterSpacing: 0.5,
+            bgcolor: ad.is_active ? '#10b981' : '#64748b', color: '#fff',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
           }}
-        >
-          <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.55))' }} />
-          <Chip
-            size="small"
-            label={ad.is_active ? 'LIVE' : 'PAUSED'}
-            sx={{
-              position: 'absolute', top: 10, right: 10,
-              fontWeight: 800, fontSize: '0.65rem', letterSpacing: 0.5,
-              bgcolor: ad.is_active ? '#10b981' : '#94a3b8', color: '#fff',
-            }}
-          />
-        </Box>
-      )}
-      <CardContent sx={{ p: 2.5 }}>
+        />
+      </Box>
+      <CardContent sx={{ p: 2.5, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1}>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: TXT, mb: 0.5 }}>
@@ -481,142 +506,176 @@ export default function AdsManagerPage() {
 
   /* ── Render ──────────────────────────────────────────────────────────── */
   return (
-    <Box sx={{ bgcolor: BG, minHeight: '100vh', pb: 6, maxWidth: '430px', margin: '0 auto', boxShadow: '0 0 20px rgba(0,0,0,0.05)', borderLeft: `1px solid ${BOR}`, borderRight: `1px solid ${BOR}` }}>
-      {/* Header */}
-      <Box sx={{ bgcolor: '#1B4D3E', background: 'linear-gradient(135deg, #1B4D3E 0%, #143d31 100%)', py: 2, mb: 3, position: 'sticky', top: 0, zIndex: 10 }}>
-        <Container>
-          <Stack direction="row" alignItems="center" spacing={1.5}>
-            <IconButton 
-              onClick={() => navigate(-1)} 
-              sx={{ 
-                bgcolor: 'rgba(255,255,255,0.12)', 
-                border: '1px solid rgba(255,255,255,0.25)', 
-                color: '#ffffff', 
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
-                width: 38,
-                height: 38
-              }}
-            >
-              <BackIcon />
-            </IconButton>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.2rem', color: '#ffffff', lineHeight: 1.1 }} noWrap>
-                Ads Manager
-              </Typography>
-              <Typography sx={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', fontWeight: 500, mt: 0.25 }} noWrap>
-                Create and manage promotional ads
-              </Typography>
-            </Box>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={openCreate}
-              sx={{
-                bgcolor: '#10b981', 
-                fontWeight: 850, 
-                textTransform: 'none',
-                borderRadius: '12px', 
-                px: 2,
-                py: 0.8,
-                '&:hover': { bgcolor: '#059669' },
-              }}
-            >
-              New Ad
-            </Button>
-          </Stack>
-        </Container>
-      </Box>
+    <AppShell activeTab="/business/ads" title="Ads Manager">
+      <Container maxWidth="xl" sx={{ py: { xs: 2.5, md: 4 } }}>
+        {/* Header Bar */}
+        <Box sx={{ mb: 3.5, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', gap: 2 }}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 900, color: TXT, letterSpacing: '-0.02em', mb: 0.5 }}>
+              Campaigns & Ads Manager
+            </Typography>
+            <Typography sx={{ fontSize: '0.9rem', color: MUT, fontWeight: 500 }}>
+              Promote your business across B2C Online, Nearby Stores, TriZone, and B2B wholesale channels.
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={openCreate}
+            sx={{
+              bgcolor: P,
+              color: '#ffffff',
+              fontWeight: 800,
+              textTransform: 'none',
+              borderRadius: '12px',
+              px: 3,
+              py: 1.2,
+              boxShadow: '0 4px 14px rgba(34, 139, 34, 0.25)',
+              '&:hover': { bgcolor: PD },
+            }}
+          >
+            Create New Campaign
+          </Button>
+        </Box>
 
-      <Container sx={{ px: 2 }}>
-        {/* Info banner */}
-        <Alert
-          icon={<CampaignIcon />}
-          severity="info"
-          sx={{ mb: 3, borderRadius: '12px', fontWeight: 600, fontSize: '0.85rem' }}
-        >
-          Ads you create appear in the consumer or business app based on the <strong>Display Target</strong> you select.
-          Banners, sponsored shops, and featured products are shown to users browsing your selected channel.
-        </Alert>
+        {/* Top KPI Metrics Cards */}
+        <Grid container spacing={2.5} sx={{ mb: 3.5 }}>
+          <Grid item xs={6} sm={3}>
+            <Card sx={{ borderRadius: '16px', border: `1px solid ${BOR}`, boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: MUT, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Total Campaigns
+                </Typography>
+                <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: TXT, mt: 0.5, lineHeight: 1 }}>
+                  {ads.length}
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: MUT, mt: 0.75 }}>
+                  Across all channels
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
 
-        {/* Channel summary cards */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          {getSelectableTargets().map(dt => (
-            <Grid item xs={6} sm={3} key={dt.value}>
-              <Card
-                onClick={() => setActiveFilter(activeFilter === dt.value ? 'ALL' : dt.value)}
-                sx={{
-                  borderRadius: '14px', border: `2px solid`,
-                  borderColor: activeFilter === dt.value ? dt.color : BOR,
-                  boxShadow: 'none', cursor: 'pointer', transition: 'all 0.15s',
-                  bgcolor: activeFilter === dt.value ? dt.bg : SUR,
-                  '&:hover': { borderColor: dt.color },
-                }}
-              >
-                <CardContent sx={{ p: 1.75, '&:last-child': { pb: 1.75 } }}>
-                  <Box sx={{ color: dt.color, mb: 0.5 }}>{dt.icon}</Box>
-                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: dt.color, lineHeight: 1.2 }}>
-                    {dt.badge}
-                  </Typography>
-                  <Typography sx={{ fontSize: '1.4rem', fontWeight: 900, color: TXT, lineHeight: 1.1, mt: 0.25 }}>
-                    {counts[dt.value] || 0}
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.65rem', color: MUT, fontWeight: 600 }}>ads</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
+          <Grid item xs={6} sm={3}>
+            <Card sx={{ borderRadius: '16px', border: `1px solid ${BOR}`, boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Active Live Ads
+                </Typography>
+                <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: '#10b981', mt: 0.5, lineHeight: 1 }}>
+                  {ads.filter(a => a.is_active).length}
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: MUT, mt: 0.75 }}>
+                  Currently reaching buyers
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={6} sm={3}>
+            <Card sx={{ borderRadius: '16px', border: `1px solid ${BOR}`, boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Paused Ads
+                </Typography>
+                <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: '#f59e0b', mt: 0.5, lineHeight: 1 }}>
+                  {ads.filter(a => !a.is_active).length}
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: MUT, mt: 0.75 }}>
+                  Temporarily inactive
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={6} sm={3}>
+            <Card sx={{ borderRadius: '16px', border: `1px solid ${BOR}`, boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Active Targets
+                </Typography>
+                <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: '#3b82f6', mt: 0.5, lineHeight: 1 }}>
+                  {new Set(ads.map(a => a.display_target)).size}
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: MUT, mt: 0.75 }}>
+                  Target audiences
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
 
-        {/* Active filter label */}
-        {activeFilter !== 'ALL' && (
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-            <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: TXT }}>
-              Showing: {targetInfo(activeFilter).badge}
-            </Typography>
+        {/* Channel quick filter pills */}
+        <Stack direction="row" spacing={1} sx={{ mb: 3, overflowX: 'auto', pb: 0.5, '&::-webkit-scrollbar': { display: 'none' } }}>
+          <Chip
+            label={`All Ads (${ads.length})`}
+            onClick={() => setActiveFilter('ALL')}
+            variant={activeFilter === 'ALL' ? 'filled' : 'outlined'}
+            sx={{
+              fontWeight: 750,
+              bgcolor: activeFilter === 'ALL' ? P : '#ffffff',
+              color: activeFilter === 'ALL' ? '#ffffff' : TXT,
+              borderColor: activeFilter === 'ALL' ? P : BOR,
+              '&:hover': { bgcolor: activeFilter === 'ALL' ? PD : '#f1f5f9' },
+            }}
+          />
+          {getSelectableTargets().map(dt => (
             <Chip
-              size="small"
-              label="Clear filter"
-              onClick={() => setActiveFilter('ALL')}
-              sx={{ fontWeight: 700, fontSize: '0.7rem' }}
+              key={dt.value}
+              icon={dt.icon}
+              label={`${dt.badge} (${counts[dt.value] || 0})`}
+              onClick={() => setActiveFilter(activeFilter === dt.value ? 'ALL' : dt.value)}
+              sx={{
+                fontWeight: 700,
+                bgcolor: activeFilter === dt.value ? dt.bg : '#ffffff',
+                color: activeFilter === dt.value ? dt.color : TXT,
+                border: `1.5px solid ${activeFilter === dt.value ? dt.color : BOR}`,
+                '&:hover': { borderColor: dt.color },
+              }}
             />
-          </Stack>
-        )}
+          ))}
+        </Stack>
 
-        {/* Ads list */}
+        {/* Ads Grid */}
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
             <CircularProgress sx={{ color: P }} />
           </Box>
         ) : filtered.length === 0 ? (
-          <Card sx={{ borderRadius: '16px', border: `1px solid ${BOR}`, boxShadow: 'none' }}>
-            <CardContent sx={{ p: 5, textAlign: 'center' }}>
-              <CampaignIcon sx={{ fontSize: 48, color: MUT, mb: 1.5 }} />
-              <Typography sx={{ fontWeight: 900, color: TXT, mb: 0.5 }}>
-                {activeFilter === 'ALL' ? 'No ads yet' : `No ${targetInfo(activeFilter).badge} ads`}
+          <Card sx={{ borderRadius: '20px', border: `1px dashed ${BOR}`, boxShadow: 'none', py: 8, textAlign: 'center', bgcolor: SUR }}>
+            <CardContent>
+              <Box sx={{ width: 64, height: 64, borderRadius: '50%', bgcolor: 'rgba(34, 139, 34, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
+                <CampaignIcon sx={{ fontSize: 32, color: P }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: TXT, mb: 0.5 }}>
+                {activeFilter === 'ALL' ? 'No promotional campaigns yet' : `No ${targetInfo(activeFilter).badge} campaigns`}
               </Typography>
-              <Typography sx={{ color: MUT, fontSize: '0.9rem', mb: 2.5 }}>
-                Create your first ad to start promoting your business
+              <Typography sx={{ color: MUT, fontSize: '0.9rem', maxWidth: 440, mx: 'auto', mb: 3 }}>
+                Launch a campaign now to feature your shops and products across the Trikonekt consumer and merchant apps.
               </Typography>
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={openCreate}
-                sx={{ bgcolor: P, fontWeight: 800, textTransform: 'none', borderRadius: '10px', '&:hover': { bgcolor: PD } }}
+                sx={{ bgcolor: P, fontWeight: 800, textTransform: 'none', borderRadius: '12px', px: 3, py: 1.2, '&:hover': { bgcolor: PD } }}
               >
-                Create Ad
+                Create First Campaign
               </Button>
             </CardContent>
           </Card>
         ) : (
-          filtered.map(ad => (
-            <AdCard
-              key={ad.id}
-              ad={ad}
-              onEdit={openEdit}
-              onDelete={setDeleteId}
-              onToggle={handleToggle}
-            />
-          ))
+          <Grid container spacing={3}>
+            {filtered.map(ad => (
+              <Grid item xs={12} sm={6} lg={4} key={ad.id}>
+                <AdCard
+                  ad={ad}
+                  onEdit={openEdit}
+                  onDelete={setDeleteId}
+                  onToggle={handleToggle}
+                />
+              </Grid>
+            ))}
+          </Grid>
         )}
       </Container>
 
@@ -935,7 +994,7 @@ export default function AdsManagerPage() {
           {toast.msg}
         </Alert>
       </Snackbar>
-    </Box>
+    </AppShell>
   );
 }
 

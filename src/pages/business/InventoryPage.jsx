@@ -3,10 +3,11 @@ import {
   Box, Typography, Card, CardContent, TextField, Button, Stack, MenuItem,
   TextareaAutosize, FormHelperText, CircularProgress, Alert, Paper, Chip,
   IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Collapse,
-  Grid, InputLabel, CardMedia, InputAdornment, useMediaQuery, useTheme
+  Grid, InputLabel, CardMedia, InputAdornment, useMediaQuery, useTheme, Container
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
+import AppShell from "../../components/layout/AppShell";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import SearchIcon from "@mui/icons-material/Search";
@@ -362,76 +363,123 @@ export default function InventoryPage() {
   const serviceModeDisplay = currentServiceMode === 'ONLINE' ? 'Online' : (currentServiceMode === 'TRIZONE' ? 'TriZone' : 'Offline / Nearby');
 
   return (
-    <Box sx={{ bgcolor: "#f8fafc", minHeight: "100vh", pb: 6, maxWidth: '430px', margin: '0 auto', boxShadow: '0 0 20px rgba(0,0,0,0.05)', borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>
-      {/* HEADER */}
-      <Box sx={{ bgcolor: '#1B4D3E', background: 'linear-gradient(135deg, #1B4D3E 0%, #143d31 100%)', color: '#ffffff', py: 2, px: 2 }}>
-        <Stack direction="row" alignItems="center" spacing={1.5} justifyContent="space-between">
-          <Stack direction="row" alignItems="center" spacing={1.5}>
-            <IconButton 
-              onClick={() => navigate("/business-dashboard")} 
+    <AppShell activeTab="/business/inventory" title="Inventory Management">
+      <Container maxWidth="xl" sx={{ py: { xs: 2.5, md: 4 } }}>
+        {/* Top Header Bar */}
+        <Box sx={{ mb: 3.5, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { xs: 'flex-start', md: 'center' }, justifyContent: 'space-between', gap: 2 }}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', mb: 0.5 }}>
+              {serviceModeDisplay} Inventory & Catalog
+            </Typography>
+            <Typography sx={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 500 }}>
+              Manage products, pricing, stock levels, and catalog visibility across your sales channels.
+            </Typography>
+          </Box>
+          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ width: { xs: '100%', md: 'auto' } }}>
+            {shops.length > 1 && (
+              <TextField
+                select
+                size="small"
+                value={selectedShop?.id || ""}
+                onChange={handleShopChange}
+                sx={{ bgcolor: '#fff', borderRadius: '12px', minWidth: 200, '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+              >
+                {shops.map((s) => (
+                  <MenuItem key={s.id} value={s.id}>{s.shop_name || `Shop #${s.id}`}</MenuItem>
+                ))}
+              </TextField>
+            )}
+            <Button
+              variant={isAddFormOpen ? "outlined" : "contained"}
+              startIcon={isAddFormOpen ? <CloseIcon /> : <AddIcon />}
+              onClick={() => setIsAddFormOpen(!isAddFormOpen)}
+              color={isAddFormOpen ? "error" : "success"}
               sx={{ 
-                bgcolor: 'rgba(255,255,255,0.12)', 
-                border: '1px solid rgba(255,255,255,0.25)', 
-                color: '#ffffff', 
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
-                width: 38,
-                height: 38
+                fontWeight: 800, 
+                textTransform: "none", 
+                borderRadius: '12px', 
+                px: 2.5,
+                py: 1.1,
+                bgcolor: isAddFormOpen ? "transparent" : "#1B4D3E",
+                borderColor: isAddFormOpen ? "#ef4444" : "transparent",
+                color: isAddFormOpen ? "#ef4444" : "#fff",
+                boxShadow: isAddFormOpen ? 'none' : '0 4px 14px rgba(27, 77, 62, 0.25)',
+                "&:hover": {
+                  bgcolor: isAddFormOpen ? "rgba(239,68,68,0.05)" : "#143d31"
+                }
               }}
             >
-              <ArrowBackIcon sx={{ fontSize: 20 }} />
-            </IconButton>
-            <Box>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.2rem', color: '#ffffff', lineHeight: 1.2 }}>
-                {serviceModeDisplay} Inventory
-              </Typography>
-              <Typography sx={{ color: 'rgba(255,255,255,0.75)', fontSize: '11px', fontWeight: 500 }}>
-                Manage products, pricing, and stock
-              </Typography>
-            </Box>
+              {isAddFormOpen ? "Close Form" : "Add Product"}
+            </Button>
           </Stack>
-        </Stack>
-      </Box>
+        </Box>
 
-      {/* CONTROLS */}
-      <Box sx={{ px: 2, mt: 3, mb: 3 }}>
-        <Stack spacing={1.5}>
-          {shops.length > 1 && (
-            <TextField
-              select
-              size="small"
-              fullWidth
-              value={selectedShop?.id || ""}
-              onChange={handleShopChange}
-              sx={{ bgcolor: '#fff', borderRadius: 1.5 }}
-            >
-              {shops.map((s) => (
-                <MenuItem key={s.id} value={s.id}>{s.shop_name || `Shop #${s.id}`}</MenuItem>
-              ))}
-            </TextField>
-          )}
-          <Button
-            fullWidth
-            variant={isAddFormOpen ? "outlined" : "contained"}
-            startIcon={isAddFormOpen ? <CloseIcon /> : <AddIcon />}
-            onClick={() => setIsAddFormOpen(!isAddFormOpen)}
-            color={isAddFormOpen ? "error" : "success"}
-            sx={{ 
-              fontWeight: 850, 
-              textTransform: "none", 
-              borderRadius: '12px', 
-              py: 1.2,
-              bgcolor: isAddFormOpen ? "transparent" : "#1B4D3E",
-              borderColor: isAddFormOpen ? "#ef4444" : "transparent",
-              color: isAddFormOpen ? "#ef4444" : "#fff",
-              "&:hover": {
-                bgcolor: isAddFormOpen ? "rgba(239,68,68,0.05)" : "#143d31"
-              }
-            }}
-          >
-            {isAddFormOpen ? "Cancel" : "Add Product"}
-          </Button>
-        </Stack>
-      </Box>
+        {/* Top KPI Metrics Cards */}
+        <Grid container spacing={2.5} sx={{ mb: 3.5 }}>
+          <Grid item xs={6} sm={3}>
+            <Card sx={{ borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Total Items
+                </Typography>
+                <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', mt: 0.5, lineHeight: 1 }}>
+                  {products.length}
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.75 }}>
+                  Catalog SKUs
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={6} sm={3}>
+            <Card sx={{ borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  In Stock
+                </Typography>
+                <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: '#10b981', mt: 0.5, lineHeight: 1 }}>
+                  {products.filter(p => (p.stock_qty || p.stockQty || 0) > 10).length}
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.75 }}>
+                  Healthy inventory
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={6} sm={3}>
+            <Card sx={{ borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Low Stock
+                </Typography>
+                <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: '#f59e0b', mt: 0.5, lineHeight: 1 }}>
+                  {products.filter(p => { const q = p.stock_qty || p.stockQty || 0; return q > 0 && q <= 10; }).length}
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.75 }}>
+                  Need replenishment
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={6} sm={3}>
+            <Card sx={{ borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Out of Stock
+                </Typography>
+                <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: '#ef4444', mt: 0.5, lineHeight: 1 }}>
+                  {products.filter(p => (p.stock_qty || p.stockQty || 0) === 0).length}
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.75 }}>
+                  Unavailable for purchase
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
 
       {/* ALERTS */}
       {successMessage && <Alert severity="success" sx={{ mb: 3, borderRadius: '8px', fontWeight: 600 }}>{successMessage}</Alert>}
@@ -721,6 +769,7 @@ export default function InventoryPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+      </Container>
+    </AppShell>
   );
 }

@@ -63,10 +63,10 @@ import { motion, AnimatePresence } from 'framer-motion';
    DESIGN TOKENS
    ═══════════════════════════════════════════ */
 const T = {
-  primary: '#0d9488',
-  primaryDark: '#0f766e',
-  primaryLight: '#ccfbf1',
-  accent: '#06b6d4',
+  primary: '#228B22',
+  primaryDark: '#1B4D3E',
+  primaryLight: '#ecfdf5',
+  accent: '#10b981',
   bg: '#f8fafc',
   surface: '#ffffff',
   text: '#0f172a',
@@ -77,10 +77,10 @@ const T = {
   error: '#ef4444',
   success: '#10b981',
   warning: '#f59e0b',
-  gradient: 'linear-gradient(135deg, #0d9488 0%, #06b6d4 100%)',
+  gradient: 'linear-gradient(135deg, #1B4D3E 0%, #228B22 100%)',
   cardShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06)',
   cardShadowHover: '0 10px 25px rgba(0,0,0,0.08)',
-  cardShadowSelected: '0 0 0 2px #0d9488, 0 10px 25px rgba(13,148,136,0.15)',
+  cardShadowSelected: '0 0 0 2px #228B22, 0 10px 25px rgba(34,139,34,0.15)',
   radius: '16px',
 };
 
@@ -588,17 +588,20 @@ const BusinessOnboarding = () => {
             <motion.div key="onboarding" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
 
               {/* ── Logo & Brand ── */}
-              <Box textAlign="center" mb={2} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Typography sx={{ fontWeight: 900, fontSize: '1.3rem', color: T.primary, letterSpacing: '-0.02em' }}>
-                  TriKonext
+              <Box textAlign="center" mb={2.5} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Typography sx={{ fontWeight: 900, fontSize: '1.4rem', color: T.primary, letterSpacing: '-0.02em' }}>
+                  Trikonekt Business
+                </Typography>
+                <Typography sx={{ fontSize: '0.85rem', color: T.textMuted, fontWeight: 500, mt: 0.25 }}>
+                  Merchant & Wholesale Registration
                 </Typography>
                 {step === 1 && (
                   <Button 
                     onClick={() => navigate('/login')} 
                     sx={{ 
                       mt: 1.5, px: 3, color: T.primary, fontWeight: 700, textTransform: 'none', 
-                      border: `1.5px solid rgba(13, 148, 136, 0.3)`, borderRadius: 3,
-                      '&:hover': { bgcolor: 'rgba(13, 148, 136, 0.05)', borderColor: T.primary }
+                      border: `1.5px solid rgba(34, 139, 34, 0.3)`, borderRadius: 3,
+                      '&:hover': { bgcolor: 'rgba(34, 139, 34, 0.05)', borderColor: T.primary }
                     }}
                     size="small"
                   >
@@ -646,7 +649,7 @@ const BusinessOnboarding = () => {
                       {/* ═══ STEP 1: User Type ═══ */}
                       {step === 1 && (
                         <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                          <StepHeader title="How would you like to join TriKonext?" subtitle="Select the role that best describes you" />
+                          <StepHeader title="How would you like to join Trikonekt Business?" subtitle="Select the role that best describes you" />
                           <Stack spacing={2} sx={{ flexGrow: 1, justifyContent: 'center' }}>
                           {[
                             { value: 'Captain', icon: <EmojiPeople />, desc: 'Join service captain' },
@@ -1063,7 +1066,7 @@ const BusinessOnboarding = () => {
                   Registration Submitted!
                 </Typography>
                 <Typography sx={{ color: T.textSecondary, maxWidth: 400, mx: 'auto', mb: 4, fontSize: '0.95rem', fontWeight: 500, lineHeight: 1.6 }}>
-                  Thank you for registering with TriKonext. Our team will verify your details and activate your account within 24-48 hours.
+                  Thank you for registering with Trikonekt Business. Our team will verify your details and activate your account within 24-48 hours.
                 </Typography>
 
                 <Box sx={{ bgcolor: '#f8fafc', border: `1px solid ${T.border}`, borderRadius: T.radius, p: 3, mb: 4, textAlign: 'left', maxWidth: 420, mx: 'auto' }}>
