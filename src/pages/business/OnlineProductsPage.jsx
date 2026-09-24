@@ -18,6 +18,7 @@ import {
   CloudUpload as UploadIcon,
   CheckCircle as ActiveIcon,
   Cancel as InactiveIcon,
+  Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
@@ -71,17 +72,32 @@ function SectionShell({ title, subtitle, actions, children }) {
   );
 }
 
-function StatCard({ icon, label, value, color = P }) {
+function StatCard({ icon, label, value, color = P, active = false, onClick }) {
   return (
-    <Card elevation={0} sx={{ border: `1px solid ${BOR}`, borderRadius: 2, flex: 1 }}>
-      <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2, '&:last-child': { pb: 2 } }}>
-        <Avatar sx={{ bgcolor: `${color}22`, color, width: 40, height: 40, borderRadius: 1.5 }}>
-          {icon}
+    <Card 
+      elevation={0} 
+      onClick={onClick}
+      sx={{ 
+        border: `1.5px solid ${active ? color : BOR}`, 
+        borderRadius: '16px', 
+        bgcolor: active ? `${color}0c` : '#ffffff',
+        cursor: onClick ? 'pointer' : 'default',
+        transition: 'all 0.15s ease',
+        '&:hover': onClick ? { borderColor: color, transform: 'translateY(-2px)' } : {},
+        height: '100%',
+        boxShadow: active ? `0 4px 12px ${color}20` : '0 2px 8px rgba(15,23,42,0.02)'
+      }}
+    >
+      <CardContent sx={{ p: { xs: 1.25, sm: 2 }, '&:last-child': { pb: { xs: 1.25, sm: 2 } }, textAlign: 'center' }}>
+        <Avatar sx={{ bgcolor: `${color}18`, color, width: { xs: 32, sm: 38 }, height: { xs: 32, sm: 38 }, borderRadius: '10px', mx: 'auto', mb: 0.75 }}>
+          {React.cloneElement(icon, { sx: { fontSize: { xs: 18, sm: 22 } } })}
         </Avatar>
-        <Box>
-          <Typography variant="h6" fontWeight={700} color={TXT}>{value}</Typography>
-          <Typography variant="caption" color={MUT}>{label}</Typography>
-        </Box>
+        <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.25rem', sm: '1.5rem' }, color: TXT, lineHeight: 1 }}>
+          {value}
+        </Typography>
+        <Typography sx={{ fontSize: { xs: '0.68rem', sm: '0.78rem' }, color: '#64748b', fontWeight: 700, mt: 0.5 }} noWrap>
+          {label}
+        </Typography>
       </CardContent>
     </Card>
   );
@@ -160,6 +176,7 @@ export default function OnlineProductsPage() {
   const [products, setProducts]       = useState([]);
   const [loading, setLoading]         = useState(true);
   const [search, setSearch]           = useState('');
+  const [filterTab, setFilterTab]     = useState('ALL');
   const [snackbar, setSnackbar]       = useState({ open: false, msg: '', sev: 'success' });
 
   /* Edit dialog */
@@ -280,9 +297,13 @@ export default function OnlineProductsPage() {
   }
 
   /* ── Derived ── */
-  const filtered = products.filter(p =>
-    !search || p.name?.toLowerCase().includes(search.toLowerCase()) || p.category?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = products.filter(p => {
+    const matchesSearch = !search || p.name?.toLowerCase().includes(search.toLowerCase()) || p.category?.toLowerCase().includes(search.toLowerCase());
+    if (!matchesSearch) return false;
+    if (filterTab === 'ONLINE') return !!p.online_delivery;
+    if (filterTab === 'OFFLINE') return !p.online_delivery;
+    return true;
+  });
   const onlineCount  = products.filter(p => p.online_delivery).length;
   const offlineCount = products.filter(p => !p.online_delivery).length;
 
@@ -290,64 +311,207 @@ export default function OnlineProductsPage() {
   return (
     <AppShell activeTab="/business/inventory" title="Manage Online Products">
       <Container maxWidth="lg" sx={{ py: 2 }}>
-        {/* Stats */}
-        <Stack direction={{ xs: 'column', sm: 'row' }} gap={2} sx={{ mb: 3 }}>
-          <StatCard icon={<InventoryIcon />} label="Total Products" value={products.length} />
-          <StatCard icon={<ActiveIcon />}    label="Listed Online"   value={onlineCount}  color="#059669" />
-          <StatCard icon={<InactiveIcon />}  label="Offline Only"    value={offlineCount} color="#ea580c" />
-        </Stack>
-
-        {/* Search + refresh */}
-        <SectionShell
-          title="My Product Listings"
-          subtitle="Toggle 'List Online' to publish or unpublish your own products"
-          actions={
-            <Button variant="outlined" size="small" onClick={fetchProducts}
-              sx={{ color: P, borderColor: P }}>
+        {/* Page Action Header */}
+        <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={1.5} sx={{ mb: 2.5 }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 900, color: TXT, lineHeight: 1.2 }}>
+              Online Catalog Products
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#64748b' }}>
+              Toggle products available for customer online delivery and instant ordering
+            </Typography>
+          </Box>
+          <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+            <Button 
+              variant="outlined" 
+              size="small" 
+              onClick={fetchProducts}
+              startIcon={<RefreshIcon />}
+              sx={{ 
+                color: PD, 
+                borderColor: BOR, 
+                borderRadius: '10px',
+                textTransform: 'none',
+                fontWeight: 700,
+                flex: { xs: 1, sm: 'none' },
+                '&:hover': { borderColor: P, bgcolor: '#f0fdf4' }
+              }}
+            >
               Refresh
             </Button>
-          }
-        >
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => navigate('/business/inventory')}
+              startIcon={<AddIcon />}
+              sx={{
+                bgcolor: P,
+                color: '#fff',
+                borderRadius: '10px',
+                textTransform: 'none',
+                fontWeight: 800,
+                boxShadow: 'none',
+                flex: { xs: 1, sm: 'none' },
+                '&:hover': { bgcolor: PD }
+              }}
+            >
+              Add Product
+            </Button>
+          </Stack>
+        </Stack>
+
+        {/* Compact 3-Column Stats Grid */}
+        <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
+          <Grid item xs={4}>
+            <StatCard 
+              icon={<InventoryIcon />} 
+              label="Total" 
+              value={products.length} 
+              color="#2563eb"
+              active={filterTab === 'ALL'}
+              onClick={() => setFilterTab('ALL')}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <StatCard 
+              icon={<ActiveIcon />} 
+              label="Online" 
+              value={onlineCount} 
+              color="#059669"
+              active={filterTab === 'ONLINE'}
+              onClick={() => setFilterTab('ONLINE')}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <StatCard 
+              icon={<InactiveIcon />} 
+              label="Offline" 
+              value={offlineCount} 
+              color="#ea580c"
+              active={filterTab === 'OFFLINE'}
+              onClick={() => setFilterTab('OFFLINE')}
+            />
+          </Grid>
+        </Grid>
+
+        {/* Search Bar & Filter Chips */}
+        <Box sx={{ mb: 2.5 }}>
           <TextField
-            fullWidth size="small" placeholder="Search by name or category…"
-            value={search} onChange={e => setSearch(e.target.value)}
-            InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: MUT }} /></InputAdornment> }}
-            sx={{ mb: 2, bgcolor: SUR, borderRadius: 1 }}
+            fullWidth 
+            size="small" 
+            placeholder="Search by product name or category…"
+            value={search} 
+            onChange={e => setSearch(e.target.value)}
+            InputProps={{ 
+              startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: MUT }} /></InputAdornment> 
+            }}
+            sx={{ 
+              mb: 1.5, 
+              bgcolor: SUR, 
+              borderRadius: '12px',
+              '& .MuiOutlinedInput-root': { borderRadius: '12px' }
+            }}
           />
 
-          {loading ? (
-            <Box sx={{ textAlign: 'center', py: 6 }}>
-              <CircularProgress sx={{ color: P }} />
-              <Typography variant="body2" color={MUT} sx={{ mt: 1 }}>Loading products…</Typography>
+          <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 0.5 }}>
+            <Chip
+              label={`All (${products.length})`}
+              size="small"
+              clickable
+              onClick={() => setFilterTab('ALL')}
+              sx={{
+                fontWeight: 700,
+                borderRadius: '8px',
+                bgcolor: filterTab === 'ALL' ? P : '#f1f5f9',
+                color: filterTab === 'ALL' ? '#ffffff' : '#475569',
+                '&:hover': { bgcolor: filterTab === 'ALL' ? PD : '#e2e8f0' }
+              }}
+            />
+            <Chip
+              label={`Listed Online (${onlineCount})`}
+              size="small"
+              clickable
+              onClick={() => setFilterTab('ONLINE')}
+              sx={{
+                fontWeight: 700,
+                borderRadius: '8px',
+                bgcolor: filterTab === 'ONLINE' ? '#059669' : '#f1f5f9',
+                color: filterTab === 'ONLINE' ? '#ffffff' : '#475569',
+                '&:hover': { bgcolor: filterTab === 'ONLINE' ? '#047857' : '#e2e8f0' }
+              }}
+            />
+            <Chip
+              label={`Offline Only (${offlineCount})`}
+              size="small"
+              clickable
+              onClick={() => setFilterTab('OFFLINE')}
+              sx={{
+                fontWeight: 700,
+                borderRadius: '8px',
+                bgcolor: filterTab === 'OFFLINE' ? '#ea580c' : '#f1f5f9',
+                color: filterTab === 'OFFLINE' ? '#ffffff' : '#475569',
+                '&:hover': { bgcolor: filterTab === 'OFFLINE' ? '#c2410c' : '#e2e8f0' }
+              }}
+            />
+          </Stack>
+        </Box>
+
+        {/* Product Cards or Empty State */}
+        {loading ? (
+          <Box sx={{ textAlign: 'center', py: 8 }}>
+            <CircularProgress sx={{ color: P }} />
+            <Typography variant="body2" color={MUT} sx={{ mt: 1.5, fontWeight: 600 }}>Loading catalog products…</Typography>
+          </Box>
+        ) : filtered.length === 0 ? (
+          <Card elevation={0} sx={{ border: `1.5px dashed ${BOR}`, borderRadius: '20px', bgcolor: '#ffffff', py: 7, px: 3, textAlign: 'center' }}>
+            <Box sx={{ width: 64, height: 64, borderRadius: '50%', bgcolor: '#f1f5f9', display: 'grid', placeItems: 'center', mx: 'auto', mb: 2 }}>
+              <ProductIcon sx={{ fontSize: 32, color: '#94a3b8' }} />
             </Box>
-          ) : filtered.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 6, border: `2px dashed ${BOR}`, borderRadius: 2 }}>
-              <ProductIcon sx={{ fontSize: 48, color: BOR, mb: 1 }} />
-              <Typography variant="body1" color={MUT} fontWeight={600}>No products found</Typography>
-              <Typography variant="caption" color={MUT}>
-                {search ? 'Try a different search term' : 'Add products from your Shop Manager and enable online delivery'}
-              </Typography>
-            </Box>
-          ) : (
-            <Grid container spacing={2}>
-              {filtered.map(p => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={p.id}>
-                  <ProductCard
-                    product={p}
-                    onToggleOnline={handleToggleOnline}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          )}
-        </SectionShell>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: TXT, mb: 0.5 }}>
+              {search ? 'No matching products' : 'No products found'}
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#64748b', maxWidth: 440, mx: 'auto', mb: 2.5 }}>
+              {search 
+                ? 'Try a different search keyword or switch the filter.' 
+                : 'Add products to your store inventory and easily toggle them for online ordering & customer delivery.'}
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => navigate('/business/inventory')}
+              startIcon={<AddIcon />}
+              sx={{
+                bgcolor: P,
+                borderRadius: '12px',
+                px: 3.5,
+                py: 1.1,
+                fontWeight: 800,
+                textTransform: 'none',
+                boxShadow: 'none',
+                '&:hover': { bgcolor: PD }
+              }}
+            >
+              Go to Inventory Manager
+            </Button>
+          </Card>
+        ) : (
+          <Grid container spacing={2}>
+            {filtered.map(p => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={p.id}>
+                <ProductCard
+                  product={p}
+                  onToggleOnline={handleToggleOnline}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        )}
 
         {/* Info banner */}
-        <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
-          <Typography variant="body2">
-            <strong>How it works:</strong> This page manages products owned by your business account only. Toggle "List Online" on any product to publish or unpublish it from your online listing. Products must be <strong>in stock</strong> and <strong>active</strong> to appear online.
+        <Alert severity="info" sx={{ mt: 3, borderRadius: '12px', border: '1px solid #bae6fd', bgcolor: '#f0f9ff' }}>
+          <Typography variant="body2" sx={{ color: '#0369a1' }}>
+            <strong>How it works:</strong> Toggle <strong>List Online</strong> on any product to publish or unpublish it from customer online delivery. Products must have positive stock quantity to be purchased by online customers.
           </Typography>
         </Alert>
       </Container>
