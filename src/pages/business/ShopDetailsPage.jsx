@@ -6,6 +6,7 @@ import {
   LuMessageSquare, LuInfo, LuMapPin, LuStar, LuShare2 
 } from 'react-icons/lu';
 import { getPublicB2bMerchants, listShopProductsPublic } from '../../api/api';
+import AppShell from '../../components/layout/AppShell';
 
 export default function ShopDetailsPage() {
   const { id } = useParams();
@@ -60,24 +61,9 @@ export default function ShopDetailsPage() {
   const address = shop.address || shop.city || 'Local Area';
 
   return (
-    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pb: 10 }}>
-      {/* Header Bar */}
-      <Box sx={{ bgcolor: '#fff', py: 1.5, borderBottom: '1px solid #e2e8f0', sticky: 'top', zIndex: 10 }}>
-        <Container maxWidth="md">
-          <Stack direction="row" alignItems="center" spacing={1.5} justifyContent="space-between">
-            <Stack direction="row" alignItems="center" spacing={1.5}>
-              <IconButton onClick={() => navigate(-1)} sx={{ bgcolor: '#f1f5f9', color: '#0f172a' }}>
-                <LuChevronLeft size={20} />
-              </IconButton>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: '#0f172a' }}>{shopName}</Typography>
-            </Stack>
-            <IconButton sx={{ bgcolor: '#f1f5f9', color: '#0f172a' }}><LuShare2 size={18} /></IconButton>
-          </Stack>
-        </Container>
-      </Box>
-
+    <AppShell activeTab="/business/nearby-stores" title={shopName}>
       {/* Main Info */}
-      <Container maxWidth="md" sx={{ mt: 3 }}>
+      <Container maxWidth="md" sx={{ mt: 2 }}>
         <Box sx={{ p: 3, bgcolor: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', mb: 3 }}>
           <Typography sx={{ fontWeight: 900, fontSize: '1.4rem', color: '#0f172a', mb: 0.75 }}>{shopName}</Typography>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
@@ -223,18 +209,16 @@ export default function ShopDetailsPage() {
             )}
           </Grid>
         </Box>
-      </Container>
 
-      {/* Sticky Bottom Actions */}
-      <Box sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, bgcolor: '#fff', p: 2, borderTop: '1px solid #e2e8f0', zIndex: 100 }}>
-        <Container maxWidth="md">
-          <Stack direction="row" spacing={2.5}>
-            <Button variant="contained" sx={{ flex: 1, py: 1.25, bgcolor: '#228B22', textTransform: 'none', fontWeight: 800, borderRadius: '12px', boxShadow: 'none', '&:hover': { bgcolor: '#1B4D3E' } }} onClick={() => alert('Initiating Call')}>Call Now</Button>
-            <Button variant="contained" sx={{ flex: 1, py: 1.25, bgcolor: '#0ea5e9', textTransform: 'none', fontWeight: 800, borderRadius: '12px', boxShadow: 'none', '&:hover': { bgcolor: '#0284c7' } }} onClick={() => alert('Initiating Enquiry')}>Enquire Now</Button>
-            <Button variant="contained" sx={{ flex: 1, py: 1.25, bgcolor: '#22c55e', textTransform: 'none', fontWeight: 800, borderRadius: '12px', boxShadow: 'none', '&:hover': { bgcolor: '#16a34a' } }} onClick={() => alert('Opening WhatsApp chat')}>WhatsApp</Button>
+        {/* Contact Actions */}
+        <Box sx={{ mt: 3, mb: 4 }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+            <Button variant="contained" sx={{ flex: 1, py: 1.25, bgcolor: '#1B4D3E', textTransform: 'none', fontWeight: 800, borderRadius: '12px', boxShadow: 'none', '&:hover': { bgcolor: '#143d31' } }} onClick={() => alert('Initiating Call')}>Call Store</Button>
+            <Button variant="contained" sx={{ flex: 1, py: 1.25, bgcolor: '#0284c7', textTransform: 'none', fontWeight: 800, borderRadius: '12px', boxShadow: 'none', '&:hover': { bgcolor: '#0369a1' } }} onClick={() => alert('Initiating Enquiry')}>Enquire Now</Button>
+            <Button variant="contained" sx={{ flex: 1, py: 1.25, bgcolor: '#10b981', textTransform: 'none', fontWeight: 800, borderRadius: '12px', boxShadow: 'none', '&:hover': { bgcolor: '#059669' } }} onClick={() => alert('Opening WhatsApp chat')}>WhatsApp Chat</Button>
           </Stack>
-        </Container>
-      </Box>
-    </Box>
+        </Box>
+      </Container>
+    </AppShell>
   );
 }

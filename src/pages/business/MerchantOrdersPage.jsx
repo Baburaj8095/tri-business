@@ -311,9 +311,10 @@ export default function MerchantOrdersPage() {
       const res = await axios.get(`${CAPTAIN_API_URL}/captain/business/seller/orders`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setB2bOrders(res.data || []);
+      setB2bOrders(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      console.error('Failed to fetch B2B seller orders:', err);
+      // 400 or 404 simply means this merchant does not have an active seller profile
+      setB2bOrders([]);
     } finally {
       setLoadingB2bOrders(false);
     }

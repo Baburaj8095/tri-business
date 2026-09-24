@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, Container, Divider, IconButton, Stack, TextField, Typography } from '@mui/material';
 import { ArrowBack, Payments, Refresh, ShoppingBag } from '@mui/icons-material';
+import AppShell from '../../components/layout/AppShell';
 
 const P = '#228B22';
 const PD = '#1B4D3E';
@@ -83,60 +84,35 @@ export default function BusinessB2BOrdersPage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: BG, pb: 6 }}>
-      {/* Header Bar */}
-      <Box 
-        sx={{ 
-          background: `linear-gradient(135deg, ${PD} 0%, ${P} 100%)`, 
-          color: '#ffffff', 
-          py: 2.5,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.06)'
-        }}
-      >
-        <Container maxWidth="lg">
-          <Stack direction="row" alignItems="center" spacing={2} justifyContent="space-between">
-            <Stack direction="row" alignItems="center" spacing={1.5}>
-              <IconButton 
-                onClick={() => navigate('/business-dashboard')} 
-                sx={{ 
-                  bgcolor: 'rgba(255,255,255,0.12)', 
-                  color: '#fff',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' }
-                }}
-              >
-                <ArrowBack />
-              </IconButton>
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1.2 }}>
-                  My B2B Orders
-                </Typography>
-                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}>
-                  Track purchases & payments from B2B wholesale sellers
-                </Typography>
-              </Box>
-            </Stack>
-            <Button 
-              onClick={loadOrders} 
-              startIcon={<Refresh />} 
-              sx={{ 
-                color: '#fff', 
-                bgcolor: 'rgba(255,255,255,0.12)',
-                borderRadius: '10px',
-                textTransform: 'none',
-                fontWeight: 700,
-                px: 2,
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' }
-              }}
-            >
-              Refresh
-            </Button>
-          </Stack>
-        </Container>
-      </Box>
-
+    <AppShell activeTab="/business/orders" title="My B2B Orders">
       {/* Main Body */}
-      <Container maxWidth="lg" sx={{ py: 3.5 }}>
+      <Container maxWidth="lg" sx={{ py: 2 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a' }}>
+              My B2B Orders
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#64748b' }}>
+              Track purchases & payments from B2B wholesale sellers
+            </Typography>
+          </Box>
+          <Button 
+            onClick={loadOrders} 
+            startIcon={<Refresh />} 
+            variant="outlined"
+            size="small"
+            sx={{ 
+              color: PD, 
+              borderColor: BOR,
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 700,
+              '&:hover': { borderColor: P, bgcolor: '#f0fdf4' }
+            }}
+          >
+            Refresh
+          </Button>
+        </Stack>
         {error && <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px' }}>{error}</Alert>}
         {success && <Alert severity="success" sx={{ mb: 2.5, borderRadius: '12px' }}>{success}</Alert>}
 
@@ -383,6 +359,6 @@ export default function BusinessB2BOrdersPage() {
           </Stack>
         )}
       </Container>
-    </Box>
+    </AppShell>
   );
 }

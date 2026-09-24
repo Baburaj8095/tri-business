@@ -142,7 +142,7 @@ function ScannerPage() {
           <Typography sx={{ fontSize: 16, textAlign: "center" }}>{status}</Typography>
           <Button
             variant="contained"
-            onClick={() => navigate("/demo/budiness-dashboard")}
+            onClick={() => navigate("/business-dashboard")}
             sx={{ bgcolor: UI.primary, borderRadius: 999, textTransform: "none", fontWeight: 800 }}
           >
             Back to Dashboard
@@ -183,7 +183,7 @@ function ScannerPage() {
       >
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: "100%", maxWidth: 520 }}>
           <IconButton
-            onClick={() => navigate("/demo/budiness-dashboard")}
+            onClick={() => navigate("/business-dashboard")}
             sx={{ color: UI.onPrimary, bgcolor: alpha("#ffffff", 0.12), "&:hover": { bgcolor: alpha("#ffffff", 0.18) } }}
           >
             <ArrowBackRoundedIcon />

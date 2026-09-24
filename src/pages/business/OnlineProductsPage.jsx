@@ -20,6 +20,7 @@ import {
   Cancel as InactiveIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import AppShell from '../../components/layout/AppShell';
 
 /* ─── Design tokens ────────────────────────────────────────────────────────── */
 const P   = '#228B22';
@@ -287,28 +288,8 @@ export default function OnlineProductsPage() {
 
   /* ── Render ── */
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: BG }}>
-      {/* Header */}
-      <Box sx={{ bgcolor: PD, color: '#fff', py: 2, px: { xs: 2, md: 4 } }}>
-        <Container maxWidth="lg" disableGutters>
-          <Stack direction="row" alignItems="center" gap={2}>
-            <IconButton onClick={() => navigate('/business-dashboard')} sx={{ color: '#fff' }}>
-              <BackIcon />
-            </IconButton>
-            <Avatar sx={{ bgcolor: `${P}44`, color: '#fff' }}>
-              <InventoryIcon />
-            </Avatar>
-            <Box>
-              <Typography variant="h6" fontWeight={700}>Manage My Online Products</Typography>
-              <Typography variant="caption" sx={{ opacity: .75 }}>
-                Manage only your own products listed for online selling
-              </Typography>
-            </Box>
-          </Stack>
-        </Container>
-      </Box>
-
-      <Container maxWidth="lg" sx={{ py: 3 }}>
+    <AppShell activeTab="/business/inventory" title="Manage Online Products">
+      <Container maxWidth="lg" sx={{ py: 2 }}>
         {/* Stats */}
         <Stack direction={{ xs: 'column', sm: 'row' }} gap={2} sx={{ mb: 3 }}>
           <StatCard icon={<InventoryIcon />} label="Total Products" value={products.length} />
@@ -422,6 +403,6 @@ export default function OnlineProductsPage() {
           {snackbar.msg}
         </Alert>
       </Snackbar>
-    </Box>
+    </AppShell>
   );
 }

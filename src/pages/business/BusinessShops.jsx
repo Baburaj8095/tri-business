@@ -27,6 +27,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { alpha } from "@mui/material/styles";
 import { getGPSLocation } from "../../utils/locationHelper";
+import AppShell from "../../components/layout/AppShell";
 
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -453,8 +454,8 @@ export default function BusinessShops() {
   }, [merchantCategories]);
 
   return (
-    <Box sx={{ bgcolor: T.bg, minHeight: "100vh", py: 4 }}>
-      <Container maxWidth="lg">
+    <AppShell activeTab="/business/shops" title="My Shops">
+      <Container maxWidth="lg" sx={{ py: 2 }}>
         {/* Top Header */}
         <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
           <IconButton
@@ -1243,6 +1244,6 @@ export default function BusinessShops() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </AppShell>
   );
 }

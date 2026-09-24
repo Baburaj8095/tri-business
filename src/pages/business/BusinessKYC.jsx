@@ -28,6 +28,7 @@ import { LuChevronLeft, LuShieldCheck } from "react-icons/lu";
 import axios from "axios";
 import { getAccessToken } from "../../api/api";
 import { useNavigate } from "react-router-dom";
+import AppShell from "../../components/layout/AppShell";
 
 const API_BASE_URL = process.env.REACT_APP_CONSUMER_API_URL || "https://www.trikonekt.com/api";
 
@@ -184,49 +185,8 @@ export default function BusinessKYC() {
   };
 
   return (
-    <Box sx={{ 
-      bgcolor: '#f8fafc', 
-      minHeight: '100vh', 
-      pb: 6, 
-      maxWidth: '720px', 
-      margin: '0 auto', 
-      boxShadow: { xs: 'none', sm: '0 4px 20px rgba(0,0,0,0.05)' }, 
-      borderLeft: { xs: 'none', sm: '1px solid #e2e8f0' }, 
-      borderRight: { xs: 'none', sm: '1px solid #e2e8f0' } 
-    }}>
-      {/* Top sticky header */}
-      <Box sx={{ bgcolor: '#1B4D3E', background: 'linear-gradient(135deg, #1B4D3E 0%, #143d31 100%)', zIndex: 10, py: 2 }}>
-        <Container>
-          <Stack direction="row" alignItems="center" spacing={2} justifyContent="space-between">
-            <Stack direction="row" alignItems="center" spacing={1.5}>
-              <IconButton 
-                onClick={() => navigate(-1)} 
-                sx={{ 
-                  bgcolor: 'rgba(255,255,255,0.12)', 
-                  border: '1px solid rgba(255,255,255,0.25)', 
-                  color: '#ffffff', 
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
-                  width: 38,
-                  height: 38
-                }}
-              >
-                <LuChevronLeft size={20} />
-              </IconButton>
-              <Box>
-                <Typography sx={{ fontWeight: 900, fontSize: '1.2rem', color: '#ffffff', lineHeight: 1.2 }}>
-                  Business KYC
-                </Typography>
-                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>
-                  Verify identity to activate merchant status
-                </Typography>
-              </Box>
-            </Stack>
-            <LuShieldCheck size={22} color="#10b981" />
-          </Stack>
-        </Container>
-      </Box>
-
-      <Container sx={{ mt: 3, px: 2 }}>
+    <AppShell activeTab="/business/profile" title="KYC Verification">
+      <Container maxWidth="md" sx={{ py: 2 }}>
         {renderStatusHeader()}
 
         <Paper elevation={0} sx={{ borderRadius: 4, border: '1px solid #e2e8f0', p: 3, bgcolor: SURFACE, boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
@@ -364,6 +324,6 @@ export default function BusinessKYC() {
           )}
         </Paper>
       </Container>
-    </Box>
+    </AppShell>
   );
 }

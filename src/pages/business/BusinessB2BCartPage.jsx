@@ -5,6 +5,7 @@ import {
   IconButton, Stack, TextField, Typography
 } from '@mui/material';
 import { ArrowBack, Delete, Remove, Add, ShoppingCartCheckout } from '@mui/icons-material';
+import AppShell from '../../components/layout/AppShell';
 
 const P = '#228B22';
 const PD = '#1B4D3E';
@@ -119,32 +120,8 @@ export default function BusinessB2BCartPage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: BG, pb: 5, maxWidth: '430px', margin: '0 auto', boxShadow: '0 0 20px rgba(0,0,0,0.05)', borderLeft: `1px solid ${BOR}`, borderRight: `1px solid ${BOR}` }}>
-      <Box sx={{ bgcolor: PD, color: '#fff', py: 2 }}>
-        <Container sx={{ px: 2 }}>
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <IconButton 
-              onClick={() => navigate('/business/online-marketplace')} 
-              sx={{ 
-                bgcolor: 'rgba(255,255,255,0.12)', 
-                border: '1px solid rgba(255,255,255,0.25)', 
-                color: '#ffffff', 
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
-                width: 38,
-                height: 38
-              }}
-            >
-              <ArrowBack />
-            </IconButton>
-            <Box>
-              <Typography variant="h6" fontWeight={900}>B2B Cart</Typography>
-              <Typography variant="caption" sx={{ opacity: 0.85 }}>One seller/shop per cart</Typography>
-            </Box>
-          </Stack>
-        </Container>
-      </Box>
-
-      <Container sx={{ py: 3, px: 2 }}>
+    <AppShell activeTab="/business/online-marketplace" title="B2B Wholesale Cart">
+      <Container maxWidth="md" sx={{ py: 2 }}>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
@@ -193,6 +170,6 @@ export default function BusinessB2BCartPage() {
           </Stack>
         )}
       </Container>
-    </Box>
+    </AppShell>
   );
 }

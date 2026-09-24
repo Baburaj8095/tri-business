@@ -26,6 +26,9 @@ import {
 import { getMerchantProfile, updateMerchantProfile } from "../../api/api";
 import { LuChevronLeft, LuPencil } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
+import AppShell from "../../components/layout/AppShell";
+import LogoutIcon from "@mui/icons-material/Logout";
+import LockIcon from "@mui/icons-material/LockOutlined";
 
 const PRIMARY = "#228B22";
 const PRIMARY_DARK = "#1B4D3E";
@@ -194,30 +197,8 @@ export default function BusinessProfile() {
   }
 
   return (
-    <Box sx={{ bgcolor: BG, minHeight: "100vh", pb: 4 }}>
-      {/* Header with Back Button */}
-      <Box sx={{ bgcolor: SURFACE, py: 2, borderBottom: `1px solid ${BORDER}`, mb: 2 }}>
-        <Container maxWidth="md">
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <IconButton
-              size="small"
-              onClick={() => navigate("/business-dashboard")}
-              sx={{
-                bgcolor: "#f1f5f9",
-                color: TEXT,
-                "&:hover": { bgcolor: BORDER },
-              }}
-            >
-              <LuChevronLeft size={20} />
-            </IconButton>
-            <Typography sx={{ fontSize: "1.3rem", fontWeight: 900, color: TEXT }}>
-              Business Profile
-            </Typography>
-          </Stack>
-        </Container>
-      </Box>
-
-      <Container maxWidth="md">
+    <AppShell activeTab="/business/profile" title="Business Profile">
+      <Container maxWidth="md" sx={{ py: 2 }}>
         {error && (
           <Alert severity="error" sx={{ mb: 2, borderRadius: "12px" }} onClose={() => setError("")}>
             {error}
@@ -587,8 +568,9 @@ export default function BusinessProfile() {
                   py: 1.2,
                   "&:hover": { bgcolor: BG, borderColor: PRIMARY },
                 }}
+                startIcon={<LockIcon />}
               >
-                🔐 Change Password
+                Change Password
               </Button>
             </Stack>
           </CardContent>
@@ -598,6 +580,14 @@ export default function BusinessProfile() {
         <Button
           fullWidth
           variant="contained"
+          onClick={() => {
+            localStorage.removeItem('token_business');
+            localStorage.removeItem('token_captain');
+            localStorage.removeItem('refresh_business');
+            localStorage.removeItem('refresh_captain');
+            navigate('/login');
+          }}
+          startIcon={<LogoutIcon />}
           sx={{
             bgcolor: "#ef4444",
             color: SURFACE,
@@ -609,9 +599,9 @@ export default function BusinessProfile() {
             "&:hover": { bgcolor: "#dc2626" },
           }}
         >
-          🚪 Logout
+          Log Out
         </Button>
       </Container>
-    </Box>
+    </AppShell>
   );
 }
