@@ -247,11 +247,11 @@ const DRAWER_ITEMS = [
   { label: "Add Shop", action: "addShop", icon: LuStore },
   { label: "Manage Online Products", action: "onlineProducts", icon: LuTag },
   { label: "Inventory", action: "inventory", icon: LuPackage },
-  { label: "kyc", action: "kyc", icon: LuShieldCheck },
+  { label: "KYC Verification", action: "kyc", icon: LuShieldCheck },
   { label: "Completed Orders", action: "completedOrders", icon: LuFileText },
-  { label: "Terms & Condition", action: "terms", icon: LuBookOpen },
+  { label: "Terms & Conditions", action: "terms", icon: LuBookOpen },
   { label: "Refund Policy", action: "refund", icon: LuInfo },
-  { label: "Refer Frendiends", action: "refer", icon: LuGift },
+  { label: "Refer Friends", action: "refer", icon: LuGift },
 ];
 
 function sectionCardStyles() {

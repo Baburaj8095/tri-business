@@ -83,45 +83,305 @@ export default function BusinessB2BOrdersPage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: BG, pb: 5 }}>
-      <Box sx={{ bgcolor: PD, color: '#fff', py: 2 }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: BG, pb: 6 }}>
+      {/* Header Bar */}
+      <Box 
+        sx={{ 
+          background: `linear-gradient(135deg, ${PD} 0%, ${P} 100%)`, 
+          color: '#ffffff', 
+          py: 2.5,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.06)'
+        }}
+      >
         <Container maxWidth="lg">
-          <Stack direction="row" alignItems="center" spacing={1.5}>
-            <IconButton onClick={() => navigate('/business-dashboard')} sx={{ color: '#fff' }}><ArrowBack /></IconButton>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="h6" fontWeight={900}>My B2B Orders</Typography>
-              <Typography variant="caption" sx={{ opacity: 0.85 }}>Track purchases from other B2B merchants</Typography>
-            </Box>
-            <Button onClick={loadOrders} startIcon={<Refresh />} sx={{ color: '#fff' }}>Refresh</Button>
+          <Stack direction="row" alignItems="center" spacing={2} justifyContent="space-between">
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              <IconButton 
+                onClick={() => navigate('/business-dashboard')} 
+                sx={{ 
+                  bgcolor: 'rgba(255,255,255,0.12)', 
+                  color: '#fff',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' }
+                }}
+              >
+                <ArrowBack />
+              </IconButton>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1.2 }}>
+                  My B2B Orders
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}>
+                  Track purchases & payments from B2B wholesale sellers
+                </Typography>
+              </Box>
+            </Stack>
+            <Button 
+              onClick={loadOrders} 
+              startIcon={<Refresh />} 
+              sx={{ 
+                color: '#fff', 
+                bgcolor: 'rgba(255,255,255,0.12)',
+                borderRadius: '10px',
+                textTransform: 'none',
+                fontWeight: 700,
+                px: 2,
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' }
+              }}
+            >
+              Refresh
+            </Button>
           </Stack>
         </Container>
       </Box>
-      <Container maxWidth="lg" sx={{ py: 3 }}>
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-        {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
-        {loading ? <Box sx={{ textAlign: 'center', py: 8 }}><CircularProgress sx={{ color: P }} /></Box> : orders.length === 0 ? (
-          <Card elevation={0} sx={{ border: `1px solid ${BOR}`, borderRadius: 3 }}><CardContent sx={{ textAlign: 'center', py: 6 }}><ShoppingBag sx={{ fontSize: 48, color: '#cbd5e1' }} /><Typography fontWeight={900}>No B2B orders yet</Typography><Button sx={{ mt: 2, bgcolor: P }} variant="contained" onClick={() => navigate('/business/online-marketplace')}>Browse Marketplace</Button></CardContent></Card>
-        ) : <Stack spacing={2}>{orders.map(order => {
-          const terminal = ['CANCELLED', 'REJECTED', 'COMPLETED'].includes(order.status);
-          const canCancel = ['PENDING_CONFIRMATION', 'CONFIRMED'].includes(order.status);
-          const canPay = !terminal && order.payment_status !== 'PAID' && order.payment_status !== 'PENDING_APPROVAL';
-          const input = paymentInputs[order.id] || {};
-          return <Card key={order.id} elevation={0} sx={{ border: `1px solid ${BOR}`, borderRadius: 3 }}><CardContent>
-            <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1.5}>
-              <Box><Typography fontWeight={900}>{order.order_number || `B2B #${order.id}`}</Typography><Typography fontSize={13} color="text.secondary">Seller: {order.shop_name || order.seller_name}</Typography></Box>
-              <Stack direction="row" spacing={1}><Chip label={order.status} color={statusColor(order.status)} /><Chip label={order.payment_status} color={statusColor(order.payment_status)} /></Stack>
-            </Stack>
-            <Divider sx={{ my: 1.5 }} />
-            {(order.items || []).map(item => <Typography key={item.id || item.product_id} fontSize={14}>• {item.product_title || item.productTitle} × {item.quantity} — {money(item.line_total || item.price * item.quantity)}</Typography>)}
-            <Stack direction="row" justifyContent="space-between" sx={{ mt: 1.5 }}><Typography fontWeight={800}>Total</Typography><Typography fontWeight={900}>{money(order.grand_total || order.grandTotal)}</Typography></Stack>
-            {canPay && <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} sx={{ mt: 2 }}>
-              <TextField size="small" label="Amount" value={input.amount || order.grand_total || ''} onChange={e => setPaymentInputs(p => ({ ...p, [order.id]: { ...input, amount: e.target.value } }))} />
-              <TextField size="small" label="Payment reference" value={input.reference || ''} onChange={e => setPaymentInputs(p => ({ ...p, [order.id]: { ...input, reference: e.target.value } }))} />
-              <Button variant="contained" startIcon={<Payments />} disabled={actioningId === order.id} onClick={() => submitPayment(order)} sx={{ bgcolor: P }}>Submit Payment</Button>
-            </Stack>}
-            {canCancel && <Button color="error" disabled={actioningId === order.id} onClick={() => cancelOrder(order.id)} sx={{ mt: 1 }}>Cancel Order</Button>}
-          </CardContent></Card>;
-        })}</Stack>}
+
+      {/* Main Body */}
+      <Container maxWidth="lg" sx={{ py: 3.5 }}>
+        {error && <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px' }}>{error}</Alert>}
+        {success && <Alert severity="success" sx={{ mb: 2.5, borderRadius: '12px' }}>{success}</Alert>}
+
+        {loading ? (
+          <Box sx={{ textAlign: 'center', py: 10 }}>
+            <CircularProgress sx={{ color: P }} />
+            <Typography sx={{ mt: 2, color: 'text.secondary', fontWeight: 600, fontSize: 14 }}>
+              Loading your B2B orders...
+            </Typography>
+          </Box>
+        ) : orders.length === 0 ? (
+          <Card 
+            elevation={0} 
+            sx={{ 
+              border: `1px solid ${BOR}`, 
+              borderRadius: '20px', 
+              bgcolor: '#ffffff',
+              boxShadow: '0 4px 16px rgba(15,23,42,0.03)' 
+            }}
+          >
+            <CardContent sx={{ textAlign: 'center', py: 8 }}>
+              <Box 
+                sx={{ 
+                  width: 72, 
+                  height: 72, 
+                  borderRadius: '50%', 
+                  bgcolor: '#f1f5f9', 
+                  display: 'grid', 
+                  placeItems: 'center', 
+                  mx: 'auto', 
+                  mb: 2 
+                }}
+              >
+                <ShoppingBag sx={{ fontSize: 36, color: '#94a3b8' }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', mb: 0.5 }}>
+                No B2B orders yet
+              </Typography>
+              <Typography sx={{ color: '#64748b', fontSize: 14, mb: 3 }}>
+                You haven't placed any wholesale orders from other merchants yet.
+              </Typography>
+              <Button 
+                sx={{ 
+                  bgcolor: P, 
+                  borderRadius: '12px', 
+                  px: 3.5, 
+                  py: 1.2, 
+                  fontWeight: 800, 
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: PD }
+                }} 
+                variant="contained" 
+                onClick={() => navigate('/business/online-marketplace')}
+              >
+                Browse Marketplace
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <Stack spacing={2.5}>
+            {orders.map(order => {
+              const terminal = ['CANCELLED', 'REJECTED', 'COMPLETED'].includes(order.status);
+              const canCancel = ['PENDING_CONFIRMATION', 'CONFIRMED'].includes(order.status);
+              const canPay = !terminal && order.payment_status !== 'PAID' && order.payment_status !== 'PENDING_APPROVAL';
+              const input = paymentInputs[order.id] || {};
+
+              return (
+                <Card 
+                  key={order.id} 
+                  elevation={0} 
+                  sx={{ 
+                    border: `1px solid ${BOR}`, 
+                    borderRadius: '18px', 
+                    bgcolor: '#ffffff',
+                    boxShadow: '0 4px 14px rgba(15,23,42,0.02)',
+                    transition: 'all 0.2s ease',
+                    '&:hover': { boxShadow: '0 8px 24px rgba(15,23,42,0.06)' }
+                  }}
+                >
+                  <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
+                    {/* Header Row */}
+                    <Stack 
+                      direction={{ xs: 'column', sm: 'row' }} 
+                      justifyContent="space-between" 
+                      alignItems={{ xs: 'flex-start', sm: 'center' }} 
+                      spacing={1.5}
+                      sx={{ mb: 2 }}
+                    >
+                      <Box>
+                        <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: '#0f172a' }}>
+                          {order.order_number || `B2B Order #${order.id}`}
+                        </Typography>
+                        <Typography sx={{ fontSize: 13, color: '#64748b', fontWeight: 600, mt: 0.25 }}>
+                          Seller: <span style={{ color: '#0f172a', fontWeight: 700 }}>{order.shop_name || order.seller_name || 'Merchant'}</span>
+                        </Typography>
+                      </Box>
+                      <Stack direction="row" spacing={1} flexWrap="wrap">
+                        <Chip 
+                          label={`Status: ${order.status}`} 
+                          color={statusColor(order.status)} 
+                          size="small"
+                          sx={{ fontWeight: 800, borderRadius: '8px' }} 
+                        />
+                        <Chip 
+                          label={`Payment: ${order.payment_status}`} 
+                          color={statusColor(order.payment_status)} 
+                          size="small"
+                          variant="outlined"
+                          sx={{ fontWeight: 800, borderRadius: '8px' }} 
+                        />
+                      </Stack>
+                    </Stack>
+
+                    <Divider sx={{ my: 1.5 }} />
+
+                    {/* Ordered Items List */}
+                    <Box sx={{ my: 2 }}>
+                      <Typography sx={{ fontSize: 12, fontWeight: 750, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 1 }}>
+                        Order Items
+                      </Typography>
+                      <Stack spacing={0.75}>
+                        {(order.items || []).map(item => (
+                          <Box 
+                            key={item.id || item.product_id}
+                            sx={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between', 
+                              alignItems: 'center',
+                              p: 1.25,
+                              borderRadius: '10px',
+                              bgcolor: '#f8fafc',
+                              border: '1px solid #f1f5f9'
+                            }}
+                          >
+                            <Typography sx={{ fontSize: 13.5, fontWeight: 650, color: '#1e293b' }}>
+                              {item.product_title || item.productTitle} 
+                              <span style={{ color: '#64748b', fontWeight: 500 }}> × {item.quantity}</span>
+                            </Typography>
+                            <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: '#0f172a' }}>
+                              {money(item.line_total || item.price * item.quantity)}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Stack>
+                    </Box>
+
+                    {/* Total Summary */}
+                    <Stack 
+                      direction="row" 
+                      justifyContent="space-between" 
+                      alignItems="center"
+                      sx={{ 
+                        mt: 2, 
+                        p: 1.5, 
+                        borderRadius: '12px', 
+                        bgcolor: 'rgba(34,139,34,0.06)', 
+                        border: '1px solid rgba(34,139,34,0.15)' 
+                      }}
+                    >
+                      <Typography sx={{ fontWeight: 800, fontSize: 15, color: PD }}>
+                        Grand Total
+                      </Typography>
+                      <Typography sx={{ fontWeight: 900, fontSize: 18, color: P }}>
+                        {money(order.grand_total || order.grandTotal)}
+                      </Typography>
+                    </Stack>
+
+                    {/* Payment Inputs for Pending Payment */}
+                    {canPay && (
+                      <Box 
+                        sx={{ 
+                          mt: 2.5, 
+                          p: 2, 
+                          borderRadius: '14px', 
+                          border: '1px solid #e2e8f0', 
+                          bgcolor: '#f8fafc' 
+                        }}
+                      >
+                        <Typography sx={{ fontWeight: 800, fontSize: 13, color: '#1e293b', mb: 1.5 }}>
+                          Submit Payment Details to Seller
+                        </Typography>
+                        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems="center">
+                          <TextField 
+                            size="small" 
+                            label="Amount" 
+                            value={input.amount || order.grand_total || ''} 
+                            onChange={e => setPaymentInputs(p => ({ ...p, [order.id]: { ...input, amount: e.target.value } }))} 
+                            sx={{ bgcolor: '#fff', borderRadius: '8px', minWidth: { xs: '100%', md: 160 } }}
+                          />
+                          <TextField 
+                            size="small" 
+                            label="Payment reference / UTR" 
+                            placeholder="e.g. UPI Ref / Bank Txn ID"
+                            value={input.reference || ''} 
+                            onChange={e => setPaymentInputs(p => ({ ...p, [order.id]: { ...input, reference: e.target.value } }))} 
+                            sx={{ bgcolor: '#fff', borderRadius: '8px', flex: 1, minWidth: { xs: '100%', md: 240 } }}
+                          />
+                          <Button 
+                            variant="contained" 
+                            startIcon={<Payments />} 
+                            disabled={actioningId === order.id} 
+                            onClick={() => submitPayment(order)} 
+                            sx={{ 
+                              bgcolor: P, 
+                              borderRadius: '10px', 
+                              px: 3, 
+                              py: 1, 
+                              fontWeight: 800, 
+                              textTransform: 'none',
+                              minWidth: { xs: '100%', md: 170 },
+                              '&:hover': { bgcolor: PD }
+                            }}
+                          >
+                            {actioningId === order.id ? 'Submitting...' : 'Submit Payment'}
+                          </Button>
+                        </Stack>
+                      </Box>
+                    )}
+
+                    {/* Cancel Action */}
+                    {canCancel && (
+                      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button 
+                          color="error" 
+                          variant="outlined"
+                          size="small"
+                          disabled={actioningId === order.id} 
+                          onClick={() => cancelOrder(order.id)} 
+                          sx={{ 
+                            borderRadius: '10px', 
+                            textTransform: 'none', 
+                            fontWeight: 700,
+                            borderColor: '#fca5a5'
+                          }}
+                        >
+                          Cancel Order
+                        </Button>
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </Stack>
+        )}
       </Container>
     </Box>
   );

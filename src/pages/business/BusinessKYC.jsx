@@ -188,11 +188,11 @@ export default function BusinessKYC() {
       bgcolor: '#f8fafc', 
       minHeight: '100vh', 
       pb: 6, 
-      maxWidth: '430px', 
+      maxWidth: '720px', 
       margin: '0 auto', 
-      boxShadow: '0 0 20px rgba(0,0,0,0.05)', 
-      borderLeft: '1px solid #e2e8f0', 
-      borderRight: '1px solid #e2e8f0' 
+      boxShadow: { xs: 'none', sm: '0 4px 20px rgba(0,0,0,0.05)' }, 
+      borderLeft: { xs: 'none', sm: '1px solid #e2e8f0' }, 
+      borderRight: { xs: 'none', sm: '1px solid #e2e8f0' } 
     }}>
       {/* Top sticky header */}
       <Box sx={{ bgcolor: '#1B4D3E', background: 'linear-gradient(135deg, #1B4D3E 0%, #143d31 100%)', zIndex: 10, py: 2 }}>

@@ -113,7 +113,9 @@ export default function BusinessDashboard() {
         <Container maxWidth="md">
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
             <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: TEXT_MUTED }}>📍</Typography>
-            <Typography sx={{ fontSize: '0.95rem', fontWeight: 700, color: TEXT }}>Bangladesh</Typography>
+            <Typography sx={{ fontSize: '0.95rem', fontWeight: 700, color: TEXT }}>
+              {profile?.city ? `${profile.city}${profile?.state ? `, ${profile.state}` : ''}` : profile?.address || 'Operating Location'}
+            </Typography>
           </Stack>
           <Typography sx={{ fontSize: '1.6rem', fontWeight: 900, color: TEXT }}>
             Business Dashboard

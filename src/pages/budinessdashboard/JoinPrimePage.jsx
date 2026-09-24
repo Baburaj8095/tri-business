@@ -21,14 +21,14 @@ import PersonAddAlt1RoundedIcon from "@mui/icons-material/PersonAddAlt1Rounded";
 import AutoGraphRoundedIcon from "@mui/icons-material/AutoGraphRounded";
 
 const UI = {
-  bg: "#dbe8fb",
+  bg: "#f8fafc",
   surface: "#ffffff",
-  text: "#1f2937",
-  muted: "#6b7280",
+  text: "#0f172a",
+  muted: "#64748b",
   primary: "#228B22",
   secondary: "#1B4D3E",
   onPrimary: "#ffffff",
-  gradient: "linear-gradient(180deg, #1B4D3E 0%, #228B22 100%)",
+  gradient: "linear-gradient(135deg, #1B4D3E 0%, #228B22 100%)",
 };
 
 const BENEFITS = [
@@ -126,7 +126,7 @@ function JoinPrimePage() {
   const [selectedRegistration, setSelectedRegistration] = useState("paid");
   const backTarget = location.pathname.startsWith("/consumer-ecommerce")
     ? "/consumer-ecommerce"
-    : "/demo/budiness-dashboard";
+    : "/business-dashboard";
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: UI.bg }}>
