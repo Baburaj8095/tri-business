@@ -447,10 +447,9 @@ export default function AppShell({ children, activeTab, title }) {
               right: 0,
               height: '106px',
               zIndex: 1100,
-              bgcolor: '#1B4D3E',
-              background: 'linear-gradient(135deg, #1B4D3E 0%, #12372C 100%)',
+              background: 'linear-gradient(135deg, #059669 0%, #10B981 60%, #047857 100%)',
               color: '#ffffff',
-              boxShadow: '0 4px 18px rgba(0,0,0,0.12)',
+              boxShadow: '0 4px 20px rgba(5, 150, 105, 0.25)',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
@@ -742,75 +741,151 @@ export default function AppShell({ children, activeTab, title }) {
         onClose={() => setMobileDrawerOpen(false)}
         PaperProps={{
           sx: {
-            width: 290,
+            width: 310,
             bgcolor: '#ffffff',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
+            boxShadow: '4px 0 24px rgba(15, 23, 42, 0.15)',
           }
         }}
       >
-        <Box>
+        <Box sx={{ overflowY: 'auto' }}>
           {/* Drawer Top Profile Banner */}
           <Box
             sx={{
               p: 2.5,
-              bgcolor: '#1B4D3E',
-              background: 'linear-gradient(135deg, #1B4D3E 0%, #12372C 100%)',
+              background: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
               color: '#ffffff',
+              position: 'relative',
+              overflow: 'hidden',
             }}
           >
-            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+            {/* Luminous background accent circle */}
+            <Box sx={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.12)', pointerEvents: 'none' }} />
+
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5, position: 'relative' }}>
               <Avatar
                 sx={{
-                  width: 46,
-                  height: 46,
-                  bgcolor: 'rgba(255,255,255,0.2)',
-                  color: '#ffffff',
-                  fontWeight: 800,
-                  fontSize: '1.1rem',
-                  border: '2px solid rgba(255,255,255,0.8)'
+                  width: 50,
+                  height: 50,
+                  bgcolor: '#ffffff',
+                  color: '#059669',
+                  fontWeight: 900,
+                  fontSize: '1.2rem',
+                  border: '2.5px solid rgba(255,255,255,0.9)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                 }}
               >
                 {initials}
               </Avatar>
-              <IconButton onClick={() => setMobileDrawerOpen(false)} sx={{ color: '#ffffff' }}>
-                <CloseIcon />
+              <IconButton onClick={() => setMobileDrawerOpen(false)} sx={{ color: '#ffffff', bgcolor: 'rgba(255,255,255,0.15)', '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' } }}>
+                <CloseIcon sx={{ fontSize: 20 }} />
               </IconButton>
             </Stack>
 
-            <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: '#ffffff' }} noWrap>
+            <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: '#ffffff', letterSpacing: '-0.01em' }} noWrap>
               {displayName}
             </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', mt: 0.25 }}>
+            <Typography sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.85)', mt: 0.25 }} noWrap>
               {profile?.email || profile?.mobile_number || 'Merchant Partner'}
             </Typography>
 
-            <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
+            <Stack direction="row" spacing={0.75} sx={{ mt: 1.5, flexWrap: 'wrap', gap: 0.75 }}>
               <Chip
-                label={profile?.is_verified ? 'Verified Merchant' : 'Merchant'}
+                icon={<VerifiedIcon sx={{ fontSize: '14px !important', color: '#ffffff !important' }} />}
+                label={profile?.is_verified ? 'Verified Business' : 'Active Merchant'}
                 size="small"
-                sx={{ bgcolor: 'rgba(16, 185, 129, 0.25)', color: '#34d399', fontWeight: 800, fontSize: '0.7rem' }}
+                sx={{ bgcolor: 'rgba(255,255,255,0.25)', color: '#ffffff', fontWeight: 800, fontSize: '0.7rem' }}
               />
               <Chip
-                label={profile?.service_mode || 'B2B/B2C'}
+                label="⭐ Gold Tier"
                 size="small"
-                sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: '#ffffff', fontWeight: 700, fontSize: '0.7rem' }}
+                sx={{ bgcolor: 'rgba(251, 191, 36, 0.25)', color: '#fef08a', fontWeight: 800, fontSize: '0.7rem' }}
               />
             </Stack>
           </Box>
 
-          {/* Drawer Navigation Links */}
-          <Box sx={{ p: 1.5 }}>
-            <Stack spacing={0.5}>
+          {/* Quick Merchant Wallet Mini-Card */}
+          <Box sx={{ p: 2, pb: 1 }}>
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: '16px',
+                background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 2px 8px rgba(15,23,42,0.03)',
+              }}
+            >
+              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Box sx={{ width: 28, height: 28, borderRadius: '8px', bgcolor: 'rgba(16, 185, 129, 0.15)', display: 'grid', placeItems: 'center', color: '#059669' }}>
+                    <WalletIcon sx={{ fontSize: 16 }} />
+                  </Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                    Merchant Balance
+                  </Typography>
+                </Stack>
+                <Chip label="Instant" size="small" sx={{ bgcolor: '#ecfdf5', color: '#059669', fontWeight: 800, fontSize: '0.65rem', height: 20 }} />
+              </Stack>
+              <Typography sx={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', mb: 1.25 }}>
+                ₹45,280.00
+              </Typography>
+              <Stack direction="row" spacing={1}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => { setMobileDrawerOpen(false); navigate('/business/profile'); }}
+                  sx={{
+                    flex: 1,
+                    py: 0.5,
+                    bgcolor: '#059669',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    textTransform: 'none',
+                    borderRadius: '8px',
+                    boxShadow: 'none',
+                    '&:hover': { bgcolor: '#047857' }
+                  }}
+                >
+                  + Add Funds
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => { setMobileDrawerOpen(false); navigate('/business/profile'); }}
+                  sx={{
+                    flex: 1,
+                    py: 0.5,
+                    borderColor: '#cbd5e1',
+                    color: '#475569',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    textTransform: 'none',
+                    borderRadius: '8px',
+                    '&:hover': { borderColor: '#94a3b8', bgcolor: '#ffffff' }
+                  }}
+                >
+                  Withdraw
+                </Button>
+              </Stack>
+            </Box>
+          </Box>
+
+          {/* Drawer Navigation Links with Vibrant Colorful Badges */}
+          <Box sx={{ p: 1.5, pt: 0.5 }}>
+            <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#94a3b8', px: 1, py: 1, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Business Modules
+            </Typography>
+            <Stack spacing={0.6}>
               {[
-                { label: 'My Shops', path: '/business/shops', icon: <ShopsIcon /> },
-                { label: 'Tri Inventory & Billing', path: '/business/inventory', icon: <InventoryIcon /> },
-                { label: 'Manage Online Products', path: '/business/online-products', icon: <MarketplaceIcon /> },
-                { label: 'Ads Manager', path: '/business/ads', icon: <AdsIcon /> },
-                { label: 'Delivery (Tri Sarathi)', path: '/business/delivery', icon: <DeliveryIcon /> },
-                { label: 'Business Profile', path: '/business/profile', icon: <ProfileIcon /> },
-                { label: 'KYC Verification', path: '/business/kyc', icon: <KycIcon /> },
+                { label: 'My Shops', path: '/business/shops', icon: <ShopsIcon />, color: '#2563EB', bg: '#EFF6FF' },
+                { label: 'Tri Inventory & Billing', path: '/business/inventory', icon: <InventoryIcon />, color: '#10B981', bg: '#ECFDF5' },
+                { label: 'Manage Online Products', path: '/business/online-products', icon: <MarketplaceIcon />, color: '#06B6D4', bg: '#ECFEFF' },
+                { label: 'Ads & Campaigns', path: '/business/ads', icon: <AdsIcon />, color: '#F59E0B', bg: '#FFFBEB' },
+                { label: 'Delivery (Tri Sarathi)', path: '/business/delivery', icon: <DeliveryIcon />, color: '#0EA5E9', bg: '#F0F9FF' },
+                { label: 'Business Profile', path: '/business/profile', icon: <ProfileIcon />, color: '#8B5CF6', bg: '#F5F3FF' },
+                { label: 'KYC Verification', path: '/business/kyc', icon: <KycIcon />, color: '#16A34A', bg: '#F0FDF4' },
               ].map((item) => (
                 <Button
                   key={item.label}
@@ -818,22 +893,27 @@ export default function AppShell({ children, activeTab, title }) {
                     setMobileDrawerOpen(false);
                     navigate(item.path);
                   }}
-                  startIcon={React.cloneElement(item.icon, { sx: { fontSize: 20, color: '#1B4D3E' } })}
-                  endIcon={<ChevronRightIcon sx={{ fontSize: 18, color: '#94A3B8' }} />}
+                  startIcon={
+                    <Box sx={{ width: 34, height: 34, borderRadius: '10px', bgcolor: item.bg, color: item.color, display: 'grid', placeItems: 'center', mr: 0.5 }}>
+                      {React.cloneElement(item.icon, { sx: { fontSize: 18 } })}
+                    </Box>
+                  }
+                  endIcon={<ChevronRightIcon sx={{ fontSize: 16, color: '#94A3B8' }} />}
                   sx={{
                     justifyContent: 'space-between',
                     width: '100%',
-                    px: 1.75,
-                    py: 1.2,
-                    borderRadius: '10px',
+                    px: 1.25,
+                    py: 0.75,
+                    borderRadius: '12px',
                     textTransform: 'none',
                     fontWeight: 700,
-                    fontSize: '0.88rem',
+                    fontSize: '0.86rem',
                     color: '#0F172A',
-                    '&:hover': { bgcolor: '#F8FAFC' }
+                    transition: 'all 0.15s ease',
+                    '&:hover': { bgcolor: '#F8FAFC', transform: 'translateX(3px)' }
                   }}
                 >
-                  <Box sx={{ flex: 1, textAlign: 'left', ml: 1 }}>{item.label}</Box>
+                  <Box sx={{ flex: 1, textAlign: 'left' }}>{item.label}</Box>
                 </Button>
               ))}
             </Stack>
@@ -841,7 +921,7 @@ export default function AppShell({ children, activeTab, title }) {
         </Box>
 
         {/* Drawer Footer with Logout */}
-        <Box sx={{ p: 2, borderTop: '1px solid #E2E8F0' }}>
+        <Box sx={{ p: 2, borderTop: '1px solid #E2E8F0', bgcolor: '#fafafa' }}>
           <Button
             fullWidth
             onClick={() => {
@@ -852,16 +932,18 @@ export default function AppShell({ children, activeTab, title }) {
             sx={{
               justifyContent: 'flex-start',
               px: 2,
-              py: 1.1,
-              borderRadius: '10px',
+              py: 1.15,
+              borderRadius: '12px',
               textTransform: 'none',
               fontWeight: 800,
               fontSize: '0.88rem',
               color: '#EF4444',
-              '&:hover': { bgcolor: '#FEF2F2' }
+              bgcolor: '#FEF2F2',
+              border: '1px solid #FEE2E2',
+              '&:hover': { bgcolor: '#FEE2E2' }
             }}
           >
-            Log Out
+            Sign Out of Account
           </Button>
         </Box>
       </Drawer>

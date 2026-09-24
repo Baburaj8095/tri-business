@@ -112,6 +112,7 @@ export default function InventoryPage() {
   const [formData, setFormData] = useState({
     productName: "", category: "", price: "", discountPercent: "0", quantity: "", description: "", image: null,
   });
+  const [addStep, setAddStep] = useState(0);
   const [formErrors, setFormErrors] = useState({});
 
   // Edit Form State
@@ -234,22 +235,39 @@ export default function InventoryPage() {
     if (shop) fetchInventory(shop.id);
   };
 
-  // ----- Add Product Logic -----
+  // ----- Multi-Step Wizard Logic -----
   const handleAddChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: "" }));
   };
 
+  const handleNextStep = () => {
+    const newErrors = {};
+    if (addStep === 0) {
+      if (!formData.productName.trim()) newErrors.productName = "Product name is required";
+      if (!formData.category) newErrors.category = "Please select a category";
+    } else if (addStep === 1) {
+      if (!formData.price || Number(formData.price) <= 0) newErrors.price = "Valid MRP is required";
+      if (!formData.quantity || Number(formData.quantity) < 0) newErrors.quantity = "Valid stock quantity is required";
+    }
+    setFormErrors(newErrors);
+    if (Object.keys(newErrors).length === 0) {
+      setAddStep(prev => Math.min(prev + 1, 3));
+    }
+  };
+
+  const handlePrevStep = () => {
+    setAddStep(prev => Math.max(prev - 1, 0));
+  };
+
   const handleAddSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     const newErrors = {};
     if (!formData.productName.trim()) newErrors.productName = "Required";
     if (!formData.category) newErrors.category = "Required";
     if (!formData.price) newErrors.price = "Required";
     if (!formData.quantity) newErrors.quantity = "Required";
-    if (!formData.description.trim()) newErrors.description = "Required";
-    if (!formData.image) newErrors.image = "Image required";
     setFormErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) return;
@@ -285,6 +303,7 @@ export default function InventoryPage() {
       await createMyShopProduct(selectedShop.id, payload);
       setSuccessMessage(`Product added successfully!`);
       setFormData({ productName: "", category: "", price: "", discountPercent: "0", quantity: "", description: "", image: null });
+      setAddStep(0);
       setIsAddFormOpen(false);
       await fetchInventory(selectedShop.id);
       setTimeout(() => setSuccessMessage(""), 4000);
@@ -485,96 +504,471 @@ export default function InventoryPage() {
       {successMessage && <Alert severity="success" sx={{ mb: 3, borderRadius: '8px', fontWeight: 600 }}>{successMessage}</Alert>}
       {errorMessage && <Alert severity="error" sx={{ mb: 3, borderRadius: '8px', fontWeight: 600 }}>{errorMessage}</Alert>}
 
-      {/* ADD PRODUCT COLLAPSE */}
+      {/* ADD PRODUCT MULTI-STEP WIZARD */}
       <Collapse in={isAddFormOpen}>
-        <Card sx={{ mb: 4, borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', border: '1px solid #e2e8f0' }}>
-          <CardContent sx={{ p: { xs: 3, md: 5 } }}>
-            <Stack direction="row" alignItems="center" spacing={2} mb={4}>
-              <Box sx={{ bgcolor: 'rgba(34, 139, 34, 0.1)', p: 1.5, borderRadius: '12px' }}>
-                <ShoppingBagIcon sx={{ color: '#228B22' }} />
-              </Box>
-              <Typography variant="h6" fontWeight={800} color="#0f172a">Add New Product</Typography>
+        <Card sx={{ mb: 4, borderRadius: '20px', boxShadow: '0 8px 30px rgba(15, 23, 42, 0.06)', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+          {/* Wizard Header Banner */}
+          <Box sx={{ p: { xs: 2.5, md: 3.5 }, bgcolor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ mb: 2.5 }}>
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Box sx={{ width: 44, height: 44, borderRadius: '12px', bgcolor: 'rgba(5, 150, 105, 0.12)', display: 'grid', placeItems: 'center', color: '#059669' }}>
+                  <ShoppingBagIcon sx={{ fontSize: 24 }} />
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>
+                    Add Product Wizard
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.8rem', color: '#64748b' }}>
+                    Step {addStep + 1} of 4: {['Product Basics & Category', 'Pricing & Inventory Stock', 'Media & Details', 'Review & Publish'][addStep]}
+                  </Typography>
+                </Box>
+              </Stack>
+              <Button
+                size="small"
+                onClick={() => { setIsAddFormOpen(false); setAddStep(0); }}
+                startIcon={<CloseIcon />}
+                sx={{ color: '#64748b', fontWeight: 700, textTransform: 'none' }}
+              >
+                Close
+              </Button>
             </Stack>
 
-            <form onSubmit={handleAddSubmit}>
-              <Grid container spacing={4}>
-                <Grid item xs={12} md={6}>
-                  <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Product Name" name="productName" value={formData.productName} onChange={handleAddChange} error={!!formErrors.productName} helperText={formErrors.productName} />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField fullWidth size="small" select InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Category" name="category" value={formData.category} onChange={handleAddChange} error={!!formErrors.category} helperText={formErrors.category}>
-                    {categories.map((cat) => {
-                      const name = typeof cat === "string" ? cat : cat.name || cat;
-                      return <MenuItem key={name} value={name}>{name}</MenuItem>;
-                    })}
-                  </TextField>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="MRP (₹)" name="price" type="number" value={formData.price} onChange={handleAddChange} error={!!formErrors.price} helperText={formErrors.price} inputProps={{ min: "0" }} />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Discount (%)" name="discountPercent" type="number" value={formData.discountPercent} onChange={handleAddChange} error={!!formErrors.discountPercent} helperText={formErrors.discountPercent} inputProps={{ min: "0", max: "100", step: "any" }} />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Stock Quantity" name="quantity" type="number" value={formData.quantity} onChange={handleAddChange} error={!!formErrors.quantity} helperText={formErrors.quantity} inputProps={{ min: "0" }} />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField fullWidth size="small" InputLabelProps={{ shrink: true, sx: { fontWeight: 600, color: '#475569' } }} label="Description" name="description" multiline rows={4} value={formData.description} onChange={handleAddChange} error={!!formErrors.description} helperText={formErrors.description} />
-                </Grid>
-                
-                <Grid item xs={12}>
-                  <Box sx={{ 
-                    border: '2px dashed #94a3b8', 
-                    borderRadius: '8px', 
-                    p: 2, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    bgcolor: '#f8fafc'
-                  }}>
-                    <Stack direction="row" alignItems="center" spacing={2}>
-                      <Box sx={{ bgcolor: 'rgba(34, 139, 34, 0.1)', p: 1.5, borderRadius: '8px' }}>
-                        <CloudUploadIcon sx={{ color: '#228B22' }} />
-                      </Box>
-                      <Box>
-                        <Typography fontWeight={700} fontSize="0.95rem" color="#0f172a">
-                          {formData.image ? formData.image.name.toUpperCase() : "CLICK TO UPLOAD IMAGE"}
+            {/* Stepper Tabs Bar */}
+            <Grid container spacing={1}>
+              {[
+                { step: 0, label: '1. Basics', icon: '📝' },
+                { step: 1, label: '2. Pricing & Stock', icon: '💰' },
+                { step: 2, label: '3. Media & Details', icon: '🖼️' },
+                { step: 3, label: '4. Review & Publish', icon: '🚀' }
+              ].map((s) => {
+                const isDone = addStep > s.step;
+                const isCurrent = addStep === s.step;
+                return (
+                  <Grid item xs={6} sm={3} key={s.step}>
+                    <Box
+                      onClick={() => { if (s.step < addStep) setAddStep(s.step); }}
+                      sx={{
+                        p: 1.25,
+                        borderRadius: '12px',
+                        bgcolor: isCurrent ? '#ffffff' : isDone ? '#f0fdf4' : 'rgba(255,255,255,0.6)',
+                        border: `1.5px solid ${isCurrent ? '#059669' : isDone ? '#10b981' : '#e2e8f0'}`,
+                        cursor: s.step < addStep ? 'pointer' : 'default',
+                        boxShadow: isCurrent ? '0 2px 8px rgba(5, 150, 105, 0.15)' : 'none',
+                        transition: 'all 0.15s ease',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.75}>
+                        <Typography sx={{ fontSize: '1rem' }}>{s.icon}</Typography>
+                        <Typography sx={{ fontSize: '0.8rem', fontWeight: isCurrent ? 900 : 700, color: isCurrent ? '#059669' : isDone ? '#16a34a' : '#64748b' }} noWrap>
+                          {s.label}
                         </Typography>
-                        {!formData.image && <Typography fontSize="0.8rem" color="text.secondary">Click to change or drag and drop</Typography>}
-                      </Box>
-                    </Stack>
-                    
-                    {formData.image ? (
-                      <Button size="small" variant="outlined" color="error" startIcon={<DeleteOutlineIcon />} sx={{ textTransform: 'none', fontWeight: 600 }} onClick={() => setFormData(prev => ({ ...prev, image: null }))}>
-                        Remove
-                      </Button>
-                    ) : (
-                      <Box>
-                        <input accept="image/*" style={{ display: "none" }} id="add-image-input" type="file" onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const compressed = await compressImage(file);
-                            setFormData(prev => ({ ...prev, image: compressed }));
-                          }
-                        }} />
-                        <label htmlFor="add-image-input">
-                          <Button component="span" size="small" variant="outlined" sx={{ color: '#475569', borderColor: '#cbd5e1', fontWeight: 600, textTransform: 'none' }}>
-                            Browse
-                          </Button>
-                        </label>
-                      </Box>
-                    )}
-                  </Box>
-                  {formErrors.image && <FormHelperText error sx={{ mt: 1 }}>{formErrors.image}</FormHelperText>}
-                </Grid>
+                        {isDone && <CheckIcon sx={{ fontSize: 16, color: '#16a34a' }} />}
+                      </Stack>
+                    </Box>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </Box>
 
-                <Grid item xs={12}>
-                  <Button type="submit" variant="contained" fullWidth disabled={submittingProduct} startIcon={!submittingProduct && <CheckIcon />} sx={{ bgcolor: "#228B22", py: 1.5, fontWeight: 800, borderRadius: '8px', fontSize: '1rem', '&:hover': { bgcolor: '#1a701a' } }}>
-                    {submittingProduct ? <CircularProgress size={24} color="inherit" /> : "Save Product"}
-                  </Button>
+          <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+            {/* ── STEP 0: Product Basics & Category ── */}
+            {addStep === 0 && (
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 2 }}>
+                  Step 1: Enter Product Identity & Category
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={7}>
+                    <TextField
+                      fullWidth
+                      label="Product Full Name *"
+                      name="productName"
+                      placeholder="e.g., Fortune Sunlite Refined Sunflower Oil 1L"
+                      value={formData.productName}
+                      onChange={handleAddChange}
+                      error={!!formErrors.productName}
+                      helperText={formErrors.productName || "Include brand, item title, and packaging size"}
+                      InputLabelProps={{ shrink: true, sx: { fontWeight: 700 } }}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={5}>
+                    <TextField
+                      fullWidth
+                      select
+                      label="Category *"
+                      name="category"
+                      value={formData.category}
+                      onChange={handleAddChange}
+                      error={!!formErrors.category}
+                      helperText={formErrors.category || "Select the department for this item"}
+                      InputLabelProps={{ shrink: true, sx: { fontWeight: 700 } }}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    >
+                      {categories.map((cat) => {
+                        const name = typeof cat === "string" ? cat : cat.name || cat;
+                        return <MenuItem key={name} value={name}>{name}</MenuItem>;
+                      })}
+                    </TextField>
+                  </Grid>
+
+                  {/* Visual Quick Category Selection Chips */}
+                  <Grid item xs={12}>
+                    <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', mb: 1 }}>
+                      Quick Category Selection:
+                    </Typography>
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+                      {PRODUCT_CATEGORIES.map((cat) => (
+                        <Chip
+                          key={cat}
+                          label={cat}
+                          clickable
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, category: cat }));
+                            if (formErrors.category) setFormErrors(prev => ({ ...prev, category: "" }));
+                          }}
+                          sx={{
+                            borderRadius: '10px',
+                            fontWeight: 700,
+                            fontSize: '12px',
+                            bgcolor: formData.category === cat ? '#059669' : '#f1f5f9',
+                            color: formData.category === cat ? '#ffffff' : '#334155',
+                            '&:hover': { bgcolor: formData.category === cat ? '#047857' : '#e2e8f0' }
+                          }}
+                        />
+                      ))}
+                    </Stack>
+                  </Grid>
                 </Grid>
-              </Grid>
-            </form>
+              </Box>
+            )}
+
+            {/* ── STEP 1: Pricing & Stock ── */}
+            {addStep === 1 && (
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 2 }}>
+                  Step 2: Set Pricing, Discounts & Inventory Stock
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="MRP (Retail Price ₹) *"
+                      name="price"
+                      placeholder="0.00"
+                      value={formData.price}
+                      onChange={handleAddChange}
+                      error={!!formErrors.price}
+                      helperText={formErrors.price || "Official maximum retail price"}
+                      InputLabelProps={{ shrink: true, sx: { fontWeight: 700 } }}
+                      inputProps={{ min: "0", step: "any" }}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Discount Percentage (%)"
+                      name="discountPercent"
+                      placeholder="0"
+                      value={formData.discountPercent}
+                      onChange={handleAddChange}
+                      error={!!formErrors.discountPercent}
+                      helperText={formErrors.discountPercent || "Discount offered to buyers"}
+                      InputLabelProps={{ shrink: true, sx: { fontWeight: 700 } }}
+                      inputProps={{ min: "0", max: "100", step: "any" }}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Initial Stock Quantity *"
+                      name="quantity"
+                      placeholder="0"
+                      value={formData.quantity}
+                      onChange={handleAddChange}
+                      error={!!formErrors.quantity}
+                      helperText={formErrors.quantity || "Units currently on hand"}
+                      InputLabelProps={{ shrink: true, sx: { fontWeight: 700 } }}
+                      inputProps={{ min: "0" }}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+
+                  {/* Live Calculated Selling Price Card */}
+                  <Grid item xs={12}>
+                    <Card elevation={0} sx={{ p: 2.5, bgcolor: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: '14px' }}>
+                      <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="center" justifyContent="space-between" spacing={2}>
+                        <Box>
+                          <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#16a34a', textTransform: 'uppercase' }}>
+                            Effective Selling / Wholesale Price
+                          </Typography>
+                          <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', mt: 0.5 }}>
+                            ₹{((Number(formData.price || 0)) - ((Number(formData.price || 0)) * (Number(formData.discountPercent || 0)) / 100)).toFixed(2)}
+                          </Typography>
+                          <Typography sx={{ fontSize: '0.8rem', color: '#64748b' }}>
+                            Buyers & customers will purchase this item at this calculated price.
+                          </Typography>
+                        </Box>
+                        <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+                          <Chip
+                            label={Number(formData.discountPercent || 0) > 0 ? `${formData.discountPercent}% Discount Applied` : 'Standard MRP'}
+                            sx={{ bgcolor: '#059669', color: '#fff', fontWeight: 800, fontSize: '0.8rem', px: 1 }}
+                          />
+                        </Box>
+                      </Stack>
+                    </Card>
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
+
+            {/* ── STEP 2: Media & Description ── */}
+            {addStep === 2 && (
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 2 }}>
+                  Step 3: Product Image & Detailed Description
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <Box
+                      sx={{
+                        border: '2px dashed #94a3b8',
+                        borderRadius: '14px',
+                        p: 3,
+                        textAlign: 'center',
+                        bgcolor: '#f8fafc',
+                        transition: 'border-color 0.2s',
+                        '&:hover': { borderColor: '#059669' }
+                      }}
+                    >
+                      {formData.image ? (
+                        <Box>
+                          <Box
+                            component="img"
+                            src={typeof formData.image === 'string' ? formData.image : URL.createObjectURL(formData.image)}
+                            alt="Upload preview"
+                            sx={{ maxHeight: 180, maxWidth: '100%', objectFit: 'contain', borderRadius: '10px', mb: 2 }}
+                          />
+                          <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', mb: 1 }}>
+                            {formData.image.name || "Product Image"}
+                          </Typography>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            startIcon={<DeleteOutlineIcon />}
+                            onClick={() => setFormData(prev => ({ ...prev, image: null }))}
+                            sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700 }}
+                          >
+                            Remove / Change Image
+                          </Button>
+                        </Box>
+                      ) : (
+                        <Box>
+                          <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: '#ecfdf5', display: 'grid', placeItems: 'center', mx: 'auto', mb: 1.5, color: '#059669' }}>
+                            <CloudUploadIcon sx={{ fontSize: 30 }} />
+                          </Box>
+                          <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a', mb: 0.5 }}>
+                            Upload Product Photo
+                          </Typography>
+                          <Typography sx={{ fontSize: '0.8rem', color: '#64748b', mb: 2 }}>
+                            High-quality JPG or PNG images increase catalog sales by 4x
+                          </Typography>
+                          <input
+                            accept="image/*"
+                            style={{ display: "none" }}
+                            id="wizard-image-input"
+                            type="file"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const compressed = await compressImage(file);
+                                setFormData(prev => ({ ...prev, image: compressed }));
+                              }
+                            }}
+                          />
+                          <label htmlFor="wizard-image-input">
+                            <Button
+                              component="span"
+                              variant="contained"
+                              sx={{
+                                bgcolor: '#059669',
+                                borderRadius: '10px',
+                                px: 3,
+                                py: 0.8,
+                                fontWeight: 800,
+                                textTransform: 'none',
+                                boxShadow: 'none',
+                                '&:hover': { bgcolor: '#047857' }
+                              }}
+                            >
+                              Browse Files
+                            </Button>
+                          </label>
+                        </Box>
+                      )}
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Product Description"
+                      name="description"
+                      multiline
+                      rows={7}
+                      placeholder="Describe ingredients, key features, packaging specifications, or manufacturer guarantees..."
+                      value={formData.description}
+                      onChange={handleAddChange}
+                      InputLabelProps={{ shrink: true, sx: { fontWeight: 700 } }}
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
+
+            {/* ── STEP 3: Review & Publish ── */}
+            {addStep === 3 && (
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 2 }}>
+                  Step 4: Review Product Card & Publish to Catalog
+                </Typography>
+                <Grid container spacing={3} alignItems="center">
+                  {/* Live Preview Card */}
+                  <Grid item xs={12} sm={6} md={5}>
+                    <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', mb: 1 }}>
+                      Live Customer View Preview:
+                    </Typography>
+                    <Card elevation={0} sx={{ border: '1.5px solid #10b981', borderRadius: '16px', overflow: 'hidden', bgcolor: '#ffffff', boxShadow: '0 8px 24px rgba(16,185,129,0.12)' }}>
+                      <Box sx={{ height: 160, bgcolor: '#f8fafc', display: 'grid', placeItems: 'center', p: 2, position: 'relative' }}>
+                        {formData.image ? (
+                          <Box component="img" src={typeof formData.image === 'string' ? formData.image : URL.createObjectURL(formData.image)} alt="Preview" sx={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                        ) : (
+                          <ShoppingBagIcon sx={{ fontSize: 50, color: '#cbd5e1' }} />
+                        )}
+                        <Box sx={{ position: 'absolute', top: 8, left: 8, bgcolor: 'rgba(255,255,255,0.95)', px: 0.8, py: 0.25, borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                          <Typography sx={{ fontSize: '9px', fontWeight: 900, color: '#059669' }}>⚡ 15-30 MINS</Typography>
+                        </Box>
+                        {Number(formData.discountPercent || 0) > 0 && (
+                          <Box sx={{ position: 'absolute', bottom: 8, left: 8, bgcolor: '#10b981', color: '#fff', fontSize: '10px', fontWeight: 900, px: 0.8, py: 0.2, borderRadius: '4px' }}>
+                            {formData.discountPercent}% OFF
+                          </Box>
+                        )}
+                      </Box>
+                      <CardContent sx={{ p: 2 }}>
+                        <Typography sx={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>
+                          {formData.category || 'General'}
+                        </Typography>
+                        <Typography sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a', mb: 1, minHeight: '2.4em' }}>
+                          {formData.productName || 'Product Title'}
+                        </Typography>
+                        <Stack direction="row" alignItems="center" justifyContent="space-between">
+                          <Box>
+                            <Typography sx={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a' }}>
+                              ₹{((Number(formData.price || 0)) - ((Number(formData.price || 0)) * (Number(formData.discountPercent || 0)) / 100)).toFixed(2)}
+                            </Typography>
+                            {Number(formData.discountPercent || 0) > 0 && (
+                              <Typography sx={{ fontSize: '11px', color: '#94a3b8', textDecoration: 'line-through', fontWeight: 600 }}>
+                                ₹{Number(formData.price).toFixed(2)}
+                              </Typography>
+                            )}
+                          </Box>
+                          <Chip label={`Stock: ${formData.quantity || 0}`} size="small" sx={{ bgcolor: '#ecfdf5', color: '#059669', fontWeight: 800 }} />
+                        </Stack>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  {/* Summary Breakdown */}
+                  <Grid item xs={12} sm={6} md={7}>
+                    <Card elevation={0} sx={{ p: 3, border: '1px solid #e2e8f0', borderRadius: '16px', bgcolor: '#f8fafc' }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a', mb: 2 }}>
+                        Catalog Publication Summary
+                      </Typography>
+                      <Stack spacing={1.5}>
+                        <Stack direction="row" justifyContent="space-between">
+                          <Typography sx={{ color: '#64748b', fontSize: '0.88rem' }}>Store Outlet:</Typography>
+                          <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>{selectedShop?.shop_name || 'Active Store'}</Typography>
+                        </Stack>
+                        <Stack direction="row" justifyContent="space-between">
+                          <Typography sx={{ color: '#64748b', fontSize: '0.88rem' }}>Category:</Typography>
+                          <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>{formData.category}</Typography>
+                        </Stack>
+                        <Stack direction="row" justifyContent="space-between">
+                          <Typography sx={{ color: '#64748b', fontSize: '0.88rem' }}>Opening Stock:</Typography>
+                          <Typography sx={{ fontWeight: 800, color: '#059669', fontSize: '0.88rem' }}>{formData.quantity} Units</Typography>
+                        </Stack>
+                        <Stack direction="row" justifyContent="space-between">
+                          <Typography sx={{ color: '#64748b', fontSize: '0.88rem' }}>Total Stock Value:</Typography>
+                          <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
+                            ₹{(((Number(formData.price || 0)) - ((Number(formData.price || 0)) * (Number(formData.discountPercent || 0)) / 100)) * Number(formData.quantity || 0)).toFixed(2)}
+                          </Typography>
+                        </Stack>
+                      </Stack>
+                    </Card>
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
+
+            {/* Bottom Stepper Controls */}
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 4, pt: 2.5, borderTop: '1px solid #e2e8f0' }}>
+              <Button
+                disabled={addStep === 0}
+                onClick={handlePrevStep}
+                startIcon={<ArrowBackIcon />}
+                sx={{ color: '#64748b', fontWeight: 700, textTransform: 'none' }}
+              >
+                Previous Step
+              </Button>
+
+              {addStep < 3 ? (
+                <Button
+                  variant="contained"
+                  onClick={handleNextStep}
+                  sx={{
+                    bgcolor: '#059669',
+                    color: '#ffffff',
+                    borderRadius: '10px',
+                    px: 3.5,
+                    py: 1,
+                    fontWeight: 800,
+                    textTransform: 'none',
+                    boxShadow: '0 4px 14px rgba(5, 150, 105, 0.25)',
+                    '&:hover': { bgcolor: '#047857' }
+                  }}
+                >
+                  Next Step →
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={handleAddSubmit}
+                  disabled={submittingProduct}
+                  startIcon={submittingProduct ? <CircularProgress size={18} color="inherit" /> : <CheckIcon />}
+                  sx={{
+                    bgcolor: '#059669',
+                    color: '#ffffff',
+                    borderRadius: '10px',
+                    px: 4,
+                    py: 1.1,
+                    fontWeight: 900,
+                    textTransform: 'none',
+                    boxShadow: '0 4px 16px rgba(5, 150, 105, 0.35)',
+                    '&:hover': { bgcolor: '#047857' }
+                  }}
+                >
+                  {submittingProduct ? 'Publishing...' : '🚀 Publish Product to Catalog'}
+                </Button>
+              )}
+            </Stack>
           </CardContent>
         </Card>
       </Collapse>
