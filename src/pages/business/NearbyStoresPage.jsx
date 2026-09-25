@@ -229,31 +229,36 @@ export default function NearbyStoresPage() {
                   elevation={0}
                   onClick={() => navigate(`/business/shop/${store.id}`)}
                   sx={{
-                    borderRadius: '20px',
+                    borderRadius: '18px',
                     border: '1px solid #e2e8f0',
                     bgcolor: '#ffffff',
                     p: { xs: 1.75, sm: 2 },
                     display: 'flex',
                     flexDirection: 'row',
-                    gap: 2,
+                    gap: 1.75,
                     alignItems: 'center',
                     cursor: 'pointer',
                     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                     boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+                    height: '100%',
+                    minHeight: { xs: 136, sm: 140 },
+                    boxSizing: 'border-box',
                     '&:hover': {
-                      borderColor: '#10b981',
-                      boxShadow: '0 8px 24px rgba(16, 185, 129, 0.12)',
+                      borderColor: '#047857',
+                      boxShadow: '0 6px 20px rgba(4, 120, 87, 0.1)',
                       transform: 'translateY(-2px)',
                     },
                   }}
                 >
-                  {/* Store Thumbnail with Discount Floating Badge */}
+                  {/* Store Thumbnail with Discount Floating Badge (Strict 92x92 size) */}
                   <Box
                     sx={{
                       position: 'relative',
-                      width: { xs: 90, sm: 104 },
-                      height: { xs: 90, sm: 104 },
-                      borderRadius: '16px',
+                      width: { xs: 88, sm: 96 },
+                      minWidth: { xs: 88, sm: 96 },
+                      height: { xs: 88, sm: 96 },
+                      minHeight: { xs: 88, sm: 96 },
+                      borderRadius: '14px',
                       overflow: 'hidden',
                       bgcolor: '#f1f5f9',
                       flexShrink: 0,
@@ -274,13 +279,13 @@ export default function NearbyStoresPage() {
                         position: 'absolute',
                         bottom: 4,
                         left: 4,
-                        bgcolor: 'rgba(6, 78, 59, 0.9)',
+                        bgcolor: 'rgba(6, 78, 59, 0.92)',
                         backdropFilter: 'blur(4px)',
                         color: '#ffffff',
                         px: 0.75,
                         py: 0.2,
                         borderRadius: '6px',
-                        fontSize: '9.5px',
+                        fontSize: '9px',
                         fontWeight: 800,
                         letterSpacing: '0.2px',
                       }}
@@ -289,37 +294,40 @@ export default function NearbyStoresPage() {
                     </Box>
                   </Box>
 
-                  {/* Store Info */}
-                  <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.35 }}>
-                      <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: '#0f172a', letterSpacing: '-0.2px' }} noWrap>
-                        {store.name}
-                      </Typography>
-                      <IconButton size="small" onClick={(e) => e.stopPropagation()} sx={{ p: 0.25, color: '#94a3b8' }}>
-                        <StarIcon sx={{ fontSize: 18, color: '#cbd5e1' }} />
-                      </IconButton>
-                    </Stack>
-
-                    {/* Rating • Experience */}
-                    <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.5 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, bgcolor: '#ecfdf5', px: 0.75, py: 0.2, borderRadius: '6px', border: '1px solid #a7f3d0' }}>
-                        <StarIcon sx={{ fontSize: 12, color: '#059669' }} />
-                        <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#047857' }}>
-                          {store.rating || '4.3'}
+                  {/* Store Info Container */}
+                  <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: { xs: 88, sm: 96 } }}>
+                    {/* Top Row: Name and Bookmark */}
+                    <Box>
+                      <Stack direction="row" alignItems="center" justifyContent="space-between">
+                        <Typography sx={{ fontWeight: 800, fontSize: '0.94rem', color: '#0f172a', letterSpacing: '-0.2px', lineHeight: 1.2 }} noWrap>
+                          {store.name}
                         </Typography>
-                      </Box>
-                      <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }} noWrap>
-                        {store.category} • 25 Yrs
-                      </Typography>
-                    </Stack>
+                        <IconButton size="small" onClick={(e) => e.stopPropagation()} sx={{ p: 0.2, color: '#94a3b8' }}>
+                          <StarIcon sx={{ fontSize: 17, color: '#cbd5e1' }} />
+                        </IconButton>
+                      </Stack>
+
+                      {/* Rating • Category */}
+                      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.25 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, bgcolor: '#ecfdf5', px: 0.6, py: 0.15, borderRadius: '6px', border: '1px solid #a7f3d0' }}>
+                          <StarIcon sx={{ fontSize: 11, color: '#047857' }} />
+                          <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: '#047857' }}>
+                            {store.rating || '4.3'}
+                          </Typography>
+                        </Box>
+                        <Typography sx={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }} noWrap>
+                          {store.category} • 25 Yrs
+                        </Typography>
+                      </Stack>
+                    </Box>
 
                     {/* Location & ETA */}
-                    <Typography sx={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 500, mb: 1.25 }} noWrap>
+                    <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }} noWrap>
                       📍 {store.location} • 26 mins • 8.4 km
                     </Typography>
 
-                    {/* Badges & View Store Action */}
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 'auto' }}>
+                    {/* Bottom Row: Verified Badge and View Store Button */}
+                    <Stack direction="row" alignItems="center" justifyContent="space-between">
                       <Chip
                         size="small"
                         label="✓ Verified"
@@ -327,7 +335,7 @@ export default function NearbyStoresPage() {
                           bgcolor: '#f0fdf4',
                           color: '#15803d',
                           fontWeight: 800,
-                          fontSize: '0.68rem',
+                          fontSize: '0.66rem',
                           height: 22,
                           border: '1px solid #bbf7d0',
                         }}
@@ -345,7 +353,8 @@ export default function NearbyStoresPage() {
                           color: '#ffffff',
                           height: '32px',
                           px: 2,
-                          fontSize: '0.78rem',
+                          minWidth: '88px',
+                          fontSize: '0.76rem',
                           fontWeight: 800,
                           borderRadius: '10px',
                           textTransform: 'none',

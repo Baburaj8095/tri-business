@@ -239,21 +239,21 @@ export default function BusinessProfile() {
         <Card
           elevation={0}
           sx={{
-            borderRadius: "24px",
+            borderRadius: "18px",
             border: `1px solid ${BORDER}`,
             bgcolor: SURFACE,
             overflow: "hidden",
-            mb: 3,
-            boxShadow: "0 4px 20px rgba(15, 23, 42, 0.04)",
+            mb: 2.5,
+            boxShadow: "0 2px 12px rgba(15, 23, 42, 0.04)",
           }}
         >
           {/* Cover Header Banner */}
           <Box
             sx={{
-              height: { xs: 100, sm: 130 },
+              height: { xs: 90, sm: 120 },
               background: "linear-gradient(135deg, #059669 0%, #10b981 50%, #047857 100%)",
               position: "relative",
-              px: 3,
+              px: { xs: 2, sm: 3 },
               pt: 2,
               display: "flex",
               justifyContent: "space-between",
@@ -261,15 +261,16 @@ export default function BusinessProfile() {
             }}
           >
             <Chip
-              icon={<VerifiedIcon sx={{ fontSize: 16, color: "#ffffff !important" }} />}
-              label="Verified Business Partner"
+              icon={<VerifiedIcon sx={{ fontSize: 15, color: "#ffffff !important" }} />}
+              label="Verified Partner"
               size="small"
               sx={{
                 bgcolor: "rgba(255, 255, 255, 0.22)",
                 color: "#ffffff",
                 backdropFilter: "blur(8px)",
                 fontWeight: 800,
-                fontSize: "0.75rem",
+                fontSize: "0.72rem",
+                height: 26,
                 border: "1px solid rgba(255, 255, 255, 0.3)",
               }}
             />
@@ -277,14 +278,15 @@ export default function BusinessProfile() {
             <Button
               size="small"
               onClick={() => setEditDialogOpen(true)}
-              startIcon={<EditIcon sx={{ fontSize: 16 }} />}
+              startIcon={<EditIcon sx={{ fontSize: 15 }} />}
               sx={{
-                bgcolor: "rgba(255, 255, 255, 0.9)",
+                bgcolor: "rgba(255, 255, 255, 0.92)",
                 color: TEXT,
                 fontWeight: 800,
-                fontSize: "0.78rem",
+                fontSize: "0.76rem",
                 borderRadius: "10px",
                 textTransform: "none",
+                height: 30,
                 px: 1.5,
                 "&:hover": { bgcolor: "#ffffff" },
               }}
@@ -293,31 +295,31 @@ export default function BusinessProfile() {
             </Button>
           </Box>
 
-          <CardContent sx={{ px: { xs: 2.5, sm: 4 }, pb: 3, pt: 0, position: "relative" }}>
+          <CardContent sx={{ px: { xs: 2, sm: 3 }, pb: 2.5, pt: 0, position: "relative" }}>
             {/* Avatar & Badges */}
             <Stack
               direction={{ xs: "column", sm: "row" }}
-              spacing={2}
+              spacing={{ xs: 1.5, sm: 2 }}
               alignItems={{ xs: "center", sm: "flex-end" }}
-              sx={{ mt: { xs: -5, sm: -6 }, mb: 2 }}
+              sx={{ mt: { xs: -4.5, sm: -5.5 }, mb: 2 }}
             >
               <Avatar
                 sx={{
-                  width: { xs: 84, sm: 96 },
-                  height: { xs: 84, sm: 96 },
+                  width: { xs: 76, sm: 88 },
+                  height: { xs: 76, sm: 88 },
                   bgcolor: PRIMARY_DARK,
                   color: "#ffffff",
-                  fontSize: { xs: "1.8rem", sm: "2.2rem" },
+                  fontSize: { xs: "1.6rem", sm: "2rem" },
                   fontWeight: 900,
-                  border: "4px solid #ffffff",
-                  boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
+                  border: "3.5px solid #ffffff",
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.12)",
                 }}
               >
                 {merchantInitials}
               </Avatar>
 
               <Box sx={{ textAlign: { xs: "center", sm: "left" }, flexGrow: 1, minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 900, fontSize: { xs: "1.25rem", sm: "1.5rem" }, color: TEXT, lineHeight: 1.2 }}>
+                <Typography sx={{ fontWeight: 900, fontSize: { xs: "1.15rem", sm: "1.35rem" }, color: TEXT, lineHeight: 1.2, wordBreak: "break-word" }}>
                   {form.business_name}
                 </Typography>
                 <Stack
@@ -327,21 +329,21 @@ export default function BusinessProfile() {
                   justifyContent={{ xs: "center", sm: "flex-start" }}
                   sx={{ mt: 0.5, flexWrap: "wrap", gap: 0.5 }}
                 >
-                  <Typography sx={{ fontSize: "0.85rem", color: TEXT_SECONDARY, fontWeight: 600 }}>
+                  <Typography sx={{ fontSize: "0.82rem", color: TEXT_SECONDARY, fontWeight: 600 }}>
                     {form.trade_category}
                   </Typography>
                   <Typography sx={{ color: TEXT_MUTED }}>•</Typography>
-                  <Typography sx={{ fontSize: "0.85rem", color: TEXT_SECONDARY, fontWeight: 600 }}>
+                  <Typography sx={{ fontSize: "0.82rem", color: TEXT_SECONDARY, fontWeight: 600 }}>
                     {form.city}
                   </Typography>
                   <Chip
-                    label="Prime Partner (Yearly)"
+                    label="Prime Partner"
                     size="small"
                     sx={{
                       bgcolor: "#fef3c7",
                       color: "#92400e",
                       fontWeight: 800,
-                      fontSize: "0.7rem",
+                      fontSize: "0.68rem",
                       height: 22,
                       border: "1px solid #fde68a",
                     }}
@@ -353,7 +355,7 @@ export default function BusinessProfile() {
               <Button
                 variant="contained"
                 onClick={() => setQrDrawerOpen(true)}
-                startIcon={<QrCodeIcon />}
+                startIcon={<QrCodeIcon sx={{ fontSize: 18 }} />}
                 sx={{
                   bgcolor: PRIMARY,
                   color: "#ffffff",
@@ -361,9 +363,10 @@ export default function BusinessProfile() {
                   fontWeight: 800,
                   fontSize: "0.82rem",
                   borderRadius: "12px",
+                  height: 40,
                   px: 2,
-                  py: 1,
-                  boxShadow: "0 4px 12px rgba(5, 150, 105, 0.25)",
+                  width: { xs: "100%", sm: "auto" },
+                  boxShadow: "0 2px 8px rgba(5, 150, 105, 0.25)",
                   "&:hover": { bgcolor: PRIMARY_DARK },
                 }}
               >
@@ -371,7 +374,7 @@ export default function BusinessProfile() {
               </Button>
             </Stack>
 
-            <Divider sx={{ my: 2.5 }} />
+            <Divider sx={{ my: 2 }} />
 
             {/* ─── LIVE OPERATING METRICS (Tappable Cards) ─── */}
             <Grid container spacing={1.5}>
@@ -379,20 +382,25 @@ export default function BusinessProfile() {
                 <Box
                   onClick={() => navigate("/business/orders")}
                   sx={{
-                    p: 1.75,
-                    borderRadius: "16px",
+                    p: 1.5,
+                    height: 84,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "14px",
                     bgcolor: "#f0fdf4",
                     border: "1px solid #bbf7d0",
                     cursor: "pointer",
                     textAlign: "center",
-                    transition: "transform 0.15s",
-                    "&:hover": { transform: "translateY(-2px)" },
+                    transition: "all 0.15s ease",
+                    "&:hover": { transform: "translateY(-2px)", boxShadow: "0 4px 12px rgba(22, 101, 52, 0.08)" },
                   }}
                 >
-                  <Typography sx={{ fontSize: "1.4rem", fontWeight: 900, color: "#166534" }}>
+                  <Typography sx={{ fontSize: "1.35rem", fontWeight: 900, color: "#166534", lineHeight: 1 }}>
                     5
                   </Typography>
-                  <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#15803d" }}>
+                  <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: "#15803d", mt: 0.6 }}>
                     Total Orders →
                   </Typography>
                 </Box>
@@ -402,20 +410,25 @@ export default function BusinessProfile() {
                 <Box
                   onClick={() => navigate("/business/shops")}
                   sx={{
-                    p: 1.75,
-                    borderRadius: "16px",
+                    p: 1.5,
+                    height: 84,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "14px",
                     bgcolor: "#eff6ff",
                     border: "1px solid #bfdbfe",
                     cursor: "pointer",
                     textAlign: "center",
-                    transition: "transform 0.15s",
-                    "&:hover": { transform: "translateY(-2px)" },
+                    transition: "all 0.15s ease",
+                    "&:hover": { transform: "translateY(-2px)", boxShadow: "0 4px 12px rgba(30, 64, 175, 0.08)" },
                   }}
                 >
-                  <Typography sx={{ fontSize: "1.4rem", fontWeight: 900, color: "#1e40af" }}>
+                  <Typography sx={{ fontSize: "1.35rem", fontWeight: 900, color: "#1e40af", lineHeight: 1 }}>
                     {shops.length || 2}
                   </Typography>
-                  <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#1d4ed8" }}>
+                  <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: "#1d4ed8", mt: 0.6 }}>
                     Active Outlets →
                   </Typography>
                 </Box>
@@ -424,20 +437,25 @@ export default function BusinessProfile() {
               <Grid item xs={6} sm={3}>
                 <Box
                   sx={{
-                    p: 1.75,
-                    borderRadius: "16px",
+                    p: 1.5,
+                    height: 84,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "14px",
                     bgcolor: "#fffbeb",
                     border: "1px solid #fde68a",
                     textAlign: "center",
                   }}
                 >
                   <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.3}>
-                    <StarIcon sx={{ fontSize: 20, color: "#d97706" }} />
-                    <Typography sx={{ fontSize: "1.4rem", fontWeight: 900, color: "#b45309" }}>
+                    <StarIcon sx={{ fontSize: 18, color: "#d97706" }} />
+                    <Typography sx={{ fontSize: "1.35rem", fontWeight: 900, color: "#b45309", lineHeight: 1 }}>
                       4.8
                     </Typography>
                   </Stack>
-                  <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#92400e" }}>
+                  <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: "#92400e", mt: 0.6 }}>
                     Merchant Rating
                   </Typography>
                 </Box>
@@ -446,17 +464,22 @@ export default function BusinessProfile() {
               <Grid item xs={6} sm={3}>
                 <Box
                   sx={{
-                    p: 1.75,
-                    borderRadius: "16px",
+                    p: 1.5,
+                    height: 84,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "14px",
                     bgcolor: "#faf5ff",
                     border: "1px solid #e9d5ff",
                     textAlign: "center",
                   }}
                 >
-                  <Typography sx={{ fontSize: "1.4rem", fontWeight: 900, color: "#6b21a8" }}>
+                  <Typography sx={{ fontSize: "1.35rem", fontWeight: 900, color: "#6b21a8", lineHeight: 1 }}>
                     T+1
                   </Typography>
-                  <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#7e22ce" }}>
+                  <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: "#7e22ce", mt: 0.6 }}>
                     Daily Settlement
                   </Typography>
                 </Box>
@@ -468,45 +491,47 @@ export default function BusinessProfile() {
         {/* ══════════════════════════════════════════════════════════════════════════
             2. BUSINESS CREDENTIALS & OPERATIONS SECTION
            ══════════════════════════════════════════════════════════════════════════ */}
-        <Grid container spacing={2.5} sx={{ mb: 3 }}>
+        <Grid container spacing={2} sx={{ mb: 2.5 }}>
           {/* Card: Business & Legal Info */}
           <Grid item xs={12} sm={6}>
             <Card
               elevation={0}
               sx={{
-                borderRadius: "20px",
+                borderRadius: "18px",
                 border: `1px solid ${BORDER}`,
                 bgcolor: SURFACE,
                 height: "100%",
                 boxShadow: "0 2px 10px rgba(15, 23, 42, 0.02)",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
-              <CardContent sx={{ p: 2.5 }}>
+              <CardContent sx={{ p: { xs: 2, sm: 2.5 }, flex: 1, display: "flex", flexDirection: "column" }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-                  <Typography sx={{ fontWeight: 900, fontSize: "0.95rem", color: TEXT }}>
+                  <Typography sx={{ fontWeight: 900, fontSize: "0.92rem", color: TEXT }}>
                     Business & Legal Identity
                   </Typography>
                   <IconButton size="small" onClick={() => setEditDialogOpen(true)} sx={{ color: PRIMARY }}>
-                    <EditIcon sx={{ fontSize: 18 }} />
+                    <EditIcon sx={{ fontSize: 17 }} />
                   </IconButton>
                 </Stack>
 
-                <Stack spacing={1.75}>
+                <Stack spacing={1.5} sx={{ flex: 1 }}>
                   <Box>
-                    <Typography sx={{ fontSize: "0.72rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
+                    <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
                       Registered Business Name
                     </Typography>
-                    <Typography sx={{ fontSize: "0.9rem", fontWeight: 800, color: TEXT, mt: 0.2 }}>
+                    <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: TEXT, mt: 0.2 }}>
                       {form.business_name}
                     </Typography>
                   </Box>
 
                   <Box>
-                    <Typography sx={{ fontSize: "0.72rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
+                    <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
                       Primary Contact Number
                     </Typography>
                     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 0.2 }}>
-                      <Typography sx={{ fontSize: "0.9rem", fontWeight: 800, color: TEXT }}>
+                      <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: TEXT }}>
                         +91 {form.mobile_number}
                       </Typography>
                       <IconButton size="small" onClick={() => copyToClipboard(form.mobile_number, "Mobile")}>
@@ -516,16 +541,16 @@ export default function BusinessProfile() {
                   </Box>
 
                   <Box>
-                    <Typography sx={{ fontSize: "0.72rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
+                    <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
                       Official Email Address
                     </Typography>
-                    <Typography sx={{ fontSize: "0.85rem", fontWeight: 700, color: TEXT, mt: 0.2 }}>
+                    <Typography sx={{ fontSize: "0.85rem", fontWeight: 700, color: TEXT, mt: 0.2, wordBreak: "break-all" }}>
                       {form.email}
                     </Typography>
                   </Box>
 
                   <Box>
-                    <Typography sx={{ fontSize: "0.72rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
+                    <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
                       GSTIN Identification
                     </Typography>
                     <Typography sx={{ fontSize: "0.85rem", fontWeight: 800, color: TEXT, mt: 0.2 }}>
@@ -542,16 +567,18 @@ export default function BusinessProfile() {
             <Card
               elevation={0}
               sx={{
-                borderRadius: "20px",
+                borderRadius: "18px",
                 border: `1px solid ${BORDER}`,
                 bgcolor: SURFACE,
                 height: "100%",
                 boxShadow: "0 2px 10px rgba(15, 23, 42, 0.02)",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
-              <CardContent sx={{ p: 2.5 }}>
+              <CardContent sx={{ p: { xs: 2, sm: 2.5 }, flex: 1, display: "flex", flexDirection: "column" }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-                  <Typography sx={{ fontWeight: 900, fontSize: "0.95rem", color: TEXT }}>
+                  <Typography sx={{ fontWeight: 900, fontSize: "0.92rem", color: TEXT }}>
                     Outlet & Operations
                   </Typography>
                   <Chip
@@ -561,41 +588,44 @@ export default function BusinessProfile() {
                       bgcolor: storeOpen ? "#dcfce7" : "#fee2e2",
                       color: storeOpen ? "#15803d" : "#b91c1c",
                       fontWeight: 800,
-                      fontSize: "0.7rem",
+                      fontSize: "0.68rem",
+                      height: 22,
                     }}
                   />
                 </Stack>
 
-                <Stack spacing={1.75}>
+                <Stack spacing={1.5} sx={{ flex: 1 }}>
                   {/* Live Status Switch */}
                   <Box
                     sx={{
-                      p: 1.5,
-                      borderRadius: "14px",
+                      p: 1.25,
+                      borderRadius: "12px",
                       bgcolor: storeOpen ? "#f0fdf4" : "#fef2f2",
                       border: `1px solid ${storeOpen ? "#bbf7d0" : "#fecaca"}`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
+                      gap: 1,
                     }}
                   >
-                    <Box>
-                      <Typography sx={{ fontSize: "0.82rem", fontWeight: 800, color: TEXT }}>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography sx={{ fontSize: "0.8rem", fontWeight: 800, color: TEXT }}>
                         Store Live Status
                       </Typography>
-                      <Typography sx={{ fontSize: "0.7rem", color: TEXT_SECONDARY }}>
-                        {storeOpen ? "Accepting counter & online orders" : "Store offline for customers"}
+                      <Typography sx={{ fontSize: "0.68rem", color: TEXT_SECONDARY, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {storeOpen ? "Accepting orders live" : "Store offline for customers"}
                       </Typography>
                     </Box>
                     <Switch
                       checked={storeOpen}
                       onChange={(e) => setStoreOpen(e.target.checked)}
                       color="success"
+                      size="small"
                     />
                   </Box>
 
                   <Box>
-                    <Typography sx={{ fontSize: "0.72rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
+                    <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
                       Outlet Address
                     </Typography>
                     <Typography sx={{ fontSize: "0.85rem", fontWeight: 700, color: TEXT, mt: 0.2 }}>
@@ -604,7 +634,7 @@ export default function BusinessProfile() {
                   </Box>
 
                   <Box>
-                    <Typography sx={{ fontSize: "0.72rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
+                    <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
                       Operating Timings
                     </Typography>
                     <Typography sx={{ fontSize: "0.85rem", fontWeight: 800, color: TEXT, mt: 0.2 }}>
@@ -613,13 +643,13 @@ export default function BusinessProfile() {
                   </Box>
 
                   <Box>
-                    <Typography sx={{ fontSize: "0.72rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
+                    <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
                       Fulfillment Mode
                     </Typography>
                     <Chip
                       label={form.service_mode === "BOTH" ? "In-Store POS + Home Delivery" : form.service_mode}
                       size="small"
-                      sx={{ mt: 0.5, bgcolor: PRIMARY_LIGHT, color: PRIMARY_DARK, fontWeight: 800, fontSize: "0.72rem" }}
+                      sx={{ mt: 0.5, bgcolor: PRIMARY_LIGHT, color: PRIMARY_DARK, fontWeight: 800, fontSize: "0.7rem", height: 22 }}
                     />
                   </Box>
                 </Stack>
@@ -634,14 +664,14 @@ export default function BusinessProfile() {
         <Card
           elevation={0}
           sx={{
-            borderRadius: "20px",
+            borderRadius: "18px",
             border: `1px solid ${BORDER}`,
             bgcolor: SURFACE,
-            mb: 3,
+            mb: 2.5,
             boxShadow: "0 2px 10px rgba(15, 23, 42, 0.02)",
           }}
         >
-          <CardContent sx={{ p: 2.5 }}>
+          <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
             <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
               <Box
                 sx={{
@@ -652,15 +682,16 @@ export default function BusinessProfile() {
                   display: "grid",
                   placeItems: "center",
                   color: "#2563eb",
+                  flexShrink: 0,
                 }}
               >
                 <BankIcon sx={{ fontSize: 20 }} />
               </Box>
-              <Box>
-                <Typography sx={{ fontWeight: 900, fontSize: "0.95rem", color: TEXT }}>
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography sx={{ fontWeight: 900, fontSize: "0.92rem", color: TEXT }}>
                   Settlement & Payout Account
                 </Typography>
-                <Typography sx={{ fontSize: "0.72rem", color: TEXT_MUTED }}>
+                <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   Daily payouts are credited automatically to this verified bank account
                 </Typography>
               </Box>
@@ -668,7 +699,7 @@ export default function BusinessProfile() {
 
             <Grid container spacing={2}>
               <Grid item xs={12} sm={4}>
-                <Typography sx={{ fontSize: "0.72rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
+                <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
                   Bank Name
                 </Typography>
                 <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: TEXT, mt: 0.2 }}>
@@ -677,7 +708,7 @@ export default function BusinessProfile() {
               </Grid>
 
               <Grid item xs={12} sm={4}>
-                <Typography sx={{ fontSize: "0.72rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
+                <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
                   Account Number
                 </Typography>
                 <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: TEXT, mt: 0.2 }}>
@@ -686,7 +717,7 @@ export default function BusinessProfile() {
               </Grid>
 
               <Grid item xs={12} sm={4}>
-                <Typography sx={{ fontSize: "0.72rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
+                <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
                   IFSC Code
                 </Typography>
                 <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: TEXT, mt: 0.2 }}>
@@ -703,15 +734,15 @@ export default function BusinessProfile() {
         <Card
           elevation={0}
           sx={{
-            borderRadius: "20px",
+            borderRadius: "18px",
             border: `1px solid ${BORDER}`,
             bgcolor: SURFACE,
-            mb: 4,
+            mb: 3,
             boxShadow: "0 2px 10px rgba(15, 23, 42, 0.02)",
           }}
         >
-          <CardContent sx={{ p: 2.5 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: "0.95rem", color: TEXT, mb: 2 }}>
+          <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+            <Typography sx={{ fontWeight: 900, fontSize: "0.92rem", color: TEXT, mb: 2 }}>
               Merchant Operations & Tools
             </Typography>
 
@@ -724,19 +755,24 @@ export default function BusinessProfile() {
                   startIcon={<StoreIcon sx={{ color: PRIMARY }} />}
                   endIcon={<ArrowRightIcon sx={{ color: TEXT_MUTED }} />}
                   sx={{
+                    height: 64,
                     justifyContent: "space-between",
                     borderColor: BORDER,
                     color: TEXT,
                     textTransform: "none",
                     fontWeight: 800,
                     borderRadius: "14px",
-                    p: 1.5,
+                    px: 1.75,
                     "&:hover": { bgcolor: BG, borderColor: PRIMARY },
                   }}
                 >
-                  <Box sx={{ textAlign: "left" }}>
-                    <Typography sx={{ fontSize: "0.85rem", fontWeight: 800 }}>Manage Outlets & Shops</Typography>
-                    <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED }}>Add new branch or update details</Typography>
+                  <Box sx={{ textAlign: "left", minWidth: 0, flex: 1, pr: 1 }}>
+                    <Typography sx={{ fontSize: "0.84rem", fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      Manage Outlets & Shops
+                    </Typography>
+                    <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      Add new branch or update details
+                    </Typography>
                   </Box>
                 </Button>
               </Grid>
@@ -749,19 +785,24 @@ export default function BusinessProfile() {
                   startIcon={<InventoryIcon sx={{ color: "#2563eb" }} />}
                   endIcon={<ArrowRightIcon sx={{ color: TEXT_MUTED }} />}
                   sx={{
+                    height: 64,
                     justifyContent: "space-between",
                     borderColor: BORDER,
                     color: TEXT,
                     textTransform: "none",
                     fontWeight: 800,
                     borderRadius: "14px",
-                    p: 1.5,
+                    px: 1.75,
                     "&:hover": { bgcolor: BG, borderColor: "#2563eb" },
                   }}
                 >
-                  <Box sx={{ textAlign: "left" }}>
-                    <Typography sx={{ fontSize: "0.85rem", fontWeight: 800 }}>Inventory & Billing POS</Typography>
-                    <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED }}>Stock counts, barcodes, and billing</Typography>
+                  <Box sx={{ textAlign: "left", minWidth: 0, flex: 1, pr: 1 }}>
+                    <Typography sx={{ fontSize: "0.84rem", fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      Inventory & Billing POS
+                    </Typography>
+                    <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      Stock counts, barcodes, and billing
+                    </Typography>
                   </Box>
                 </Button>
               </Grid>
@@ -774,19 +815,24 @@ export default function BusinessProfile() {
                   startIcon={<AdsIcon sx={{ color: "#d97706" }} />}
                   endIcon={<ArrowRightIcon sx={{ color: TEXT_MUTED }} />}
                   sx={{
+                    height: 64,
                     justifyContent: "space-between",
                     borderColor: BORDER,
                     color: TEXT,
                     textTransform: "none",
                     fontWeight: 800,
                     borderRadius: "14px",
-                    p: 1.5,
+                    px: 1.75,
                     "&:hover": { bgcolor: BG, borderColor: "#d97706" },
                   }}
                 >
-                  <Box sx={{ textAlign: "left" }}>
-                    <Typography sx={{ fontSize: "0.85rem", fontWeight: 800 }}>Ads & Local Promotions</Typography>
-                    <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED }}>Run banners & sponsored listings</Typography>
+                  <Box sx={{ textAlign: "left", minWidth: 0, flex: 1, pr: 1 }}>
+                    <Typography sx={{ fontSize: "0.84rem", fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      Ads & Local Promotions
+                    </Typography>
+                    <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      Run banners & sponsored listings
+                    </Typography>
                   </Box>
                 </Button>
               </Grid>
@@ -799,19 +845,24 @@ export default function BusinessProfile() {
                   startIcon={<ShieldIcon sx={{ color: "#7c3aed" }} />}
                   endIcon={<ArrowRightIcon sx={{ color: TEXT_MUTED }} />}
                   sx={{
+                    height: 64,
                     justifyContent: "space-between",
                     borderColor: BORDER,
                     color: TEXT,
                     textTransform: "none",
                     fontWeight: 800,
                     borderRadius: "14px",
-                    p: 1.5,
+                    px: 1.75,
                     "&:hover": { bgcolor: BG, borderColor: "#7c3aed" },
                   }}
                 >
-                  <Box sx={{ textAlign: "left" }}>
-                    <Typography sx={{ fontSize: "0.85rem", fontWeight: 800 }}>KYC & Verification</Typography>
-                    <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED }}>Business documents & PAN status</Typography>
+                  <Box sx={{ textAlign: "left", minWidth: 0, flex: 1, pr: 1 }}>
+                    <Typography sx={{ fontSize: "0.84rem", fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      KYC & Verification
+                    </Typography>
+                    <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      Business documents & PAN status
+                    </Typography>
                   </Box>
                 </Button>
               </Grid>
@@ -826,15 +877,15 @@ export default function BusinessProfile() {
           fullWidth
           variant="contained"
           onClick={() => setLogoutDialogOpen(true)}
-          startIcon={<LogoutIcon />}
+          startIcon={<LogoutIcon sx={{ fontSize: 18 }} />}
           sx={{
             bgcolor: "#fee2e2",
             color: "#b91c1c",
             textTransform: "none",
             fontWeight: 800,
-            fontSize: "0.9rem",
+            fontSize: "0.88rem",
             borderRadius: "14px",
-            py: 1.4,
+            height: 46,
             mb: 4,
             boxShadow: "none",
             "&:hover": { bgcolor: "#fecaca" },
