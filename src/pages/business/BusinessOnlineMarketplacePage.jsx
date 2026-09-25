@@ -278,6 +278,10 @@ const BLINKIT_CATEGORIES_DATA = {
       { id: "milk", label: "Milk & Curd", icon: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=120&q=80" },
       { id: "bread", label: "Bread & Buns", icon: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=120&q=80" },
       { id: "butter", label: "Butter & Paneer", icon: "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&w=120&q=80" },
+      { id: "eggs", label: "Eggs", icon: "https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&w=120&q=80" },
+      { id: "cheese", label: "Cheese", icon: "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?auto=format&fit=crop&w=120&q=80" },
+      { id: "yogurt", label: "Yogurt", icon: "https://images.unsplash.com/photo-1571212515416-fef01fc43637?auto=format&fit=crop&w=120&q=80" },
+      { id: "other", label: "Other Dairy", icon: "https://images.unsplash.com/photo-1528750997573-59b89d56f4f7?auto=format&fit=crop&w=120&q=80" },
     ],
     catalog: [
       {
@@ -286,7 +290,7 @@ const BLINKIT_CATEGORIES_DATA = {
         subcat: "milk",
         packSize: "500 ml Pouch",
         price: 27,
-        mrp: 27,
+        mrp: 30,
         image: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=400&q=80",
         deliveryMins: "10-15 mins",
         rating: 4.9,
@@ -315,6 +319,42 @@ const BLINKIT_CATEGORIES_DATA = {
         deliveryMins: "10-15 mins",
         rating: 4.7,
         description: "Healthy high-fiber brown bread baked without refined maida.",
+      },
+      {
+        id: 304,
+        title: "Farm Fresh White Eggs (6 pcs)",
+        subcat: "eggs",
+        packSize: "Pack of 6",
+        price: 54,
+        mrp: 65,
+        image: "https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.8,
+        description: "Nutritious farm fresh protein-rich table eggs, hygienically washed and packed.",
+      },
+      {
+        id: 305,
+        title: "Amul Processed Cheese Slices",
+        subcat: "cheese",
+        packSize: "200 g (10 slices)",
+        price: 135,
+        mrp: 150,
+        image: "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.9,
+        description: "Creamy pasteurized cheese slices ideal for sandwiches, burgers, and morning toasts.",
+      },
+      {
+        id: 306,
+        title: "Epigamia Greek Yogurt (Blueberry)",
+        subcat: "yogurt",
+        packSize: "90 g Cup",
+        price: 45,
+        mrp: 50,
+        image: "https://images.unsplash.com/photo-1571212515416-fef01fc43637?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.8,
+        description: "High protein, zero preservative Greek yogurt infused with real blueberries.",
       },
     ]
   },
@@ -559,6 +599,7 @@ export default function BusinessOnlineMarketplacePage() {
   // Cart State (Synchronized with tri_business_b2b_cart)
   const [b2bCart, setB2bCart] = useState(() => readB2BCart());
   const [wishlist, setWishlist] = useState({});
+  const [fastDeliveryOnly, setFastDeliveryOnly] = useState(false);
 
   // Modals
   const [selectedProductDetails, setSelectedProductDetails] = useState(null);
@@ -659,6 +700,11 @@ export default function BusinessOnlineMarketplacePage() {
       list = list.filter(p => p.title.toLowerCase().includes(q) || (p.description && p.description.toLowerCase().includes(q)));
     }
 
+    // Fast Delivery Filter
+    if (fastDeliveryOnly) {
+      list = list.filter(p => p.deliveryMins && (p.deliveryMins.includes('10') || p.deliveryMins.includes('15')));
+    }
+
     // Sort By
     if (sortBy === "price_asc") {
       list.sort((a, b) => a.price - b.price);
@@ -667,7 +713,7 @@ export default function BusinessOnlineMarketplacePage() {
     }
 
     return list;
-  }, [activeCategoryData, activeSubcatId, searchQuery, sortBy]);
+  }, [activeCategoryData, activeSubcatId, searchQuery, sortBy, fastDeliveryOnly]);
 
   // Cart total summary
   const totalCartCount = (b2bCart?.items || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0);
@@ -676,584 +722,646 @@ export default function BusinessOnlineMarketplacePage() {
 
   return (
     <AppShell activeTab="/business/online-marketplace" title="Online Shopping">
-      <Box sx={{ height: 'calc(100dvh - 64px)', bgcolor: '#f8fafc', overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <Box sx={{ width: '100%', bgcolor: '#f8fafc', minHeight: '100%', position: 'relative' }}>
         
         {isCategoryScreen ? (
           /* ════════════════════════════════════════════════════════════════════════════════
-             SCREEN 1: FULL-SCREEN CATEGORY SELECTION HUB (Blinkit Category Grid)
+             SCREEN 9: ALL CATEGORIES (Master Design System Board)
              ════════════════════════════════════════════════════════════════════════════════ */
-          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-            {/* Category Hub Top Header */}
-            <Box
-              sx={{
-                bgcolor: '#ffffff',
-                borderBottom: '1px solid #e2e8f0',
-                px: { xs: 2, sm: 3 },
-                py: 1.5,
-                flexShrink: 0,
-                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
-              }}
-            >
-              <Container maxWidth="lg" disableGutters>
-                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
-                  <Stack direction="row" alignItems="center" spacing={1.25}>
-                    <IconButton
-                      size="small"
-                      onClick={() => navigate('/business-dashboard')}
-                      sx={{ bgcolor: '#f1f5f9', color: '#0f172a' }}
-                    >
-                      <BackIcon sx={{ fontSize: 20 }} />
-                    </IconButton>
-                    <Box>
-                      <Typography sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' }, fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>
-                        All Categories ({filteredMasterCategories.length})
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, mt: 0.2 }}>
-                        Select a category to browse wholesale products
-                      </Typography>
-                    </Box>
-                  </Stack>
-
-                  <IconButton
-                    size="small"
-                    onClick={() => navigate('/business/online-marketplace/cart')}
-                    sx={{ bgcolor: '#f1f5f9', color: '#0f172a' }}
-                  >
-                    <Badge badgeContent={(b2bCart?.items || []).reduce((s, i) => s + (i.quantity || 1), 0)} color="success" max={99}>
-                      <BagIcon sx={{ fontSize: 20, color: '#059669' }} />
-                    </Badge>
-                  </IconButton>
-                </Stack>
-
-                {/* Category Search Input */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    bgcolor: '#f1f5f9',
-                    borderRadius: '14px',
-                    px: 1.5,
-                    py: 0.4,
-                  }}
-                >
-                  <SearchIcon sx={{ color: '#64748b', fontSize: 20, mr: 1 }} />
-                  <TextField
-                    fullWidth
-                    variant="standard"
-                    placeholder="Search across 100+ categories (e.g. Dairy, Fruits, Rice...)"
-                    value={categorySearchQuery}
-                    onChange={(e) => setCategorySearchQuery(e.target.value)}
-                    InputProps={{
-                      disableUnderline: true,
-                      sx: { fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' },
-                    }}
-                  />
-                  {categorySearchQuery && (
-                    <IconButton size="small" onClick={() => setCategorySearchQuery("")} sx={{ color: '#64748b' }}>
-                      <CloseIcon sx={{ fontSize: 18 }} />
-                    </IconButton>
-                  )}
+          <Box sx={{ width: '100%', pb: 4 }}>
+            {/* Page Title & Context Header */}
+            <Box sx={{ px: { xs: 2, sm: 3 }, pt: 2, pb: 1 }}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+                <Box>
+                  <Typography sx={{ fontSize: { xs: '1.25rem', sm: '1.4rem' }, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.3px' }}>
+                    All Categories ({filteredMasterCategories.length})
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500, mt: 0.25 }}>
+                    Browse products across every business category
+                  </Typography>
                 </Box>
-              </Container>
-            </Box>
-
-            {/* Categories Full Grid Container */}
-            <Box
-              sx={{
-                flexGrow: 1,
-                overflowY: 'auto',
-                p: { xs: 2, sm: 2.5 },
-                pb: 6,
-                scrollbarWidth: 'none',
-                '&::-webkit-scrollbar': { display: 'none' },
-              }}
-            >
-              <Container maxWidth="lg" disableGutters>
-                <Grid container spacing={{ xs: 1.5, sm: 2 }}>
-                  {filteredMasterCategories.map((cat) => {
-                    const isSelected = currentCategoryKey.toLowerCase() === cat.label.toLowerCase();
-                    return (
-                      <Grid item xs={6} sm={4} md={3} key={cat.id}>
-                        <Card
-                          onClick={() => handleSelectCategory(cat.label)}
-                          sx={{
-                            borderRadius: '22px',
-                            border: isSelected ? '2px solid #10b981' : '1.5px solid #e2e8f0',
-                            bgcolor: isSelected ? '#f0fdf4' : '#ffffff',
-                            p: { xs: 1.5, sm: 2 },
-                            textAlign: 'center',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            transition: 'all 0.18s ease-in-out',
-                            boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
-                            position: 'relative',
-                            '&:hover': {
-                              borderColor: '#10b981',
-                              transform: 'translateY(-2px)',
-                              boxShadow: '0 6px 16px rgba(16, 185, 129, 0.12)',
-                            },
-                          }}
-                        >
-                          {/* Badge Pill */}
-                          <Box
-                            sx={{
-                              bgcolor: isSelected ? '#059669' : '#047857',
-                              color: '#ffffff',
-                              fontSize: '0.62rem',
-                              fontWeight: 800,
-                              borderRadius: 999,
-                              px: 1,
-                              py: 0.2,
-                              mb: 1.25,
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.3px',
-                            }}
-                          >
-                            {cat.badge || 'Wholesale'}
-                          </Box>
-
-                          {/* Image */}
-                          <Box
-                            component="img"
-                            src={cat.image}
-                            alt={cat.label}
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80';
-                            }}
-                            sx={{
-                              width: { xs: 72, sm: 84 },
-                              height: { xs: 72, sm: 84 },
-                              borderRadius: '18px',
-                              objectFit: 'cover',
-                              mb: 1.25,
-                              bgcolor: '#f8fafc',
-                              boxShadow: '0 4px 10px rgba(0,0,0,0.06)',
-                            }}
-                          />
-
-                          {/* Label */}
-                          <Typography
-                            sx={{
-                              fontSize: { xs: '0.85rem', sm: '0.92rem' },
-                              fontWeight: 800,
-                              color: isSelected ? '#047857' : '#0f172a',
-                              lineHeight: 1.25,
-                              mb: 0.4,
-                              height: '2.5em',
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                            }}
-                          >
-                            {cat.label}
-                          </Typography>
-
-                          {/* Count */}
-                          <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
-                            {cat.count || '80+ items'}
-                          </Typography>
-                        </Card>
-                      </Grid>
-                    );
-                  })}
-                </Grid>
-              </Container>
-            </Box>
-          </Box>
-        ) : (
-          /* ════════════════════════════════════════════════════════════════════════════════
-             SCREEN 2: DUAL-PANE BROWSING SCREEN (Fixed Viewport • Constant Left Selector • Independently Scrollable)
-             ════════════════════════════════════════════════════════════════════════════════ */
-          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-            
-            {/* 1. TOP BAR: ETA • LOCATION • SEARCH */}
-            <Box
-              sx={{
-                bgcolor: '#ffffff',
-                borderBottom: '1px solid #e2e8f0',
-                px: { xs: 2, sm: 3 },
-                py: 1.25,
-                flexShrink: 0,
-                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
-              }}
-            >
-              <Container maxWidth="lg" disableGutters>
-                {/* Top Row: Back button, Category Title & Location */}
-                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1.25 }}>
-                  <Stack direction="row" alignItems="center" spacing={1.25}>
-                    <IconButton
-                      size="small"
-                      onClick={handleBackFromBrowse}
-                      sx={{ bgcolor: '#f1f5f9', color: '#0f172a' }}
-                      title="Back to Categories"
-                    >
-                      <BackIcon sx={{ fontSize: 20 }} />
-                    </IconButton>
-                    <Box>
-                      <Stack
-                        direction="row"
-                        alignItems="center"
-                        spacing={0.5}
-                        onClick={() => setCategoryDrawerOpen(true)}
-                        sx={{
-                          cursor: 'pointer',
-                          bgcolor: '#f0fdf4',
-                          px: 1.2,
-                          py: 0.35,
-                          borderRadius: '10px',
-                          border: '1px solid #bbf7d0',
-                          '&:hover': { bgcolor: '#dcfce7' },
-                        }}
-                      >
-                        <Typography sx={{ fontSize: { xs: '0.92rem', sm: '1.05rem' }, fontWeight: 900, color: '#047857', lineHeight: 1.2 }}>
-                          {activeCategoryData.label}
-                        </Typography>
-                        <ArrowDownIcon sx={{ fontSize: 18, color: '#047857' }} />
-                      </Stack>
-                      <Typography sx={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, mt: 0.2 }}>
-                        ⚡ 10-15 mins delivery • Wholesale B2B
-                      </Typography>
-                    </Box>
-                  </Stack>
-
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Button
-                      size="small"
-                      startIcon={<FilterIcon sx={{ fontSize: 16 }} />}
-                      onClick={handleBackFromBrowse}
-                      sx={{
-                        bgcolor: '#ecfdf5',
-                        color: '#047857',
-                        fontWeight: 800,
-                        fontSize: '0.72rem',
-                        textTransform: 'none',
-                        borderRadius: '10px',
-                        border: '1px solid #a7f3d0',
-                        py: 0.5,
-                        px: 1.2,
-                        display: { xs: 'none', sm: 'inline-flex' }
-                      }}
-                    >
-                      All Categories ({allAvailableCategories.length})
-                    </Button>
-                    <IconButton
-                      size="small"
-                      onClick={() => navigate('/business/online-marketplace/cart')}
-                      sx={{ bgcolor: '#f1f5f9', color: '#0f172a' }}
-                    >
-                      <Badge badgeContent={(b2bCart?.items || []).reduce((s, i) => s + (i.quantity || 1), 0)} color="success" max={99}>
-                        <BagIcon sx={{ fontSize: 20, color: '#059669' }} />
-                      </Badge>
-                    </IconButton>
-                    <IconButton size="small" sx={{ bgcolor: '#f8fafc', color: '#475569' }}>
-                      <ShareIcon sx={{ fontSize: 18 }} />
-                    </IconButton>
-                  </Stack>
-                </Stack>
-
-                {/* Search Input */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    bgcolor: '#f1f5f9',
-                    borderRadius: '14px',
-                    px: 1.5,
-                    py: 0.4,
-                  }}
+                <IconButton
+                  size="small"
+                  onClick={() => navigate('/business/online-marketplace/cart')}
+                  sx={{ bgcolor: '#ffffff', border: '1px solid #e2e8f0', color: '#0f172a', p: 1 }}
                 >
-                  <SearchIcon sx={{ color: '#64748b', fontSize: 20, mr: 1 }} />
-                  <TextField
-                    fullWidth
-                    variant="standard"
-                    placeholder={`Search in "${activeCategoryData.label}"...`}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    InputProps={{
-                      disableUnderline: true,
-                      sx: { fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' },
-                    }}
-                  />
-                  <IconButton size="small" sx={{ color: '#64748b' }}>
-                    <MicIcon sx={{ fontSize: 19 }} />
-                  </IconButton>
-                </Box>
-              </Container>
-            </Box>
+                  <Badge badgeContent={totalCartCount} color="success" max={99}>
+                    <BagIcon sx={{ fontSize: 20, color: '#059669' }} />
+                  </Badge>
+                </IconButton>
+              </Stack>
 
-            {/* 2. DUAL-PANE BODY: LEFT SUBCATEGORY RAIL + RIGHT 2-COLUMN GRID */}
-            <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
-              
-              {/* ── LEFT VERTICAL RAIL (Subcategories Selector) ─────────────────── */}
+              {/* Clean Full-Width Search Input */}
               <Box
                 sx={{
-                  width: { xs: 88, sm: 102 },
-                  height: '100%',
-                  bgcolor: '#f8fafc',
-                  borderRight: '1px solid #e2e8f0',
-                  overflowY: 'auto',
-                  flexShrink: 0,
-                  scrollbarWidth: 'none',
-                  '&::-webkit-scrollbar': { display: 'none' },
-                  pb: 3,
+                  display: 'flex',
+                  alignItems: 'center',
+                  bgcolor: '#ffffff',
+                  borderRadius: '16px',
+                  border: '1.5px solid #e2e8f0',
+                  px: 2,
+                  py: 0.85,
+                  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
+                  mt: 1.5,
                 }}
               >
-                <Stack spacing={0}>
-                  {/* Category Explorer shortcut */}
-                  <Box
-                    onClick={handleBackFromBrowse}
-                    sx={{
-                      minHeight: 64,
-                      width: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      py: 1,
-                      px: 0.5,
-                      cursor: 'pointer',
-                      borderBottom: '1px solid #e2e8f0',
-                      bgcolor: '#f1f5f9',
-                      mb: 0.5,
-                      transition: 'all 0.15s ease',
-                      '&:hover': { bgcolor: '#e2e8f0' },
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: '10px',
-                        bgcolor: '#ecfdf5',
-                        color: '#059669',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: '1.5px dashed #059669',
-                        mb: 0.4,
-                      }}
-                    >
-                      <FilterIcon sx={{ fontSize: 18 }} />
-                    </Box>
-                    <Typography sx={{ fontSize: '0.62rem', fontWeight: 900, color: '#047857', textAlign: 'center' }}>
-                      All Hub
-                    </Typography>
-                  </Box>
+                <SearchIcon sx={{ color: '#94a3b8', fontSize: 20, mr: 1.25 }} />
+                <TextField
+                  fullWidth
+                  variant="standard"
+                  placeholder="Search categories (e.g. Dairy, Fruits, Snacks, Fashion...)"
+                  value={categorySearchQuery}
+                  onChange={(e) => setCategorySearchQuery(e.target.value)}
+                  InputProps={{
+                    disableUnderline: true,
+                    sx: { fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' },
+                  }}
+                />
+                {categorySearchQuery && (
+                  <IconButton size="small" onClick={() => setCategorySearchQuery("")} sx={{ color: '#94a3b8', p: 0.5 }}>
+                    <CloseIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                )}
+              </Box>
+            </Box>
 
-                  {/* Subcategories items */}
-                  {activeCategoryData.subcategories.map((subcat) => {
-                    const isActive = activeSubcatId === subcat.id;
-                    return (
+            {/* Popular Categories (4-item quick grid matching Screen 9) */}
+            {!categorySearchQuery && (
+              <Box sx={{ px: { xs: 2, sm: 3 }, mt: 2, mb: 3 }}>
+                <Typography sx={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', mb: 1.5 }}>
+                  Popular Categories
+                </Typography>
+                <Grid container spacing={1.5}>
+                  {allAvailableCategories.slice(0, 4).map((popCat) => (
+                    <Grid item xs={3} key={popCat.id}>
                       <Box
-                        key={subcat.id}
-                        onClick={() => setActiveSubcatId(subcat.id)}
+                        onClick={() => handleSelectCategory(popCat.label)}
                         sx={{
-                          minHeight: 88,
-                          width: '100%',
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                          py: 1,
-                          px: 0.5,
+                          textAlign: 'center',
                           cursor: 'pointer',
-                          position: 'relative',
-                          bgcolor: isActive ? '#ffffff' : 'transparent',
-                          transition: 'background-color 0.15s',
-                          borderBottom: '1px solid rgba(226, 232, 240, 0.4)',
+                          p: 0.5,
+                          '&:hover': { transform: 'scale(1.03)' },
+                          transition: 'transform 0.15s ease',
                         }}
                       >
-                        {isActive && (
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              left: 0,
-                              top: 14,
-                              bottom: 14,
-                              width: 4,
-                              borderRadius: '0 4px 4px 0',
-                              bgcolor: '#10b981',
-                            }}
-                          />
-                        )}
                         <Box
-                          component="img"
-                          src={subcat.icon}
-                          alt={subcat.label}
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=120&q=80';
-                          }}
                           sx={{
-                            width: 46,
-                            height: 46,
-                            borderRadius: '50%',
-                            objectFit: 'cover',
-                            bgcolor: '#f1f5f9',
-                            border: isActive ? '2px solid #10b981' : '1.5px solid #e2e8f0',
-                            p: 0.2,
-                            mb: 0.6,
-                            boxShadow: isActive ? '0 2px 8px rgba(16, 185, 129, 0.2)' : 'none',
+                            width: { xs: 58, sm: 70 },
+                            height: { xs: 58, sm: 70 },
+                            borderRadius: '18px',
+                            bgcolor: '#ffffff',
+                            border: '1.5px solid #e2e8f0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            p: 1,
+                            mb: 0.75,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                           }}
-                        />
+                        >
+                          <Box
+                            component="img"
+                            src={popCat.image}
+                            alt={popCat.label}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=120&q=80';
+                            }}
+                            sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                          />
+                        </Box>
                         <Typography
                           sx={{
-                            fontSize: '0.68rem',
-                            fontWeight: isActive ? 900 : 600,
-                            color: isActive ? '#047857' : '#475569',
-                            textAlign: 'center',
-                            lineHeight: 1.15,
-                            maxWidth: 78,
-                            maxHeight: '2.3em',
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                            color: '#0f172a',
+                            lineHeight: 1.2,
+                            height: '2.4em',
                             overflow: 'hidden',
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
                             WebkitBoxOrient: 'vertical',
                           }}
                         >
-                          {subcat.label}
+                          {popCat.label}
                         </Typography>
                       </Box>
-                    );
-                  })}
-                </Stack>
-              </Box>
-
-              {/* ── RIGHT MAIN PRODUCT AREA ─────────────────────────────────── */}
-              <Box
-                sx={{
-                  flexGrow: 1,
-                  height: '100%',
-                  p: { xs: 1.5, sm: 2 },
-                  overflowY: 'auto',
-                  bgcolor: '#ffffff',
-                  pb: 8,
-                  scrollbarWidth: 'none',
-                  '&::-webkit-scrollbar': { display: 'none' },
-                }}
-              >
-            
-            {/* Promo Header Banner matching Screen 3 */}
-            {activeCategoryData.banner && !searchQuery && (
-              <Box
-                sx={{
-                  borderRadius: '20px',
-                  background: activeCategoryData.banner.bg,
-                  border: '1px solid rgba(16, 185, 129, 0.2)',
-                  p: { xs: 2, sm: 2.5 },
-                  mb: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.08)',
-                }}
-              >
-                <Box sx={{ maxWidth: '65%' }}>
-                  <Typography sx={{ fontSize: { xs: '1rem', sm: '1.2rem' }, fontWeight: 900, color: '#0f172a', lineHeight: 1.25 }}>
-                    {activeCategoryData.banner.title}
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.75rem', color: '#065f46', fontWeight: 600, mt: 0.5 }}>
-                    {activeCategoryData.banner.subtitle}
-                  </Typography>
-                </Box>
-                <Box
-                  component="img"
-                  src={activeCategoryData.banner.image}
-                  alt="Banner"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80';
-                  }}
-                  sx={{ width: { xs: 70, sm: 100 }, height: { xs: 70, sm: 100 }, objectFit: 'cover', borderRadius: '16px' }}
-                />
+                    </Grid>
+                  ))}
+                </Grid>
               </Box>
             )}
 
-            {/* Quick Sort / Filter Bar matching Screen 3 (Hidden Scrollbars) */}
-            <Stack
-              direction="row"
-              spacing={1}
+            {/* All Categories List / Grid (Matching Screen 9) */}
+            <Box sx={{ px: { xs: 2, sm: 3 } }}>
+              <Typography sx={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', mb: 1.5 }}>
+                All Categories
+              </Typography>
+              <Stack spacing={1.25}>
+                {filteredMasterCategories.map((cat) => {
+                  const isSelected = currentCategoryKey.toLowerCase() === cat.label.toLowerCase();
+                  return (
+                    <Card
+                      key={cat.id}
+                      onClick={() => handleSelectCategory(cat.label)}
+                      sx={{
+                        borderRadius: '18px',
+                        border: isSelected ? '2px solid #10b981' : '1px solid #e2e8f0',
+                        bgcolor: isSelected ? '#f0fdf4' : '#ffffff',
+                        p: 1.5,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(15, 23, 42, 0.02)',
+                        transition: 'all 0.15s ease',
+                        '&:hover': {
+                          borderColor: '#10b981',
+                          transform: 'translateY(-1px)',
+                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.08)',
+                        },
+                      }}
+                    >
+                      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
+                        <Box
+                          sx={{
+                            width: 54,
+                            height: 54,
+                            borderRadius: '14px',
+                            bgcolor: '#f8fafc',
+                            p: 0.75,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            border: '1px solid #f1f5f9',
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={cat.image}
+                            alt={cat.label}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=120&q=80';
+                            }}
+                            sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                          />
+                        </Box>
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Typography
+                            sx={{
+                              fontSize: '0.88rem',
+                              fontWeight: 800,
+                              color: isSelected ? '#047857' : '#0f172a',
+                              lineHeight: 1.25,
+                            }}
+                            noWrap
+                          >
+                            {cat.label}
+                          </Typography>
+                          <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.35 }}>
+                            <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                              {cat.count || '80+ items'}
+                            </Typography>
+                            {cat.badge && (
+                              <Typography sx={{ fontSize: '0.62rem', fontWeight: 800, color: '#059669', bgcolor: '#ecfdf5', px: 0.75, py: 0.15, borderRadius: '4px' }}>
+                                {cat.badge}
+                              </Typography>
+                            )}
+                          </Stack>
+                        </Box>
+                      </Stack>
+                      <ChevronRightIcon sx={{ color: isSelected ? '#10b981' : '#94a3b8', fontSize: 20 }} />
+                    </Card>
+                  );
+                })}
+              </Stack>
+            </Box>
+          </Box>
+        ) : (
+          /* ════════════════════════════════════════════════════════════════════════════════
+             SCREEN 10: CATEGORY PRODUCT LISTING (Master Design System Board)
+             ════════════════════════════════════════════════════════════════════════════════ */
+          <Box sx={{ width: '100%', pb: 6 }}>
+            {/* 1. Category Context Sticky Bar */}
+            <Box
               sx={{
-                mb: 2,
-                overflowX: 'auto',
-                pb: 0.5,
-                '&::-webkit-scrollbar': { display: 'none' },
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
+                bgcolor: '#ffffff',
+                borderBottom: '1px solid #e2e8f0',
+                px: { xs: 2, sm: 3 },
+                py: 1.25,
+                position: 'sticky',
+                top: 0,
+                zIndex: 10,
+                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
               }}
             >
-              <Chip
-                label="📁 All Categories ▾"
-                size="small"
-                onClick={() => setCategoryDrawerOpen(true)}
-                sx={{
-                  fontWeight: 900,
-                  fontSize: '0.72rem',
-                  bgcolor: '#ecfdf5',
-                  color: '#047857',
-                  border: '1.5px solid #10b981',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                }}
-              />
-              <Chip
-                label={`Sort: ${sortBy === 'price_asc' ? 'Price: Low to High' : sortBy === 'price_desc' ? 'Price: High to Low' : 'Relevance'} ▾`}
-                size="small"
-                onClick={(e) => setSortMenuAnchor(e.currentTarget)}
-                sx={{ fontWeight: 800, fontSize: '0.72rem', bgcolor: '#ffffff', border: '1px solid #e2e8f0', flexShrink: 0 }}
-              />
-              <Menu
-                anchorEl={sortMenuAnchor}
-                open={Boolean(sortMenuAnchor)}
-                onClose={() => setSortMenuAnchor(null)}
-                PaperProps={{ sx: { borderRadius: '14px', minWidth: 160 } }}
-              >
-                <MenuItem onClick={() => { setSortBy("relevance"); setSortMenuAnchor(null); }}>Relevance</MenuItem>
-                <MenuItem onClick={() => { setSortBy("price_asc"); setSortMenuAnchor(null); }}>Price: Low to High</MenuItem>
-                <MenuItem onClick={() => { setSortBy("price_desc"); setSortMenuAnchor(null); }}>Price: High to Low</MenuItem>
-              </Menu>
-              <Chip
-                label="⚡ Fast 10-15 Mins"
-                size="small"
-                sx={{ fontWeight: 800, fontSize: '0.72rem', bgcolor: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', flexShrink: 0 }}
-              />
-            </Stack>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                {/* Back Button & Category Details */}
+                <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
+                  <IconButton
+                    size="small"
+                    onClick={handleBackFromBrowse}
+                    sx={{
+                      bgcolor: '#f1f5f9',
+                      color: '#0f172a',
+                      p: 0.8,
+                      '&:hover': { bgcolor: '#e2e8f0' },
+                    }}
+                    title="Back to All Categories"
+                  >
+                    <BackIcon sx={{ fontSize: 20 }} />
+                  </IconButton>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography
+                      sx={{
+                        fontSize: { xs: '0.98rem', sm: '1.15rem' },
+                        fontWeight: 900,
+                        color: '#0f172a',
+                        lineHeight: 1.2,
+                      }}
+                      noWrap
+                    >
+                      {activeCategoryData.label}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: '0.72rem',
+                        color: '#059669',
+                        fontWeight: 700,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        mt: 0.2,
+                      }}
+                      noWrap
+                    >
+                      <span>⚡ 10–15 min delivery</span>
+                      <span>•</span>
+                      <span>Wholesale B2B</span>
+                    </Typography>
+                  </Box>
+                </Stack>
 
-            {/* ── 2-COLUMN PRODUCT GRID (Matching Screen 3) ────────────────── */}
-            {filteredProducts.length === 0 ? (
-              <Box sx={{ py: 8, textAlign: 'center' }}>
-                <Typography sx={{ fontSize: '1rem', fontWeight: 800, color: '#64748b' }}>
-                  No items found in this section
-                </Typography>
-                <Button
-                  size="small"
-                  onClick={() => { setActiveSubcatId("all"); setSearchQuery(""); }}
-                  sx={{ mt: 1.5, textTransform: 'none', fontWeight: 800, color: '#10b981' }}
-                >
-                  View All {activeCategoryData.label}
-                </Button>
-              </Box>
-            ) : (
+                {/* Right Action Icons: All Categories button, Cart Bag, Share */}
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
+                  <Button
+                    size="small"
+                    startIcon={<FilterIcon sx={{ fontSize: 16 }} />}
+                    onClick={handleBackFromBrowse}
+                    sx={{
+                      bgcolor: '#ecfdf5',
+                      color: '#047857',
+                      fontWeight: 800,
+                      fontSize: '0.72rem',
+                      textTransform: 'none',
+                      borderRadius: '10px',
+                      border: '1px solid #a7f3d0',
+                      py: 0.5,
+                      px: 1.2,
+                      display: { xs: 'none', sm: 'inline-flex' },
+                      '&:hover': { bgcolor: '#d1fae5' },
+                    }}
+                  >
+                    All Categories ({allAvailableCategories.length})
+                  </Button>
+                  <IconButton
+                    size="small"
+                    onClick={() => navigate('/business/online-marketplace/cart')}
+                    sx={{
+                      bgcolor: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      color: '#0f172a',
+                      p: 0.8,
+                      '&:hover': { bgcolor: '#f1f5f9' },
+                    }}
+                  >
+                    <Badge badgeContent={totalCartCount} color="success" max={99}>
+                      <BagIcon sx={{ fontSize: 20, color: '#059669' }} />
+                    </Badge>
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    sx={{
+                      bgcolor: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      color: '#475569',
+                      p: 0.8,
+                      '&:hover': { bgcolor: '#f1f5f9' },
+                    }}
+                  >
+                    <ShareIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </Stack>
+              </Stack>
+            </Box>
+
+            {/* Main Content Area */}
+            <Box sx={{ px: { xs: 2, sm: 3 }, pt: 1.5 }}>
+              {/* 2. Full-Width Clean Search Bar */}
               <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', sm: 'repeat(3, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' },
-                gap: { xs: 1.25, sm: 2 },
-                width: '100%',
-              }}
-            >
-              {filteredProducts.map((p) => {
-                const qtyInCart = getProductQtyInCart(p.id);
-                const isWish = wishlist[p.id];
-                const discountPct = Math.round(((p.mrp - p.price) / p.mrp) * 100);
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  bgcolor: '#ffffff',
+                  borderRadius: '14px',
+                  border: '1px solid #e2e8f0',
+                  px: 1.5,
+                  py: 0.4,
+                  mb: 1.75,
+                  boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
+                }}
+              >
+                <SearchIcon sx={{ color: '#64748b', fontSize: 20, mr: 1 }} />
+                <TextField
+                  fullWidth
+                  variant="standard"
+                  placeholder={`Search in "${activeCategoryData.label}"...`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  InputProps={{
+                    disableUnderline: true,
+                    sx: { fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' },
+                  }}
+                />
+                {searchQuery && (
+                  <IconButton size="small" onClick={() => setSearchQuery('')} sx={{ color: '#94a3b8', mr: 0.5 }}>
+                    <CloseIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                )}
+                <IconButton size="small" sx={{ color: '#64748b' }}>
+                  <MicIcon sx={{ fontSize: 19 }} />
+                </IconButton>
+              </Box>
 
-                return (
-                  <Card
-                    key={p.id}
+              {/* 3. Subcategory Navigation: Horizontal Scroll Chips */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  overflowX: 'auto',
+                  pb: 1,
+                  mb: 1.5,
+                  scrollbarWidth: 'none',
+                  '&::-webkit-scrollbar': { display: 'none' },
+                  msOverflowStyle: 'none',
+                }}
+              >
+                {/* All Items Chip */}
+                <Box
+                  onClick={() => setActiveSubcatId('all')}
+                  sx={{
+                    px: 1.75,
+                    py: 0.7,
+                    borderRadius: '24px',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    fontSize: '0.78rem',
+                    fontWeight: 800,
+                    transition: 'all 0.15s ease',
+                    bgcolor: activeSubcatId === 'all' ? '#047857' : '#ffffff',
+                    color: activeSubcatId === 'all' ? '#ffffff' : '#334155',
+                    border: activeSubcatId === 'all' ? '1.5px solid #047857' : '1px solid #e2e8f0',
+                    boxShadow: activeSubcatId === 'all' ? '0 2px 8px rgba(4, 120, 87, 0.25)' : 'none',
+                    '&:hover': {
+                      bgcolor: activeSubcatId === 'all' ? '#065f46' : '#f8fafc',
+                    },
+                  }}
+                >
+                  All Items
+                </Box>
+
+                {/* Subcategory Chips */}
+                {activeCategoryData.subcategories.map((subcat) => {
+                  const isActive = activeSubcatId === subcat.id;
+                  return (
+                    <Box
+                      key={subcat.id}
+                      onClick={() => setActiveSubcatId(subcat.id)}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.85,
+                        px: 1.5,
+                        py: 0.55,
+                        borderRadius: '24px',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                        fontSize: '0.78rem',
+                        fontWeight: isActive ? 800 : 600,
+                        transition: 'all 0.15s ease',
+                        bgcolor: isActive ? '#ecfdf5' : '#ffffff',
+                        color: isActive ? '#047857' : '#334155',
+                        border: isActive ? '1.5px solid #10b981' : '1px solid #e2e8f0',
+                        boxShadow: isActive ? '0 2px 8px rgba(16, 185, 129, 0.15)' : 'none',
+                        '&:hover': {
+                          bgcolor: isActive ? '#d1fae5' : '#f8fafc',
+                          borderColor: '#10b981',
+                        },
+                      }}
+                    >
+                      {subcat.icon && (
+                        <Box
+                          component="img"
+                          src={subcat.icon}
+                          alt={subcat.label}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=80&q=80';
+                          }}
+                          sx={{
+                            width: 22,
+                            height: 22,
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                          }}
+                        />
+                      )}
+                      <span>{subcat.label}</span>
+                    </Box>
+                  );
+                })}
+              </Box>
+
+              {/* 4. Compact Promotional Banner Module */}
+              {activeCategoryData.banner && !searchQuery && (
+                <Box
+                  sx={{
+                    borderRadius: '18px',
+                    background: activeCategoryData.banner.bg || 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                    border: '1px solid rgba(16, 185, 129, 0.25)',
+                    p: { xs: 1.75, sm: 2.25 },
+                    mb: 1.75,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    boxShadow: '0 2px 10px rgba(16, 185, 129, 0.08)',
+                    minHeight: 100,
+                  }}
+                >
+                  <Box sx={{ maxWidth: '65%' }}>
+                    <Box
+                      sx={{
+                        display: 'inline-block',
+                        bgcolor: 'rgba(5, 150, 105, 0.12)',
+                        color: '#047857',
+                        fontSize: '0.62rem',
+                        fontWeight: 900,
+                        px: 1,
+                        py: 0.2,
+                        borderRadius: '6px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        mb: 0.5,
+                      }}
+                    >
+                      CHILLED ESSENTIALS
+                    </Box>
+                    <Typography sx={{ fontSize: { xs: '0.95rem', sm: '1.15rem' }, fontWeight: 900, color: '#0f172a', lineHeight: 1.25 }}>
+                      {activeCategoryData.banner.title}
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.72rem', color: '#065f46', fontWeight: 600, mt: 0.35 }}>
+                      {activeCategoryData.banner.subtitle}
+                    </Typography>
+                  </Box>
+                  <Box
+                    component="img"
+                    src={activeCategoryData.banner.image}
+                    alt="Banner Promo"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80';
+                    }}
+                    sx={{
+                      width: { xs: 75, sm: 90 },
+                      height: { xs: 75, sm: 90 },
+                      objectFit: 'cover',
+                      borderRadius: '14px',
+                      flexShrink: 0,
+                    }}
+                  />
+                </Box>
+              )}
+
+              {/* 5. Compact Filter & Sort Bar */}
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{
+                  mb: 2,
+                  overflowX: 'auto',
+                  pb: 0.5,
+                  scrollbarWidth: 'none',
+                  '&::-webkit-scrollbar': { display: 'none' },
+                  msOverflowStyle: 'none',
+                }}
+              >
+                <Chip
+                  icon={<FilterIcon sx={{ fontSize: '15px !important', color: '#047857' }} />}
+                  label="Filters"
+                  size="small"
+                  onClick={() => setCategoryDrawerOpen(true)}
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: '0.72rem',
+                    bgcolor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    color: '#0f172a',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    '&:hover': { bgcolor: '#f8fafc', borderColor: '#10b981' },
+                  }}
+                />
+                <Chip
+                  label={`Sort: ${sortBy === 'price_asc' ? 'Price: Low to High' : sortBy === 'price_desc' ? 'Price: High to Low' : 'Relevance'} ▾`}
+                  size="small"
+                  onClick={(e) => setSortMenuAnchor(e.currentTarget)}
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: '0.72rem',
+                    bgcolor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    color: '#0f172a',
+                    flexShrink: 0,
+                    cursor: 'pointer',
+                  }}
+                />
+                <Menu
+                  anchorEl={sortMenuAnchor}
+                  open={Boolean(sortMenuAnchor)}
+                  onClose={() => setSortMenuAnchor(null)}
+                  PaperProps={{ sx: { borderRadius: '14px', minWidth: 160 } }}
+                >
+                  <MenuItem onClick={() => { setSortBy("relevance"); setSortMenuAnchor(null); }}>Relevance</MenuItem>
+                  <MenuItem onClick={() => { setSortBy("price_asc"); setSortMenuAnchor(null); }}>Price: Low to High</MenuItem>
+                  <MenuItem onClick={() => { setSortBy("price_desc"); setSortMenuAnchor(null); }}>Price: High to Low</MenuItem>
+                </Menu>
+                <Chip
+                  icon={<FastBoltIcon sx={{ fontSize: '15px !important', color: fastDeliveryOnly ? '#ffffff' : '#059669' }} />}
+                  label="Fast 10-15 Mins"
+                  size="small"
+                  onClick={() => setFastDeliveryOnly(prev => !prev)}
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: '0.72rem',
+                    bgcolor: fastDeliveryOnly ? '#047857' : '#ecfdf5',
+                    color: fastDeliveryOnly ? '#ffffff' : '#059669',
+                    border: fastDeliveryOnly ? '1px solid #047857' : '1px solid #a7f3d0',
+                    flexShrink: 0,
+                    cursor: 'pointer',
+                  }}
+                />
+                <Chip
+                  label="Wholesale B2B"
+                  size="small"
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: '0.72rem',
+                    bgcolor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    color: '#64748b',
+                    flexShrink: 0,
+                  }}
+                />
+              </Stack>
+
+              {/* 6. 2-Column Product Grid (Full Width, Quick Commerce Standard) */}
+              {filteredProducts.length === 0 ? (
+                <Box sx={{ py: 8, textAlign: 'center' }}>
+                  <Typography sx={{ fontSize: '1rem', fontWeight: 800, color: '#64748b' }}>
+                    No items found in this section
+                  </Typography>
+                  <Button
+                    size="small"
+                    onClick={() => { setActiveSubcatId("all"); setSearchQuery(""); setFastDeliveryOnly(false); }}
+                    sx={{ mt: 1.5, textTransform: 'none', fontWeight: 800, color: '#10b981' }}
+                  >
+                    View All {activeCategoryData.label}
+                  </Button>
+                </Box>
+              ) : (
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', sm: 'repeat(3, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' },
+                    gap: { xs: 1.25, sm: 2 },
+                    width: '100%',
+                  }}
+                >
+                  {filteredProducts.map((p) => {
+                    const qtyInCart = getProductQtyInCart(p.id);
+                    const isWish = wishlist[p.id];
+                    const discountPct = Math.round(((p.mrp - p.price) / p.mrp) * 100);
+
+                    return (
+                      <Card
+                        key={p.id}
                         elevation={0}
                         sx={{
                           borderRadius: '16px',
@@ -1265,7 +1373,7 @@ export default function BusinessOnlineMarketplacePage() {
                           position: 'relative',
                           overflow: 'hidden',
                           transition: 'all 0.15s ease',
-                          boxShadow: '0 2px 6px rgba(15, 23, 42, 0.03)',
+                          boxShadow: '0 1px 4px rgba(15, 23, 42, 0.03)',
                           '&:hover': {
                             borderColor: '#10b981',
                             boxShadow: '0 6px 18px rgba(16, 185, 129, 0.1)',
@@ -1304,7 +1412,7 @@ export default function BusinessOnlineMarketplacePage() {
                             alignItems: 'center',
                             justifyContent: 'center',
                             bgcolor: '#f8fafc',
-                            p: 1,
+                            p: 1.25,
                             cursor: 'pointer',
                             position: 'relative',
                             overflow: 'hidden',
@@ -1385,7 +1493,7 @@ export default function BusinessOnlineMarketplacePage() {
                               )}
                             </Box>
 
-                            {/* Blinkit Interactive ADD / Stepper Button */}
+                            {/* Quick Commerce ADD / Stepper Button */}
                             {qtyInCart === 0 ? (
                               <Button
                                 size="small"
@@ -1402,7 +1510,7 @@ export default function BusinessOnlineMarketplacePage() {
                                   minWidth: 64,
                                   textTransform: 'uppercase',
                                   bgcolor: '#ffffff',
-                                  boxShadow: '0 2px 6px rgba(16, 185, 129, 0.1)',
+                                  boxShadow: '0 1px 3px rgba(16, 185, 129, 0.1)',
                                   '&:hover': {
                                     bgcolor: '#ecfdf5',
                                     borderColor: '#059669',
@@ -1446,14 +1554,13 @@ export default function BusinessOnlineMarketplacePage() {
                           </Stack>
                         </CardContent>
                       </Card>
-                  );
-                })}
-              </Box>
-            )}
+                    );
+                  })}
+                </Box>
+              )}
+            </Box>
           </Box>
-        </Box>
-      </Box>
-    )}
+        )}
 
         {/* ════════════════════════════════════════════════════════════════════════════════
             3. FLOATING BOTTOM CART PILL (Matching Screen 3)
@@ -1462,7 +1569,7 @@ export default function BusinessOnlineMarketplacePage() {
           <Box
             sx={{
               position: 'fixed',
-              bottom: { xs: 68, sm: 80 },
+              bottom: { xs: 74, sm: 80 },
               left: 0,
               right: 0,
               zIndex: 40,

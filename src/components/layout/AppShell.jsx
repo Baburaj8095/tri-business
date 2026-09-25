@@ -71,7 +71,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('lg')); // >= 1200px
 
-  const shouldHideHeader = hideHeader || location.pathname === '/business/online-marketplace';
+  const shouldHideHeader = hideHeader;
 
   // Stores & Profile State
   const [profile, setProfile] = useState(null);
@@ -581,7 +581,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
           sx={{
             flex: 1,
             pt: { xs: shouldHideHeader ? '0px' : '118px', lg: '24px' },
-            pb: { xs: shouldHideHeader ? '64px' : '84px', lg: '40px' },
+            pb: { xs: '84px', lg: '40px' },
             maxWidth: T.maxContentWidth,
             width: '100%',
             mx: 'auto',
