@@ -36,6 +36,9 @@ import BusinessB2BSellerOrdersPage from './pages/business/BusinessB2BSellerOrder
 import BusinessKYC from './pages/business/BusinessKYC.jsx';
 import ForBetterSocietyPage from './pages/business/ForBetterSocietyPage.jsx';
 import PackagesPage from './pages/business/PackagesPage.jsx';
+import SplashScreen from './pages/auth/SplashScreen';
+import MobileAuthPage from './pages/auth/MobileAuthPage';
+import StoreRegistrationWizardPage from './pages/registration-form/StoreRegistrationWizardPage';
 
 import { Navigate } from 'react-router-dom';
 
@@ -48,7 +51,7 @@ function RootRedirect() {
   } else if (isBusiness) {
     return <Navigate to="/business-dashboard" replace />;
   } else {
-    return <Navigate to="/onboarding" replace />;
+    return <Navigate to="/login" replace />;
   }
 }
 
@@ -57,7 +60,8 @@ function App() {
     <Router>
       <CssBaseline />
       <Routes>
-        <Route path="/" element={<RootRedirect />} />
+        <Route path="/" element={<SplashScreen />} />
+        <Route path="/splash" element={<SplashScreen />} />
 
         <Route path="/business-dashboard" element={<BusinessDashboardConsumer />} />
         <Route path="/v2/business-dashboard" element={<BusinessDashboard />} />
@@ -84,13 +88,16 @@ function App() {
         <Route path="/business/prime" element={<PackagesPage />} />
         <Route path="/packages" element={<PackagesPage />} />
         <Route path="/registration" element={<BusinessRegistration />} />
-        <Route path="/registration-wizard" element={<BusinessRegistrationWizard />} />
+        <Route path="/registration-wizard" element={<StoreRegistrationWizardPage />} />
+        <Route path="/legacy/registration-wizard" element={<BusinessRegistrationWizard />} />
         <Route path="/onboarding" element={<BusinessOnboarding />} />
         <Route path="/registration/add-products" element={<ProductAddition />} />
         <Route path="/product-registration" element={<ProductRegistration />} />
         {/* Captain Routes */}
         <Route path="/captain/register" element={<CaptainRegister />} />
-        <Route path="/login" element={<CaptainLogin />} />
+        <Route path="/captain/login" element={<CaptainLogin />} />
+        <Route path="/login" element={<MobileAuthPage />} />
+        <Route path="/auth/mobile" element={<MobileAuthPage />} />
         
         {/* Protected Captain Routes wrapped in CaptainLayout */}
         <Route path="/captain" element={<CaptainLayout />}>

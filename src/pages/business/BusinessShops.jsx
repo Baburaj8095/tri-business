@@ -1025,28 +1025,59 @@ export default function BusinessShops() {
               <CircularProgress color="success" />
             </Box>
           ) : shops.length === 0 ? (
-            <Card sx={{ borderRadius: T.radius, bgcolor: T.surface, border: `1px solid ${T.border}`, p: 5, textAlign: 'center', boxShadow: T.cardShadow }}>
-              <Box sx={{ width: 68, height: 68, borderRadius: '50%', bgcolor: alpha(T.primary, 0.1), color: T.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
-                <StoreIcon sx={{ fontSize: 36 }} />
+            <Card
+              elevation={0}
+              sx={{
+                borderRadius: '24px',
+                bgcolor: '#ffffff',
+                border: '1px solid #e2e8f0',
+                p: { xs: 4, sm: 6 },
+                textAlign: 'center',
+                boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)',
+                maxWidth: 480,
+                mx: 'auto',
+                my: { xs: 4, sm: 8 },
+              }}
+            >
+              <Box
+                sx={{
+                  width: 76,
+                  height: 76,
+                  borderRadius: '50%',
+                  bgcolor: '#ecfdf5',
+                  color: '#047857',
+                  border: '2px solid #a7f3d0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mx: 'auto',
+                  mb: 2.5,
+                  boxShadow: '0 4px 12px rgba(4, 120, 87, 0.1)',
+                }}
+              >
+                <StoreIcon sx={{ fontSize: 38 }} />
               </Box>
-              <Typography variant="h6" sx={{ color: T.text, fontWeight: 800, mb: 1 }}>
+              <Typography sx={{ color: '#0f172a', fontWeight: 900, fontSize: '1.3rem', mb: 1, letterSpacing: '-0.3px' }}>
                 No Stores Registered Yet
               </Typography>
-              <Typography variant="body2" sx={{ color: T.textSecondary, maxWidth: 420, mx: 'auto', mb: 3 }}>
-                Register your retail storefront to start displaying items in nearby stores, accept home delivery orders, and reach customers nearby.
+              <Typography sx={{ color: '#64748b', fontSize: '0.88rem', fontWeight: 500, lineHeight: 1.5, maxWidth: 360, mx: 'auto', mb: 3.5 }}>
+                Register your retail storefront to start accepting online orders, manage inventory and reach more customers.
               </Typography>
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
-                onClick={() => { resetForm(); setDrawerOpen(true); }}
+                onClick={() => navigate('/registration-wizard')}
                 sx={{
-                  background: T.btnGradient,
-                  borderRadius: '12px',
+                  bgcolor: '#047857',
+                  color: '#ffffff',
+                  borderRadius: '14px',
                   textTransform: 'none',
-                  fontWeight: 800,
-                  px: 3.5,
-                  py: 1.2,
-                  boxShadow: '0 4px 14px rgba(34, 139, 34, 0.25)',
+                  fontWeight: 900,
+                  fontSize: '0.92rem',
+                  px: 4,
+                  py: 1.3,
+                  boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)',
+                  '&:hover': { bgcolor: '#065f46' },
                 }}
               >
                 Add Your First Store
