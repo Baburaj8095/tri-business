@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Box, Typography, TextField, Chip, IconButton, Badge,
-  Menu, MenuItem,
+  Menu, MenuItem, Stack,
 } from '@mui/material';
 import {
   Notifications as BellIcon,
