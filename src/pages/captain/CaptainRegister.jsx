@@ -238,10 +238,9 @@ const CaptainRegister = () => {
             return;
           }
         }
-        } else {
-          setForm(prev => ({ ...prev, pincodeLoading: false }));
-          setErrors(prev => ({ ...prev, pincode: 'Invalid pincode — no records found' }));
-        }
+
+        setForm(prev => ({ ...prev, pincodeLoading: false }));
+        setErrors(prev => ({ ...prev, pincode: 'Invalid pincode — no records found' }));
       } catch {
         setForm(prev => ({ ...prev, pincodeLoading: false }));
         setErrors(prev => ({ ...prev, pincode: 'Could not verify pincode — check your connection' }));
