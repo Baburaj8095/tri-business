@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Container, Typography, Button, Card, CardContent,
-  Stack, Chip, Dialog, DialogTitle, DialogContent, DialogActions,
+  Stack, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Drawer,
   TextField, MenuItem, IconButton, Avatar, Divider, Switch,
   FormControlLabel, Alert, CircularProgress, Snackbar,
   Grid, Tooltip, InputAdornment
@@ -679,24 +679,38 @@ export default function AdsManagerPage() {
         )}
       </Container>
 
-      {/* ── Create / Edit Dialog ─────────────────────────────────────────── */}
-      <Dialog
+      {/* ── Create / Edit Ad Bottom Drawer ── */}
+      <Drawer
+        anchor="bottom"
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        fullWidth
-        maxWidth="sm"
-        PaperProps={{ sx: { borderRadius: '20px', m: 2 } }}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: '28px',
+            borderTopRightRadius: '28px',
+            maxHeight: '92vh',
+            bgcolor: SUR,
+            p: { xs: 2.5, sm: 3.5 },
+            overflowY: 'auto'
+          }
+        }}
       >
-        <DialogTitle sx={{ fontWeight: 900, fontSize: '1.1rem', pb: 0, pt: 2.5, px: 3 }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <span>{editId ? 'Edit Ad' : 'Create New Ad'}</span>
-            <IconButton size="small" onClick={() => setDialogOpen(false)}>
-              <CloseIcon />
-            </IconButton>
-          </Stack>
-        </DialogTitle>
+        <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
+          <Box>
+            <Typography sx={{ fontWeight: 900, fontSize: '1.2rem', color: TXT }}>
+              {editId ? '✏️ Edit Ad Campaign' : '📢 Create New Ad'}
+            </Typography>
+            <Typography variant="caption" sx={{ color: MUT, fontWeight: 500 }}>
+              Launch targeted marketing banners across B2C & B2B channels
+            </Typography>
+          </Box>
+          <IconButton size="small" onClick={() => setDialogOpen(false)} sx={{ bgcolor: '#f1f5f9', color: '#64748b' }}>
+            <CloseIcon />
+          </IconButton>
+        </Stack>
 
-        <DialogContent sx={{ px: 3, py: 2 }}>
+        <Box sx={{ px: { xs: 0, sm: 1 }, py: 1 }}>
           <Stack spacing={2.5} sx={{ mt: 0.5 }}>
 
             {/* Ad Type */}
@@ -929,29 +943,44 @@ export default function AdsManagerPage() {
               />
             )}
           </Stack>
-        </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 3, pt: 1.5, gap: 1 }}>
-          <Button
-            onClick={() => setDialogOpen(false)}
-            sx={{ fontWeight: 700, textTransform: 'none', color: MUT }}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSave}
-            disabled={saving}
-            sx={{
-              flex: 1, bgcolor: P, fontWeight: 800, textTransform: 'none',
-              borderRadius: '10px', py: 1.2,
-              '&:hover': { bgcolor: PD },
-            }}
-          >
-            {saving ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : (editId ? 'Update Ad' : 'Create Ad')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          {/* Bottom Actions Sticky / Bar */}
+          <Stack direction="row" spacing={2} sx={{ pt: 3, pb: 1 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setDialogOpen(false)}
+              sx={{
+                flex: 1,
+                fontWeight: 700,
+                textTransform: 'none',
+                color: MUT,
+                borderColor: BOR,
+                borderRadius: '12px',
+                py: 1.3
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleSave}
+              disabled={saving}
+              sx={{
+                flex: 2,
+                bgcolor: P,
+                fontWeight: 800,
+                textTransform: 'none',
+                borderRadius: '12px',
+                py: 1.3,
+                boxShadow: '0 4px 14px rgba(34, 139, 34, 0.25)',
+                '&:hover': { bgcolor: PD },
+              }}
+            >
+              {saving ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : (editId ? 'Update Ad' : 'Create Ad')}
+            </Button>
+          </Stack>
+        </Box>
+      </Drawer>
 
       {/* ── Delete Confirm ────────────────────────────────────────────────── */}
       <Dialog

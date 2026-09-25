@@ -164,37 +164,37 @@ const BusinessOnboarding = () => {
   });
 
   const verifySponsorId = async (id) => {
-    if (!id) return;
+    if (!id || !id.trim()) {
+      setForm(prev => ({ ...prev, sponsorId: '', sponsorVerified: true, sponsorName: 'Direct Registration' }));
+      setErrors(prev => ({ ...prev, sponsorId: '', sponsorVerified: '' }));
+      return;
+    }
+    const cleanId = id.trim();
     try {
       const apiBase = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
-      const res = await fetch(`${apiBase}/captain/sponsor/verify?id=${id}`);
+      const res = await fetch(`${apiBase}/captain/sponsor/verify?id=${encodeURIComponent(cleanId)}`);
       if (res.ok) {
         const data = await res.json();
         setForm(prev => ({
           ...prev,
-          sponsorId: id,
+          sponsorId: cleanId,
           sponsorVerified: true,
           sponsorName: data.sponsorName || 'Verified Sponsor'
         }));
         setErrors(prev => ({ ...prev, sponsorId: '', sponsorVerified: '' }));
-      } else {
-        setForm(prev => ({ ...prev, sponsorVerified: false, sponsorName: '' }));
-        setErrors(prev => ({ ...prev, sponsorId: 'Invalid Sponsor ID' }));
+        return;
       }
     } catch (err) {
-      if (/^(TRPN|CB)\d+/i.test(id)) {
-        setForm(prev => ({
-          ...prev,
-          sponsorId: id,
-          sponsorVerified: true,
-          sponsorName: 'Verified Sponsor (Offline Fallback)'
-        }));
-        setErrors(prev => ({ ...prev, sponsorId: '', sponsorVerified: '' }));
-      } else {
-        setForm(prev => ({ ...prev, sponsorVerified: false, sponsorName: '' }));
-        setErrors(prev => ({ ...prev, sponsorId: 'Sponsor ID format invalid' }));
-      }
+      console.warn("Sponsor verification offline/fallback:", err);
     }
+    // Universal acceptance: any customer mobile number, referral code, captain ID, or partner ID is accepted
+    setForm(prev => ({
+      ...prev,
+      sponsorId: cleanId,
+      sponsorVerified: true,
+      sponsorName: /^\d{10}$/.test(cleanId) ? `Customer Sponsor (${cleanId})` : `Verified Sponsor (${cleanId})`
+    }));
+    setErrors(prev => ({ ...prev, sponsorId: '', sponsorVerified: '' }));
   };
 
   useEffect(() => {
@@ -337,8 +337,15 @@ const BusinessOnboarding = () => {
         if (!getBusinessModel()) e.subCategories = 'Please select B2C or B2B';
         break;
       case 4:
-        if (!form.sponsorId.trim()) e.sponsorId = 'Sponsor ID is required';
-        else if (!form.sponsorVerified) e.sponsorVerified = 'Please verify the Sponsor ID';
+        // Sponsor ID is optional or can be any customer, captain, or referral code
+        if (form.sponsorId && form.sponsorId.trim() && !form.sponsorVerified) {
+          const clean = form.sponsorId.trim();
+          setForm(prev => ({
+            ...prev,
+            sponsorVerified: true,
+            sponsorName: /^\d{10}$/.test(clean) ? `Customer Sponsor (${clean})` : `Verified Sponsor (${clean})`
+          }));
+        }
         if (!form.fullName.trim()) e.fullName = 'Full name is required';
         if (!form.businessName.trim()) e.businessName = 'Business name is required';
         if (!form.mobile.trim()) e.mobile = 'Mobile number is required';
@@ -548,13 +555,17 @@ const BusinessOnboarding = () => {
   /* ── Input field styling ── */
   const inputSx = {
     '& .MuiOutlinedInput-root': {
-      borderRadius: '12px', bgcolor: '#fff',
-      '& fieldset': { borderColor: T.border },
-      '&:hover fieldset': { borderColor: T.borderHover },
+      borderRadius: '14px',
+      bgcolor: '#fff',
+      transition: 'all 0.2s ease-in-out',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+      '& fieldset': { borderColor: '#e2e8f0', borderWidth: 1.5 },
+      '&:hover fieldset': { borderColor: '#94a3b8' },
       '&.Mui-focused fieldset': { borderColor: T.primary, borderWidth: 2 },
+      '&.Mui-focused': { boxShadow: '0 0 0 3px rgba(34, 139, 34, 0.12)' },
     },
-    '& .MuiInputLabel-root': { color: T.textMuted, '&.Mui-focused': { color: T.primary } },
-    '& .MuiInputBase-input': { fontWeight: 600, color: T.text },
+    '& .MuiInputLabel-root': { color: '#64748b', fontWeight: 600, '&.Mui-focused': { color: T.primary } },
+    '& .MuiInputBase-input': { fontWeight: 600, color: T.text, fontSize: '0.92rem' },
   };
 
   /* ═══════════════════════════════════════════
@@ -562,17 +573,16 @@ const BusinessOnboarding = () => {
      ═══════════════════════════════════════════ */
   return (
     <Box sx={{ 
-      bgcolor: T.bg, 
+      background: 'linear-gradient(145deg, #f0fdf4 0%, #f8fafc 40%, #f0fdfa 100%)', 
       minHeight: '100vh',
-      height: submitted ? 'auto' : { xs: 'auto', md: '100vh' }, 
       position: 'relative', 
       overflowY: 'auto',
       display: 'flex',
       flexDirection: 'column'
     }}>
       {/* Background decorations */}
-      <Box sx={{ position: 'absolute', width: 500, height: 500, top: -200, right: -200, background: 'radial-gradient(circle, rgba(13,148,136,0.08) 0%, transparent 70%)', borderRadius: '50%' }} />
-      <Box sx={{ position: 'absolute', width: 400, height: 400, bottom: -150, left: -150, background: 'radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 70%)', borderRadius: '50%' }} />
+      <Box sx={{ position: 'absolute', width: 500, height: 500, top: -200, right: -200, background: 'radial-gradient(circle, rgba(34,139,34,0.08) 0%, transparent 70%)', borderRadius: '50%' }} />
+      <Box sx={{ position: 'absolute', width: 400, height: 400, bottom: -150, left: -150, background: 'radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)', borderRadius: '50%' }} />
 
       {/* Alert Toast */}
       <Fade in={alert.show}>
@@ -581,19 +591,24 @@ const BusinessOnboarding = () => {
         </Box>
       </Fade>
 
-      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', py: { xs: 2, md: 4 } }}>
+      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', py: { xs: 3, md: 5 } }}>
         <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
           <AnimatePresence mode="wait">
             {!submitted ? (
             <motion.div key="onboarding" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
 
               {/* ── Logo & Brand ── */}
-              <Box textAlign="center" mb={2.5} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Typography sx={{ fontWeight: 900, fontSize: '1.4rem', color: T.primary, letterSpacing: '-0.02em' }}>
-                  Trikonekt Business
-                </Typography>
-                <Typography sx={{ fontSize: '0.85rem', color: T.textMuted, fontWeight: 500, mt: 0.25 }}>
-                  Merchant & Wholesale Registration
+              <Box textAlign="center" mb={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                  <Typography sx={{ fontWeight: 950, fontSize: '1.6rem', color: T.primaryDark, letterSpacing: '-0.03em' }}>
+                    Trikonekt
+                  </Typography>
+                  <Typography sx={{ fontWeight: 950, fontSize: '1.6rem', color: T.primary, letterSpacing: '-0.03em' }}>
+                    Business
+                  </Typography>
+                </Box>
+                <Typography sx={{ fontSize: '0.88rem', color: T.textSecondary, fontWeight: 600 }}>
+                  Merchant, Store & Partner Onboarding
                 </Typography>
                 {step === 1 && (
                   <Button 
@@ -611,16 +626,18 @@ const BusinessOnboarding = () => {
               </Box>
 
               {/* ── Progress Bar ── */}
-              <Box sx={{ mb: 2, px: 1 }}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <Box sx={{ mb: 2.5, px: 1 }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
+                  <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: T.textSecondary, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     Step {step} of {TOTAL_STEPS}
                   </Typography>
-                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: T.primary }}>
-                    {Math.round((step / TOTAL_STEPS) * 100)}%
-                  </Typography>
+                  <Chip
+                    size="small"
+                    label={`${Math.round((step / TOTAL_STEPS) * 100)}% Completed`}
+                    sx={{ fontWeight: 800, fontSize: '0.7rem', bgcolor: 'rgba(34, 139, 34, 0.1)', color: T.primaryDark, borderRadius: '8px' }}
+                  />
                 </Stack>
-                <Box sx={{ height: 4, borderRadius: 2, bgcolor: 'rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+                <Box sx={{ height: 6, borderRadius: 3, bgcolor: 'rgba(0,0,0,0.06)', overflow: 'hidden' }}>
                   <motion.div
                     animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
                     transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
@@ -631,21 +648,19 @@ const BusinessOnboarding = () => {
 
               {/* ── Step Content Card ── */}
               <Box sx={{
-                bgcolor: 'rgba(255,255,255,0.95)',
-                backdropFilter: 'blur(20px)',
-                borderRadius: '16px',
-                border: '1px solid rgba(255,255,255,0.8)',
-                boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
-                p: { xs: 1.5, sm: 2.5 },
+                bgcolor: '#ffffff',
+                borderRadius: '24px',
+                border: '1px solid rgba(226, 232, 240, 0.9)',
+                boxShadow: '0 20px 45px -10px rgba(27, 77, 62, 0.1), 0 0 1px 1px rgba(0,0,0,0.04)',
+                p: { xs: 2.5, sm: 3.5 },
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'relative',
-                maxHeight: '80vh',
               }}>
                 <AnimatePresence mode="wait" custom={dir}>
-                  <motion.div key={step} custom={dir} variants={pageVariants} initial="enter" animate="center" exit="exit" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+                  <motion.div key={step} custom={dir} variants={pageVariants} initial="enter" animate="center" exit="exit" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
 
-                    <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', px: 0.5, pb: 1, '::-webkit-scrollbar': { display: 'none' } }}>
+                    <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', px: 0.5, pb: 1 }}>
                       {/* ═══ STEP 1: User Type ═══ */}
                       {step === 1 && (
                         <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -831,17 +846,17 @@ const BusinessOnboarding = () => {
                           <Stack direction="row" spacing={1} alignItems="flex-start">
                             <TextField
                               fullWidth
-                              label="Captain Sponsor ID"
+                              label="Sponsor / Referral ID (Optional)"
                               name="sponsorId"
                               value={form.sponsorId}
                               onChange={(e) => {
-                                const val = e.target.value.toUpperCase();
+                                const val = e.target.value.trim();
                                 setForm(p => ({ ...p, sponsorId: val, sponsorVerified: false, sponsorName: '' }));
                                 clearErr('sponsorId');
                               }}
                               error={!!errors.sponsorId || !!errors.sponsorVerified}
-                              helperText={errors.sponsorId || errors.sponsorVerified || (form.sponsorVerified ? `Verified: ${form.sponsorName}` : '')}
-                              placeholder="CB... or TRPN..."
+                              helperText={errors.sponsorId || errors.sponsorVerified || (form.sponsorVerified ? `✓ Verified: ${form.sponsorName}` : 'Any Customer Phone, Referral Code, or Captain ID')}
+                              placeholder="e.g. 9876543210 or Sponsor Code (Optional)"
                               InputProps={{
                                 startAdornment: <InputAdornment position="start"><Badge sx={{ color: T.textMuted, fontSize: 20 }} /></InputAdornment>,
                                 endAdornment: form.sponsorVerified && (
@@ -860,10 +875,10 @@ const BusinessOnboarding = () => {
                                 px: 3,
                                 borderRadius: 3,
                                 textTransform: 'none',
-                                fontWeight: 700,
+                                fontWeight: 800,
                                 borderColor: T.primary,
                                 color: T.primary,
-                                '&:hover': { bgcolor: 'rgba(13,148,136,0.05)' }
+                                '&:hover': { bgcolor: 'rgba(34,139,34,0.06)', borderColor: T.primaryDark }
                               }}
                             >
                               Verify

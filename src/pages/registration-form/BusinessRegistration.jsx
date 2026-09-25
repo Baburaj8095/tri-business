@@ -140,7 +140,7 @@ const BusinessRegistration = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.sponsorId) newErrors.sponsorId = "Sponsor ID is required";
+    // Sponsor ID is optional (any customer, partner, or captain can be sponsor)
     if (!formData.ownerName) newErrors.ownerName = "Owner Name is required";
     if (!formData.businessName) newErrors.businessName = "Business Name is required";
     if (!formData.category) newErrors.category = "Category is required";
@@ -197,13 +197,13 @@ const BusinessRegistration = () => {
             <FormSection icon={<Person sx={{ color: '#228B22' }} />} title="Personal & Sponsor Details">
               <Grid container spacing={4}>
                 <Grid item xs={12} md={6}>
-                  <FormField label="Sponsor ID" error={errors.sponsorId}>
+                  <FormField label="Sponsor / Referral ID (Optional)" error={errors.sponsorId}>
                     <TextField
                       fullWidth
                       name="sponsorId"
                       value={formData.sponsorId}
                       onChange={handleInputChange}
-                      placeholder="Enter Sponsor ID"
+                      placeholder="Customer Mobile, Referral Code, or Sponsor ID"
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">

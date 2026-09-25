@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
   Box, Typography, Card, CardContent, Button, Stack, CircularProgress, Alert, 
-  Container, Tabs, Tab, IconButton, Chip, FormControl, InputLabel, Select, MenuItem, Divider 
+  Container, Tabs, Tab, IconButton, Chip, FormControl, InputLabel, Select, MenuItem, Divider,
+  Drawer, Radio, RadioGroup, FormControlLabel
 } from '@mui/material';
 import { 
   LuStore, LuPhone, LuDollarSign, LuCalendar, LuCheck, LuX, LuChevronLeft, 
-  LuShoppingBag, LuVolume2, LuClipboard, LuTruck, LuUser, LuAlertTriangle, LuTimer, LuHistory 
+  LuShoppingBag, LuVolume2, LuClipboard, LuTruck, LuUser, LuAlertTriangle, LuTimer, LuHistory,
+  LuSlidersHorizontal
 } from 'react-icons/lu';
 import AppShell from '../../components/layout/AppShell';
 
@@ -21,6 +23,193 @@ const TEXT = "#0f172a";
 const TEXT_SECONDARY = "#475569";
 const TEXT_MUTED = "#94a3b8";
 const BORDER = "#e2e8f0";
+
+function DribbbleOrderCard({ order, onDetails, onAction, actioningId, isB2B = false }) {
+  const isIncoming = order.status === 'PENDING_CONFIRMATION' || order.status === 'PENDING';
+  const isCompleted = order.status === 'COMPLETED' || order.status === 'SUCCESS' || order.status === 'DELIVERED';
+  const isCancelled = order.status === 'CANCELLED' || order.status === 'REJECTED';
+  
+  // Status label & color matching Dribbble Caffeine Coffee Shop UI
+  let statusLabel = 'In Progress';
+  let statusBg = '#eff6ff';
+  let statusColor = '#1d4ed8';
+  if (isCompleted) {
+    statusLabel = 'Success';
+    statusBg = '#dcfce7';
+    statusColor = '#15803d';
+  } else if (isIncoming) {
+    statusLabel = 'Pending';
+    statusBg = '#fef3c7';
+    statusColor = '#b45309';
+  } else if (isCancelled) {
+    statusLabel = 'Cancelled';
+    statusBg = '#fee2e2';
+    statusColor = '#b91c1c';
+  }
+
+  const itemsList = order.items || [];
+  const itemCount = itemsList.reduce((acc, it) => acc + (Number(it.quantity) || 1), 0) || (order.itemCount || 1);
+  const itemsSummary = itemsList.length > 0
+    ? itemsList.map(it => `${it.quantity || 1}x ${it.productTitle || it.product_title || it.title || 'Item'}`).join(', ')
+    : `${itemCount}x Order Item`;
+  
+  const totalAmount = Number(order.total || order.amount || 0);
+  const storeName = order.shop_name || order.storeName || (order.shop && order.shop.shop_name) || (isB2B ? 'B2B Wholesale Store' : 'Trikonekt Store');
+  const customerName = order.customerName || order.userName || (order.buyer && order.buyer.name) || (order.userId ? `Customer #${order.userId}` : 'Customer');
+
+  const formatDateString = (dateStr) => {
+    try {
+      if (!dateStr) return 'Monday, 23 Apr 2024 • 18:44';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return String(dateStr);
+      const weekday = d.toLocaleDateString('en-US', { weekday: 'long' });
+      const day = d.getDate();
+      const month = d.toLocaleDateString('en-US', { month: 'short' });
+      const year = d.getFullYear();
+      const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      return `${weekday}, ${day} ${month} ${year} • ${time}`;
+    } catch (_) {
+      return String(dateStr || 'Recent Order');
+    }
+  };
+
+  return (
+    <Card
+      sx={{
+        borderRadius: '16px',
+        bgcolor: '#ffffff',
+        border: '1px solid #e2e8f0',
+        boxShadow: isIncoming ? '0 4px 16px rgba(34, 139, 34, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
+        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+        '&:hover': {
+          boxShadow: '0 6px 20px rgba(0, 0, 0, 0.06)',
+          transform: 'translateY(-2px)'
+        }
+      }}
+    >
+      <CardContent sx={{ p: 2.5 }}>
+        {/* Top Row: Status badge & See Details */}
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+          <Chip
+            size="small"
+            label={statusLabel}
+            sx={{
+              bgcolor: statusBg,
+              color: statusColor,
+              fontWeight: 800,
+              fontSize: '0.75rem',
+              borderRadius: '12px',
+              px: 0.5,
+              height: 24,
+            }}
+          />
+          <Button
+            size="small"
+            onClick={() => onDetails(order)}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 700,
+              fontSize: '0.8rem',
+              color: '#64748b',
+              p: 0,
+              minWidth: 'auto',
+              '&:hover': { bgcolor: 'transparent', color: '#0f172a' }
+            }}
+          >
+            See Details &gt;
+          </Button>
+        </Stack>
+
+        {/* Store & Customer Title */}
+        <Typography sx={{ fontWeight: 800, fontSize: '0.96rem', color: '#0f172a', mb: 0.4, lineHeight: 1.3 }}>
+          {storeName} to {customerName}
+        </Typography>
+
+        {/* Timestamp */}
+        <Typography sx={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 500, mb: 1.2 }}>
+          {formatDateString(order.createdAt || order.created_at)}
+        </Typography>
+
+        {/* Item Summary line */}
+        <Typography sx={{ fontSize: '0.84rem', color: '#475569', fontWeight: 600, mb: 2, display: '-webkit-box', overflow: 'hidden', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2 }}>
+          {itemsSummary}
+        </Typography>
+
+        <Divider sx={{ my: 1.5, borderColor: '#f1f5f9' }} />
+
+        {/* Bottom Row: Count • Price and Action Button */}
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Typography sx={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a' }}>
+            {itemCount} {itemCount === 1 ? 'Item' : 'Items'} • ₹{totalAmount.toFixed(2)}
+          </Typography>
+
+          {isIncoming ? (
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="contained"
+                size="small"
+                disabled={actioningId === order.id}
+                onClick={() => onAction(order.id, 'CONFIRMED')}
+                sx={{
+                  bgcolor: '#16a34a',
+                  color: '#fff',
+                  fontWeight: 800,
+                  fontSize: '0.78rem',
+                  textTransform: 'none',
+                  borderRadius: '10px',
+                  px: 2,
+                  py: 0.6,
+                  boxShadow: 'none',
+                  '&:hover': { bgcolor: '#15803d' }
+                }}
+              >
+                Accept
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                disabled={actioningId === order.id}
+                onClick={() => onAction(order.id, 'CANCELLED')}
+                sx={{
+                  borderColor: '#ef4444',
+                  color: '#ef4444',
+                  fontWeight: 800,
+                  fontSize: '0.78rem',
+                  textTransform: 'none',
+                  borderRadius: '10px',
+                  px: 1.5,
+                  py: 0.6,
+                  '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.04)' }
+                }}
+              >
+                Reject
+              </Button>
+            </Stack>
+          ) : (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => onDetails(order)}
+              sx={{
+                borderColor: '#9A5832',
+                color: '#9A5832',
+                fontWeight: 800,
+                fontSize: '0.78rem',
+                textTransform: 'none',
+                borderRadius: '10px',
+                px: 2.2,
+                py: 0.6,
+                '&:hover': { bgcolor: 'rgba(154, 88, 50, 0.06)', borderColor: '#804524' }
+              }}
+            >
+              Re-Order
+            </Button>
+          )}
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function MerchantOrdersPage() {
   const navigate = useNavigate();
@@ -63,6 +252,12 @@ export default function MerchantOrdersPage() {
   // 4. B2B Orders State
   const [b2bOrders, setB2bOrders] = useState([]);
   const [loadingB2bOrders, setLoadingB2bOrders] = useState(false);
+
+  // 5. Dribbble-Style Order Filter & Details Drawer States
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [orderTypeFilter, setOrderTypeFilter] = useState('ALL'); // 'ALL' | 'DELIVERY' | 'PICKUP'
+  const [dateSortFilter, setDateSortFilter] = useState('LATEST'); // 'LATEST' | '1_DAY' | '3_DAYS' | '1_WEEK' | '1_MONTH'
+  const [detailsOrder, setDetailsOrder] = useState(null);
 
   // Polling interval reference
   const pollIntervalRef = useRef(null);
@@ -357,6 +552,67 @@ export default function MerchantOrdersPage() {
     }
   };
 
+  const formatDateDribbble = (dateStr) => {
+    try {
+      if (!dateStr) return 'Monday, 23 Apr 2024 • 18:44';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return String(dateStr);
+      const weekday = d.toLocaleDateString('en-US', { weekday: 'long' });
+      const day = d.getDate();
+      const month = d.toLocaleDateString('en-US', { month: 'short' });
+      const year = d.getFullYear();
+      const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      return `${weekday}, ${day} ${month} ${year} • ${time}`;
+    } catch (_) {
+      return String(dateStr || 'Recent Order');
+    }
+  };
+
+  const applyFilterAndSort = (ordersList) => {
+    if (!Array.isArray(ordersList)) return [];
+    let list = [...ordersList];
+
+    // Filter by Order Type (ALL | DELIVERY | PICKUP)
+    if (orderTypeFilter === 'DELIVERY') {
+      list = list.filter(o => !o.delivery_type || o.delivery_type === 'DELIVERY' || o.deliveryType === 'DELIVERY' || o.orderType !== 'PICKUP');
+    } else if (orderTypeFilter === 'PICKUP') {
+      list = list.filter(o => o.delivery_type === 'PICKUP' || o.deliveryType === 'PICKUP' || o.orderType === 'PICKUP');
+    }
+
+    // Filter by Date
+    const now = Date.now();
+    if (dateSortFilter === '1_DAY') {
+      list = list.filter(o => {
+        const t = new Date(o.createdAt || o.created_at || now).getTime();
+        return (now - t) <= 24 * 60 * 60 * 1000;
+      });
+    } else if (dateSortFilter === '3_DAYS') {
+      list = list.filter(o => {
+        const t = new Date(o.createdAt || o.created_at || now).getTime();
+        return (now - t) <= 3 * 24 * 60 * 60 * 1000;
+      });
+    } else if (dateSortFilter === '1_WEEK') {
+      list = list.filter(o => {
+        const t = new Date(o.createdAt || o.created_at || now).getTime();
+        return (now - t) <= 7 * 24 * 60 * 60 * 1000;
+      });
+    } else if (dateSortFilter === '1_MONTH') {
+      list = list.filter(o => {
+        const t = new Date(o.createdAt || o.created_at || now).getTime();
+        return (now - t) <= 30 * 24 * 60 * 60 * 1000;
+      });
+    }
+
+    // Sort by Date (Latest first)
+    list.sort((a, b) => {
+      const ta = new Date(a.createdAt || a.created_at || 0).getTime();
+      const tb = new Date(b.createdAt || b.created_at || 0).getTime();
+      return tb - ta;
+    });
+
+    return list;
+  };
+
   // Offline groupings:
   const pendingPayments = payments.filter(p => p.status?.toUpperCase() === 'PENDING');
   const historyPayments = payments.filter(p => p.status?.toUpperCase() !== 'PENDING');
@@ -402,22 +658,39 @@ export default function MerchantOrdersPage() {
   return (
     <AppShell activeTab="/business/orders">
       <Container maxWidth="xl" sx={{ pt: 3.5, px: { xs: 2, sm: 3, lg: 4 }, pb: 6 }}>
-        {/* Header Bar matching Image 1 Screen 5 */}
+        {/* Header Bar matching Dribbble Caffeine Coffee Shop - media_1790313642021.png */}
         <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          alignItems={{ xs: 'flex-start', sm: 'center' }}
+          direction="row"
+          alignItems="center"
           justifyContent="space-between"
-          spacing={2}
-          sx={{ mb: 3 }}
+          sx={{ mb: 2.5 }}
         >
           <Box>
             <Typography variant="h5" sx={{ fontWeight: 900, color: TEXT, letterSpacing: '-0.5px' }}>
-              {getPageTitle()}
+              Orders
             </Typography>
-            <Typography sx={{ color: TEXT_SECONDARY, fontSize: '0.88rem', mt: 0.25 }}>
-              Track and manage customer orders across all channels
+            <Typography sx={{ color: TEXT_SECONDARY, fontSize: '0.84rem', mt: 0.25, fontWeight: 500 }}>
+              {orderTypeFilter !== 'ALL' || dateSortFilter !== 'LATEST'
+                ? `Filter: ${orderTypeFilter} • ${dateSortFilter.replace('_', ' ')}`
+                : getPageTitle()}
             </Typography>
           </Box>
+
+          <IconButton
+            onClick={() => setFilterDrawerOpen(true)}
+            sx={{
+              bgcolor: '#ffffff',
+              border: (orderTypeFilter !== 'ALL' || dateSortFilter !== 'LATEST') ? '1.5px solid #9A5832' : '1px solid #e2e8f0',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              color: (orderTypeFilter !== 'ALL' || dateSortFilter !== 'LATEST') ? '#9A5832' : '#0f172a',
+              p: 1.2,
+              borderRadius: '12px',
+              '&:hover': { bgcolor: '#f8fafc' }
+            }}
+            title="Filter Orders"
+          >
+            <LuSlidersHorizontal size={20} />
+          </IconButton>
         </Stack>
 
         {/* Unauthenticated Sign-in Prompt Banner */}
@@ -738,192 +1011,31 @@ export default function MerchantOrdersPage() {
                   else if (onlineTabValue === 2) subtabArray = completedOrders;
                   else subtabArray = cancelledOrders;
 
-                  if (subtabArray.length === 0) {
+                  const filteredList = applyFilterAndSort(subtabArray);
+
+                  if (filteredList.length === 0) {
                     return (
                       <CardContent sx={{ p: 4, textAlign: 'center' }}>
                         <LuClipboard size={40} color="#cbd5e1" style={{ marginBottom: '12px' }} />
                         <Typography sx={{ color: TEXT_MUTED, fontWeight: 700, fontSize: '0.9rem' }}>
-                          No delivery orders found in this category.
+                          No delivery orders found matching filter.
                         </Typography>
                       </CardContent>
                     );
                   }
 
                   return (
-                    <CardContent sx={{ p: 2 }}>
-                      <Stack spacing={2.5}>
-                        {subtabArray.map((order) => {
-                          const isIncoming = order.status === 'PENDING_CONFIRMATION';
-                          return (
-                            <Card 
-                              key={order.id} 
-                              sx={{ 
-                                borderRadius: '12px', border: `1px solid #cbd5e1`, 
-                                boxShadow: isIncoming ? '0 4px 14px rgba(22, 139, 34, 0.08)' : 'none', 
-                                bgcolor: SURFACE 
-                              }}
-                            >
-                              <CardContent sx={{ p: 2.5 }}>
-                                
-                                {/* Header (ID + Status) */}
-                                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                                  <Stack direction="row" alignItems="center" spacing={1}>
-                                    <Box sx={{ width: 28, height: 28, borderRadius: '6px', bgcolor: 'rgba(234, 88, 12, 0.1)', color: '#ea580c', display: 'grid', placeItems: 'center' }}>
-                                      <LuShoppingBag size={15} />
-                                    </Box>
-                                    <Typography sx={{ fontWeight: 900, color: TEXT, fontSize: '0.95rem' }}>
-                                      Order #{order.id}
-                                    </Typography>
-                                  </Stack>
-
-                                  <Box>
-                                    {order.status === 'PENDING_CONFIRMATION' && <Chip label="Awaiting Approval" size="small" icon={<LuTimer size={12} />} sx={{ bgcolor: 'rgba(245,158,11,0.15)', color: '#d97706', fontWeight: 800, fontSize: '0.75rem', p: '2px' }} />}
-                                    {order.status === 'CONFIRMED' && <Chip label="Accepted" size="small" color="primary" sx={{ fontWeight: 800, fontSize: '0.75rem' }} />}
-                                    {order.status === 'PREPARING' && <Chip label="Preparing" size="small" color="warning" sx={{ fontWeight: 800, fontSize: '0.75rem' }} />}
-                                    {order.status === 'DISPATCHED' && <Chip label="Out for Delivery" size="small" sx={{ bgcolor: 'rgba(168,85,247,0.1)', color: '#a855f7', fontWeight: 800, fontSize: '0.75rem' }} />}
-                                    {order.status === 'COMPLETED' && <Chip label="Delivered" size="small" color="success" sx={{ fontWeight: 800, fontSize: '0.75rem' }} />}
-                                    {order.status === 'CANCELLED' && <Chip label="Cancelled" size="small" color="error" sx={{ fontWeight: 800, fontSize: '0.75rem' }} />}
-                                  </Box>
-                                </Stack>
-
-                                {/* Items Box */}
-                                <Box sx={{ bgcolor: '#f8fafc', p: 1.5, borderRadius: '8px', mb: 2, border: '1px solid #f1f5f9' }}>
-                                  <Typography variant="caption" sx={{ color: TEXT_MUTED, fontWeight: 800, display: 'block', mb: 0.5 }}>
-                                    ORDER SPECIFICS:
-                                  </Typography>
-                                  <Stack spacing={0.5}>
-                                    {order.items && order.items.map((it, idx) => (
-                                      <Typography key={idx} sx={{ fontSize: '0.85rem', color: TEXT, fontWeight: 700 }}>
-                                        • {it.productTitle || it.product_title || 'Catalog Item'} <span style={{ color: TEXT_SECONDARY }}>x{it.quantity}</span> (₹{it.price})
-                                      </Typography>
-                                    ))}
-                                  </Stack>
-                                  {order.notes && (
-                                    <Box sx={{ mt: 1.5, borderTop: '1px solid #f1f5f9', pt: 1 }}>
-                                      <Typography variant="caption" sx={{ fontStyle: 'italic', color: '#64748b', display: 'block', fontWeight: 600 }}>
-                                        💬 Instructions: "{order.notes}"
-                                      </Typography>
-                                    </Box>
-                                  )}
-                                </Box>
-
-                                {/* Order metadata */}
-                                <Stack spacing={0.5} sx={{ mb: 2, fontSize: '0.8rem', color: TEXT_MUTED }}>
-                                  <Stack direction="row" alignItems="center" spacing={0.5}>
-                                    <LuUser size={13} />
-                                    <Typography sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                                      Shopper Account ID: #{order.userId}
-                                    </Typography>
-                                  </Stack>
-                                  <Stack direction="row" alignItems="center" spacing={0.5}>
-                                    <LuCalendar size={13} />
-                                    <Typography sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                                      Placed at: {formatDate(order.createdAt)}
-                                    </Typography>
-                                  </Stack>
-                                </Stack>
-
-                                <Divider sx={{ my: 1.5, borderColor: '#f1f5f9' }} />
-
-                                {/* Total and Actions */}
-                                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                  <Box>
-                                    <Typography variant="caption" sx={{ color: TEXT_MUTED, fontWeight: 800 }}>
-                                      TOTAL BILL
-                                    </Typography>
-                                    <Typography sx={{ fontSize: '1.25rem', fontWeight: 900, color: '#ea580c' }}>
-                                      ₹{order.total.toFixed(2)}
-                                    </Typography>
-                                    <Typography variant="caption" sx={{ display: 'block', mt: 0.25, fontWeight: 600 }}>
-                                      Payment: {order.paymentMethod || 'ONLINE'} ({order.paymentStatus || 'PENDING'})
-                                    </Typography>
-                                  </Box>
-
-                                  {/* Interactive Action Buttons based on lifecycle status */}
-                                  <Stack direction="row" spacing={1}>
-                                    {order.status === 'PENDING_CONFIRMATION' && (
-                                      <>
-                                        <Button
-                                          variant="contained"
-                                          size="small"
-                                          color="success"
-                                          disabled={actioningId !== null}
-                                          onClick={() => handleOnlineOrderTransition(order.id, 'CONFIRMED')}
-                                          sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '8px' }}
-                                        >
-                                          Accept
-                                        </Button>
-                                        <Button
-                                          variant="outlined"
-                                          size="small"
-                                          color="error"
-                                          disabled={actioningId !== null}
-                                          onClick={() => handleOnlineOrderTransition(order.id, 'CANCELLED')}
-                                          sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '8px' }}
-                                        >
-                                          Reject
-                                        </Button>
-                                      </>
-                                    )}
-
-                                    {order.status === 'CONFIRMED' && (
-                                      <Button
-                                        variant="contained"
-                                        size="small"
-                                        color="warning"
-                                        disabled={actioningId !== null}
-                                        onClick={() => handleOnlineOrderTransition(order.id, 'PREPARING')}
-                                        sx={{ textTransform: 'none', fontWeight: 900, borderRadius: '8px' }}
-                                      >
-                                        Start Preparing
-                                      </Button>
-                                    )}
-
-                                    {order.status === 'PREPARING' && (
-                                      <Button
-                                        variant="contained"
-                                        size="small"
-                                        disabled={actioningId !== null}
-                                        onClick={() => handleOnlineOrderTransition(order.id, 'DISPATCHED')}
-                                        sx={{ textTransform: 'none', fontWeight: 900, borderRadius: '8px', bgcolor: '#a855f7', color: '#fff', '&:hover': { bgcolor: '#9333ea' } }}
-                                      >
-                                        Dispatch Order
-                                      </Button>
-                                    )}
-
-                                    {order.status === 'DISPATCHED' && (
-                                      <Button
-                                        variant="contained"
-                                        size="small"
-                                        color="success"
-                                        disabled={actioningId !== null}
-                                        onClick={() => handleOnlineOrderTransition(order.id, 'COMPLETED')}
-                                        sx={{ textTransform: 'none', fontWeight: 900, borderRadius: '8px' }}
-                                      >
-                                        Deliver Order
-                                      </Button>
-                                    )}
-
-                                    {/* Reject trigger / fallback cancel option for active orders */}
-                                    {['CONFIRMED', 'PREPARING', 'DISPATCHED'].includes(order.status) && (
-                                      <Button
-                                        variant="outlined"
-                                        size="small"
-                                        color="error"
-                                        disabled={actioningId !== null}
-                                        onClick={() => handleOnlineOrderTransition(order.id, 'CANCELLED')}
-                                        sx={{ textTransform: 'none', fontWeight: 800, padding: '4px', minWidth: '32px' }}
-                                      >
-                                        <LuX />
-                                      </Button>
-                                    )}
-                                  </Stack>
-                                </Stack>
-
-                              </CardContent>
-                            </Card>
-                          );
-                        })}
+                    <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                      <Stack spacing={2}>
+                        {filteredList.map((order) => (
+                          <DribbbleOrderCard
+                            key={order.id}
+                            order={order}
+                            onDetails={(ord) => setDetailsOrder(ord)}
+                            onAction={handleOnlineOrderTransition}
+                            actioningId={actioningId}
+                          />
+                        ))}
                       </Stack>
                     </CardContent>
                   );
@@ -980,132 +1092,32 @@ export default function MerchantOrdersPage() {
                   else if (onlineTabValue === 2) subtabArray = completedB2b;
                   else subtabArray = cancelledB2b;
 
-                  if (subtabArray.length === 0) {
+                  const filteredList = applyFilterAndSort(subtabArray);
+
+                  if (filteredList.length === 0) {
                     return (
                       <CardContent sx={{ p: 4, textAlign: 'center' }}>
                         <LuClipboard size={40} color="#cbd5e1" style={{ marginBottom: '12px' }} />
                         <Typography sx={{ color: TEXT_MUTED, fontWeight: 700, fontSize: '0.9rem' }}>
-                          No B2B orders found in this category.
+                          No B2B wholesale orders found matching filter.
                         </Typography>
                       </CardContent>
                     );
                   }
 
                   return (
-                    <CardContent sx={{ p: 2 }}>
-                      <Stack spacing={2.5}>
-                        {subtabArray.map((order) => {
-                          const isIncoming = order.status === 'PENDING' || order.status === 'PENDING_CONFIRMATION';
-                          return (
-                            <Card 
-                              key={order.id} 
-                              sx={{ 
-                                borderRadius: '12px', border: `1px solid #cbd5e1`, 
-                                boxShadow: isIncoming ? '0 4px 14px rgba(22, 139, 34, 0.08)' : 'none', 
-                                bgcolor: SURFACE 
-                              }}
-                            >
-                              <CardContent sx={{ p: 2.5 }}>
-                                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                                  <Box>
-                                    <Typography fontWeight={800} color="#0f172a">
-                                      Order #{order.id}
-                                    </Typography>
-                                    <Typography fontSize="0.75rem" color="text.secondary">
-                                      {formatDate(order.created_at || order.createdAt)}
-                                    </Typography>
-                                  </Box>
-                                  <Chip 
-                                    label={order.status} 
-                                    size="small" 
-                                    sx={{ 
-                                      fontWeight: 800, 
-                                      bgcolor: isIncoming ? 'rgba(34, 139, 34, 0.1)' : 'rgba(71, 85, 105, 0.1)',
-                                      color: isIncoming ? PRIMARY : TEXT_SECONDARY 
-                                    }} 
-                                  />
-                                </Stack>
-
-                                <Divider sx={{ my: 1.5, borderStyle: 'dashed' }} />
-
-                                <Stack spacing={1} mb={2}>
-                                  <Stack direction="row" spacing={1} alignItems="center">
-                                    <LuUser size={14} color="#64748b" />
-                                    <Typography fontSize="0.8rem" color="text.secondary" fontWeight={600}>
-                                      Buyer Prefixed ID: {order.buyer_prefixed_id || order.buyerPrefixedId || "N/A"}
-                                    </Typography>
-                                  </Stack>
-                                  {order.items && order.items.map((item, idx) => (
-                                    <Box key={idx} sx={{ pl: 3 }}>
-                                      <Typography fontSize="0.8rem" color="#0f172a" fontWeight={700}>
-                                        • {item.product_title || item.title || `Product #${item.product_id}`} x {item.quantity} (₹{item.price})
-                                      </Typography>
-                                    </Box>
-                                  ))}
-                                </Stack>
-
-                                <Divider sx={{ my: 1.5, borderStyle: 'dashed' }} />
-
-                                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                  <Box>
-                                    <Typography fontSize="0.75rem" color="text.secondary">Total Amount</Typography>
-                                    <Typography fontWeight={900} color={PRIMARY} fontSize="1.1rem">
-                                      ₹{Number(order.total_amount || order.total || 0).toFixed(2)}
-                                    </Typography>
-                                  </Box>
-
-                                  {isIncoming && (
-                                    <Stack direction="row" spacing={1}>
-                                      <Button
-                                        size="small"
-                                        variant="contained"
-                                        onClick={() => handleB2bOrderTransition(order.id, 'PROCESSING')}
-                                        disabled={actioningId === order.id}
-                                        sx={{ bgcolor: PRIMARY, fontWeight: 700, textTransform: 'none', borderRadius: '8px' }}
-                                      >
-                                        Accept
-                                      </Button>
-                                      <Button
-                                        size="small"
-                                        variant="outlined"
-                                        color="error"
-                                        onClick={() => handleB2bOrderTransition(order.id, 'CANCELLED')}
-                                        disabled={actioningId === order.id}
-                                        sx={{ fontWeight: 700, textTransform: 'none', borderRadius: '8px' }}
-                                      >
-                                        Reject
-                                      </Button>
-                                    </Stack>
-                                  )}
-
-                                  {order.status === 'PROCESSING' && (
-                                    <Button
-                                      size="small"
-                                      variant="contained"
-                                      onClick={() => handleB2bOrderTransition(order.id, 'SHIPPED')}
-                                      disabled={actioningId === order.id}
-                                      sx={{ bgcolor: PRIMARY, fontWeight: 700, textTransform: 'none', borderRadius: '8px' }}
-                                    >
-                                      Ship Order
-                                    </Button>
-                                  )}
-
-                                  {order.status === 'SHIPPED' && (
-                                    <Button
-                                      size="small"
-                                      variant="contained"
-                                      onClick={() => handleB2bOrderTransition(order.id, 'COMPLETED')}
-                                      disabled={actioningId === order.id}
-                                      sx={{ bgcolor: PRIMARY, fontWeight: 700, textTransform: 'none', borderRadius: '8px' }}
-                                    >
-                                      Mark Completed
-                                    </Button>
-                                  )}
-                                </Stack>
-                              </CardContent>
-                            </Card>
-                          );
-                        })}
+                    <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                      <Stack spacing={2}>
+                        {filteredList.map((order) => (
+                          <DribbbleOrderCard
+                            key={order.id}
+                            order={order}
+                            onDetails={(ord) => setDetailsOrder(ord)}
+                            onAction={handleB2bOrderTransition}
+                            actioningId={actioningId}
+                            isB2B={true}
+                          />
+                        ))}
                       </Stack>
                     </CardContent>
                   );
@@ -1116,6 +1128,256 @@ export default function MerchantOrdersPage() {
         )}
 
       </Container>
+
+      {/* ── Dribbble Caffeine-Style Order Filter Bottom Drawer (Matching media_1790313642021.png) ── */}
+      <Drawer
+        anchor="bottom"
+        open={filterDrawerOpen}
+        onClose={() => setFilterDrawerOpen(false)}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: '28px',
+            borderTopRightRadius: '28px',
+            maxHeight: '85vh',
+            bgcolor: '#ffffff',
+            p: { xs: 2.5, sm: 3.5 },
+            overflowY: 'auto'
+          }
+        }}
+      >
+        <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2.5 }} />
+
+        {/* Section 1: Order Type */}
+        <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', color: '#0f172a', mb: 1.5 }}>
+          Order Type
+        </Typography>
+        <RadioGroup
+          value={orderTypeFilter}
+          onChange={(e) => setOrderTypeFilter(e.target.value)}
+          sx={{ mb: 3 }}
+        >
+          {[
+            { value: 'ALL', label: 'All' },
+            { value: 'DELIVERY', label: 'Delivery' },
+            { value: 'PICKUP', label: 'Pick Up' },
+          ].map(opt => (
+            <FormControlLabel
+              key={opt.value}
+              value={opt.value}
+              control={<Radio sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#9A5832' } }} />}
+              label={<Typography sx={{ fontWeight: 600, fontSize: '0.92rem', color: '#1e293b' }}>{opt.label}</Typography>}
+              sx={{ my: 0.2 }}
+            />
+          ))}
+        </RadioGroup>
+
+        {/* Section 2: Sort by Date */}
+        <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', color: '#0f172a', mb: 1.5 }}>
+          Sort by Date
+        </Typography>
+        <RadioGroup
+          value={dateSortFilter}
+          onChange={(e) => setDateSortFilter(e.target.value)}
+          sx={{ mb: 3.5 }}
+        >
+          {[
+            { value: 'LATEST', label: 'Latest' },
+            { value: '1_DAY', label: 'Last 1 day' },
+            { value: '3_DAYS', label: 'Last 3 days' },
+            { value: '1_WEEK', label: 'Last 1 week' },
+            { value: '1_MONTH', label: 'Last 1 month' },
+          ].map(opt => (
+            <FormControlLabel
+              key={opt.value}
+              value={opt.value}
+              control={<Radio sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#9A5832' } }} />}
+              label={<Typography sx={{ fontWeight: 600, fontSize: '0.92rem', color: '#1e293b' }}>{opt.label}</Typography>}
+              sx={{ my: 0.2 }}
+            />
+          ))}
+        </RadioGroup>
+
+        {/* Apply Filter Button */}
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={() => setFilterDrawerOpen(false)}
+          sx={{
+            bgcolor: '#9A5832',
+            color: '#fff',
+            py: 1.6,
+            borderRadius: '14px',
+            fontWeight: 800,
+            fontSize: '0.95rem',
+            textTransform: 'none',
+            boxShadow: '0 4px 14px rgba(154, 88, 50, 0.3)',
+            '&:hover': { bgcolor: '#804524' }
+          }}
+        >
+          Apply Filter
+        </Button>
+      </Drawer>
+
+      {/* ── Order Details Bottom Drawer ── */}
+      <Drawer
+        anchor="bottom"
+        open={!!detailsOrder}
+        onClose={() => setDetailsOrder(null)}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: '28px',
+            borderTopRightRadius: '28px',
+            maxHeight: '90vh',
+            bgcolor: '#ffffff',
+            p: { xs: 2.5, sm: 3.5 },
+            overflowY: 'auto'
+          }
+        }}
+      >
+        {detailsOrder && (
+          <Box>
+            <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+              <Box>
+                <Typography sx={{ fontWeight: 900, fontSize: '1.2rem', color: '#0f172a' }}>
+                  Order Details #{detailsOrder.id}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>
+                  {formatDateDribbble(detailsOrder.createdAt || detailsOrder.created_at)}
+                </Typography>
+              </Box>
+              <IconButton size="small" onClick={() => setDetailsOrder(null)} sx={{ bgcolor: '#f1f5f9', color: '#64748b' }}>
+                <LuX size={18} />
+              </IconButton>
+            </Stack>
+
+            {/* Customer & Address Details */}
+            <Box sx={{ bgcolor: '#f8fafc', p: 2, borderRadius: '14px', mb: 2.5, border: '1px solid #f1f5f9' }}>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', mb: 1 }}>
+                Order Info
+              </Typography>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>
+                {detailsOrder.customerName || detailsOrder.userName || (detailsOrder.buyer && detailsOrder.buyer.name) || `Customer #${detailsOrder.userId || detailsOrder.id}`}
+              </Typography>
+              {detailsOrder.contactPhone && (
+                <Typography sx={{ fontSize: '0.85rem', color: '#475569', mt: 0.25 }}>
+                  📞 {detailsOrder.contactPhone}
+                </Typography>
+              )}
+              {detailsOrder.shippingAddress && (
+                <Typography sx={{ fontSize: '0.85rem', color: '#475569', mt: 0.25 }}>
+                  📍 {detailsOrder.shippingAddress}
+                </Typography>
+              )}
+              {detailsOrder.notes && (
+                <Box sx={{ mt: 1, p: 1, bgcolor: '#fff', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
+                  <Typography sx={{ fontSize: '0.8rem', fontStyle: 'italic', color: '#64748b' }}>
+                    Note: "{detailsOrder.notes}"
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+
+            {/* Items Breakdown */}
+            <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a', mb: 1.5 }}>
+              Items in Order ({detailsOrder.items?.length || 0})
+            </Typography>
+            <Stack spacing={1.5} sx={{ mb: 2.5 }}>
+              {(detailsOrder.items || []).map((it, idx) => (
+                <Stack key={idx} direction="row" justifyContent="space-between" alignItems="center" sx={{ p: 1.5, bgcolor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px' }}>
+                  <Box>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>
+                      {it.productTitle || it.product_title || it.title || 'Item'}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>
+                      Qty: {it.quantity} × ₹{Number(it.price || 0).toFixed(2)}
+                    </Typography>
+                  </Box>
+                  <Typography sx={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a' }}>
+                    ₹{(Number(it.quantity || 1) * Number(it.price || 0)).toFixed(2)}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+
+            {/* Payment Summary */}
+            <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: '14px', mb: 3 }}>
+              <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.75 }}>
+                <Typography sx={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>Total Items Amount</Typography>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 700 }}>₹{Number(detailsOrder.total || detailsOrder.total_amount || 0).toFixed(2)}</Typography>
+              </Stack>
+              <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.75 }}>
+                <Typography sx={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>Payment Method</Typography>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 700 }}>{detailsOrder.paymentMethod || 'UPI / Online'}</Typography>
+              </Stack>
+              <Divider sx={{ my: 1 }} />
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: '#0f172a' }}>Total Bill</Typography>
+                <Typography sx={{ fontWeight: 900, fontSize: '1.25rem', color: '#ea580c' }}>₹{Number(detailsOrder.total || detailsOrder.total_amount || 0).toFixed(2)}</Typography>
+              </Stack>
+            </Box>
+
+            {/* Lifecycle Action Buttons */}
+            {detailsOrder.status === 'PENDING_CONFIRMATION' && (
+              <Stack direction="row" spacing={2}>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  color="success"
+                  onClick={() => { handleOnlineOrderTransition(detailsOrder.id, 'CONFIRMED'); setDetailsOrder(null); }}
+                  sx={{ py: 1.4, borderRadius: '12px', fontWeight: 800, textTransform: 'none' }}
+                >
+                  Accept Order
+                </Button>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  color="error"
+                  onClick={() => { handleOnlineOrderTransition(detailsOrder.id, 'CANCELLED'); setDetailsOrder(null); }}
+                  sx={{ py: 1.4, borderRadius: '12px', fontWeight: 800, textTransform: 'none' }}
+                >
+                  Reject Order
+                </Button>
+              </Stack>
+            )}
+
+            {detailsOrder.status === 'CONFIRMED' && (
+              <Button
+                variant="contained"
+                fullWidth
+                color="warning"
+                onClick={() => { handleOnlineOrderTransition(detailsOrder.id, 'PREPARING'); setDetailsOrder(null); }}
+                sx={{ py: 1.4, borderRadius: '12px', fontWeight: 800, textTransform: 'none' }}
+              >
+                Mark Preparing
+              </Button>
+            )}
+
+            {detailsOrder.status === 'PREPARING' && (
+              <Button
+                variant="contained"
+                fullWidth
+                sx={{ py: 1.4, borderRadius: '12px', fontWeight: 800, textTransform: 'none', bgcolor: '#8b5cf6', '&:hover': { bgcolor: '#7c3aed' } }}
+                onClick={() => { handleOnlineOrderTransition(detailsOrder.id, 'DISPATCHED'); setDetailsOrder(null); }}
+              >
+                Dispatch with TriSarathi
+              </Button>
+            )}
+
+            {detailsOrder.status === 'DISPATCHED' && (
+              <Button
+                variant="contained"
+                fullWidth
+                color="success"
+                onClick={() => { handleOnlineOrderTransition(detailsOrder.id, 'COMPLETED'); setDetailsOrder(null); }}
+                sx={{ py: 1.4, borderRadius: '12px', fontWeight: 800, textTransform: 'none' }}
+              >
+                Confirm Delivered
+              </Button>
+            )}
+          </Box>
+        )}
+      </Drawer>
     </AppShell>
   );
 }

@@ -23,12 +23,14 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Drawer,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { alpha } from "@mui/material/styles";
 import { getGPSLocation } from "../../utils/locationHelper";
 import AppShell from "../../components/layout/AppShell";
 
+import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import AddLocationAltOutlinedIcon from "@mui/icons-material/AddLocationAltOutlined";
@@ -171,6 +173,7 @@ export default function BusinessShops() {
   );
 
   const [form, setForm] = useState(emptyForm);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Toggle state to display/hide map picker
   const [showMapPicker, setShowMapPicker] = useState(false);
@@ -183,7 +186,9 @@ export default function BusinessShops() {
       const data = Array.isArray(res) ? res : res?.results || [];
       setShops(data);
     } catch (err) {
-      setError("Failed to fetch shops. Please try again.");
+      console.warn("Could not fetch shops:", err);
+      // Soft fallback for new accounts without shops - don't show intrusive error banner
+      setShops([]);
     } finally {
       setLoading(false);
     }
@@ -365,7 +370,7 @@ export default function BusinessShops() {
       discount_percent: String(shop.discountPercent ?? shop.discount_percent ?? 0),
       business_documents: [],
     });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setDrawerOpen(true);
   };
 
   const handleDelete = async (id) => {
@@ -438,6 +443,7 @@ export default function BusinessShops() {
         await createShop(payload);
       }
       resetForm();
+      setDrawerOpen(false);
       setSuccess(isEdit ? "Shop details updated successfully." : "Shop registered successfully.");
       fetchShops();
     } catch (err) {
@@ -463,65 +469,81 @@ export default function BusinessShops() {
     <AppShell activeTab="/business/shops" title="My Shops">
       <Container maxWidth="lg" sx={{ py: 2 }}>
         {/* Top Header */}
-        <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
-          <IconButton
-            onClick={() => navigate("/business-dashboard")}
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <IconButton
+              onClick={() => navigate("/business-dashboard")}
+              sx={{
+                bgcolor: T.surface,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                color: T.primary,
+                "&:hover": { bgcolor: alpha(T.primary, 0.08) }
+              }}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 950, color: T.text, lineHeight: 1.2 }}>
+                Register Retail Store
+              </Typography>
+              <Typography variant="body2" sx={{ color: T.textSecondary, fontWeight: 500 }}>
+                Create shop profiles, configure locations, and submit verification documents
+              </Typography>
+            </Box>
+          </Stack>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => { resetForm(); setDrawerOpen(true); }}
             sx={{
-              bgcolor: T.surface,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              color: T.primary,
-              "&:hover": { bgcolor: alpha(T.primary, 0.08) }
+              background: T.btnGradient,
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 800,
+              px: { xs: 2, sm: 3 },
+              py: 1.1,
+              boxShadow: '0 4px 14px rgba(34, 139, 34, 0.25)',
+              '&:hover': { opacity: 0.95 }
             }}
           >
-            <ArrowBackIcon />
-          </IconButton>
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 950, color: T.text, lineHeight: 1.2 }}>
-              Register Retail Store
-            </Typography>
-            <Typography variant="body2" sx={{ color: T.textSecondary, fontWeight: 500 }}>
-              Create shop profiles, configure locations, and submit verification documents
-            </Typography>
-          </Box>
+            Add Store
+          </Button>
         </Stack>
 
         {/* Notifications */}
         {error && <Alert severity="error" sx={{ mb: 3, borderRadius: '12px' }} onClose={() => setError("")}>{error}</Alert>}
         {success && <Alert severity="success" sx={{ mb: 3, borderRadius: '12px' }} onClose={() => setSuccess("")}>{success}</Alert>}
 
-        <Grid container spacing={4}>
-          {/* Left Side: Shop Registration Form */}
-          <Grid item xs={12} md={6}>
-            <Card
-              sx={{
-                borderRadius: T.radius,
-                boxShadow: T.cardShadow,
-                bgcolor: T.surface,
-                border: `1px solid ${alpha(T.border, 0.5)}`,
-              }}
-            >
-              <CardContent sx={{ p: 3.5 }}>
-                {profile?.service_mode === 'ONLINE' ? (
-                  <Box sx={{ p: 3, textAlign: 'center' }}>
-                    <Alert severity="warning" sx={{ borderRadius: '12px', fontWeight: 700, mb: 3 }}>
-                      Online Store Mode Enabled
-                    </Alert>
-                    <Typography sx={{ fontSize: '0.92rem', color: T.textSecondary, mb: 2.5, fontWeight: 600, lineHeight: 1.5 }}>
-                      As an ONLINE merchant, you do not manage physical shops manually. Your default online store is auto-registered under-the-hood to manage your catalog.
-                    </Typography>
-                    <Button
-                      variant="contained"
-                      onClick={() => navigate('/business/inventory')}
-                      sx={{ bgcolor: T.primary, textTransform: 'none', fontWeight: 800, borderRadius: '10px', '&:hover': { bgcolor: T.primaryDark } }}
-                    >
-                      Manage Online Inventory
-                    </Button>
-                  </Box>
-                ) : (
-                  <>
-                    <Typography variant="h6" sx={{ fontWeight: 900, color: T.text, mb: 3.5 }}>
-                      {form.id ? "✏️ Edit Store Details" : "🏪 Add Store"}
-                    </Typography>
+        {/* ── Slide-up Add / Edit Store Bottom Drawer ── */}
+        <Drawer
+          anchor="bottom"
+          open={drawerOpen}
+          onClose={() => { setDrawerOpen(false); resetForm(); }}
+          PaperProps={{
+            sx: {
+              borderTopLeftRadius: '28px',
+              borderTopRightRadius: '28px',
+              maxHeight: '92vh',
+              bgcolor: '#fff',
+              p: { xs: 2.5, sm: 3.5 },
+              overflowY: 'auto'
+            }
+          }}
+        >
+          <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 900, color: T.text }}>
+                {form.id ? "✏️ Edit Store Details" : "🏪 Add Store"}
+              </Typography>
+              <Typography variant="caption" sx={{ color: T.textSecondary, fontWeight: 500 }}>
+                Configure location, timings, delivery radius, and store info
+              </Typography>
+            </Box>
+            <IconButton size="small" onClick={() => { setDrawerOpen(false); resetForm(); }} sx={{ bgcolor: '#f1f5f9', color: '#64748b' }}>
+              <LuX size={18} />
+            </IconButton>
+          </Stack>
 
                 <Box component="form" onSubmit={handleSubmit}>
                   <Stack spacing={3}>
@@ -1001,36 +1023,68 @@ export default function BusinessShops() {
                     </Stack>
                   </Stack>
                 </Box>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
+        </Drawer>
 
-          {/* Right Side: Existing Shop List */}
-          <Grid item xs={12} md={6}>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: T.text }}>
-                Your Shops ({shops.length})
-              </Typography>
+        {/* ── Existing Shop List (Full Width Grid) ── */}
+        <Box sx={{ mb: 4 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: T.text }}>
+              Your Registered Stores ({shops.length})
+            </Typography>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={() => { resetForm(); setDrawerOpen(true); }}
+              sx={{
+                borderRadius: '10px',
+                fontWeight: 800,
+                textTransform: 'none',
+                borderColor: T.primary,
+                color: T.primary,
+                '&:hover': { bgcolor: alpha(T.primary, 0.08), borderColor: T.primaryDark }
+              }}
+            >
+              + Add Store
+            </Button>
+          </Stack>
+
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+              <CircularProgress color="success" />
             </Box>
-
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                <CircularProgress color="success" />
+          ) : shops.length === 0 ? (
+            <Card sx={{ borderRadius: T.radius, bgcolor: T.surface, border: `1px solid ${T.border}`, p: 5, textAlign: 'center', boxShadow: T.cardShadow }}>
+              <Box sx={{ width: 68, height: 68, borderRadius: '50%', bgcolor: alpha(T.primary, 0.1), color: T.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
+                <StoreIcon sx={{ fontSize: 36 }} />
               </Box>
-            ) : shops.length === 0 ? (
-              <Card sx={{ borderRadius: T.radius, bgcolor: T.surface, border: `1px solid ${T.border}`, p: 4, textAlign: 'center' }}>
-                <Typography sx={{ color: T.textSecondary, fontWeight: 700 }}>
-                  No shops created yet.
-                </Typography>
-                <Typography variant="body2" sx={{ color: T.textMuted, mt: 0.5 }}>
-                  Fill out the form on the left to add your first storefront.
-                </Typography>
-              </Card>
-            ) : (
-              <Stack spacing={3}>
-                {shops.map((s) => (
+              <Typography variant="h6" sx={{ color: T.text, fontWeight: 800, mb: 1 }}>
+                No Stores Registered Yet
+              </Typography>
+              <Typography variant="body2" sx={{ color: T.textSecondary, maxWidth: 420, mx: 'auto', mb: 3 }}>
+                Register your retail storefront to start displaying items in nearby stores, accept home delivery orders, and reach customers nearby.
+              </Typography>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => { resetForm(); setDrawerOpen(true); }}
+                sx={{
+                  background: T.btnGradient,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 800,
+                  px: 3.5,
+                  py: 1.2,
+                  boxShadow: '0 4px 14px rgba(34, 139, 34, 0.25)',
+                }}
+              >
+                Add Your First Store
+              </Button>
+            </Card>
+          ) : (
+            <Grid container spacing={3}>
+              {shops.map((s) => (
+                <Grid item xs={12} sm={6} key={s.id}>
                   <Card
                     key={s.id}
                     sx={{
@@ -1193,11 +1247,32 @@ export default function BusinessShops() {
                       </Grid>
                     </Grid>
                   </Card>
-                ))}
-              </Stack>
-            )}
-          </Grid>
-        </Grid>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </Box>
+
+        {/* Floating Add Store Button on Mobile */}
+        <Box sx={{ position: 'fixed', bottom: 80, right: 20, zIndex: 900, display: { sm: 'none' } }}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => { resetForm(); setDrawerOpen(true); }}
+            sx={{
+              background: T.btnGradient,
+              borderRadius: '28px',
+              px: 3,
+              py: 1.3,
+              fontWeight: 900,
+              fontSize: '0.9rem',
+              boxShadow: '0 8px 24px rgba(34, 139, 34, 0.4)',
+              textTransform: 'none'
+            }}
+          >
+            Add Store
+          </Button>
+        </Box>
       </Container>
 
       <Dialog open={categoryDialogOpen} onClose={() => { setCategoryDialogOpen(false); resetCategoryDialog(); }} maxWidth="xs" fullWidth>
