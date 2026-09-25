@@ -26,7 +26,6 @@ import {
   LocationOnRounded as LocationIcon,
   PhoneRounded as PhoneIcon,
   WhatsApp as WhatsAppIcon,
-  ChatBubbleOutlineRounded as ChatIcon,
   InfoOutlined as InfoIcon,
   NavigationRounded as DirectionIcon,
   ShoppingBagOutlined as BagIcon,
@@ -87,7 +86,6 @@ export default function BusinessProfile() {
   const [editLocationOpen, setEditLocationOpen] = useState(false);
   const [editPayoutOpen, setEditPayoutOpen] = useState(false);
   const [enquiryModalOpen, setEnquiryModalOpen] = useState(false);
-  const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
   const [securityModalOpen, setSecurityModalOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
@@ -468,34 +466,7 @@ export default function BusinessProfile() {
             </Typography>
           </Box>
 
-          {/* Action 3: Ask Anything */}
-          <Box
-            onClick={() => setAiAssistantOpen(true)}
-            sx={{
-              flex: 1,
-              minWidth: 0,
-              height: 64,
-              borderRadius: "14px",
-              border: `1.5px solid ${BORDER}`,
-              bgcolor: SURFACE,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-              boxShadow: "0 1px 3px rgba(15, 23, 42, 0.02)",
-              "&:hover": { borderColor: "#cbd5e1", bgcolor: BG },
-              "&:active": { transform: "scale(0.96)" },
-            }}
-          >
-            <ChatIcon sx={{ fontSize: 20, color: "#2563eb" }} />
-            <Typography sx={{ fontSize: { xs: "0.66rem", sm: "0.74rem" }, fontWeight: 700, color: TEXT, mt: 0.35, whiteSpace: "nowrap" }}>
-              Ask Anything
-            </Typography>
-          </Box>
-
-          {/* Action 4: Enquiry */}
+          {/* Action 3: Enquiry */}
           <Box
             onClick={() => setEnquiryModalOpen(true)}
             sx={{
@@ -1411,62 +1382,6 @@ export default function BusinessProfile() {
               Update Account
             </Button>
           </Stack>
-        </Stack>
-      </Drawer>
-
-      {/* ─── BOTTOM DRAWER: ASK ANYTHING (AI ASSISTANT) ─── */}
-      <Drawer
-        anchor="bottom"
-        open={aiAssistantOpen}
-        onClose={() => setAiAssistantOpen(false)}
-        PaperProps={DRAWER_PAPER_PROPS}
-      >
-        <Box sx={{ width: 44, height: 5, bgcolor: "#cbd5e1", borderRadius: 999, mx: "auto", mb: 2 }} />
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <ChatIcon sx={{ color: "#2563eb" }} />
-            <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", color: TEXT }}>
-              Ask Anything
-            </Typography>
-          </Stack>
-          <IconButton size="small" onClick={() => setAiAssistantOpen(false)}>
-            <CloseIcon sx={{ fontSize: 20 }} />
-          </IconButton>
-        </Stack>
-
-        <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, mb: 2 }}>
-          Ask anything about order fulfillment, inventory, settlements, or marketing.
-        </Typography>
-
-        <TextField
-          label="Your question..."
-          fullWidth
-          multiline
-          rows={3}
-          placeholder="e.g. How do I enable delivery partner tracking?"
-          sx={{ mb: 2 }}
-        />
-
-        <Stack direction="row" spacing={1.5}>
-          <Button
-            fullWidth
-            variant="outlined"
-            onClick={() => setAiAssistantOpen(false)}
-            sx={{ fontWeight: 700, color: TEXT_MUTED, borderRadius: "12px", py: 1.2 }}
-          >
-            Close
-          </Button>
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={() => {
-              setToastMsg("Query submitted to AI Assistant!");
-              setAiAssistantOpen(false);
-            }}
-            sx={{ bgcolor: "#2563eb", color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: "#1d4ed8" } }}
-          >
-            Submit Question
-          </Button>
         </Stack>
       </Drawer>
 
