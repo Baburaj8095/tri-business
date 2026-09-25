@@ -2080,8 +2080,9 @@ function BusinessDashboard() {
   }, [shops, profile, CAPTAIN_API_URL]);
 
   useEffect(() => {
-    // Fetch all marketplace ads in a single call
-    fetch(`${CAPTAIN_API_URL}/api/ads/all?bannerLimit=6&shopLimit=8&productLimit=8`)
+    // Fetch all marketplace ads in a single call (normalize /api prefix)
+    const baseApi = CAPTAIN_API_URL.replace(/\/api\/?$/, '');
+    fetch(`${baseApi}/api/ads/all?bannerLimit=6&shopLimit=8&productLimit=8`)
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (!data) return;
