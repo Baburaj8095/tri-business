@@ -210,11 +210,15 @@ const SHOPS = [
 ];
 
 const ALL_CATEGORIES = [
-  { label: 'Daily Needs', icon: LuGift },
-  { label: 'Mobiles', icon: LuSmartphone },
-  { label: 'Fashion', icon: LuShirt },
-  { label: 'Furniture', icon: LuSofa },
-  { label: 'Beauty', icon: LuTag },
+  { label: 'Vegetables & Fruits', image: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=160&q=80", bg: "#ecfdf5" },
+  { label: 'Atta, Rice & Dal', image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=160&q=80", bg: "#fef3c7" },
+  { label: 'Dairy, Bread & Eggs', image: "https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=160&q=80", bg: "#e0f2fe" },
+  { label: 'Snacks & Drinks', image: "https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=160&q=80", bg: "#fffbeb" },
+  { label: 'Daily Needs', image: "https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=160&q=80", bg: "#f0fdf4" },
+  { label: 'Mobiles', icon: LuSmartphone, bg: "#eff6ff" },
+  { label: 'Fashion', icon: LuShirt, bg: "#faf5ff" },
+  { label: 'Furniture', icon: LuSofa, bg: "#fdf2f8" },
+  { label: 'Beauty', icon: LuTag, bg: "#fff1f2" },
 ];
 
 const ADS = [
@@ -821,69 +825,112 @@ function ShopCard({ shop }) {
   );
 }
 
-function CategoryCard({ item }) {
+function CategoryCard({ item, onClick }) {
   const Icon = item.icon;
   return (
     <Card
+      onClick={onClick}
       sx={{
-        minWidth: { xs: 80, sm: 96 },
-        width: { xs: 80, sm: 96 },
-        height: { xs: 80, sm: 96 },
+        minWidth: { xs: 84, sm: 100 },
+        width: { xs: 84, sm: 100 },
+        height: { xs: 90, sm: 106 },
         flexShrink: 0,
         scrollSnapAlign: "start",
-        border: `1px solid #e2e8f0`,
-        borderRadius: '16px',
+        border: `1.5px solid #e2e8f0`,
+        borderRadius: '18px',
         boxShadow: "0 4px 12px rgba(15, 23, 42, 0.02)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        bgcolor: "#ffffff",
-        transition: 'all 0.2s',
+        bgcolor: item.bg || "#ffffff",
+        cursor: 'pointer',
+        p: 1,
+        transition: 'all 0.2s ease',
         '&:hover': {
-          borderColor: UI.primary,
-          boxShadow: "0 8px 16px rgba(34, 139, 34, 0.08)",
+          borderColor: '#10b981',
+          transform: 'translateY(-2px)',
+          boxShadow: "0 8px 20px rgba(16, 185, 129, 0.12)",
         }
       }}
     >
-      <Icon style={{ fontSize: 24, color: UI.primary, marginBottom: 8 }} />
-      <Typography sx={{ fontSize: { xs: 11, sm: 12 }, fontWeight: 700, color: '#475569', textAlign: "center", lineHeight: 1.2 }}>
+      {item.image ? (
+        <Box
+          component="img"
+          src={item.image}
+          alt={item.label}
+          sx={{ width: 44, height: 44, borderRadius: '12px', objectFit: 'cover', mb: 0.6 }}
+        />
+      ) : Icon ? (
+        <Icon style={{ fontSize: 26, color: '#16a34a', marginBottom: 6 }} />
+      ) : (
+        <ShoppingBagOutlinedIcon sx={{ fontSize: 26, color: '#16a34a', mb: 0.6 }} />
+      )}
+      <Typography
+        sx={{
+          fontSize: { xs: '0.68rem', sm: '0.74rem' },
+          fontWeight: 800,
+          color: '#0f172a',
+          textAlign: "center",
+          lineHeight: 1.15,
+          maxHeight: '2.4em',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
         {item.label}
       </Typography>
     </Card>
   );
 }
 
-function AllCategoriesSection() {
+function AllCategoriesSection({ onCategoryClick }) {
   return (
     <Box
       id="categories-section"
       sx={{
         borderRadius: '20px',
-        bgcolor: UI.surface,
+        bgcolor: '#ffffff',
         border: `1px solid #e2e8f0`,
         boxShadow: "0 4px 12px rgba(15, 23, 42, 0.03)",
         px: 2,
-        py: 2.5,
-        mt: 2,
-        mb: 2.5,
+        py: 2,
+        mt: 0.5,
+        mb: 2,
       }}
     >
-      <Typography
-        component="h2"
-        sx={{
-          color: "#0f172a",
-          fontSize: '1.2rem',
-          fontWeight: 800,
-          lineHeight: 1.2,
-          mb: 2,
-        }}
-      >
-        All Categories
-      </Typography>
-      <ScrollRow gap={1.5} pb={0.5}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+        <Box>
+          <Typography
+            component="h2"
+            sx={{
+              color: "#0f172a",
+              fontSize: '1.15rem',
+              fontWeight: 900,
+              lineHeight: 1.2,
+            }}
+          >
+            Shop by Category
+          </Typography>
+          <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+            Instant 10-15 min dispatch • Sourced from verified sellers
+          </Typography>
+        </Box>
+        <Button
+          size="small"
+          onClick={() => onCategoryClick?.("Vegetables & Fruits")}
+          sx={{ textTransform: 'none', fontWeight: 800, color: '#10b981', fontSize: '0.78rem' }}
+        >
+          See All →
+        </Button>
+      </Stack>
+      <ScrollRow gap={1.25} pb={0.5}>
         {ALL_CATEGORIES.map((cat) => (
-          <CategoryCard key={cat.label} item={cat} />
+          <CategoryCard
+            key={cat.label}
+            item={cat}
+            onClick={() => onCategoryClick?.(cat.label)}
+          />
         ))}
       </ScrollRow>
     </Box>
@@ -2268,6 +2315,11 @@ function BusinessDashboard() {
             </SectionShell>
           </Box>
 
+          {/* Blinkit Category Gateway */}
+          <AllCategoriesSection
+            onCategoryClick={(categoryLabel) => navigate(`/business/online-marketplace?category=${encodeURIComponent(categoryLabel)}`)}
+          />
+
           <Box id="business-shops">
             <SectionShell
               title="Nearby Stores"
@@ -2696,6 +2748,59 @@ function BusinessDashboard() {
           {toastMsg}
         </Alert>
       </Snackbar>
+
+      {/* Floating Cart Pill if B2B cart has items */}
+      {(() => {
+        let sc = null;
+        try { sc = JSON.parse(localStorage.getItem('tri_business_b2b_cart') || 'null'); } catch(e) {}
+        const count = (sc?.items || []).reduce((acc, item) => acc + Number(item.quantity || 0), 0);
+        const subtotal = (sc?.items || []).reduce((acc, item) => acc + (Number(item.price || 0) * Number(item.quantity || 0)), 0);
+        if (count <= 0) return null;
+        return (
+          <Box
+            sx={{
+              position: 'fixed',
+              bottom: { xs: 68, sm: 80 },
+              left: 0,
+              right: 0,
+              zIndex: 40,
+              px: 2,
+              display: 'flex',
+              justifyContent: 'center',
+            }}
+          >
+            <Box
+              onClick={() => navigate('/business/online-marketplace')}
+              sx={{
+                bgcolor: '#15803d',
+                color: '#ffffff',
+                borderRadius: '999px',
+                px: 2.25,
+                py: 1.15,
+                boxShadow: '0 8px 24px rgba(21, 128, 61, 0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.75,
+                cursor: 'pointer',
+                maxWidth: 420,
+                width: '100%',
+                transition: 'transform 0.15s, background-color 0.15s',
+                '&:hover': { bgcolor: '#166534', transform: 'scale(1.02)' },
+              }}
+            >
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography sx={{ fontSize: '0.88rem', fontWeight: 900, lineHeight: 1.1 }}>
+                  View cart
+                </Typography>
+                <Typography sx={{ fontSize: '0.72rem', color: '#bbf7d0', fontWeight: 700 }}>
+                  {count} items • ₹{subtotal.toFixed(2)}
+                </Typography>
+              </Box>
+              <KeyboardArrowRightRoundedIcon sx={{ color: '#ffffff', fontSize: 22 }} />
+            </Box>
+          </Box>
+        );
+      })()}
       </div>
       </AppShell>
     </ThemeProvider>

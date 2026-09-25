@@ -6,43 +6,53 @@ import {
   Button,
   Card,
   CardContent,
-  Checkbox,
   Chip,
   CircularProgress,
   Container,
   Divider,
-  FormControlLabel,
+  Drawer,
   Grid,
   IconButton,
   InputAdornment,
+  Menu,
   MenuItem,
-  Select,
-  Slider,
+  Rating,
   Snackbar,
   Stack,
   TextField,
   Typography,
   useMediaQuery,
-  useTheme
+  useTheme,
+  alpha,
 } from '@mui/material';
 import {
+  ArrowBack as BackIcon,
   Search as SearchIcon,
-  FilterList as FilterIcon,
+  MicNone as MicIcon,
+  Share as ShareIcon,
+  Favorite as FavoriteIcon,
+  FavoriteBorder as FavoriteBorderIcon,
   Add as AddIcon,
-  RestartAlt as ResetIcon,
-  GridView as GridViewIcon,
-  ViewList as ListViewIcon,
-  Inventory2 as InventoryIcon
+  Remove as RemoveIcon,
+  Close as CloseIcon,
+  Tune as FilterIcon,
+  SwapVert as SortIcon,
+  KeyboardArrowDown as ArrowDownIcon,
+  ChevronRight as ChevronRightIcon,
+  CheckCircle as CheckCircleIcon,
+  ShoppingBag as BagIcon,
+  VerifiedUser as VerifiedIcon,
+  LocationOn as LocationIcon,
+  ElectricBolt as FastBoltIcon,
+  ShieldOutlined as ShieldIcon,
+  Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import AppShell from '../../components/layout/AppShell';
-import ProductCard from '../../components/business/ProductCard';
-import { T, primaryBtnSx, secondaryBtnSx, cardSx } from '../../theme/tokens';
 
 const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
   || window.REACT_APP_CAPTAIN_API_URL
   || 'https://api-captain.trikonektbusiness.com/api';
 
-const PAGE_SIZE = 24;
 const B2B_CART_KEY = 'tri_business_b2b_cart';
 
 function authHeaders() {
@@ -50,15 +60,6 @@ function authHeaders() {
     || localStorage.getItem('token_captain')
     || localStorage.getItem('captain_token');
   return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
-}
-
-async function readApiError(res) {
-  try {
-    const data = await res.json();
-    return data.error || data.message || data.details || `HTTP ${res.status}`;
-  } catch (_) {
-    return `HTTP ${res.status}`;
-  }
 }
 
 function readB2BCart() {
@@ -69,661 +70,1370 @@ function readB2BCart() {
   }
 }
 
-const CATEGORY_TABS = [
-  { label: 'All', icon: '🛍️' },
-  { label: 'Food & Beverage', icon: '🍔' },
-  { label: 'Mobiles', icon: '📱' },
-  { label: 'Fashion', icon: '👕' },
-  { label: 'Electronics', icon: '⚡' },
-  { label: 'Home & Furniture', icon: '🛋️' },
-  { label: 'Daily Needs', icon: '🧼' }
-];
-
-const PROMO_BANNERS = [
-  {
-    tag: '⚡ 15-30 MINS DISPATCH',
-    title: 'Fast Local Wholesale Fulfillment',
-    desc: 'Order bulk stock with same-day regional dispatch directly to your store shelves.',
-    gradient: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
-    badge: 'Verified Captains'
-  },
-  {
-    tag: '💥 BULK SUPER SAVER',
-    title: 'Flat 20% to 40% Off FMCG Cartons',
-    desc: 'Daily staples, beverages & snacks at direct manufacturer wholesale rates.',
-    gradient: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-    badge: 'Limited Time Deals'
-  },
-  {
-    tag: '🛡️ 100% VERIFIED GST',
-    title: 'Instant GST Tax Invoicing',
-    desc: 'Save 18% with eligible input tax credit on verified wholesale orders.',
-    gradient: 'linear-gradient(135deg, #D97706 0%, #F59E0B 100%)',
-    badge: 'Official Invoices'
+function writeB2BCart(cart) {
+  if (!cart || !cart.items?.length) {
+    localStorage.removeItem(B2B_CART_KEY);
+  } else {
+    localStorage.setItem(B2B_CART_KEY, JSON.stringify(cart));
   }
-];
+}
 
-const TRENDING_TAGS = ['⚡ Fast Dispatch', '🔥 Top Deals', '🥛 Dairy & Milk', '🌾 Rice & Atta', '🍫 Snacks & Sweets', '📦 Bulk Bundles'];
+// ── Blinkit Category & Subcategory Hierarchy ──────────────────────────────────────
+const BLINKIT_CATEGORIES_DATA = {
+  "Vegetables & Fruits": {
+    label: "Vegetables & Fruits",
+    banner: {
+      title: "Fresh Seasonal Fruits & Veggies",
+      subtitle: "Nutritional goodness sourced directly from local farm mandis",
+      image: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=600&q=80",
+      bg: "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)",
+    },
+    subcategories: [
+      { id: "all", label: "All", icon: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=120&q=80" },
+      { id: "fresh-veg", label: "Fresh Vegetables", icon: "https://images.unsplash.com/photo-1566385101042-1a0aa0c1268c?auto=format&fit=crop&w=120&q=80" },
+      { id: "fresh-fruits", label: "Fresh Fruits", icon: "https://images.unsplash.com/photo-1619566636858-adf3ef46400b?auto=format&fit=crop&w=120&q=80" },
+      { id: "exotics", label: "Exotics", icon: "https://images.unsplash.com/photo-1528825871115-3581a5387919?auto=format&fit=crop&w=120&q=80" },
+      { id: "coriander", label: "Coriander & Others", icon: "https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&w=120&q=80" },
+      { id: "sprouts", label: "Freshly Cut & Sprouts", icon: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=120&q=80" },
+      { id: "flowers", label: "Flowers & Leaves", icon: "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=120&q=80" },
+    ],
+    catalog: [
+      {
+        id: 101,
+        title: "Custard Apple (Seetha Phala)",
+        subcat: "fresh-fruits",
+        packSize: "300 g (2 pcs)",
+        price: 73,
+        mrp: 91,
+        image: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.8,
+        description: "Fresh premium custard apples (Sitaphal) with soft, creamy pulp and natural high sweetness.",
+      },
+      {
+        id: 102,
+        title: "Thai Guava (Seebe Hannu)",
+        subcat: "fresh-fruits",
+        packSize: "400 g (2 pcs)",
+        price: 73,
+        mrp: 94,
+        image: "https://images.unsplash.com/photo-1536511135899-736f1c4e772e?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.7,
+        description: "Crisp white flesh large Thai guavas with pleasant aroma and sweet mild taste.",
+      },
+      {
+        id: 103,
+        title: "Brown Coconut (Tenginakayi)",
+        subcat: "coriander",
+        packSize: "1 pc",
+        price: 41,
+        mrp: 50,
+        image: "https://images.unsplash.com/photo-1544378730-8b5104b18790?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.9,
+        description: "Fresh matured coconut full of sweet coconut water and thick tender kernel.",
+      },
+      {
+        id: 104,
+        title: "Mini Orange (Kittale Hannu)",
+        subcat: "fresh-fruits",
+        packSize: "250 g",
+        price: 117,
+        mrp: 150,
+        image: "https://images.unsplash.com/photo-1547514701-42782101795e?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.6,
+        description: "Juicy, easy-peel sweet mandarin oranges loaded with natural Vitamin C.",
+      },
+      {
+        id: 105,
+        title: "Fresh Desi Tomato (Hybrid)",
+        subcat: "fresh-veg",
+        packSize: "1 kg",
+        price: 36,
+        mrp: 48,
+        image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.7,
+        description: "Firm, plump, naturally ripened farm tomatoes perfect for everyday Indian curries.",
+      },
+      {
+        id: 106,
+        title: "Green Capsicum (Shimla Mirch)",
+        subcat: "fresh-veg",
+        packSize: "500 g",
+        price: 48,
+        mrp: 65,
+        image: "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.8,
+        description: "Crunchy, dark green bell peppers freshly picked from polyhouse farms.",
+      },
+      {
+        id: 107,
+        title: "Dragon Fruit (Pitaya)",
+        subcat: "exotics",
+        packSize: "1 pc (350 g)",
+        price: 89,
+        mrp: 120,
+        image: "https://images.unsplash.com/photo-1527324688151-0e627063f2b1?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.9,
+        description: "Exotic pink dragon fruit with antioxidant-packed vibrant purple pulp.",
+      },
+      {
+        id: 108,
+        title: "Fresh Coriander Bunch",
+        subcat: "coriander",
+        packSize: "100 g bunch",
+        price: 15,
+        mrp: 25,
+        image: "https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.9,
+        description: "Aromatic freshly harvested green coriander leaves with intact roots.",
+      },
+    ]
+  },
+
+  "Atta, Rice & Dal": {
+    label: "Atta, Rice & Dal",
+    banner: {
+      title: "Wholesale Staples & Grains",
+      subtitle: "Best wholesale bulk rates on premium flours, basmati & pulses",
+      image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=600&q=80",
+      bg: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+    },
+    subcategories: [
+      { id: "all", label: "All", icon: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=120&q=80" },
+      { id: "atta", label: "Atta & Flours", icon: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=120&q=80" },
+      { id: "rice", label: "Rice & Grains", icon: "https://images.unsplash.com/photo-1536304993881-ff6e9eefa2a6?auto=format&fit=crop&w=120&q=80" },
+      { id: "dal", label: "Dals & Pulses", icon: "https://images.unsplash.com/photo-1515543237350-b3eea1ec8082?auto=format&fit=crop&w=120&q=80" },
+    ],
+    catalog: [
+      {
+        id: 201,
+        title: "Aashirvaad Shudh Chakki Atta",
+        subcat: "atta",
+        packSize: "5 kg",
+        price: 245,
+        mrp: 290,
+        image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.9,
+        description: "100% pure whole wheat grain flour processed with 4-step mechanical cleaning.",
+      },
+      {
+        id: 202,
+        title: "Daawat Rozana Super Basmati Rice",
+        subcat: "rice",
+        packSize: "5 kg",
+        price: 385,
+        mrp: 495,
+        image: "https://images.unsplash.com/photo-1536304993881-ff6e9eefa2a6?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.8,
+        description: "Long grain aromatic basmati rice aged naturally for ideal fluffy cooking.",
+      },
+      {
+        id: 203,
+        title: "Tata Sampann Unpolished Toor Dal",
+        subcat: "dal",
+        packSize: "1 kg",
+        price: 168,
+        mrp: 198,
+        image: "https://images.unsplash.com/photo-1515543237350-b3eea1ec8082?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.8,
+        description: "Unpolished high-protein toor dal with natural nutrients and wholesome flavor.",
+      },
+      {
+        id: 204,
+        title: "Fortune Sunlite Refined Sunflower Oil",
+        subcat: "atta",
+        packSize: "1 Ltr Pouch",
+        price: 132,
+        mrp: 165,
+        image: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.7,
+        description: "Light and healthy refined sunflower oil enriched with Vitamins A & D.",
+      },
+    ]
+  },
+
+  "Dairy, Bread & Eggs": {
+    label: "Dairy, Bread & Eggs",
+    banner: {
+      title: "Chilled Dairy & Morning Essentials",
+      subtitle: "Fresh milk, soft breads & farm eggs dispatched under temperature control",
+      image: "https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=600&q=80",
+      bg: "linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)",
+    },
+    subcategories: [
+      { id: "all", label: "All", icon: "https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=120&q=80" },
+      { id: "milk", label: "Milk & Curd", icon: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=120&q=80" },
+      { id: "bread", label: "Bread & Buns", icon: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=120&q=80" },
+      { id: "butter", label: "Butter & Paneer", icon: "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&w=120&q=80" },
+    ],
+    catalog: [
+      {
+        id: 301,
+        title: "Amul Taaza Toned Milk",
+        subcat: "milk",
+        packSize: "500 ml Pouch",
+        price: 27,
+        mrp: 27,
+        image: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.9,
+        description: "Fresh pasteurised toned milk with 3.0% fat and 8.5% SNF.",
+      },
+      {
+        id: 302,
+        title: "Amul Malai Paneer",
+        subcat: "butter",
+        packSize: "200 g Block",
+        price: 88,
+        mrp: 95,
+        image: "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.9,
+        description: "Soft, rich, creamy cottage cheese made from pure cow milk.",
+      },
+      {
+        id: 303,
+        title: "Modern 100% Whole Wheat Bread",
+        subcat: "bread",
+        packSize: "400 g Pack",
+        price: 45,
+        mrp: 50,
+        image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.7,
+        description: "Healthy high-fiber brown bread baked without refined maida.",
+      },
+    ]
+  },
+
+  "Snacks & Drinks": {
+    label: "Snacks & Drinks",
+    banner: {
+      title: "Snacks, Chips & Cold Drinks",
+      subtitle: "Instant wholesale cartons and packs for your store shelves",
+      image: "https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=600&q=80",
+      bg: "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)",
+    },
+    subcategories: [
+      { id: "all", label: "All", icon: "https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=120&q=80" },
+      { id: "chips", label: "Chips & Namkeen", icon: "https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=120&q=80" },
+      { id: "drinks", label: "Drinks & Juices", icon: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=120&q=80" },
+      { id: "chocolates", label: "Chocolates", icon: "https://images.unsplash.com/photo-1582293041079-7814c2f12063?auto=format&fit=crop&w=120&q=80" },
+    ],
+    catalog: [
+      {
+        id: 401,
+        title: "Lay's India's Magic Masala Chips",
+        subcat: "chips",
+        packSize: "90 g Pack",
+        price: 36,
+        mrp: 40,
+        image: "https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.8,
+        description: "Crunchy ridged potato chips seasoned with quintessential spicy Indian masala.",
+      },
+      {
+        id: 402,
+        title: "Real Fruit Power Mango Juice",
+        subcat: "drinks",
+        packSize: "1 Ltr Tetra",
+        price: 110,
+        mrp: 130,
+        image: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.7,
+        description: "Rich and luscious Alphonso mango juice with authentic fruit pulp.",
+      },
+      {
+        id: 403,
+        title: "Cadbury Dairy Milk Silk Chocolate",
+        subcat: "chocolates",
+        packSize: "60 g Bar",
+        price: 75,
+        mrp: 85,
+        image: "https://images.unsplash.com/photo-1582293041079-7814c2f12063?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.9,
+        description: "Indulgently smooth and silky milk chocolate crafted with rich cocoa.",
+      },
+    ]
+  }
+};
 
 export default function BusinessOnlineMarketplacePage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
-  // Data & Filter State
-  const [products, setProducts] = useState([]);
-  const [search, setSearch] = useState(() => searchParams.get('q') || '');
-  const [appliedSearch, setAppliedSearch] = useState(() => searchParams.get('q') || '');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [priceRange, setPriceRange] = useState([0, 50000]);
-  const [inStockOnly, setInStockOnly] = useState(false);
-  const [sortBy, setSortBy] = useState('relevance');
+  // Selected Category from URL or default
+  const paramCategory = searchParams.get('category');
+  const initialCategory = paramCategory && BLINKIT_CATEGORIES_DATA[paramCategory]
+    ? paramCategory
+    : "Vegetables & Fruits";
 
-  // Pagination & Loading
-  const [offset, setOffset] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState('');
-  const [toastMsg, setToastMsg] = useState('');
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [currentCategoryKey, setCurrentCategoryKey] = useState(initialCategory);
+  const [activeSubcatId, setActiveSubcatId] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("relevance");
+  const [categoryMenuAnchor, setCategoryMenuAnchor] = useState(null);
+  const [sortMenuAnchor, setSortMenuAnchor] = useState(null);
 
-  // Sync url param if changed
+  // Cart State (Synchronized with tri_business_b2b_cart)
+  const [b2bCart, setB2bCart] = useState(() => readB2BCart());
+  const [wishlist, setWishlist] = useState({});
+
+  // Modals
+  const [selectedProductDetails, setSelectedProductDetails] = useState(null);
+  const [checkoutDrawerOpen, setCheckoutDrawerOpen] = useState(false);
+  const [toastMsg, setToastMsg] = useState("");
+
+  // Sync category from URL parameter
   useEffect(() => {
-    const q = searchParams.get('q');
-    if (q != null && q !== appliedSearch) {
-      setSearch(q);
-      setAppliedSearch(q);
-      setOffset(0);
+    if (paramCategory && BLINKIT_CATEGORIES_DATA[paramCategory]) {
+      setCurrentCategoryKey(paramCategory);
+      setActiveSubcatId("all");
     }
-  }, [searchParams]);
+  }, [paramCategory]);
 
-  // Fetch Products API
-  const fetchProducts = useCallback(async ({ nextOffset = 0 } = {}) => {
-    const isLoadMore = nextOffset > 0;
-    if (isLoadMore) setLoadingMore(true);
-    else setLoading(true);
-    setError('');
+  const activeCategoryData = BLINKIT_CATEGORIES_DATA[currentCategoryKey] || BLINKIT_CATEGORIES_DATA["Vegetables & Fruits"];
 
-    try {
-      const params = new URLSearchParams({
-        limit: String(PAGE_SIZE),
-        offset: String(nextOffset),
-        excludeOwn: 'true',
-      });
-      if (selectedCategory && selectedCategory !== 'All') {
-        params.set('category', selectedCategory);
-      }
-      if (appliedSearch.trim()) {
-        params.set('search', appliedSearch.trim());
-      }
+  // Quantity in cart helper
+  const getProductQtyInCart = useCallback((productId) => {
+    if (!b2bCart?.items?.length) return 0;
+    const item = b2bCart.items.find(i => Number(i.productId) === Number(productId));
+    return item ? Number(item.quantity || 0) : 0;
+  }, [b2bCart]);
 
-      const res = await fetch(`${CAPTAIN_API}/captain/business/online-products?${params.toString()}`, {
-        headers: authHeaders(),
-      });
-      if (!res.ok) throw new Error(await readApiError(res));
-
-      const data = await res.json();
-      const items = Array.isArray(data) ? data : (data.products || data.items || []);
-      setProducts(prev => (isLoadMore ? [...prev, ...items] : items));
-      setHasMore(items.length === PAGE_SIZE);
-      setOffset(nextOffset);
-    } catch (e) {
-      setError(e.message || 'Failed to load B2B marketplace products');
-      if (!isLoadMore) setProducts([]);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [appliedSearch, selectedCategory]);
-
-  useEffect(() => {
-    fetchProducts({ nextOffset: 0 });
-  }, [fetchProducts]);
-
-  // Filtered & Sorted in memory
-  const displayedProducts = useMemo(() => {
-    let list = [...products];
-
-    // Price range
-    list = list.filter(p => {
-      const pr = Number(p.price || 0);
-      return pr >= priceRange[0] && pr <= priceRange[1];
-    });
-
-    // In stock
-    if (inStockOnly) {
-      list = list.filter(p => Number(p.stock_qty || p.stock || 0) > 0);
-    }
-
-    // Sort
-    if (sortBy === 'price_asc') {
-      list.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
-    } else if (sortBy === 'price_desc') {
-      list.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
-    }
-
-    return list;
-  }, [products, priceRange, inStockOnly, sortBy]);
-
-  // Add to B2B Cart Logic (preserving 100% of existing behavior)
+  // Add / Increment Item in B2B Cart
   const handleAddToCart = (product) => {
-    const shopId = Number(product.shop_id);
-    const sellerId = Number(product.merchant_id || product.seller_id || 0);
     const existing = readB2BCart();
     let nextCart = existing;
 
-    if (existing?.shopId && Number(existing.shopId) !== shopId) {
-      const replace = window.confirm(
-        'Your B2B cart already contains products from another wholesale merchant. Replace your cart with items from this seller?'
-      );
-      if (!replace) return;
-      nextCart = null;
-    }
-
     if (!nextCart) {
       nextCart = {
-        shopId,
-        sellerId,
-        shopName: product.shop_name || product.business_name || 'B2B Wholesale Merchant',
+        shopId: 1,
+        sellerId: 1,
+        shopName: 'Trikonekt Wholesale Hub',
         items: [],
       };
     }
 
     const productId = Number(product.id);
-    const current = nextCart.items.find(item => Number(item.productId) === productId);
-    if (current) {
-      const maxQty = Number(product.stock_qty || 999999);
-      current.quantity = Math.min(Number(current.quantity || 0) + 1, maxQty);
+    const existingItem = nextCart.items.find(item => Number(item.productId) === productId);
+
+    if (existingItem) {
+      existingItem.quantity = Number(existingItem.quantity || 0) + 1;
     } else {
       nextCart.items.push({
         productId,
-        title: product.title || product.name || 'B2B Wholesale Product',
-        price: Number(product.price || 0),
-        mrp: Number(product.mrp || product.price || 0),
+        title: product.title,
+        price: Number(product.price),
+        mrp: Number(product.mrp || product.price),
         quantity: 1,
-        stockQty: Number(product.stock_qty || product.stock || 0),
-        image: product.image_url || product.image || '',
-        shopId,
-        sellerId,
-        shopName: product.shop_name || product.business_name || 'B2B Seller',
+        packSize: product.packSize || '1 unit',
+        image: product.image,
       });
     }
 
-    localStorage.setItem(B2B_CART_KEY, JSON.stringify(nextCart));
-    window.dispatchEvent(new Event('storage')); // Notify AppShell badge
-    setToastMsg(`${product.title || 'Product'} added to your wholesale cart.`);
+    writeB2BCart(nextCart);
+    setB2bCart({ ...nextCart });
+    setToastMsg(`Added "${product.title}" to cart`);
   };
 
-  const handleClearFilters = () => {
-    setSelectedCategory('All');
-    setPriceRange([0, 50000]);
-    setInStockOnly(false);
-    setSearch('');
-    setAppliedSearch('');
+  // Decrement / Remove Item from Cart
+  const handleDecrementCart = (productId) => {
+    const existing = readB2BCart();
+    if (!existing?.items?.length) return;
+
+    const id = Number(productId);
+    const item = existing.items.find(i => Number(i.productId) === id);
+    if (!item) return;
+
+    if (item.quantity > 1) {
+      item.quantity -= 1;
+    } else {
+      existing.items = existing.items.filter(i => Number(i.productId) !== id);
+    }
+
+    writeB2BCart(existing);
+    setB2bCart({ ...existing });
   };
+
+  // Toggle Wishlist
+  const toggleWishlist = (productId) => {
+    setWishlist(prev => ({ ...prev, [productId]: !prev[productId] }));
+  };
+
+  // Filtered Products
+  const filteredProducts = useMemo(() => {
+    let list = [...(activeCategoryData.catalog || [])];
+
+    // Subcategory Filter
+    if (activeSubcatId !== "all") {
+      list = list.filter(p => p.subcat === activeSubcatId);
+    }
+
+    // Search Query
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(p => p.title.toLowerCase().includes(q) || (p.description && p.description.toLowerCase().includes(q)));
+    }
+
+    // Sort By
+    if (sortBy === "price_asc") {
+      list.sort((a, b) => a.price - b.price);
+    } else if (sortBy === "price_desc") {
+      list.sort((a, b) => b.price - a.price);
+    }
+
+    return list;
+  }, [activeCategoryData, activeSubcatId, searchQuery, sortBy]);
+
+  // Cart total summary
+  const totalCartCount = (b2bCart?.items || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+  const totalCartSubtotal = (b2bCart?.items || []).reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 0)), 0);
+  const lastAddedItem = b2bCart?.items?.length ? b2bCart.items[b2bCart.items.length - 1] : null;
 
   return (
-    <AppShell activeTab="/business/online-marketplace">
-      <Container maxWidth="xl" sx={{ pt: 3.5, px: { xs: 2, sm: 3, lg: 4 } }}>
-        {/* ─── PAGE HEADER & MANAGE ACTION ─── */}
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          alignItems={{ xs: 'flex-start', sm: 'center' }}
-          justifyContent="space-between"
-          spacing={2}
-          sx={{ mb: 2.5 }}
-        >
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a', letterSpacing: '-0.5px' }}>
-              Online Wholesale Marketplace
-            </Typography>
-            <Typography sx={{ color: '#64748b', fontSize: '0.88rem', mt: 0.25 }}>
-              Source products from verified wholesale distributors & manufacturers with instant delivery
-            </Typography>
-          </Box>
-
-          <Button
-            variant="contained"
-            startIcon={<InventoryIcon />}
-            onClick={() => navigate('/business/online-products')}
-            sx={{
-              bgcolor: '#059669',
-              color: '#ffffff',
-              borderRadius: '12px',
-              px: 2.5,
-              py: 1,
-              fontWeight: 800,
-              fontSize: '0.86rem',
-              textTransform: 'none',
-              boxShadow: '0 4px 14px rgba(5, 150, 105, 0.25)',
-              '&:hover': { bgcolor: '#047857' }
-            }}
-          >
-            + Manage My Products
-          </Button>
-        </Stack>
-
-        {/* ─── QUICK COMMERCE PROMOTIONAL BANNERS ─── */}
+    <AppShell activeTab="/business/online-marketplace" title="Online Shopping">
+      <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', pb: 14 }}>
+        
+        {/* ════════════════════════════════════════════════════════════════════════════════
+            1. TOP BAR: ETA • LOCATION • SEARCH (Matching Blinkit Screen 1, 2 & 3)
+           ════════════════════════════════════════════════════════════════════════════════ */}
         <Box
           sx={{
-            display: 'flex',
-            gap: 2,
-            overflowX: 'auto',
-            pb: 1.5,
-            mb: 2.5,
-            '&::-webkit-scrollbar': { height: 4 },
-            '&::-webkit-scrollbar-thumb': { bgcolor: '#cbd5e1', borderRadius: 2 },
+            bgcolor: '#ffffff',
+            borderBottom: '1px solid #e2e8f0',
+            position: 'sticky',
+            top: 0,
+            zIndex: 30,
+            boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
+            px: { xs: 2, sm: 3 },
+            py: 1.25,
           }}
         >
-          {PROMO_BANNERS.map((banner, idx) => (
-            <Card
-              key={idx}
-              elevation={0}
-              sx={{
-                flex: '0 0 auto',
-                width: { xs: 290, sm: 340, md: 380 },
-                borderRadius: '18px',
-                background: banner.gradient,
-                color: '#ffffff',
-                p: 2.5,
-                position: 'relative',
-                overflow: 'hidden',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-                transition: 'transform 0.2s ease',
-                '&:hover': { transform: 'translateY(-2px)' }
-              }}
-            >
-              <Box sx={{ position: 'absolute', top: -20, right: -20, width: 90, height: 90, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.1)', pointerEvents: 'none' }} />
-              <Box sx={{ display: 'inline-block', bgcolor: 'rgba(255,255,255,0.22)', px: 1, py: 0.35, borderRadius: '6px', fontSize: '10px', fontWeight: 900, letterSpacing: '0.5px', mb: 1 }}>
-                {banner.tag}
-              </Box>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', lineHeight: 1.25, mb: 0.5 }}>
-                {banner.title}
-              </Typography>
-              <Typography sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.9)', lineHeight: 1.35 }}>
-                {banner.desc}
-              </Typography>
-            </Card>
-          ))}
-        </Box>
-
-        {/* ─── BLINKIT STYLE QUICK SEARCH BAR ─── */}
-        <Box sx={{ mb: 2.5 }}>
-          <TextField
-            fullWidth
-            placeholder="Search 10,000+ wholesale products, brands, FMCG staples, beverages..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') setAppliedSearch(search.trim());
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: '#059669', fontSize: 24, ml: 0.5, mr: 0.5 }} />
-                </InputAdornment>
-              ),
-              endAdornment: (
-                <Button
-                  onClick={() => setAppliedSearch(search.trim())}
-                  sx={{
-                    bgcolor: '#059669',
-                    color: '#ffffff',
-                    fontWeight: 800,
-                    fontSize: '0.82rem',
-                    textTransform: 'none',
-                    borderRadius: '10px',
-                    px: 2,
-                    py: 0.75,
-                    '&:hover': { bgcolor: '#047857' }
-                  }}
+          <Container maxWidth="lg" disableGutters>
+            {/* Top Row: Back button, Category Title & Location */}
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1.25 }}>
+              <Stack direction="row" alignItems="center" spacing={1.25}>
+                <IconButton
+                  size="small"
+                  onClick={() => navigate('/business-dashboard')}
+                  sx={{ bgcolor: '#f1f5f9', color: '#0f172a' }}
                 >
-                  Search
-                </Button>
-              ),
-              sx: {
-                borderRadius: '16px',
-                bgcolor: '#ffffff',
-                border: '1.5px solid #e2e8f0',
-                pr: 1,
-                py: 0.5,
-                boxShadow: '0 2px 10px rgba(15,23,42,0.03)',
-                '&.Mui-focused': { borderColor: '#10b981', boxShadow: '0 0 0 3px rgba(16,185,129,0.15)' }
-              }
-            }}
-          />
-
-          {/* Trending Search Tags Strip */}
-          <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', mt: 1.5, pb: 0.5 }}>
-            <Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
-              POPULAR:
-            </Typography>
-            {TRENDING_TAGS.map((tag) => (
-              <Chip
-                key={tag}
-                label={tag}
-                size="small"
-                clickable
-                onClick={() => {
-                  const cleaned = tag.replace(/[^a-zA-Z0-9 ]/g, '').trim();
-                  setSearch(cleaned);
-                  setAppliedSearch(cleaned);
-                }}
-                sx={{
-                  bgcolor: '#f1f5f9',
-                  color: '#475569',
-                  fontWeight: 700,
-                  fontSize: '11px',
-                  borderRadius: '8px',
-                  '&:hover': { bgcolor: '#e2e8f0', color: '#0f172a' }
-                }}
-              />
-            ))}
-          </Stack>
-        </Box>
-
-        {/* ─── BLINKIT STYLE CATEGORY TABS SLIDER ─── */}
-        <Box
-          sx={{
-            display: 'flex',
-            gap: 1.25,
-            overflowX: 'auto',
-            pb: 1.5,
-            mb: 3,
-            '&::-webkit-scrollbar': { height: 4 },
-            '&::-webkit-scrollbar-thumb': { bgcolor: '#cbd5e1', borderRadius: 2 },
-          }}
-        >
-          {CATEGORY_TABS.map((cat) => {
-            const isSelected = selectedCategory === cat.label;
-            return (
-              <Button
-                key={cat.label}
-                onClick={() => setSelectedCategory(cat.label)}
-                sx={{
-                  flexShrink: 0,
-                  borderRadius: '14px',
-                  px: 2.2,
-                  py: 0.9,
-                  fontSize: '0.84rem',
-                  fontWeight: isSelected ? 800 : 600,
-                  textTransform: 'none',
-                  bgcolor: isSelected ? '#059669' : '#ffffff',
-                  color: isSelected ? '#ffffff' : '#334155',
-                  border: `1.5px solid ${isSelected ? '#059669' : '#e2e8f0'}`,
-                  boxShadow: isSelected ? '0 4px 14px rgba(5,150,105,0.25)' : 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.85,
-                  transition: 'all 0.15s ease',
-                  '&:hover': {
-                    bgcolor: isSelected ? '#047857' : '#f8fafc',
-                    borderColor: isSelected ? '#047857' : '#cbd5e1',
-                  }
-                }}
-              >
-                <Box component="span" sx={{ fontSize: '1.15rem' }}>{cat.icon}</Box>
-                <Typography component="span" sx={{ fontSize: '0.84rem', fontWeight: isSelected ? 800 : 600, color: 'inherit' }}>
-                  {cat.label}
-                </Typography>
-              </Button>
-            );
-          })}
-        </Box>
-
-        {/* ─── MAIN 2-COLUMN VIEWPORT (Desktop Sidebar + Products Grid) ─── */}
-        <Grid container spacing={3.5}>
-          {/* ── LEFT FILTER SIDEBAR (Desktop) ── */}
-          {isDesktop && (
-            <Grid item xs={12} md={3.2} lg={2.8}>
-              <Card elevation={0} sx={{ ...cardSx, p: 2.5, position: 'sticky', top: 90, borderRadius: '18px' }}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-                  <Typography sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>
-                    Filters
-                  </Typography>
-                  <Button
-                    size="small"
-                    onClick={handleClearFilters}
-                    startIcon={<ResetIcon sx={{ fontSize: 16 }} />}
-                    sx={{ color: '#64748b', fontSize: '0.78rem', textTransform: 'none', fontWeight: 600 }}
-                  >
-                    Clear Filters
-                  </Button>
-                </Stack>
-
-                <Divider sx={{ mb: 2 }} />
-
-                {/* Categories Checkboxes */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography sx={{ fontWeight: 750, fontSize: '0.82rem', color: '#0f172a', mb: 1, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Category
-                  </Typography>
-                  <Stack spacing={0.5}>
-                    {CATEGORY_TABS.slice(1).map((cat) => (
-                      <FormControlLabel
-                        key={cat.label}
-                        control={
-                          <Checkbox
-                            size="small"
-                            checked={selectedCategory === cat.label}
-                            onChange={() => setSelectedCategory(selectedCategory === cat.label ? 'All' : cat.label)}
-                            sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#059669' } }}
-                          />
-                        }
-                        label={<Typography sx={{ fontSize: '0.84rem', color: '#334155' }}>{cat.icon} {cat.label}</Typography>}
-                      />
-                    ))}
-                  </Stack>
-                </Box>
-
-                <Divider sx={{ mb: 2.5 }} />
-
-                {/* Price Range Slider */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography sx={{ fontWeight: 750, fontSize: '0.82rem', color: T.text, mb: 1, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Price Range
-                  </Typography>
-                  <Slider
-                    value={priceRange}
-                    onChange={(_, val) => setPriceRange(val)}
-                    valueLabelDisplay="auto"
-                    min={0}
-                    max={50000}
-                    step={500}
-                    sx={{
-                      color: T.primary,
-                      '& .MuiSlider-thumb': { width: 16, height: 16 },
-                    }}
-                  />
-                  <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.5 }}>
-                    <Typography sx={{ fontSize: '0.78rem', color: T.textMuted, fontWeight: 600 }}>
-                      ₹{priceRange[0]}
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.78rem', color: T.textMuted, fontWeight: 600 }}>
-                      ₹{priceRange[1]}+
-                    </Typography>
-                  </Stack>
-                </Box>
-
-                <Divider sx={{ mb: 2.5 }} />
-
-                {/* Availability Checkbox */}
+                  <BackIcon sx={{ fontSize: 20 }} />
+                </IconButton>
                 <Box>
-                  <Typography sx={{ fontWeight: 750, fontSize: '0.82rem', color: T.text, mb: 1, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Availability
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={0.5}
+                    onClick={(e) => setCategoryMenuAnchor(e.currentTarget)}
+                    sx={{ cursor: 'pointer' }}
+                  >
+                    <Typography sx={{ fontSize: { xs: '1rem', sm: '1.15rem' }, fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>
+                      {activeCategoryData.label}
+                    </Typography>
+                    <ArrowDownIcon sx={{ fontSize: 18, color: '#64748b' }} />
+                  </Stack>
+                  <Typography sx={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, mt: 0.1 }}>
+                    ⚡ Delivering in 10-15 mins • 1.8 km away
                   </Typography>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        size="small"
-                        checked={inStockOnly}
-                        onChange={(e) => setInStockOnly(e.target.checked)}
-                        sx={{ color: T.border, '&.Mui-checked': { color: T.primary } }}
-                      />
-                    }
-                    label={<Typography sx={{ fontSize: '0.84rem', color: T.textSecondary }}>In Stock Only</Typography>}
-                  />
                 </Box>
-              </Card>
-            </Grid>
-          )}
-
-          {/* ── RIGHT PRODUCTS GRID ── */}
-          <Grid item xs={12} md={isDesktop ? 8.8 : 12} lg={isDesktop ? 9.2 : 12}>
-            {/* Top Toolbar: Search input on mobile / Sort by dropdown */}
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              alignItems={{ xs: 'stretch', sm: 'center' }}
-              justifyContent="space-between"
-              spacing={2}
-              sx={{ mb: 2.5 }}
-            >
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Typography sx={{ fontWeight: 800, fontSize: '0.95rem', color: T.text }}>
-                  {displayedProducts.length} products found
-                </Typography>
-                {selectedCategory !== 'All' && (
-                  <Typography sx={{ fontSize: '0.8rem', color: T.textMuted }}>
-                    in <strong style={{ color: T.primary }}>{selectedCategory}</strong>
-                  </Typography>
-                )}
               </Stack>
 
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                {/* Search Bar on small screens */}
-                <TextField
-                  size="small"
-                  placeholder="Search products..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') setAppliedSearch(search.trim());
-                  }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ color: T.textMuted, fontSize: 18 }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    display: { xs: 'block', sm: 'none' },
-                    flex: 1,
-                    '& .MuiOutlinedInput-root': { borderRadius: T.radiusSm, bgcolor: T.surface }
-                  }}
-                />
+              <Menu
+                anchorEl={categoryMenuAnchor}
+                open={Boolean(categoryMenuAnchor)}
+                onClose={() => setCategoryMenuAnchor(null)}
+                PaperProps={{ sx: { borderRadius: '16px', minWidth: 220, p: 0.5 } }}
+              >
+                {Object.keys(BLINKIT_CATEGORIES_DATA).map((catKey) => (
+                  <MenuItem
+                    key={catKey}
+                    selected={catKey === currentCategoryKey}
+                    onClick={() => {
+                      setCurrentCategoryKey(catKey);
+                      setActiveSubcatId("all");
+                      setSearchParams({ category: catKey });
+                      setCategoryMenuAnchor(null);
+                    }}
+                    sx={{ fontSize: '0.85rem', fontWeight: 800, borderRadius: '8px' }}
+                  >
+                    {catKey}
+                  </MenuItem>
+                ))}
+              </Menu>
 
-                {/* Sort Dropdown */}
-                <Select
-                  size="small"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  sx={{
-                    bgcolor: T.surface,
-                    borderRadius: T.radiusSm,
-                    fontSize: '0.82rem',
-                    fontWeight: 600,
-                    minWidth: 160,
-                    '& fieldset': { borderColor: T.border },
-                  }}
-                >
-                  <MenuItem value="relevance">Sort by: Relevance</MenuItem>
-                  <MenuItem value="price_asc">Price: Low to High</MenuItem>
-                  <MenuItem value="price_desc">Price: High to Low</MenuItem>
-                </Select>
+              <Stack direction="row" spacing={0.5}>
+                <IconButton size="small" sx={{ bgcolor: '#f8fafc', color: '#475569' }}>
+                  <ShareIcon sx={{ fontSize: 18 }} />
+                </IconButton>
               </Stack>
             </Stack>
 
-            {/* Error Feedback */}
-            {error && (
-              <Alert severity="error" sx={{ mb: 3, borderRadius: T.radiusSm }}>
-                {error}
-              </Alert>
-            )}
+            {/* Search Input matching Blinkit Screen */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                bgcolor: '#f1f5f9',
+                borderRadius: '14px',
+                px: 1.5,
+                py: 0.4,
+              }}
+            >
+              <SearchIcon sx={{ color: '#64748b', fontSize: 20, mr: 1 }} />
+              <TextField
+                fullWidth
+                variant="standard"
+                placeholder={`Search in "${activeCategoryData.label}"...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                InputProps={{
+                  disableUnderline: true,
+                  sx: { fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' },
+                }}
+              />
+              <IconButton size="small" sx={{ color: '#64748b' }}>
+                <MicIcon sx={{ fontSize: 19 }} />
+              </IconButton>
+            </Box>
+          </Container>
+        </Box>
 
-            {/* Products Grid */}
-            {loading ? (
-              <Box sx={{ textAlign: 'center', py: 12 }}>
-                <CircularProgress sx={{ color: T.primary }} />
-                <Typography sx={{ mt: 2, color: T.textSecondary, fontWeight: 600, fontSize: '0.9rem' }}>
-                  Loading wholesale products...
-                </Typography>
-              </Box>
-            ) : displayedProducts.length === 0 ? (
-              <Card elevation={0} sx={{ ...cardSx, p: 6, textAlign: 'center' }}>
-                <Box
-                  sx={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: '50%',
-                    bgcolor: T.surfaceAlt,
-                    display: 'grid',
-                    placeItems: 'center',
-                    mx: 'auto',
-                    mb: 2,
-                  }}
-                >
-                  <SearchIcon sx={{ fontSize: 32, color: T.textMuted }} />
-                </Box>
-                <Typography variant="h6" sx={{ fontWeight: 800, color: T.text, mb: 0.5 }}>
-                  No wholesale products found
-                </Typography>
-                <Typography sx={{ color: T.textMuted, fontSize: '0.85rem', mb: 2.5 }}>
-                  Try changing your category filters, search keywords, or price range.
-                </Typography>
-                <Button onClick={handleClearFilters} sx={secondaryBtnSx}>
-                  Reset All Filters
-                </Button>
-              </Card>
-            ) : (
-              <>
-                <Grid container spacing={2.5}>
-                  {displayedProducts.map((product) => (
-                    <Grid item xs={6} sm={4} lg={3} key={product.id}>
-                      <ProductCard
-                        product={product}
-                        onAddToCart={handleAddToCart}
-                        onClick={() => navigate(`/business/online-marketplace`)}
-                      />
-                    </Grid>
-                  ))}
-                </Grid>
-
-                {/* Load More Button */}
-                {hasMore && (
-                  <Box sx={{ textAlign: 'center', mt: 4 }}>
-                    <Button
-                      variant="outlined"
-                      onClick={() => fetchProducts({ nextOffset: offset + PAGE_SIZE })}
-                      disabled={loadingMore}
+        {/* ════════════════════════════════════════════════════════════════════════════════
+            2. DUAL-PANE BODY: LEFT SUBCATEGORY RAIL + RIGHT 2-COLUMN GRID (Matching Screen 3)
+           ════════════════════════════════════════════════════════════════════════════════ */}
+        <Box sx={{ display: 'flex', minHeight: 'calc(100vh - 120px)' }}>
+          
+          {/* ── LEFT VERTICAL RAIL (Subcategories) ─────────────────────── */}
+          <Box
+            sx={{
+              width: { xs: 84, sm: 100 },
+              flexShrink: 0,
+              bgcolor: '#ffffff',
+              borderRight: '1px solid #e2e8f0',
+              overflowY: 'auto',
+              maxHeight: 'calc(100vh - 120px)',
+              position: 'sticky',
+              top: 110,
+              py: 1,
+              '&::-webkit-scrollbar': { display: 'none' },
+            }}
+          >
+            <Stack spacing={1}>
+              {activeCategoryData.subcategories.map((subcat) => {
+                const isActive = activeSubcatId === subcat.id;
+                return (
+                  <Box
+                    key={subcat.id}
+                    onClick={() => setActiveSubcatId(subcat.id)}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      py: 1.25,
+                      px: 0.75,
+                      cursor: 'pointer',
+                      bgcolor: isActive ? '#f0fdf4' : 'transparent',
+                      borderLeft: isActive ? '4px solid #10b981' : '4px solid transparent',
+                      transition: 'background-color 0.15s',
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={subcat.icon}
+                      alt={subcat.label}
                       sx={{
-                        ...secondaryBtnSx,
-                        px: 4,
-                        py: 1.2,
-                        borderColor: T.primary,
-                        color: T.primary,
-                        '&:hover': { bgcolor: T.primaryLight, borderColor: T.primary }
+                        width: 48,
+                        height: 48,
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        bgcolor: '#f1f5f9',
+                        border: isActive ? '2px solid #10b981' : '1.5px solid #e2e8f0',
+                        p: 0.25,
+                        mb: 0.6,
+                      }}
+                    />
+                    <Typography
+                      sx={{
+                        fontSize: '0.68rem',
+                        fontWeight: isActive ? 900 : 700,
+                        color: isActive ? '#047857' : '#475569',
+                        textAlign: 'center',
+                        lineHeight: 1.15,
+                        maxWidth: 76,
                       }}
                     >
-                      {loadingMore ? 'Loading More Products...' : 'Load More Products'}
-                    </Button>
+                      {subcat.label}
+                    </Typography>
                   </Box>
-                )}
-              </>
-            )}
-          </Grid>
-        </Grid>
-      </Container>
+                );
+              })}
+            </Stack>
+          </Box>
 
-      {/* Snackbar feedback */}
-      <Snackbar
-        open={Boolean(toastMsg)}
-        autoHideDuration={3000}
-        onClose={() => setToastMsg('')}
-        message={toastMsg}
-      />
+          {/* ── RIGHT MAIN PRODUCT AREA ─────────────────────────────────── */}
+          <Box sx={{ flexGrow: 1, p: { xs: 1.5, sm: 2.5 }, overflowY: 'auto' }}>
+            
+            {/* Promo Header Banner matching Screen 3 */}
+            {activeCategoryData.banner && !searchQuery && (
+              <Box
+                sx={{
+                  borderRadius: '20px',
+                  background: activeCategoryData.banner.bg,
+                  border: '1px solid rgba(16, 185, 129, 0.2)',
+                  p: { xs: 2, sm: 2.5 },
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.08)',
+                }}
+              >
+                <Box sx={{ maxWidth: '65%' }}>
+                  <Typography sx={{ fontSize: { xs: '1rem', sm: '1.2rem' }, fontWeight: 900, color: '#0f172a', lineHeight: 1.25 }}>
+                    {activeCategoryData.banner.title}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#065f46', fontWeight: 600, mt: 0.5 }}>
+                    {activeCategoryData.banner.subtitle}
+                  </Typography>
+                </Box>
+                <Box
+                  component="img"
+                  src={activeCategoryData.banner.image}
+                  alt="Banner"
+                  sx={{ width: { xs: 70, sm: 100 }, height: { xs: 70, sm: 100 }, objectFit: 'cover', borderRadius: '16px' }}
+                />
+              </Box>
+            )}
+
+            {/* Quick Sort / Filter Bar matching Screen 3 */}
+            <Stack direction="row" spacing={1} sx={{ mb: 2, overflowX: 'auto', pb: 0.5 }}>
+              <Chip
+                label="Filters ▾"
+                size="small"
+                onClick={() => setSortBy(prev => prev === 'price_asc' ? 'relevance' : 'price_asc')}
+                sx={{ fontWeight: 800, fontSize: '0.72rem', bgcolor: '#ffffff', border: '1px solid #e2e8f0' }}
+              />
+              <Chip
+                label={`Sort: ${sortBy === 'price_asc' ? 'Price: Low to High' : sortBy === 'price_desc' ? 'Price: High to Low' : 'Relevance'} ▾`}
+                size="small"
+                onClick={(e) => setSortMenuAnchor(e.currentTarget)}
+                sx={{ fontWeight: 800, fontSize: '0.72rem', bgcolor: '#ffffff', border: '1px solid #e2e8f0' }}
+              />
+              <Menu
+                anchorEl={sortMenuAnchor}
+                open={Boolean(sortMenuAnchor)}
+                onClose={() => setSortMenuAnchor(null)}
+                PaperProps={{ sx: { borderRadius: '14px', minWidth: 160 } }}
+              >
+                <MenuItem onClick={() => { setSortBy("relevance"); setSortMenuAnchor(null); }}>Relevance</MenuItem>
+                <MenuItem onClick={() => { setSortBy("price_asc"); setSortMenuAnchor(null); }}>Price: Low to High</MenuItem>
+                <MenuItem onClick={() => { setSortBy("price_desc"); setSortMenuAnchor(null); }}>Price: High to Low</MenuItem>
+              </Menu>
+              <Chip
+                label="⚡ Fast 10-15 Mins"
+                size="small"
+                sx={{ fontWeight: 800, fontSize: '0.72rem', bgcolor: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' }}
+              />
+            </Stack>
+
+            {/* ── 2-COLUMN PRODUCT GRID (Matching Screen 3) ────────────────── */}
+            {filteredProducts.length === 0 ? (
+              <Box sx={{ py: 8, textAlign: 'center' }}>
+                <Typography sx={{ fontSize: '1rem', fontWeight: 800, color: '#64748b' }}>
+                  No items found in this section
+                </Typography>
+                <Button
+                  size="small"
+                  onClick={() => { setActiveSubcatId("all"); setSearchQuery(""); }}
+                  sx={{ mt: 1.5, textTransform: 'none', fontWeight: 800, color: '#10b981' }}
+                >
+                  View All {activeCategoryData.label}
+                </Button>
+              </Box>
+            ) : (
+              <Grid container spacing={{ xs: 1.25, sm: 2 }}>
+                {filteredProducts.map((p) => {
+                  const qtyInCart = getProductQtyInCart(p.id);
+                  const isWish = wishlist[p.id];
+                  const discountPct = Math.round(((p.mrp - p.price) / p.mrp) * 100);
+
+                  return (
+                    <Grid item xs={6} sm={4} md={3} key={p.id}>
+                      <Card
+                        elevation={0}
+                        sx={{
+                          borderRadius: '18px',
+                          border: '1px solid #e2e8f0',
+                          bgcolor: '#ffffff',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          position: 'relative',
+                          overflow: 'hidden',
+                          transition: 'all 0.15s ease',
+                          '&:hover': {
+                            borderColor: '#10b981',
+                            boxShadow: '0 6px 18px rgba(16, 185, 129, 0.08)',
+                          },
+                        }}
+                      >
+                        {/* Wishlist Heart Icon */}
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleWishlist(p.id);
+                          }}
+                          sx={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            bgcolor: 'rgba(255, 255, 255, 0.85)',
+                            backdropFilter: 'blur(4px)',
+                            zIndex: 2,
+                            p: 0.5,
+                            color: isWish ? '#ef4444' : '#94a3b8',
+                            '&:hover': { bgcolor: '#ffffff' },
+                          }}
+                        >
+                          {isWish ? <FavoriteIcon sx={{ fontSize: 16 }} /> : <FavoriteBorderIcon sx={{ fontSize: 16 }} />}
+                        </IconButton>
+
+                        {/* Product Photo & Click to PDP */}
+                        <Box
+                          onClick={() => setSelectedProductDetails(p)}
+                          sx={{
+                            p: 1.5,
+                            display: 'flex',
+                            justifyContent: 'center',
+                            bgcolor: '#f8fafc',
+                            cursor: 'pointer',
+                            position: 'relative',
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={p.image}
+                            alt={p.title}
+                            sx={{
+                              width: '100%',
+                              height: { xs: 120, sm: 140 },
+                              objectFit: 'contain',
+                              borderRadius: '12px',
+                            }}
+                          />
+                        </Box>
+
+                        {/* Card Content */}
+                        <CardContent sx={{ p: 1.5, flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                          <Box onClick={() => setSelectedProductDetails(p)} sx={{ cursor: 'pointer' }}>
+                            {/* Pack size pill */}
+                            <Box
+                              sx={{
+                                display: 'inline-block',
+                                bgcolor: '#f1f5f9',
+                                color: '#475569',
+                                fontSize: '0.68rem',
+                                fontWeight: 800,
+                                px: 0.8,
+                                py: 0.25,
+                                borderRadius: '6px',
+                                mb: 0.5,
+                              }}
+                            >
+                              {p.packSize}
+                            </Box>
+
+                            {/* Title */}
+                            <Typography
+                              sx={{
+                                fontSize: '0.82rem',
+                                fontWeight: 800,
+                                color: '#0f172a',
+                                lineHeight: 1.25,
+                                height: '2.5em',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                mb: 0.5,
+                              }}
+                            >
+                              {p.title}
+                            </Typography>
+
+                            {/* Delivery ETA */}
+                            <Typography sx={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600, mb: 1 }}>
+                              ⏱ {p.deliveryMins}
+                            </Typography>
+                          </Box>
+
+                          {/* Price & ADD / Quantity Stepper Button */}
+                          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 'auto', pt: 0.5 }}>
+                            <Box>
+                              <Typography sx={{ fontSize: '0.95rem', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>
+                                ₹{p.price}
+                              </Typography>
+                              {p.mrp > p.price && (
+                                <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8', textDecoration: 'line-through', fontWeight: 600 }}>
+                                  ₹{p.mrp}
+                                </Typography>
+                              )}
+                            </Box>
+
+                            {/* Blinkit Interactive ADD / Stepper Button */}
+                            {qtyInCart === 0 ? (
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={() => handleAddToCart(p)}
+                                sx={{
+                                  borderRadius: '10px',
+                                  borderColor: '#10b981',
+                                  color: '#059669',
+                                  fontWeight: 900,
+                                  fontSize: '0.78rem',
+                                  px: 2,
+                                  py: 0.4,
+                                  minWidth: 64,
+                                  textTransform: 'uppercase',
+                                  bgcolor: '#ffffff',
+                                  boxShadow: '0 2px 6px rgba(16, 185, 129, 0.1)',
+                                  '&:hover': {
+                                    bgcolor: '#ecfdf5',
+                                    borderColor: '#059669',
+                                  },
+                                }}
+                              >
+                                ADD
+                              </Button>
+                            ) : (
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  bgcolor: '#10b981',
+                                  color: '#ffffff',
+                                  borderRadius: '10px',
+                                  px: 0.5,
+                                  py: 0.2,
+                                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+                                }}
+                              >
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleDecrementCart(p.id)}
+                                  sx={{ color: '#ffffff', p: 0.25 }}
+                                >
+                                  <RemoveIcon sx={{ fontSize: 15 }} />
+                                </IconButton>
+                                <Typography sx={{ fontSize: '0.82rem', fontWeight: 900, px: 0.75 }}>
+                                  {qtyInCart}
+                                </Typography>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleAddToCart(p)}
+                                  sx={{ color: '#ffffff', p: 0.25 }}
+                                >
+                                  <AddIcon sx={{ fontSize: 15 }} />
+                                </IconButton>
+                              </Box>
+                            )}
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            )}
+          </Box>
+        </Box>
+
+        {/* ════════════════════════════════════════════════════════════════════════════════
+            3. FLOATING BOTTOM CART PILL (Matching Screen 3)
+           ════════════════════════════════════════════════════════════════════════════════ */}
+        {totalCartCount > 0 && (
+          <Box
+            sx={{
+              position: 'fixed',
+              bottom: { xs: 68, sm: 80 },
+              left: 0,
+              right: 0,
+              zIndex: 40,
+              px: 2,
+              display: 'flex',
+              justifyContent: 'center',
+            }}
+          >
+            <Box
+              onClick={() => setCheckoutDrawerOpen(true)}
+              sx={{
+                bgcolor: '#15803d',
+                color: '#ffffff',
+                borderRadius: '999px',
+                px: 2,
+                py: 1.15,
+                boxShadow: '0 8px 24px rgba(21, 128, 61, 0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.75,
+                cursor: 'pointer',
+                maxWidth: 420,
+                width: '100%',
+                transition: 'transform 0.15s, background-color 0.15s',
+                '&:hover': { bgcolor: '#166534', transform: 'scale(1.02)' },
+              }}
+            >
+              {lastAddedItem?.image && (
+                <Box
+                  component="img"
+                  src={lastAddedItem.image}
+                  alt="Cart Preview"
+                  sx={{ width: 34, height: 34, borderRadius: '8px', objectFit: 'cover', bgcolor: '#fff' }}
+                />
+              )}
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography sx={{ fontSize: '0.88rem', fontWeight: 900, lineHeight: 1.1 }}>
+                  View cart
+                </Typography>
+                <Typography sx={{ fontSize: '0.72rem', color: '#bbf7d0', fontWeight: 700 }}>
+                  {totalCartCount} items • ₹{totalCartSubtotal.toFixed(2)}
+                </Typography>
+              </Box>
+              <ChevronRightIcon sx={{ color: '#ffffff', fontSize: 22 }} />
+            </Box>
+          </Box>
+        )}
+
+        {/* ════════════════════════════════════════════════════════════════════════════════
+            4. PRODUCT DETAIL BOTTOM SHEET (PDP Modal - Matching Screen 5)
+           ════════════════════════════════════════════════════════════════════════════════ */}
+        <Drawer
+          anchor="bottom"
+          open={Boolean(selectedProductDetails)}
+          onClose={() => setSelectedProductDetails(null)}
+          PaperProps={{
+            sx: {
+              borderTopLeftRadius: '28px',
+              borderTopRightRadius: '28px',
+              bgcolor: '#ffffff',
+              maxHeight: '90vh',
+              maxWidth: 580,
+              mx: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            },
+          }}
+        >
+          {selectedProductDetails && (
+            <>
+              {/* Top grab bar & actions */}
+              <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mt: 1.5, mb: 1 }} />
+              <Box sx={{ px: 2.5, py: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <IconButton size="small" onClick={() => setSelectedProductDetails(null)}>
+                  <CloseIcon sx={{ fontSize: 20 }} />
+                </IconButton>
+                <Stack direction="row" spacing={1}>
+                  <IconButton size="small" onClick={() => toggleWishlist(selectedProductDetails.id)}>
+                    {wishlist[selectedProductDetails.id] ? <FavoriteIcon sx={{ color: '#ef4444', fontSize: 20 }} /> : <FavoriteBorderIcon sx={{ fontSize: 20 }} />}
+                  </IconButton>
+                  <IconButton size="small">
+                    <ShareIcon sx={{ fontSize: 20 }} />
+                  </IconButton>
+                </Stack>
+              </Box>
+
+              {/* Scrollable content */}
+              <Box sx={{ px: 3, py: 1, overflowY: 'auto', flexGrow: 1 }}>
+                {/* Large Product Photo */}
+                <Box sx={{ bgcolor: '#f8fafc', borderRadius: '20px', p: 3, textAlign: 'center', mb: 2.5 }}>
+                  <Box
+                    component="img"
+                    src={selectedProductDetails.image}
+                    alt={selectedProductDetails.title}
+                    sx={{ maxHeight: 220, maxWidth: '100%', objectFit: 'contain', mx: 'auto' }}
+                  />
+                </Box>
+
+                {/* Delivery Badge */}
+                <Typography sx={{ fontSize: '0.72rem', color: '#059669', fontWeight: 800, mb: 0.5 }}>
+                  ⚡ Delivering in {selectedProductDetails.deliveryMins}
+                </Typography>
+
+                {/* Title & Pack Size */}
+                <Typography sx={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.25, mb: 0.5 }}>
+                  {selectedProductDetails.title}
+                </Typography>
+                <Typography sx={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 700, mb: 1.5 }}>
+                  {selectedProductDetails.packSize}
+                </Typography>
+
+                {/* Price Row */}
+                <Stack direction="row" alignItems="baseline" spacing={1} sx={{ mb: 2 }}>
+                  <Typography sx={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a' }}>
+                    ₹{selectedProductDetails.price}
+                  </Typography>
+                  {selectedProductDetails.mrp > selectedProductDetails.price && (
+                    <Typography sx={{ fontSize: '0.88rem', color: '#94a3b8', textDecoration: 'line-through', fontWeight: 600 }}>
+                      MRP ₹{selectedProductDetails.mrp}
+                    </Typography>
+                  )}
+                  <Chip
+                    label="Inclusive of all taxes"
+                    size="small"
+                    sx={{ fontSize: '0.65rem', fontWeight: 800, bgcolor: '#f1f5f9' }}
+                  />
+                </Stack>
+
+                {/* 48 hours replacement guarantee matching Screen 5 */}
+                <Box
+                  sx={{
+                    p: 1.5,
+                    borderRadius: '14px',
+                    border: '1px solid #e2e8f0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    mb: 2.5,
+                  }}
+                >
+                  <Stack direction="row" spacing={1.25} alignItems="center">
+                    <ShieldIcon sx={{ color: '#059669', fontSize: 22 }} />
+                    <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>
+                      48 hours replacement guarantee
+                    </Typography>
+                  </Stack>
+                  <ChevronRightIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                </Box>
+
+                {/* Description */}
+                <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
+                  Product Details
+                </Typography>
+                <Typography sx={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5, mb: 3 }}>
+                  {selectedProductDetails.description}
+                </Typography>
+              </Box>
+
+              {/* Sticky Bottom Bar */}
+              <Box sx={{ p: 2, borderTop: '1px solid #f1f5f9', bgcolor: '#ffffff' }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+                  <Box>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>
+                      {selectedProductDetails.packSize}
+                    </Typography>
+                    <Typography sx={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a' }}>
+                      ₹{selectedProductDetails.price}
+                    </Typography>
+                  </Box>
+
+                  {getProductQtyInCart(selectedProductDetails.id) === 0 ? (
+                    <Button
+                      variant="contained"
+                      onClick={() => handleAddToCart(selectedProductDetails)}
+                      sx={{
+                        bgcolor: '#16a34a',
+                        color: '#ffffff',
+                        fontWeight: 900,
+                        fontSize: '0.9rem',
+                        px: 4,
+                        py: 1.25,
+                        borderRadius: '14px',
+                        textTransform: 'none',
+                        boxShadow: '0 4px 14px rgba(22, 163, 74, 0.3)',
+                        '&:hover': { bgcolor: '#15803d' },
+                      }}
+                    >
+                      Add to cart
+                    </Button>
+                  ) : (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        bgcolor: '#16a34a',
+                        color: '#ffffff',
+                        borderRadius: '14px',
+                        px: 1.5,
+                        py: 0.75,
+                      }}
+                    >
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDecrementCart(selectedProductDetails.id)}
+                        sx={{ color: '#ffffff' }}
+                      >
+                        <RemoveIcon />
+                      </IconButton>
+                      <Typography sx={{ fontWeight: 900, fontSize: '1rem', px: 2 }}>
+                        {getProductQtyInCart(selectedProductDetails.id)}
+                      </Typography>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleAddToCart(selectedProductDetails)}
+                        sx={{ color: '#ffffff' }}
+                      >
+                        <AddIcon />
+                      </IconButton>
+                    </Box>
+                  )}
+                </Stack>
+              </Box>
+            </>
+          )}
+        </Drawer>
+
+        {/* ════════════════════════════════════════════════════════════════════════════════
+            5. BLINKIT CHECKOUT DRAWER (Matching Screen 4)
+           ════════════════════════════════════════════════════════════════════════════════ */}
+        <Drawer
+          anchor="bottom"
+          open={checkoutDrawerOpen}
+          onClose={() => setCheckoutDrawerOpen(false)}
+          PaperProps={{
+            sx: {
+              borderTopLeftRadius: '28px',
+              borderTopRightRadius: '28px',
+              bgcolor: '#ffffff',
+              maxHeight: '94vh',
+              maxWidth: 580,
+              mx: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            },
+          }}
+        >
+          {/* Top Grab Handle */}
+          <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mt: 1.5, mb: 0.5 }} />
+
+          {/* Header */}
+          <Box sx={{ px: 3, py: 1.5, borderBottom: '1px solid #f1f5f9' }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <IconButton size="small" onClick={() => setCheckoutDrawerOpen(false)} sx={{ bgcolor: '#f8fafc' }}>
+                <BackIcon sx={{ fontSize: 20 }} />
+              </IconButton>
+              <Typography sx={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a' }}>
+                Checkout
+              </Typography>
+              <IconButton size="small" sx={{ color: '#64748b' }}>
+                <ShareIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Stack>
+          </Box>
+
+          {/* Scrollable Content */}
+          <Box sx={{ px: 3, py: 2, overflowY: 'auto', flexGrow: 1 }}>
+            {/* Special Deal Unlocked Banner matching Screen 4 */}
+            <Box
+              sx={{
+                bgcolor: '#faf5ff',
+                border: '1.5px solid #e9d5ff',
+                borderRadius: '16px',
+                p: 2,
+                mb: 2.5,
+              }}
+            >
+              <Typography sx={{ fontSize: '0.85rem', fontWeight: 900, color: '#6b21a8', mb: 1 }}>
+                Special deal for you!
+              </Typography>
+              <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Box
+                    component="img"
+                    src="https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=120&q=80"
+                    alt="Special deal"
+                    sx={{ width: 44, height: 44, borderRadius: '10px', objectFit: 'cover' }}
+                  />
+                  <Box>
+                    <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>
+                      Ariel Special Offer Power Gel
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.78rem', fontWeight: 900, color: '#059669' }}>
+                      ₹29 <Typography component="span" sx={{ fontSize: '0.7rem', color: '#94a3b8', textDecoration: 'line-through' }}>₹75</Typography>
+                    </Typography>
+                  </Box>
+                </Stack>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{ borderRadius: '10px', borderColor: '#10b981', color: '#059669', fontWeight: 800, fontSize: '0.75rem' }}
+                >
+                  ADD
+                </Button>
+              </Stack>
+            </Box>
+
+            {/* Delivery Guarantee */}
+            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <FastBoltIcon sx={{ color: '#059669', fontSize: 20 }} />
+              <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>
+                Free delivery in 10-15 minutes ({totalCartCount} items)
+              </Typography>
+            </Box>
+
+            {/* Cart Items List */}
+            <Stack spacing={1.75} sx={{ mb: 3 }}>
+              {(b2bCart?.items || []).map((item) => (
+                <Box
+                  key={item.productId}
+                  sx={{
+                    p: 1.5,
+                    borderRadius: '16px',
+                    border: '1px solid #e2e8f0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Box
+                      component="img"
+                      src={item.image || "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=120&q=80"}
+                      alt={item.title}
+                      sx={{ width: 50, height: 50, borderRadius: '10px', objectFit: 'cover' }}
+                    />
+                    <Box>
+                      <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', maxWidth: 170 }} noWrap>
+                        {item.title}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                        {item.packSize || '1 unit'}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.85rem', fontWeight: 900, color: '#0f172a', mt: 0.25 }}>
+                        ₹{(item.price * item.quantity).toFixed(2)}
+                      </Typography>
+                    </Box>
+                  </Stack>
+
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      bgcolor: '#15803d',
+                      color: '#ffffff',
+                      borderRadius: '10px',
+                      px: 0.5,
+                      py: 0.25,
+                    }}
+                  >
+                    <IconButton
+                      size="small"
+                      onClick={() => handleDecrementCart(item.productId)}
+                      sx={{ color: '#ffffff', p: 0.25 }}
+                    >
+                      <RemoveIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                    <Typography sx={{ fontSize: '0.82rem', fontWeight: 900, px: 1 }}>
+                      {item.quantity}
+                    </Typography>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleAddToCart({ id: item.productId, title: item.title, price: item.price, mrp: item.mrp, image: item.image })}
+                      sx={{ color: '#ffffff', p: 0.25 }}
+                    >
+                      <AddIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </Box>
+                </Box>
+              ))}
+            </Stack>
+
+            {/* Bill Summary */}
+            <Box sx={{ bgcolor: '#f8fafc', p: 2, borderRadius: '16px', border: '1px solid #e2e8f0', mb: 2 }}>
+              <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 1.25 }}>
+                Bill Summary
+              </Typography>
+              <Stack spacing={1}>
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography sx={{ fontSize: '0.78rem', color: '#64748b' }}>Item Total</Typography>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 700 }}>₹{totalCartSubtotal.toFixed(2)}</Typography>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography sx={{ fontSize: '0.78rem', color: '#64748b' }}>Delivery Fee</Typography>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#059669' }}>FREE</Typography>
+                </Stack>
+                <Divider sx={{ my: 0.5 }} />
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#0f172a' }}>Grand Total</Typography>
+                  <Typography sx={{ fontSize: '1.05rem', fontWeight: 900, color: '#15803d' }}>₹{totalCartSubtotal.toFixed(2)}</Typography>
+                </Stack>
+              </Stack>
+            </Box>
+          </Box>
+
+          {/* Sticky Checkout Footer Bar matching Screen 4 */}
+          <Box sx={{ p: 2, borderTop: '1px solid #f1f5f9', bgcolor: '#ffffff' }}>
+            <Box sx={{ mb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <LocationIcon sx={{ color: '#eab308', fontSize: 20 }} />
+                <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>
+                  Delivering to: Store / Home
+                </Typography>
+              </Stack>
+              <Button size="small" sx={{ textTransform: 'none', fontWeight: 800, fontSize: '0.75rem', color: '#15803d' }}>
+                Change
+              </Button>
+            </Box>
+
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={() => {
+                // Place order
+                setCheckoutDrawerOpen(false);
+                writeB2BCart(null);
+                setB2bCart(null);
+                alert("Order placed successfully with instant delivery dispatch! Redirecting to orders...");
+                navigate('/business/b2b-orders');
+              }}
+              sx={{
+                py: 1.5,
+                borderRadius: '16px',
+                bgcolor: '#15803d',
+                color: '#ffffff',
+                fontWeight: 900,
+                fontSize: '0.95rem',
+                textTransform: 'none',
+                boxShadow: '0 4px 14px rgba(21, 128, 61, 0.3)',
+                '&:hover': { bgcolor: '#166534' },
+              }}
+            >
+              Place Order • ₹{totalCartSubtotal.toFixed(2)}
+            </Button>
+          </Box>
+        </Drawer>
+
+        {/* Toast alert */}
+        <Snackbar
+          open={Boolean(toastMsg)}
+          autoHideDuration={2500}
+          onClose={() => setToastMsg("")}
+          message={toastMsg}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        />
+      </Box>
     </AppShell>
   );
 }
