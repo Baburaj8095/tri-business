@@ -581,7 +581,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
           sx={{
             flex: 1,
             pt: { xs: shouldHideHeader ? '0px' : '118px', lg: '24px' },
-            pb: { xs: '84px', lg: '40px' },
+            pb: { xs: shouldHideHeader ? '64px' : '84px', lg: '40px' },
             maxWidth: T.maxContentWidth,
             width: '100%',
             mx: 'auto',

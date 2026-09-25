@@ -487,10 +487,24 @@ export default function BusinessOnlineMarketplacePage() {
   const initialCategory = paramCategory || "Vegetables & Fruits";
 
   const [currentCategoryKey, setCurrentCategoryKey] = useState(initialCategory);
+  const [isCategoryScreen, setIsCategoryScreen] = useState(!paramCategory);
   const [activeSubcatId, setActiveSubcatId] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("relevance");
   const [sortMenuAnchor, setSortMenuAnchor] = useState(null);
+
+  const handleSelectCategory = (catLabel) => {
+    setCurrentCategoryKey(catLabel);
+    setActiveSubcatId("all");
+    setIsCategoryScreen(false);
+    setCategoryDrawerOpen(false);
+    setSearchParams({ category: catLabel });
+  };
+
+  const handleBackFromBrowse = () => {
+    setIsCategoryScreen(true);
+    setSearchParams({});
+  };
 
   // 100+ Category Selection Drawer & Search
   const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
@@ -662,242 +676,466 @@ export default function BusinessOnlineMarketplacePage() {
 
   return (
     <AppShell activeTab="/business/online-marketplace" title="Online Shopping">
-      <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', pb: 14 }}>
+      <Box sx={{ height: 'calc(100dvh - 64px)', bgcolor: '#f8fafc', overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative' }}>
         
-        {/* ════════════════════════════════════════════════════════════════════════════════
-            1. TOP BAR: ETA • LOCATION • SEARCH (Matching Blinkit Screen 1, 2 & 3)
-           ════════════════════════════════════════════════════════════════════════════════ */}
-        <Box
-          sx={{
-            bgcolor: '#ffffff',
-            borderBottom: '1px solid #e2e8f0',
-            position: 'sticky',
-            top: 0,
-            zIndex: 30,
-            boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
-            px: { xs: 2, sm: 3 },
-            py: 1.25,
-          }}
-        >
-          <Container maxWidth="lg" disableGutters>
-            {/* Top Row: Back button, Category Title & Location */}
-            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1.25 }}>
-              <Stack direction="row" alignItems="center" spacing={1.25}>
-                <IconButton
-                  size="small"
-                  onClick={() => navigate('/business-dashboard')}
-                  sx={{ bgcolor: '#f1f5f9', color: '#0f172a' }}
-                >
-                  <BackIcon sx={{ fontSize: 20 }} />
-                </IconButton>
-                <Box>
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={0.5}
-                    onClick={() => setCategoryDrawerOpen(true)}
-                    sx={{
-                      cursor: 'pointer',
-                      bgcolor: '#f0fdf4',
-                      px: 1.2,
-                      py: 0.35,
-                      borderRadius: '10px',
-                      border: '1px solid #bbf7d0',
-                      '&:hover': { bgcolor: '#dcfce7' },
-                    }}
-                  >
-                    <Typography sx={{ fontSize: { xs: '0.92rem', sm: '1.05rem' }, fontWeight: 900, color: '#047857', lineHeight: 1.2 }}>
-                      {activeCategoryData.label}
-                    </Typography>
-                    <ArrowDownIcon sx={{ fontSize: 18, color: '#047857' }} />
-                  </Stack>
-                  <Typography sx={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, mt: 0.2 }}>
-                    ⚡ 10-15 mins delivery • Wholesale B2B
-                  </Typography>
-                </Box>
-              </Stack>
-
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Button
-                  size="small"
-                  startIcon={<FilterIcon sx={{ fontSize: 16 }} />}
-                  onClick={() => setCategoryDrawerOpen(true)}
-                  sx={{
-                    bgcolor: '#ecfdf5',
-                    color: '#047857',
-                    fontWeight: 800,
-                    fontSize: '0.72rem',
-                    textTransform: 'none',
-                    borderRadius: '10px',
-                    border: '1px solid #a7f3d0',
-                    py: 0.5,
-                    px: 1.2,
-                    display: { xs: 'none', sm: 'inline-flex' }
-                  }}
-                >
-                  All Categories (100+)
-                </Button>
-                <IconButton
-                  size="small"
-                  onClick={() => navigate('/business/online-marketplace/cart')}
-                  sx={{ bgcolor: '#f1f5f9', color: '#0f172a' }}
-                >
-                  <Badge badgeContent={(b2bCart?.items || []).reduce((s, i) => s + (i.quantity || 1), 0)} color="success" max={99}>
-                    <BagIcon sx={{ fontSize: 20, color: '#059669' }} />
-                  </Badge>
-                </IconButton>
-                <IconButton size="small" sx={{ bgcolor: '#f8fafc', color: '#475569' }}>
-                  <ShareIcon sx={{ fontSize: 18 }} />
-                </IconButton>
-              </Stack>
-            </Stack>
-
-            {/* Search Input matching Blinkit Screen */}
+        {isCategoryScreen ? (
+          /* ════════════════════════════════════════════════════════════════════════════════
+             SCREEN 1: FULL-SCREEN CATEGORY SELECTION HUB (Blinkit Category Grid)
+             ════════════════════════════════════════════════════════════════════════════════ */
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+            {/* Category Hub Top Header */}
             <Box
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                bgcolor: '#f1f5f9',
-                borderRadius: '14px',
-                px: 1.5,
-                py: 0.4,
+                bgcolor: '#ffffff',
+                borderBottom: '1px solid #e2e8f0',
+                px: { xs: 2, sm: 3 },
+                py: 1.5,
+                flexShrink: 0,
+                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
               }}
             >
-              <SearchIcon sx={{ color: '#64748b', fontSize: 20, mr: 1 }} />
-              <TextField
-                fullWidth
-                variant="standard"
-                placeholder={`Search in "${activeCategoryData.label}"...`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                InputProps={{
-                  disableUnderline: true,
-                  sx: { fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' },
-                }}
-              />
-              <IconButton size="small" sx={{ color: '#64748b' }}>
-                <MicIcon sx={{ fontSize: 19 }} />
-              </IconButton>
-            </Box>
-          </Container>
-        </Box>
+              <Container maxWidth="lg" disableGutters>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+                  <Stack direction="row" alignItems="center" spacing={1.25}>
+                    <IconButton
+                      size="small"
+                      onClick={() => navigate('/business-dashboard')}
+                      sx={{ bgcolor: '#f1f5f9', color: '#0f172a' }}
+                    >
+                      <BackIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                    <Box>
+                      <Typography sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' }, fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>
+                        All Categories ({filteredMasterCategories.length})
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, mt: 0.2 }}>
+                        Select a category to browse wholesale products
+                      </Typography>
+                    </Box>
+                  </Stack>
 
-        {/* ════════════════════════════════════════════════════════════════════════════════
-            2. DUAL-PANE BODY: LEFT SUBCATEGORY RAIL + RIGHT 2-COLUMN GRID (Matching Screen 3)
-           ════════════════════════════════════════════════════════════════════════════════ */}
-        <Box sx={{ display: 'flex', minHeight: 'calc(100vh - 120px)' }}>
-          
-          {/* ── LEFT VERTICAL RAIL (Subcategories) ─────────────────────── */}
-          <Box
-            sx={{
-              width: { xs: 84, sm: 100 },
-              flexShrink: 0,
-              bgcolor: '#ffffff',
-              borderRight: '1px solid #e2e8f0',
-              overflowY: 'auto',
-              maxHeight: 'calc(100vh - 120px)',
-              position: 'sticky',
-              top: 110,
-              py: 1,
-              '&::-webkit-scrollbar': { display: 'none' },
-            }}
-          >
-            <Stack spacing={1}>
-              {/* Category Explorer shortcut */}
-              <Box
-                onClick={() => setCategoryDrawerOpen(true)}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  py: 1,
-                  px: 0.5,
-                  cursor: 'pointer',
-                  borderBottom: '1px solid #f1f5f9',
-                  bgcolor: '#f8fafc',
-                  mb: 0.5,
-                  transition: 'all 0.15s ease',
-                  '&:hover': { bgcolor: '#f0fdf4' },
-                }}
-              >
+                  <IconButton
+                    size="small"
+                    onClick={() => navigate('/business/online-marketplace/cart')}
+                    sx={{ bgcolor: '#f1f5f9', color: '#0f172a' }}
+                  >
+                    <Badge badgeContent={(b2bCart?.items || []).reduce((s, i) => s + (i.quantity || 1), 0)} color="success" max={99}>
+                      <BagIcon sx={{ fontSize: 20, color: '#059669' }} />
+                    </Badge>
+                  </IconButton>
+                </Stack>
+
+                {/* Category Search Input */}
                 <Box
                   sx={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: '14px',
-                    bgcolor: '#ecfdf5',
-                    color: '#059669',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '1.5px dashed #059669',
-                    mb: 0.5,
+                    bgcolor: '#f1f5f9',
+                    borderRadius: '14px',
+                    px: 1.5,
+                    py: 0.4,
                   }}
                 >
-                  <FilterIcon sx={{ fontSize: 20 }} />
+                  <SearchIcon sx={{ color: '#64748b', fontSize: 20, mr: 1 }} />
+                  <TextField
+                    fullWidth
+                    variant="standard"
+                    placeholder="Search across 100+ categories (e.g. Dairy, Fruits, Rice...)"
+                    value={categorySearchQuery}
+                    onChange={(e) => setCategorySearchQuery(e.target.value)}
+                    InputProps={{
+                      disableUnderline: true,
+                      sx: { fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' },
+                    }}
+                  />
+                  {categorySearchQuery && (
+                    <IconButton size="small" onClick={() => setCategorySearchQuery("")} sx={{ color: '#64748b' }}>
+                      <CloseIcon sx={{ fontSize: 18 }} />
+                    </IconButton>
+                  )}
                 </Box>
-                <Typography sx={{ fontSize: '0.62rem', fontWeight: 900, color: '#047857', textAlign: 'center' }}>
-                  All 100+
-                </Typography>
-              </Box>
+              </Container>
+            </Box>
 
-              {activeCategoryData.subcategories.map((subcat) => {
-                const isActive = activeSubcatId === subcat.id;
-                return (
+            {/* Categories Full Grid Container */}
+            <Box
+              sx={{
+                flexGrow: 1,
+                overflowY: 'auto',
+                p: { xs: 2, sm: 2.5 },
+                pb: 6,
+                scrollbarWidth: 'none',
+                '&::-webkit-scrollbar': { display: 'none' },
+              }}
+            >
+              <Container maxWidth="lg" disableGutters>
+                <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+                  {filteredMasterCategories.map((cat) => {
+                    const isSelected = currentCategoryKey.toLowerCase() === cat.label.toLowerCase();
+                    return (
+                      <Grid item xs={6} sm={4} md={3} key={cat.id}>
+                        <Card
+                          onClick={() => handleSelectCategory(cat.label)}
+                          sx={{
+                            borderRadius: '22px',
+                            border: isSelected ? '2px solid #10b981' : '1.5px solid #e2e8f0',
+                            bgcolor: isSelected ? '#f0fdf4' : '#ffffff',
+                            p: { xs: 1.5, sm: 2 },
+                            textAlign: 'center',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            transition: 'all 0.18s ease-in-out',
+                            boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
+                            position: 'relative',
+                            '&:hover': {
+                              borderColor: '#10b981',
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 6px 16px rgba(16, 185, 129, 0.12)',
+                            },
+                          }}
+                        >
+                          {/* Badge Pill */}
+                          <Box
+                            sx={{
+                              bgcolor: isSelected ? '#059669' : '#047857',
+                              color: '#ffffff',
+                              fontSize: '0.62rem',
+                              fontWeight: 800,
+                              borderRadius: 999,
+                              px: 1,
+                              py: 0.2,
+                              mb: 1.25,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.3px',
+                            }}
+                          >
+                            {cat.badge || 'Wholesale'}
+                          </Box>
+
+                          {/* Image */}
+                          <Box
+                            component="img"
+                            src={cat.image}
+                            alt={cat.label}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80';
+                            }}
+                            sx={{
+                              width: { xs: 72, sm: 84 },
+                              height: { xs: 72, sm: 84 },
+                              borderRadius: '18px',
+                              objectFit: 'cover',
+                              mb: 1.25,
+                              bgcolor: '#f8fafc',
+                              boxShadow: '0 4px 10px rgba(0,0,0,0.06)',
+                            }}
+                          />
+
+                          {/* Label */}
+                          <Typography
+                            sx={{
+                              fontSize: { xs: '0.85rem', sm: '0.92rem' },
+                              fontWeight: 800,
+                              color: isSelected ? '#047857' : '#0f172a',
+                              lineHeight: 1.25,
+                              mb: 0.4,
+                              height: '2.5em',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {cat.label}
+                          </Typography>
+
+                          {/* Count */}
+                          <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                            {cat.count || '80+ items'}
+                          </Typography>
+                        </Card>
+                      </Grid>
+                    );
+                  })}
+                </Grid>
+              </Container>
+            </Box>
+          </Box>
+        ) : (
+          /* ════════════════════════════════════════════════════════════════════════════════
+             SCREEN 2: DUAL-PANE BROWSING SCREEN (Fixed Viewport • Constant Left Selector • Independently Scrollable)
+             ════════════════════════════════════════════════════════════════════════════════ */
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+            
+            {/* 1. TOP BAR: ETA • LOCATION • SEARCH */}
+            <Box
+              sx={{
+                bgcolor: '#ffffff',
+                borderBottom: '1px solid #e2e8f0',
+                px: { xs: 2, sm: 3 },
+                py: 1.25,
+                flexShrink: 0,
+                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
+              }}
+            >
+              <Container maxWidth="lg" disableGutters>
+                {/* Top Row: Back button, Category Title & Location */}
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1.25 }}>
+                  <Stack direction="row" alignItems="center" spacing={1.25}>
+                    <IconButton
+                      size="small"
+                      onClick={handleBackFromBrowse}
+                      sx={{ bgcolor: '#f1f5f9', color: '#0f172a' }}
+                      title="Back to Categories"
+                    >
+                      <BackIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                    <Box>
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={0.5}
+                        onClick={() => setCategoryDrawerOpen(true)}
+                        sx={{
+                          cursor: 'pointer',
+                          bgcolor: '#f0fdf4',
+                          px: 1.2,
+                          py: 0.35,
+                          borderRadius: '10px',
+                          border: '1px solid #bbf7d0',
+                          '&:hover': { bgcolor: '#dcfce7' },
+                        }}
+                      >
+                        <Typography sx={{ fontSize: { xs: '0.92rem', sm: '1.05rem' }, fontWeight: 900, color: '#047857', lineHeight: 1.2 }}>
+                          {activeCategoryData.label}
+                        </Typography>
+                        <ArrowDownIcon sx={{ fontSize: 18, color: '#047857' }} />
+                      </Stack>
+                      <Typography sx={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, mt: 0.2 }}>
+                        ⚡ 10-15 mins delivery • Wholesale B2B
+                      </Typography>
+                    </Box>
+                  </Stack>
+
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Button
+                      size="small"
+                      startIcon={<FilterIcon sx={{ fontSize: 16 }} />}
+                      onClick={handleBackFromBrowse}
+                      sx={{
+                        bgcolor: '#ecfdf5',
+                        color: '#047857',
+                        fontWeight: 800,
+                        fontSize: '0.72rem',
+                        textTransform: 'none',
+                        borderRadius: '10px',
+                        border: '1px solid #a7f3d0',
+                        py: 0.5,
+                        px: 1.2,
+                        display: { xs: 'none', sm: 'inline-flex' }
+                      }}
+                    >
+                      All Categories ({allAvailableCategories.length})
+                    </Button>
+                    <IconButton
+                      size="small"
+                      onClick={() => navigate('/business/online-marketplace/cart')}
+                      sx={{ bgcolor: '#f1f5f9', color: '#0f172a' }}
+                    >
+                      <Badge badgeContent={(b2bCart?.items || []).reduce((s, i) => s + (i.quantity || 1), 0)} color="success" max={99}>
+                        <BagIcon sx={{ fontSize: 20, color: '#059669' }} />
+                      </Badge>
+                    </IconButton>
+                    <IconButton size="small" sx={{ bgcolor: '#f8fafc', color: '#475569' }}>
+                      <ShareIcon sx={{ fontSize: 18 }} />
+                    </IconButton>
+                  </Stack>
+                </Stack>
+
+                {/* Search Input */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    bgcolor: '#f1f5f9',
+                    borderRadius: '14px',
+                    px: 1.5,
+                    py: 0.4,
+                  }}
+                >
+                  <SearchIcon sx={{ color: '#64748b', fontSize: 20, mr: 1 }} />
+                  <TextField
+                    fullWidth
+                    variant="standard"
+                    placeholder={`Search in "${activeCategoryData.label}"...`}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    InputProps={{
+                      disableUnderline: true,
+                      sx: { fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' },
+                    }}
+                  />
+                  <IconButton size="small" sx={{ color: '#64748b' }}>
+                    <MicIcon sx={{ fontSize: 19 }} />
+                  </IconButton>
+                </Box>
+              </Container>
+            </Box>
+
+            {/* 2. DUAL-PANE BODY: LEFT SUBCATEGORY RAIL + RIGHT 2-COLUMN GRID */}
+            <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
+              
+              {/* ── LEFT VERTICAL RAIL (Subcategories Selector) ─────────────────── */}
+              <Box
+                sx={{
+                  width: { xs: 88, sm: 102 },
+                  height: '100%',
+                  bgcolor: '#f8fafc',
+                  borderRight: '1px solid #e2e8f0',
+                  overflowY: 'auto',
+                  flexShrink: 0,
+                  scrollbarWidth: 'none',
+                  '&::-webkit-scrollbar': { display: 'none' },
+                  pb: 3,
+                }}
+              >
+                <Stack spacing={0}>
+                  {/* Category Explorer shortcut */}
                   <Box
-                    key={subcat.id}
-                    onClick={() => setActiveSubcatId(subcat.id)}
+                    onClick={handleBackFromBrowse}
                     sx={{
+                      minHeight: 64,
+                      width: '100%',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      py: 1.25,
-                      px: 0.75,
+                      justifyContent: 'center',
+                      py: 1,
+                      px: 0.5,
                       cursor: 'pointer',
-                      bgcolor: isActive ? '#f0fdf4' : 'transparent',
-                      borderLeft: isActive ? '4px solid #10b981' : '4px solid transparent',
-                      transition: 'background-color 0.15s',
+                      borderBottom: '1px solid #e2e8f0',
+                      bgcolor: '#f1f5f9',
+                      mb: 0.5,
+                      transition: 'all 0.15s ease',
+                      '&:hover': { bgcolor: '#e2e8f0' },
                     }}
                   >
                     <Box
-                      component="img"
-                      src={subcat.icon}
-                      alt={subcat.label}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=120&q=80';
-                      }}
                       sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: '50%',
-                        objectFit: 'cover',
-                        bgcolor: '#f1f5f9',
-                        border: isActive ? '2px solid #10b981' : '1.5px solid #e2e8f0',
-                        p: 0.25,
-                        mb: 0.6,
-                      }}
-                    />
-                    <Typography
-                      sx={{
-                        fontSize: '0.68rem',
-                        fontWeight: isActive ? 900 : 700,
-                        color: isActive ? '#047857' : '#475569',
-                        textAlign: 'center',
-                        lineHeight: 1.15,
-                        maxWidth: 76,
+                        width: 36,
+                        height: 36,
+                        borderRadius: '10px',
+                        bgcolor: '#ecfdf5',
+                        color: '#059669',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '1.5px dashed #059669',
+                        mb: 0.4,
                       }}
                     >
-                      {subcat.label}
+                      <FilterIcon sx={{ fontSize: 18 }} />
+                    </Box>
+                    <Typography sx={{ fontSize: '0.62rem', fontWeight: 900, color: '#047857', textAlign: 'center' }}>
+                      All Hub
                     </Typography>
                   </Box>
-                );
-              })}
-            </Stack>
-          </Box>
 
-          {/* ── RIGHT MAIN PRODUCT AREA ─────────────────────────────────── */}
-          <Box sx={{ flexGrow: 1, p: { xs: 1.5, sm: 2.5 }, overflowY: 'auto' }}>
+                  {/* Subcategories items */}
+                  {activeCategoryData.subcategories.map((subcat) => {
+                    const isActive = activeSubcatId === subcat.id;
+                    return (
+                      <Box
+                        key={subcat.id}
+                        onClick={() => setActiveSubcatId(subcat.id)}
+                        sx={{
+                          minHeight: 88,
+                          width: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          py: 1,
+                          px: 0.5,
+                          cursor: 'pointer',
+                          position: 'relative',
+                          bgcolor: isActive ? '#ffffff' : 'transparent',
+                          transition: 'background-color 0.15s',
+                          borderBottom: '1px solid rgba(226, 232, 240, 0.4)',
+                        }}
+                      >
+                        {isActive && (
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              left: 0,
+                              top: 14,
+                              bottom: 14,
+                              width: 4,
+                              borderRadius: '0 4px 4px 0',
+                              bgcolor: '#10b981',
+                            }}
+                          />
+                        )}
+                        <Box
+                          component="img"
+                          src={subcat.icon}
+                          alt={subcat.label}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=120&q=80';
+                          }}
+                          sx={{
+                            width: 46,
+                            height: 46,
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                            bgcolor: '#f1f5f9',
+                            border: isActive ? '2px solid #10b981' : '1.5px solid #e2e8f0',
+                            p: 0.2,
+                            mb: 0.6,
+                            boxShadow: isActive ? '0 2px 8px rgba(16, 185, 129, 0.2)' : 'none',
+                          }}
+                        />
+                        <Typography
+                          sx={{
+                            fontSize: '0.68rem',
+                            fontWeight: isActive ? 900 : 600,
+                            color: isActive ? '#047857' : '#475569',
+                            textAlign: 'center',
+                            lineHeight: 1.15,
+                            maxWidth: 78,
+                            maxHeight: '2.3em',
+                            overflow: 'hidden',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                          }}
+                        >
+                          {subcat.label}
+                        </Typography>
+                      </Box>
+                    );
+                  })}
+                </Stack>
+              </Box>
+
+              {/* ── RIGHT MAIN PRODUCT AREA ─────────────────────────────────── */}
+              <Box
+                sx={{
+                  flexGrow: 1,
+                  height: '100%',
+                  p: { xs: 1.5, sm: 2 },
+                  overflowY: 'auto',
+                  bgcolor: '#ffffff',
+                  pb: 8,
+                  scrollbarWidth: 'none',
+                  '&::-webkit-scrollbar': { display: 'none' },
+                }}
+              >
             
             {/* Promo Header Banner matching Screen 3 */}
             {activeCategoryData.banner && !searchQuery && (
@@ -1214,6 +1452,8 @@ export default function BusinessOnlineMarketplacePage() {
             )}
           </Box>
         </Box>
+      </Box>
+    )}
 
         {/* ════════════════════════════════════════════════════════════════════════════════
             3. FLOATING BOTTOM CART PILL (Matching Screen 3)
@@ -1751,10 +1991,7 @@ export default function BusinessOnlineMarketplacePage() {
                   <Grid item xs={4} sm={3} key={cat.label}>
                     <Box
                       onClick={() => {
-                        setCurrentCategoryKey(cat.label);
-                        setActiveSubcatId('all');
-                        setSearchParams({ category: cat.label });
-                        setCategoryDrawerOpen(false);
+                        handleSelectCategory(cat.label);
                         setCategorySearchQuery('');
                       }}
                       sx={{
