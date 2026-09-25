@@ -23,6 +23,8 @@ import CaptainHome from './pages/captain/CaptainHome';
 import CaptainProfile from './pages/captain/CaptainProfile';
 import CaptainKyc from './pages/captain/CaptainKyc';
 import CaptainMerchantsPage from './pages/captain/CaptainMerchantsPage';
+import CaptainMerchantDetailPage from './pages/captain/CaptainMerchantDetailPage';
+import CaptainAnalyticsPage from './pages/captain/CaptainAnalyticsPage';
 import CaptainDailyBusinessPage from './pages/captain/CaptainDailyBusinessPage';
 import CaptainDeliveryIssuesPage from './pages/captain/CaptainDeliveryIssuesPage';
 import AdminLogin from './pages/admin/AdminLogin';
@@ -108,6 +110,8 @@ function App() {
           <Route path="profile" element={<CaptainProfile />} />
           <Route path="kyc" element={<CaptainKyc />} />
           <Route path="merchants" element={<CaptainMerchantsPage />} />
+          <Route path="merchant/:id" element={<CaptainMerchantDetailPage />} />
+          <Route path="analytics" element={<CaptainAnalyticsPage />} />
           <Route path="daily-business" element={<CaptainDailyBusinessPage />} />
           <Route path="delivery-issues" element={<CaptainDeliveryIssuesPage />} />
         </Route>
