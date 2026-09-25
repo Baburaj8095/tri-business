@@ -203,8 +203,9 @@ export default function InventoryPage() {
 
   // Filter products
   const filteredProducts = products.filter(p => {
+    const pCategory = typeof p.category === 'string' ? p.category : (p.category?.name || "");
     const titleMatch = (p.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-                       (p.category || "").toLowerCase().includes(searchQuery.toLowerCase());
+                       pCategory.toLowerCase().includes(searchQuery.toLowerCase());
     if (!titleMatch) return false;
 
     if (filterStatus === "Active" && p.is_active === false) return false;
@@ -216,7 +217,7 @@ export default function InventoryPage() {
     }
     if (filterStatus === "Out of Stock" && (p.stock_qty || p.stockQty || 0) > 0) return false;
 
-    if (filterCategory !== "All" && (p.category || "").toLowerCase() !== filterCategory.toLowerCase()) {
+    if (filterCategory !== "All" && pCategory.toLowerCase() !== filterCategory.toLowerCase()) {
       return false;
     }
 
@@ -290,7 +291,14 @@ export default function InventoryPage() {
         const response = await fetch(`${captainApiUrl}/captain/shops/online/categories`);
         if (response.ok) {
           const data = await response.json();
-          if (Array.isArray(data) && data.length > 0) setCategories(data);
+          if (Array.isArray(data) && data.length > 0) {
+            const parsedCategories = data.map((item) =>
+              typeof item === "string" ? item : (item?.name || item?.title || item?.category || "")
+            ).filter(Boolean);
+            if (parsedCategories.length > 0) {
+              setCategories(parsedCategories);
+            }
+          }
         }
       } catch (err) {}
 
@@ -327,7 +335,10 @@ export default function InventoryPage() {
     setFormTitle("");
     setFormDescription("");
     setFormStatus("Active");
-    setFormCategory(categories[0] || "General");
+    const defaultCat = categories.length > 0
+      ? (typeof categories[0] === 'string' ? categories[0] : (categories[0]?.name || "General"))
+      : "General";
+    setFormCategory(defaultCat);
     setFormPrice("");
     setFormCost("");
     setFormQuantity("10");
@@ -342,7 +353,10 @@ export default function InventoryPage() {
     setFormTitle(prod.title || "");
     setFormDescription(prod.description || "");
     setFormStatus(prod.is_active !== false ? "Active" : "Inactive");
-    setFormCategory(prod.category || "General");
+    const prodCategory = typeof prod.category === 'string'
+      ? prod.category
+      : (prod.category?.name || "General");
+    setFormCategory(prodCategory);
     setFormPrice(String(prod.price || ""));
     setFormCost(String(prod.mrp || prod.price || ""));
     setFormQuantity(String(prod.stock_qty || prod.stockQty || "0"));
@@ -655,16 +669,19 @@ export default function InventoryPage() {
               >
                 All Categories
               </MenuItem>
-              {categories.map((c) => (
-                <MenuItem
-                  key={c}
-                  selected={filterCategory === c}
-                  onClick={() => { setFilterCategory(c); setCategoryMenuAnchor(null); }}
-                  sx={{ fontSize: '0.82rem', fontWeight: 700, borderRadius: '8px' }}
-                >
-                  {c}
-                </MenuItem>
-              ))}
+              {categories.map((c) => {
+                const cName = typeof c === 'string' ? c : (c?.name || String(c));
+                return (
+                  <MenuItem
+                    key={cName}
+                    selected={filterCategory === cName}
+                    onClick={() => { setFilterCategory(cName); setCategoryMenuAnchor(null); }}
+                    sx={{ fontSize: '0.82rem', fontWeight: 700, borderRadius: '8px' }}
+                  >
+                    {cName}
+                  </MenuItem>
+                );
+              })}
             </Menu>
           </Stack>
 
@@ -1262,7 +1279,7 @@ export default function InventoryPage() {
                       Category
                     </Typography>
                     <Typography sx={{ fontSize: '0.72rem', color: formCategory ? '#10b981' : '#64748b', fontWeight: 700 }}>
-                      {formCategory || "Add Category"}
+                      {typeof formCategory === 'string' ? formCategory : (formCategory?.name || "Add Category")}
                     </Typography>
                   </Box>
                 </Stack>
@@ -1785,12 +1802,14 @@ export default function InventoryPage() {
           <Box sx={{ overflowY: 'auto', maxHeight: '50vh', py: 1 }}>
             <Grid container spacing={1.25}>
               {categories.map((cat) => {
-                const isSelected = formCategory === cat;
+                const catName = typeof cat === 'string' ? cat : (cat?.name || String(cat));
+                const currentCatName = typeof formCategory === 'string' ? formCategory : (formCategory?.name || "");
+                const isSelected = currentCatName === catName;
                 return (
-                  <Grid item xs={6} key={cat}>
+                  <Grid item xs={6} key={catName}>
                     <Box
                       onClick={() => {
-                        setFormCategory(cat);
+                        setFormCategory(catName);
                         setCategoryPickerOpen(false);
                       }}
                       sx={{
@@ -1807,7 +1826,7 @@ export default function InventoryPage() {
                       }}
                     >
                       <Typography sx={{ fontSize: '0.85rem', fontWeight: isSelected ? 900 : 700, color: '#0f172a' }}>
-                        {cat}
+                        {catName}
                       </Typography>
                       {isSelected && <CheckCircleIcon sx={{ fontSize: 18, color: '#10b981' }} />}
                     </Box>
