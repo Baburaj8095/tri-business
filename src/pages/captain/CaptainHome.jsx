@@ -26,7 +26,10 @@ import {
   Badge as KycIcon,
   Storefront as StoreIcon,
   GridView as GridIcon,
-  NotificationsActive as AlertIcon
+  NotificationsActive as AlertIcon,
+  TrendingUp as BusinessIcon,
+  LocalShipping as DeliveryIcon,
+  HourglassEmpty as PendingApprovalIcon
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -386,9 +389,66 @@ export default function CaptainHome() {
         </motion.div>
       )}
 
+      {/* Onboarding Alert Banner */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+        <Card
+          sx={{
+            borderRadius: '20px',
+            border: '1.5px solid #fed7aa',
+            bgcolor: '#fffbeb',
+            boxShadow: '0 4px 16px rgba(245, 158, 11, 0.08)',
+            mb: 3,
+            p: 2.5
+          }}
+        >
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: '14px',
+                bgcolor: '#fef3c7',
+                color: '#d97706',
+                display: 'grid',
+                placeItems: 'center',
+                flexShrink: 0
+              }}
+            >
+              <StoreIcon sx={{ fontSize: 26 }} />
+            </Box>
+            <Box sx={{ flexGrow: 1 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '0.95rem' }}>
+                Shop Onboarding Queue: {pendingShopCount} Pending Approvals
+              </Typography>
+              <Typography variant="caption" sx={{ color: T.textSecondary, display: 'block', mt: 0.25, lineHeight: 1.35 }}>
+                Local merchants registered using your sponsor code in pincode <b>{profile?.pincode || '560102'}</b>. Verify shops to activate their Prime marketplace search, buying, and catalog features.
+              </Typography>
+            </Box>
+            <Button
+              onClick={() => navigate('/captain/merchants')}
+              variant="contained"
+              size="small"
+              sx={{
+                bgcolor: '#d97706',
+                '&:hover': { bgcolor: '#b45309' },
+                borderRadius: '10px',
+                textTransform: 'none',
+                fontWeight: 900,
+                boxShadow: 'none',
+                whiteSpace: 'nowrap',
+                px: 2,
+                py: 0.8
+              }}
+            >
+              Verify Shops →
+            </Button>
+          </Box>
+        </Card>
+      </motion.div>
+
       {/* Quick Links Circular Grid */}
       <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: T.text, mb: 1.5, px: 0.5 }}>
-        Quick Services
+        Captain Operations & Management
       </Typography>
       <Paper
         sx={{
@@ -445,51 +505,87 @@ export default function CaptainHome() {
             </Typography>
           </Grid>
 
-          {/* Service 3: Merchants */}
+          {/* Service 3: Onboarded Merchants */}
           <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
             <IconButton
-              onClick={() => handleActionClick(null, 'Merchant List')}
+              onClick={() => navigate('/captain/merchants')}
               sx={{
                 width: 52,
                 height: 52,
-                bgcolor: '#f1f5f9',
-                color: '#64748b',
+                bgcolor: '#ecfdf5',
+                color: '#047857',
                 mb: 1,
-                boxShadow: '0 8px 16px rgba(0,0,0,0.01)',
+                boxShadow: '0 8px 16px rgba(4, 120, 87, 0.08)',
                 transition: 'all 0.2s ease',
-                '&:hover': { bgcolor: '#e2e8f0', transform: 'translateY(-2px)' }
+                '&:hover': { bgcolor: '#d1fae5', transform: 'translateY(-2px)' }
               }}
             >
               <StoreIcon sx={{ fontSize: 22 }} />
             </IconButton>
-            <Typography variant="caption" sx={{ fontWeight: '700', color: '#64748b', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
-              Merchants
+            <Typography variant="caption" sx={{ fontWeight: '700', color: '#047857', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
+              Shop Approvals
             </Typography>
           </Grid>
 
-          {/* Service 4: Trizones */}
+          {/* Service 4: Daily Business */}
           <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
             <IconButton
-              onClick={() => handleActionClick(null, 'Trizone List')}
+              onClick={() => navigate('/captain/daily-business')}
               sx={{
                 width: 52,
                 height: 52,
-                bgcolor: '#f1f5f9',
-                color: '#64748b',
+                bgcolor: '#eff6ff',
+                color: '#1d4ed8',
                 mb: 1,
-                boxShadow: '0 8px 16px rgba(0,0,0,0.01)',
+                boxShadow: '0 8px 16px rgba(29, 78, 216, 0.08)',
                 transition: 'all 0.2s ease',
-                '&:hover': { bgcolor: '#e2e8f0', transform: 'translateY(-2px)' }
+                '&:hover': { bgcolor: '#dbeafe', transform: 'translateY(-2px)' }
               }}
             >
-              <GridIcon sx={{ fontSize: 22 }} />
+              <BusinessIcon sx={{ fontSize: 22 }} />
             </IconButton>
-            <Typography variant="caption" sx={{ fontWeight: '700', color: '#64748b', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
-              Trizones
+            <Typography variant="caption" sx={{ fontWeight: '700', color: '#1d4ed8', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
+              Daily Business
             </Typography>
           </Grid>
         </Grid>
       </Paper>
+
+      {/* Pincode Support Card */}
+      <Card
+        sx={{
+          borderRadius: '20px',
+          border: `1px solid ${T.border}`,
+          bgcolor: '#ffffff',
+          p: 2.5,
+          mb: 3,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ width: 44, height: 44, borderRadius: '12px', bgcolor: '#fef2f2', color: '#ef4444', display: 'grid', placeItems: 'center' }}>
+            <DeliveryIcon sx={{ fontSize: 22 }} />
+          </Box>
+          <Box>
+            <Typography sx={{ fontWeight: 800, fontSize: '0.92rem', color: T.text }}>
+              Pincode Support & Delivery Issues
+            </Typography>
+            <Typography variant="caption" sx={{ color: T.textSecondary }}>
+              First-level dispute resolution for delayed orders in pincode {profile?.pincode || '560102'}
+            </Typography>
+          </Box>
+        </Box>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => navigate('/captain/delivery-issues')}
+          sx={{ borderRadius: '10px', fontWeight: 800, textTransform: 'none', borderColor: T.border, color: T.textSecondary }}
+        >
+          View Issues →
+        </Button>
+      </Card>
 
       {/* Promo Card: Refer & Earn */}
       <Card

@@ -42,7 +42,9 @@ public class SponsorService {
         boolean isSuperuser = Boolean.TRUE.equals(user.get("is_superuser"));
         boolean isStaff = Boolean.TRUE.equals(user.get("is_staff"));
 
-        boolean isValidSponsor = VALID_SPONSOR_CATEGORIES.contains(category) || isSuperuser || isStaff;
+        boolean isValidSponsor = VALID_SPONSOR_CATEGORIES.contains(category)
+            || isSuperuser || isStaff || category.contains("agency")
+            || category.contains("captain") || "user".equalsIgnoreCase(category);
 
         return SponsorInfo.builder()
             .sponsorId(normalizedId)

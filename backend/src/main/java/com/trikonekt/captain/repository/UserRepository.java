@@ -85,13 +85,17 @@ public class UserRepository {
      * plus admins (is_superuser=true or is_staff=true).
      */
     public Optional<Map<String, Object>> findSponsor(String sponsorId) {
+        if (sponsorId == null || sponsorId.isBlank()) {
+            return Optional.empty();
+        }
+        String clean = sponsorId.trim();
         List<Map<String, Object>> rows = jdbc.queryForList(
-            "SELECT id, username, full_name, category, role, pincode, sponsor_id, prefixed_id, is_superuser, is_staff " +
+            "SELECT id, username, full_name, category, role, pincode, sponsor_id, prefixed_id, phone, is_superuser, is_staff " +
             "FROM accounts_customuser " +
-            "WHERE (UPPER(username) = UPPER(?) OR UPPER(prefixed_id) = UPPER(?)) " +
-            "AND (category IN ('agency_pincode', 'agency_sub_franchise') OR is_superuser = true OR is_staff = true) " +
+            "WHERE (phone = ? OR UPPER(username) = UPPER(?) OR UPPER(prefixed_id) = UPPER(?) OR UPPER(username) = UPPER(?)) " +
+            "AND (category IN ('agency_pincode', 'agency_sub_franchise', 'captain') OR is_superuser = true OR is_staff = true OR role = 'captain') " +
             "LIMIT 1",
-            sponsorId, sponsorId
+            clean, clean, clean, "CB" + clean
         );
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }
@@ -251,5 +255,33 @@ public class UserRepository {
             categoryId, subcategoryId,
             additionalImages != null ? additionalImages : "[]"
         );
+    }
+
+    /**
+     * Finds shops referred by this Captain or within Captain's assigned pincode.
+     */
+    public List<Map<String, Object>> findShopsForCaptain(String captainUsername, String captainPhone, String captainPincode) {
+        String query =
+            "SELECT s.id, s.shop_name, s.address, s.city, s.pincode, s.contact_number, s.status, s.created_at, " +
+            "       s.category_id, mc.name as category_name, " +
+            "       u.id as merchant_id, u.full_name as merchant_name, u.phone as merchant_phone, u.category as merchant_category, " +
+            "       COALESCE(mp.service_mode, 'OFFLINE') as service_mode, " +
+            "       COALESCE(mp.is_verified, false) as is_verified " +
+            "FROM market_shop s " +
+            "JOIN accounts_customuser u ON s.merchant_id = u.id " +
+            "LEFT JOIN market_merchantprofile mp ON u.id = mp.user_id " +
+            "LEFT JOIN business_merchantcategory mc ON s.category_id = mc.id " +
+            "WHERE (u.sponsor_id = ? OR u.sponsor_id = ? OR UPPER(u.sponsor_id) = UPPER(?) OR s.pincode = ?) " +
+            "ORDER BY s.created_at DESC LIMIT 100";
+        return jdbc.queryForList(query, captainUsername, captainPhone, "CB-" + captainPhone, captainPincode != null ? captainPincode : "");
+    }
+
+    /**
+     * Approves a shop and activates Prime status on the merchant.
+     */
+    public boolean approveShopByCaptain(long shopId) {
+        int rows = jdbc.update("UPDATE market_shop SET status = 'ACTIVE' WHERE id = ?", shopId);
+        jdbc.update("UPDATE market_merchantprofile SET is_verified = true WHERE user_id = (SELECT merchant_id FROM market_shop WHERE id = ?)", shopId);
+        return rows > 0;
     }
 }

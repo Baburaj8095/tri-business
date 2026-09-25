@@ -66,6 +66,7 @@ import {
   LuPackage
 } from 'react-icons/lu';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import MyLocationOutlinedIcon from '@mui/icons-material/MyLocationOutlined';
 import LocationCityRoundedIcon from '@mui/icons-material/LocationCityRounded';
