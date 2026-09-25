@@ -91,7 +91,7 @@ export default function PrimeMembershipModal({ open, onClose, featureName = "thi
         </Box>
 
         <Chip
-          label="Prime Membership Required"
+          label="Merchant Membership Required"
           size="small"
           sx={{
             bgcolor: 'rgba(254, 240, 138, 0.25)',
@@ -106,25 +106,26 @@ export default function PrimeMembershipModal({ open, onClose, featureName = "thi
         />
 
         <Typography sx={{ fontSize: '1.25rem', fontWeight: 900, lineHeight: 1.25 }}>
-          Upgrade to Trikonekt Prime
+          Become a Member • ₹999 / Year
         </Typography>
         <Typography sx={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.85)', mt: 0.5 }}>
-          Free plan merchants need an active Prime Membership to {featureName}.
+          Free plan merchants need an active Member Plan to {featureName}.
         </Typography>
       </Box>
 
       {/* Content */}
       <DialogContent sx={{ p: 2.75, bgcolor: '#ffffff' }}>
         <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', mb: 1.5 }}>
-          Prime Unlocks Full Business Power:
+          VIP Member Benefits:
         </Typography>
 
         <Stack spacing={1.25} sx={{ mb: 3 }}>
           {[
             'Add & Manage Unlimited Merchant Shops',
-            'List Products & Inventory with Instant Live Sync',
+            'List Products & Inventory with Live Online Sync',
+            'Verified Seller Member Badge (like OLX VIP)',
             'Full Access to Online B2B Marketplace & Ordering',
-            'Earn TRI Coins & Cashback Rewards on Every Trade',
+            'Priority Visibility & Direct Customer Inquiries',
           ].map((benefit, i) => (
             <Stack key={i} direction="row" spacing={1.25} alignItems="center">
               <CheckCircle sx={{ fontSize: 18, color: PRIMARY, flexShrink: 0 }} />
@@ -138,36 +139,14 @@ export default function PrimeMembershipModal({ open, onClose, featureName = "thi
         {/* Pricing Options Preview */}
         <Box sx={{ bgcolor: '#f8fafc', p: 1.75, borderRadius: '16px', border: '1px solid #e2e8f0', mb: 2.5 }}>
           <Stack direction="row" spacing={1.5} justifyContent="space-between">
-            {/* 99/mo option */}
+            {/* 999/yr option */}
             <Box
               sx={{
-                flex: 1,
-                bgcolor: '#ffffff',
-                p: 1.5,
-                borderRadius: '12px',
-                border: '1.5px solid #cbd5e1',
-                textAlign: 'center',
-              }}
-            >
-              <Typography sx={{ fontSize: '0.68rem', fontWeight: 800, color: '#0284c7', textTransform: 'uppercase' }}>
-                Monthly Plan
-              </Typography>
-              <Typography sx={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', mt: 0.25 }}>
-                ₹99<Typography component="span" sx={{ fontSize: '0.7rem', color: '#64748b' }}>/mo</Typography>
-              </Typography>
-              <Typography sx={{ fontSize: '0.65rem', color: '#16a34a', fontWeight: 700, mt: 0.25 }}>
-                81.18 TRI Coins
-              </Typography>
-            </Box>
-
-            {/* 750/yr option */}
-            <Box
-              sx={{
-                flex: 1,
+                flex: 1.2,
                 bgcolor: '#fffbeb',
                 p: 1.5,
                 borderRadius: '12px',
-                border: '1.5px solid #f59e0b',
+                border: '2px solid #f59e0b',
                 textAlign: 'center',
                 position: 'relative',
               }}
@@ -187,16 +166,38 @@ export default function PrimeMembershipModal({ open, onClose, featureName = "thi
                   textTransform: 'uppercase',
                 }}
               >
-                POPULAR
+                BEST VALUE
               </Box>
               <Typography sx={{ fontSize: '0.68rem', fontWeight: 800, color: '#d97706', textTransform: 'uppercase' }}>
-                Annual Plan
+                Yearly Member
               </Typography>
-              <Typography sx={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', mt: 0.25 }}>
-                ₹750<Typography component="span" sx={{ fontSize: '0.7rem', color: '#64748b' }}>/yr</Typography>
+              <Typography sx={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', mt: 0.25 }}>
+                ₹999<Typography component="span" sx={{ fontSize: '0.72rem', color: '#64748b' }}>/yr</Typography>
               </Typography>
               <Typography sx={{ fontSize: '0.65rem', color: '#16a34a', fontWeight: 700, mt: 0.25 }}>
-                615 TRI Coins
+                Full 365 Days Access
+              </Typography>
+            </Box>
+
+            {/* 99/mo option */}
+            <Box
+              sx={{
+                flex: 0.8,
+                bgcolor: '#ffffff',
+                p: 1.5,
+                borderRadius: '12px',
+                border: '1.5px solid #cbd5e1',
+                textAlign: 'center',
+              }}
+            >
+              <Typography sx={{ fontSize: '0.68rem', fontWeight: 800, color: '#0284c7', textTransform: 'uppercase' }}>
+                Monthly
+              </Typography>
+              <Typography sx={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', mt: 0.25 }}>
+                ₹99<Typography component="span" sx={{ fontSize: '0.7rem', color: '#64748b' }}>/mo</Typography>
+              </Typography>
+              <Typography sx={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600, mt: 0.25 }}>
+                30 Days Starter
               </Typography>
             </Box>
           </Stack>
@@ -212,15 +213,15 @@ export default function PrimeMembershipModal({ open, onClose, featureName = "thi
             sx={{
               py: 1.4,
               borderRadius: '14px',
-              bgcolor: PRIMARY,
-              fontWeight: 800,
-              fontSize: '0.88rem',
+              bgcolor: ACCENT,
+              fontWeight: 900,
+              fontSize: '0.9rem',
               textTransform: 'none',
-              boxShadow: '0 4px 14px rgba(34, 139, 34, 0.25)',
-              '&:hover': { bgcolor: PRIMARY_DARK },
+              boxShadow: '0 4px 14px rgba(249, 115, 22, 0.3)',
+              '&:hover': { bgcolor: '#ea580c' },
             }}
           >
-            View Prime Packages & Subscribe
+            Become a Member (₹999 / Year)
           </Button>
 
           <Button

@@ -65,34 +65,33 @@ export default function PackagesPage() {
     refreshDetails();
   }, []);
 
-  const has750 = subDetails.plan === PLAN_TYPES.SUBSCRIPTION_750;
+  const has999 = subDetails.plan === PLAN_TYPES.SUBSCRIPTION_999 || subDetails.plan === PLAN_TYPES.SUBSCRIPTION_750;
   const has99 = subDetails.plan === PLAN_TYPES.SUBSCRIPTION_99;
   const isFree = subDetails.plan === PLAN_TYPES.FREE;
 
-  const handleSubscribe750 = () => {
+  const handleSubscribe999 = () => {
     if (has99) {
-      setToastMsg('You have committed to the ₹99 Monthly Plan. You cannot switch to the ₹750 Yearly Package until the tenure completes.');
+      setToastMsg('You have committed to the ₹99 Monthly Plan. You cannot switch to the ₹999 Yearly Package until the tenure completes.');
       return;
     }
-    if (has750 && !subDetails.isExpired) {
-      setToastMsg('You already have an active ₹750 Yearly Subscription.');
+    if (has999 && !subDetails.isExpired) {
+      setToastMsg('You already have an active ₹999 Yearly Membership.');
       return;
     }
 
-    setLoadingPlan('750');
+    setLoadingPlan('999');
     setTimeout(() => {
-      const res = activateMerchantSubscription(PLAN_TYPES.SUBSCRIPTION_750);
+      const res = activateMerchantSubscription(PLAN_TYPES.SUBSCRIPTION_999);
       setLoadingPlan(null);
       refreshDetails();
       setToastMsg(res.message);
       // Auto open invoice preview
       setActiveInvoiceModal({
-        plan: 'SUBSCRIPTION_750',
-        planName: '₹750 Yearly Prime Membership',
-        amount: 750,
-        gst: 114.41,
-        baseAmount: 635.59,
-        coinsCredited: 615,
+        plan: 'SUBSCRIPTION_999',
+        planName: '₹999 Yearly Member Plan (Like OLX VIP)',
+        amount: 999,
+        gst: 152.39,
+        baseAmount: 846.61,
         validity: '365 Days',
         receiptNo: `TRI-SUB-${Date.now().toString().slice(-6)}`,
         date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
@@ -101,8 +100,8 @@ export default function PackagesPage() {
   };
 
   const handleSubscribe99 = () => {
-    if (has750) {
-      setToastMsg('You have activated the ₹750 Yearly Membership. The ₹99 Monthly Plan is not applicable for your account.');
+    if (has999) {
+      setToastMsg('You have activated the ₹999 Yearly Membership. The ₹99 Monthly Plan is not applicable for your account.');
       return;
     }
     if (has99 && !subDetails.isExpired && subDetails.daysLeft > 3) {
@@ -118,11 +117,10 @@ export default function PackagesPage() {
       setToastMsg(res.message);
       setActiveInvoiceModal({
         plan: 'SUBSCRIPTION_99',
-        planName: `₹99 Monthly Prime Membership (Month ${res.tenureMonths} of 12)`,
+        planName: `₹99 Monthly Member Plan (Month ${res.tenureMonths} of 12)`,
         amount: 99,
         gst: 15.10,
         baseAmount: 83.90,
-        coinsCredited: 81.18,
         validity: '30 Days',
         receiptNo: `TRI-SUB-${Date.now().toString().slice(-6)}`,
         date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
@@ -131,21 +129,21 @@ export default function PackagesPage() {
   };
 
   const openExistingInvoice = (planType) => {
+    const isYearly = planType === PLAN_TYPES.SUBSCRIPTION_999 || planType === PLAN_TYPES.SUBSCRIPTION_750;
     setActiveInvoiceModal({
       plan: planType,
-      planName: planType === PLAN_TYPES.SUBSCRIPTION_750 ? '₹750 Yearly Prime Membership' : `₹99 Monthly Prime Membership (Month ${subDetails.tenureMonths || 1} of 12)`,
-      amount: planType === PLAN_TYPES.SUBSCRIPTION_750 ? 750 : 99,
-      gst: planType === PLAN_TYPES.SUBSCRIPTION_750 ? 114.41 : 15.10,
-      baseAmount: planType === PLAN_TYPES.SUBSCRIPTION_750 ? 635.59 : 83.90,
-      coinsCredited: planType === PLAN_TYPES.SUBSCRIPTION_750 ? 615 : 81.18,
-      validity: planType === PLAN_TYPES.SUBSCRIPTION_750 ? '365 Days' : '30 Days',
-      receiptNo: `TRI-SUB-INV-${planType === PLAN_TYPES.SUBSCRIPTION_750 ? '750' : '99'}`,
+      planName: isYearly ? '₹999 Yearly Member Plan (Like OLX VIP)' : `₹99 Monthly Member Plan (Month ${subDetails.tenureMonths || 1} of 12)`,
+      amount: isYearly ? 999 : 99,
+      gst: isYearly ? 152.39 : 15.10,
+      baseAmount: isYearly ? 846.61 : 83.90,
+      validity: isYearly ? '365 Days' : '30 Days',
+      receiptNo: `TRI-SUB-INV-${isYearly ? '999' : '99'}`,
       date: subDetails.startedAt ? new Date(subDetails.startedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Active',
     });
   };
 
   return (
-    <AppShell activeTab="/business-dashboard" title="Prime Packages">
+    <AppShell activeTab="/business-dashboard" title="Merchant Packages">
       <Box sx={{ minHeight: '100vh', bgcolor: BG, pb: 12 }}>
         {/* Sticky Header */}
         <Box
@@ -188,10 +186,10 @@ export default function PackagesPage() {
                   }}
                 >
                   <WorkspacePremium sx={{ color: '#d97706', fontSize: 22 }} />
-                  Trikonekt Prime Packages
+                  Become a Member
                 </Typography>
                 <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.25 }}>
-                  Merchant Membership Plans • ₹750/Year or ₹99/Month
+                  Merchant Membership Plans • ₹999 for Yearly (Like OLX VIP) or ₹99/Month
                 </Typography>
               </Box>
             </Stack>
@@ -242,15 +240,15 @@ export default function PackagesPage() {
                 <Box>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <Typography sx={{ fontSize: '1rem', fontWeight: 900, color: '#0f172a' }}>
-                      {has750
-                        ? '₹750 Annual Prime Membership'
+                      {has999
+                        ? '₹999 Yearly Member Plan (Like OLX VIP)'
                         : has99
-                        ? `₹99 Monthly Prime (Month ${subDetails.tenureMonths || 1}/12)`
+                        ? `₹99 Monthly Member (Month ${subDetails.tenureMonths || 1}/12)`
                         : 'Free Merchant Plan (Onboarded)'}
                     </Typography>
                     <Chip
                       size="small"
-                      label={isFree ? 'FREE' : 'PRIME ACTIVE'}
+                      label={isFree ? 'FREE' : 'MEMBER ACTIVE'}
                       sx={{
                         fontWeight: 900,
                         fontSize: '0.65rem',
@@ -261,8 +259,8 @@ export default function PackagesPage() {
                   </Stack>
                   <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.3 }}>
                     {isFree
-                      ? 'Upgrade to Prime to add merchant shops, list products & place B2B wholesale orders.'
-                      : `${subDetails.daysLeft} days remaining • Rewards and permissions unlocked • Wallet: ${subDetails.triCoins} TRI Coins`}
+                      ? 'Become a Member to add merchant shops, list unlimited products & place B2B wholesale orders.'
+                      : `${subDetails.daysLeft} days remaining • Verified VIP Member • Unlimited catalog & shop permissions`}
                   </Typography>
                 </Box>
               </Stack>
@@ -330,11 +328,11 @@ export default function PackagesPage() {
               <InfoOutlined sx={{ color: '#0284c7', fontSize: 20, mt: 0.2, flexShrink: 0 }} />
               <Box>
                 <Typography sx={{ fontSize: '0.78rem', fontWeight: 900, color: '#0369a1', textTransform: 'uppercase' }}>
-                  Subscription Selection Policy
+                  Membership Selection
                 </Typography>
                 <Typography sx={{ fontSize: '0.72rem', color: '#0c4a6e', mt: 0.25, lineHeight: 1.45 }}>
-                  • <strong>₹750 Yearly Package:</strong> 1 full year benefits with instant 615 TRI Coins. If chosen, the ₹99 monthly option will be disabled.<br />
-                  • <strong>₹99 Monthly Package:</strong> Commits to a 12-month tenure (1st month + 11 monthly renewals). If chosen, you cannot switch to the ₹750 package.
+                  • <strong>₹999 Yearly Package (Recommended):</strong> Full 1-year unlimited access, verified seller badge like OLX VIP, priority listing & instant onboarding.<br />
+                  • <strong>₹99 Monthly Package:</strong> Flexible 12-month tenure (1st month + monthly renewals) for growing businesses.
                 </Typography>
               </Box>
             </Box>
@@ -342,12 +340,12 @@ export default function PackagesPage() {
 
           {/* Packages Grid */}
           <Grid container spacing={3}>
-            {/* Package 1: ₹750 Yearly */}
+            {/* Package 1: ₹999 Yearly */}
             <Grid item xs={12} md={6}>
               <Card
                 sx={{
                   borderRadius: '24px',
-                  border: has99 ? '2px solid #e2e8f0' : has750 ? '2px solid #10b981' : '2px solid #f59e0b',
+                  border: has99 ? '2px solid #e2e8f0' : has999 ? '2px solid #10b981' : '2px solid #f59e0b',
                   bgcolor: has99 ? '#f8fafc' : '#ffffff',
                   boxShadow: '0 8px 24px rgba(15, 23, 42, 0.06)',
                   position: 'relative',
@@ -364,7 +362,7 @@ export default function PackagesPage() {
                     position: 'absolute',
                     top: 0,
                     right: 0,
-                    bgcolor: has99 ? '#64748b' : has750 ? '#10b981' : ACCENT,
+                    bgcolor: has99 ? '#64748b' : has999 ? '#10b981' : ACCENT,
                     color: '#ffffff',
                     fontSize: '0.65rem',
                     fontWeight: 900,
@@ -378,7 +376,7 @@ export default function PackagesPage() {
                     gap: 0.5,
                   }}
                 >
-                  {has99 ? <><Lock sx={{ fontSize: 13 }} /> LOCKED • 99 TRACK CHOSEN</> : has750 ? <><CheckCircle sx={{ fontSize: 13 }} /> ACTIVE (1 YEAR)</> : 'ANNUAL • 1 YEAR VALIDITY'}
+                  {has99 ? <><Lock sx={{ fontSize: 13 }} /> LOCKED • 99 TRACK CHOSEN</> : has999 ? <><CheckCircle sx={{ fontSize: 13 }} /> ACTIVE (1 YEAR)</> : 'RECOMMENDED • LIKE OLX VIP'}
                 </Box>
 
                 <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -402,7 +400,7 @@ export default function PackagesPage() {
                         1 Year Validity (365 Days)
                       </Typography>
                       <Typography sx={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a' }}>
-                        ₹750 Yearly Package
+                        ₹999 Yearly Member Plan
                       </Typography>
                     </Box>
                   </Stack>
@@ -411,14 +409,14 @@ export default function PackagesPage() {
                   <Box sx={{ py: 2, borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', mb: 2.5 }}>
                     <Stack direction="row" alignItems="baseline" spacing={0.75}>
                       <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a' }}>
-                        ₹750
+                        ₹999
                       </Typography>
                       <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748b' }}>
-                        / 1 Year (₹62.5/month)
+                        / 1 Year (₹83/month)
                       </Typography>
                     </Stack>
                     <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: PRIMARY, mt: 0.5 }}>
-                      ✨ Instant 615 TRI Coins Credited (₹750 - 18% GST = 615)
+                      ⭐ Become a Member • Unlimited Shops & Products (Like OLX VIP)
                     </Typography>
                   </Box>
 
@@ -427,10 +425,10 @@ export default function PackagesPage() {
                     {[
                       'Add & Manage Unlimited Merchant Shops',
                       'Add Products to Inventory with Live Online Sync',
+                      'Verified Seller Member Badge on Store & Products',
                       'Browse & Place Orders in B2B Wholesale Marketplace',
-                      'Instant 615 TRI Coins (461.25 Earning + 153.75 Savings)',
-                      'Full 1 Year Active Cashback & Platform Rewards',
-                      'KYC Verification & Referral Commissions Eligible',
+                      'Priority Search Ranking & Direct Buyer Inquiries',
+                      'Full 1 Year Active Validity (365 Days)',
                     ].map((item, i) => (
                       <Stack key={i} direction="row" spacing={1.25} alignItems="flex-start">
                         <CheckCircle sx={{ fontSize: 17, color: PRIMARY, mt: 0.2, flexShrink: 0 }} />
@@ -459,7 +457,7 @@ export default function PackagesPage() {
                     >
                       Locked (Committed to ₹99 Plan)
                     </Button>
-                  ) : has750 && !subDetails.isExpired ? (
+                  ) : has999 && !subDetails.isExpired ? (
                     <Stack spacing={1}>
                       <Button
                         fullWidth
@@ -475,12 +473,12 @@ export default function PackagesPage() {
                           textTransform: 'none',
                         }}
                       >
-                        Subscription Active (1 Year) ✓
+                        VIP Membership Active (1 Year) ✓
                       </Button>
                       <Button
                         fullWidth
                         variant="outlined"
-                        onClick={() => openExistingInvoice(PLAN_TYPES.SUBSCRIPTION_750)}
+                        onClick={() => openExistingInvoice(PLAN_TYPES.SUBSCRIPTION_999)}
                         startIcon={<Receipt />}
                         sx={{
                           py: 1,
@@ -490,16 +488,16 @@ export default function PackagesPage() {
                           textTransform: 'none',
                         }}
                       >
-                        View & Print Tax Invoice (₹750)
+                        View & Print Tax Invoice (₹999)
                       </Button>
                     </Stack>
                   ) : (
                     <Button
                       fullWidth
                       variant="contained"
-                      onClick={handleSubscribe750}
+                      onClick={handleSubscribe999}
                       disabled={loadingPlan !== null}
-                      startIcon={loadingPlan === '750' ? <CircularProgress size={16} color="inherit" /> : <Bolt />}
+                      startIcon={loadingPlan === '999' ? <CircularProgress size={16} color="inherit" /> : <Bolt />}
                       sx={{
                         py: 1.6,
                         borderRadius: '16px',
@@ -511,7 +509,7 @@ export default function PackagesPage() {
                         '&:hover': { bgcolor: '#ea580c' },
                       }}
                     >
-                      {loadingPlan === '750' ? 'Activating Annual Prime...' : 'Subscribe ₹750 / Year →'}
+                      {loadingPlan === '999' ? 'Activating Annual VIP...' : 'Become a Member • ₹999 / Year →'}
                     </Button>
                   )}
                 </CardContent>
@@ -523,15 +521,15 @@ export default function PackagesPage() {
               <Card
                 sx={{
                   borderRadius: '24px',
-                  border: has750 ? '2px solid #e2e8f0' : has99 ? '2px solid #10b981' : '2px solid #0284c7',
-                  bgcolor: has750 ? '#f8fafc' : '#ffffff',
+                  border: has999 ? '2px solid #e2e8f0' : has99 ? '2px solid #10b981' : '2px solid #0284c7',
+                  bgcolor: has999 ? '#f8fafc' : '#ffffff',
                   boxShadow: '0 8px 24px rgba(15, 23, 42, 0.06)',
                   position: 'relative',
                   overflow: 'hidden',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  opacity: has750 ? 0.7 : 1,
+                  opacity: has999 ? 0.7 : 1,
                 }}
               >
                 {/* Top Badge */}
@@ -540,7 +538,7 @@ export default function PackagesPage() {
                     position: 'absolute',
                     top: 0,
                     right: 0,
-                    bgcolor: has750 ? '#64748b' : has99 ? '#10b981' : '#0284c7',
+                    bgcolor: has999 ? '#64748b' : has99 ? '#10b981' : '#0284c7',
                     color: '#ffffff',
                     fontSize: '0.65rem',
                     fontWeight: 900,
@@ -554,7 +552,7 @@ export default function PackagesPage() {
                     gap: 0.5,
                   }}
                 >
-                  {has750 ? <><Lock sx={{ fontSize: 13 }} /> LOCKED • 750 YEARLY ACTIVE</> : has99 ? <><CheckCircle sx={{ fontSize: 13 }} /> ACTIVE (MONTH {subDetails.tenureMonths || 1}/12)</> : 'MONTHLY • 12 MONTHS TENURE'}
+                  {has999 ? <><Lock sx={{ fontSize: 13 }} /> LOCKED • 999 YEARLY ACTIVE</> : has99 ? <><CheckCircle sx={{ fontSize: 13 }} /> ACTIVE (MONTH {subDetails.tenureMonths || 1}/12)</> : 'MONTHLY STARTER • 30 DAYS'}
                 </Box>
 
                 <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -575,10 +573,10 @@ export default function PackagesPage() {
                     </Box>
                     <Box>
                       <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: '#0284c7', textTransform: 'uppercase' }}>
-                        30 Days Validity (12 Months Tenure)
+                        30 Days Validity (Monthly Cycle)
                       </Typography>
                       <Typography sx={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a' }}>
-                        ₹99 Monthly Package
+                        ₹99 Monthly Starter
                       </Typography>
                     </Box>
                   </Stack>
@@ -594,7 +592,7 @@ export default function PackagesPage() {
                       </Typography>
                     </Stack>
                     <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: PRIMARY, mt: 0.5 }}>
-                      ✨ Instant 81.18 TRI Coins Credited each renewal
+                      ⭐ Flexible monthly plan for new store verification
                     </Typography>
                   </Box>
 
@@ -604,9 +602,9 @@ export default function PackagesPage() {
                       'Add & Manage Unlimited Merchant Shops',
                       'Add Products to Inventory with Live Online Sync',
                       'Browse & Place Orders in B2B Wholesale Marketplace',
-                      'Instant 81.18 TRI Coins Credited (60.88 Earning + 20.30 Savings)',
-                      '30 Days Validity per renewal (12 monthly cycle commitment)',
-                      'Consistent Monthly Cashbacks & Platform Rewards',
+                      '30 Days Active Validity per monthly renewal',
+                      'Basic Merchant Verification & Store Profile',
+                      'Switch to Yearly anytime before renewal',
                     ].map((item, i) => (
                       <Stack key={i} direction="row" spacing={1.25} alignItems="flex-start">
                         <CheckCircle sx={{ fontSize: 17, color: PRIMARY, mt: 0.2, flexShrink: 0 }} />
@@ -618,7 +616,7 @@ export default function PackagesPage() {
                   </Stack>
 
                   {/* Action Button */}
-                  {has750 ? (
+                  {has999 ? (
                     <Button
                       fullWidth
                       disabled
@@ -741,8 +739,8 @@ export default function PackagesPage() {
                   <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: PRIMARY }}>{activeInvoiceModal.validity}</Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>TRI Coins Credited:</Typography>
-                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 900, color: PRIMARY }}>+{activeInvoiceModal.coinsCredited} Coins</Typography>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Member Status:</Typography>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 900, color: PRIMARY }}>Verified VIP Member ✓</Typography>
                 </Stack>
 
                 <Divider sx={{ my: 1 }} />

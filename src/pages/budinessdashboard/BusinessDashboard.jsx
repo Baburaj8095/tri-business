@@ -2211,11 +2211,11 @@ function BusinessDashboard() {
             <Box>
               <Stack direction="row" spacing={1} alignItems="center">
                 <Typography sx={{ fontSize: '0.88rem', fontWeight: 900, color: '#92400e' }}>
-                  {isMerchantPrime() ? 'Trikonekt Prime Active' : 'Free Merchant Plan'}
+                  {isMerchantPrime() ? 'Trikonekt Member Active' : 'Become a Member • ₹999 / Year'}
                 </Typography>
                 <Chip
                   size="small"
-                  label={isMerchantPrime() ? 'PRIME' : 'FREE'}
+                  label={isMerchantPrime() ? 'MEMBER' : 'FREE'}
                   sx={{
                     height: 18,
                     fontSize: '0.62rem',
@@ -2228,7 +2228,7 @@ function BusinessDashboard() {
               <Typography sx={{ fontSize: '0.72rem', color: '#b45309', fontWeight: 600, mt: 0.2 }}>
                 {isMerchantPrime()
                   ? 'All merchant features, shops & wholesale ordering unlocked'
-                  : 'Upgrade to ₹99/mo or ₹750/yr for unlimited shops, products & B2B orders'}
+                  : 'Become a Member • ₹999/Year like OLX for unlimited shops, products & orders'}
               </Typography>
             </Box>
           </Stack>
@@ -2249,7 +2249,7 @@ function BusinessDashboard() {
               '&:hover': { bgcolor: '#b45309', boxShadow: 'none' },
             }}
           >
-            {isMerchantPrime() ? 'View Plan →' : 'Upgrade →'}
+            {isMerchantPrime() ? 'View Plan →' : 'Become Member →'}
           </Button>
         </Box>
 
