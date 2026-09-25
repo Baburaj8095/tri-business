@@ -34,6 +34,8 @@ import BusinessB2BCartPage from './pages/business/BusinessB2BCartPage.jsx';
 import BusinessB2BOrdersPage from './pages/business/BusinessB2BOrdersPage.jsx';
 import BusinessB2BSellerOrdersPage from './pages/business/BusinessB2BSellerOrdersPage.jsx';
 import BusinessKYC from './pages/business/BusinessKYC.jsx';
+import ForBetterSocietyPage from './pages/business/ForBetterSocietyPage.jsx';
+import PackagesPage from './pages/business/PackagesPage.jsx';
 
 import { Navigate } from 'react-router-dom';
 
@@ -76,6 +78,11 @@ function App() {
         <Route path="/business/online-marketplace/cart" element={<BusinessB2BCartPage />} />
         <Route path="/business/b2b-orders" element={<BusinessB2BOrdersPage />} />
         <Route path="/business/seller/b2b-orders" element={<BusinessB2BSellerOrdersPage />} />
+        <Route path="/business/for-better-society" element={<ForBetterSocietyPage />} />
+        <Route path="/for-better-society" element={<ForBetterSocietyPage />} />
+        <Route path="/business/packages" element={<PackagesPage />} />
+        <Route path="/business/prime" element={<PackagesPage />} />
+        <Route path="/packages" element={<PackagesPage />} />
         <Route path="/registration" element={<BusinessRegistration />} />
         <Route path="/registration-wizard" element={<BusinessRegistrationWizard />} />
         <Route path="/onboarding" element={<BusinessOnboarding />} />

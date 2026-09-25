@@ -88,6 +88,9 @@ import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import HandshakeOutlinedIcon from '@mui/icons-material/HandshakeOutlined';
+import WorkspacePremiumOutlinedIcon from '@mui/icons-material/WorkspacePremiumOutlined';
+import PrimeMembershipModal from "../../components/business/PrimeMembershipModal";
+import { getSubscriptionDetails, isMerchantPrime } from "../../utils/membershipHelper";
 import SearchBar from "../../components/business/SearchBar";
 import { getPublicB2bMerchants, getMerchantProfile, updateMerchantProfile, listMyShops } from "../../api/api";
 import "../consumer-ecommerce/consumerEcommerce.css";
@@ -221,10 +224,72 @@ const ADS = [
 ];
 
 const ONLINE_B2B_ADS = [
-  { id: 1, title: "Wholesale Grocery Supply", offer: "Bulk orders for local stores", image: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=700&q=80" },
-  { id: 2, title: "Fashion Distributor Deals", offer: "New stock for retailers", image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=700&q=80" },
-  { id: 3, title: "Furniture Trade Offers", offer: "Office and shop setup packages", image: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=700&q=80" },
-  { id: 4, title: "Restaurant Vendor Network", offer: "Suppliers for daily business needs", image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=700&q=80" },
+  { 
+    id: 1, 
+    badge: "⚡ Mega Wholesale",
+    badgeColor: "#dc2626",
+    title: "Grocery & FMCG Hub", 
+    offer: "Up to 45% OFF on bulk staples, oils & packaged goods", 
+    image: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=700&q=80",
+    cta: "Explore Deals",
+    moq: "Min MOQ: ₹5,000",
+    supplier: "Verified Distributor",
+  },
+  { 
+    id: 2, 
+    badge: "🔥 Trade Exclusive",
+    badgeColor: "#7c3aed",
+    title: "Fashion & Apparel Stock", 
+    offer: "Fresh seasonal catalogue for retail clothing stores", 
+    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=700&q=80",
+    cta: "Browse Apparel",
+    moq: "Min MOQ: 20 pcs",
+    supplier: "Direct Factory",
+  },
+  { 
+    id: 3, 
+    badge: "⭐ Direct Factory",
+    badgeColor: "#0284c7",
+    title: "Commercial & Office Fitout", 
+    offer: "Ergonomic seating & retail fixtures at wholesale rates", 
+    image: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=700&q=80",
+    cta: "View Catalog",
+    moq: "Pan-India Freight",
+    supplier: "ISO Certified",
+  },
+  { 
+    id: 4, 
+    badge: "💎 Fresh Harvest",
+    badgeColor: "#16a34a",
+    title: "Restaurant & Cafe Supply", 
+    offer: "Daily farm-to-kitchen supply network with credit terms", 
+    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=700&q=80",
+    cta: "Supply Network",
+    moq: "Same Day Dispatch",
+    supplier: "Cold Chain Verified",
+  },
+  { 
+    id: 5, 
+    badge: "🚀 Electronics Trade",
+    badgeColor: "#ea580c",
+    title: "Mobile Accessories & Gadgets", 
+    offer: "Factory direct cables, chargers & smart watch bundles", 
+    image: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=700&q=80",
+    cta: "Bulk Pricing",
+    moq: "Min MOQ: 50 pcs",
+    supplier: "Authorized OEM",
+  },
+  { 
+    id: 6, 
+    badge: "📦 Eco Packaging",
+    badgeColor: "#059669",
+    title: "Corrugated Boxes & Bags", 
+    offer: "Custom printed cartons & eco delivery bags for retailers", 
+    image: "https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=700&q=80",
+    cta: "Order Samples",
+    moq: "Custom Branding",
+    supplier: "Direct Manufacturer",
+  },
 ];
 
 const PRODUCTS = [
@@ -675,8 +740,26 @@ function SearchCityModal({ open, onClose, onSelectCity }) {
 }
 
 function ShopCard({ shop }) {
+  const navigate = useNavigate();
+  const defaultShopImg = "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=600&q=80";
+  const rawImg = shop?.image || shop?.shop_image || shop?.image_url || shop?.logo || shop?.banner_image;
+  const resolvedImg = rawImg ? resolveImageUrl(rawImg) : defaultShopImg;
+  const [imgSrc, setImgSrc] = useState(resolvedImg);
+
+  const shopName = shop?.shop_name || shop?.name || shop?.business_name || shop?.full_name || "Merchant Store";
+  const shopLoc = shop?.city || shop?.address || "Local Area";
+
+  const handleViewStore = () => {
+    if (shop?.id) {
+      navigate(`/business/shop/${shop.id}`);
+    } else {
+      navigate('/business/nearby-stores');
+    }
+  };
+
   return (
     <Card
+      onClick={handleViewStore}
       sx={{
         ...sectionCardStyles(),
         minWidth: { xs: "72vw", sm: 236 },
@@ -684,68 +767,54 @@ function ShopCard({ shop }) {
         maxWidth: 236,
         flexShrink: 0,
         scrollSnapAlign: "start",
+        cursor: 'pointer',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 8px 20px rgba(15, 23, 42, 0.09)' },
       }}
     >
-      <CardContent sx={{ p: 1.2, "&:last-child": { pb: 1.2 } }}>
-        <Stack spacing={0.95}>
+      <CardContent sx={{ p: 1.25, "&:last-child": { pb: 1.25 } }}>
+        <Stack spacing={1}>
           <Box
             component="img"
-            src={shop.image}
-            alt={shop.name}
+            src={imgSrc}
+            alt={shopName}
+            onError={() => setImgSrc(defaultShopImg)}
             sx={{
               width: "100%",
-              height: 108,
+              height: 118,
               objectFit: "cover",
-              borderRadius: 1.8,
+              borderRadius: '12px',
               display: "block",
               bgcolor: alpha(UI.primary, 0.05),
             }}
           />
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: UI.text, lineHeight: 1.25 }}>
-              {shop.shop_name || shop.business_name || shop.full_name || "Merchant Shop"}
+            <Typography sx={{ fontSize: 13, fontWeight: 800, color: UI.text, lineHeight: 1.25 }} noWrap>
+              {shopName}
             </Typography>
-            <Typography sx={{ fontSize: 10.8, color: UI.textMuted, mt: 0.25, lineHeight: 1.3 }}>
-              {shop.city || shop.address || "Local Area"}
+            <Typography sx={{ fontSize: 11, color: UI.textMuted, mt: 0.25, lineHeight: 1.3 }} noWrap>
+              {shopLoc}
             </Typography>
           </Box>
-          <Stack direction="row" spacing={0.75}>
-            <Button
-              fullWidth
-              variant="contained"
-              sx={{
-                borderRadius: 1.6,
-                textTransform: "none",
-                fontWeight: 700,
-                fontSize: 11,
-                minHeight: 34,
-                bgcolor: UI.primary,
-                color: UI.onPrimary,
-                boxShadow: "none",
-                "&:hover": { bgcolor: UI.secondary, boxShadow: "none" },
-              }}
-            >
-              Follow
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              startIcon={<FlagOutlinedIcon sx={{ fontSize: 16 }} />}
-              sx={{
-                borderRadius: 1.6,
-                textTransform: "none",
-                fontWeight: 700,
-                fontSize: 11,
-                minHeight: 34,
-                borderColor: UI.border,
-                color: UI.text,
-                minWidth: 0,
-                px: 1,
-              }}
-            >
-              Report
-            </Button>
-          </Stack>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={(e) => { e.stopPropagation(); handleViewStore(); }}
+            startIcon={<HiOutlineBuildingStorefront style={{ fontSize: 16 }} />}
+            sx={{
+              borderRadius: '12px',
+              textTransform: "none",
+              fontWeight: 800,
+              fontSize: '0.78rem',
+              py: 0.85,
+              bgcolor: UI.primary,
+              color: UI.onPrimary,
+              boxShadow: "none",
+              "&:hover": { bgcolor: UI.secondary, boxShadow: "none" },
+            }}
+          >
+            View Store
+          </Button>
         </Stack>
       </CardContent>
     </Card>
@@ -871,47 +940,98 @@ function AdBannerCard({ item }) {
 }
 
 function OnlineB2BAdCard({ item }) {
+  const navigate = useNavigate();
   return (
     <Card
+      onClick={() => navigate('/business/online-marketplace')}
       sx={{
-        minWidth: { xs: "76vw", sm: 292 },
-        width: { xs: "76vw", sm: 292 },
-        maxWidth: 292,
-        height: 136,
+        minWidth: { xs: "82vw", sm: 310 },
+        width: { xs: "82vw", sm: 310 },
+        maxWidth: 320,
+        height: 154,
         flexShrink: 0,
         scrollSnapAlign: "start",
-        borderRadius: '16px',
-        border: 0,
+        borderRadius: '18px',
+        border: '1px solid rgba(255,255,255,0.2)',
         overflow: "hidden",
         position: "relative",
-        bgcolor: UI.surface,
-        boxShadow: "0 4px 12px rgba(15, 23, 42, 0.08)",
-        backgroundImage: `linear-gradient(90deg, rgba(15, 23, 42, 0.78) 0%, rgba(15, 23, 42, 0.38) 58%, rgba(15, 23, 42, 0.08) 100%), url("${item.image}")`,
+        cursor: 'pointer',
+        boxShadow: "0 6px 18px rgba(15, 23, 42, 0.12)",
+        backgroundImage: `linear-gradient(90deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.65) 60%, rgba(15, 23, 42, 0.25) 100%), url("${item.image}")`,
         backgroundSize: "cover",
         backgroundPosition: "center",
+        transition: 'transform 0.22s ease-in-out',
+        '&:hover': { transform: 'translateY(-3px)' },
       }}
     >
       <Box
         sx={{
           position: "absolute",
           inset: 0,
-          p: 1.55,
+          p: 1.75,
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
         }}
       >
-        <Box sx={{ alignSelf: "flex-start", px: 0.9, py: 0.35, borderRadius: 999, bgcolor: alpha(UI.primary, 0.92), color: UI.onPrimary, fontSize: 10, fontWeight: 700, lineHeight: 1.2 }}>
-          Online B2B Ads
-        </Box>
-        <Box sx={{ maxWidth: "72%" }}>
-          <Typography sx={{ color: "#fff", fontSize: 15, fontWeight: 800, lineHeight: 1.15 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Box
+            sx={{
+              px: 1,
+              py: 0.35,
+              borderRadius: 999,
+              bgcolor: item.badgeColor || UI.primary,
+              color: "#fff",
+              fontSize: 10,
+              fontWeight: 800,
+              letterSpacing: '0.02em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {item.badge || 'Online B2B Ads'}
+          </Box>
+          <Box
+            sx={{
+              bgcolor: 'rgba(255, 255, 255, 0.18)',
+              color: '#fff',
+              fontSize: 9.5,
+              fontWeight: 700,
+              px: 0.9,
+              py: 0.25,
+              borderRadius: 999,
+            }}
+          >
+            {item.moq || 'Wholesale'}
+          </Box>
+        </Stack>
+
+        <Box sx={{ maxWidth: "85%" }}>
+          <Typography sx={{ color: "#fff", fontSize: 15, fontWeight: 900, lineHeight: 1.2 }}>
             {item.title}
           </Typography>
-          <Typography sx={{ color: alpha("#fff", 0.88), fontSize: 11.5, fontWeight: 600, mt: 0.45 }}>
+          <Typography sx={{ color: alpha("#fff", 0.9), fontSize: 11, fontWeight: 600, mt: 0.35 }}>
             {item.offer}
           </Typography>
         </Box>
+
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ pt: 0.5 }}>
+          <Typography sx={{ color: alpha("#fff", 0.75), fontSize: 10, fontWeight: 700 }}>
+            {item.supplier || 'Verified Merchant'}
+          </Typography>
+          <Box
+            sx={{
+              bgcolor: '#fff',
+              color: '#0f172a',
+              px: 1.25,
+              py: 0.45,
+              borderRadius: '8px',
+              fontSize: 10.5,
+              fontWeight: 800,
+            }}
+          >
+            {item.cta || 'View Offer →'}
+          </Box>
+        </Stack>
       </Box>
     </Card>
   );
@@ -1659,6 +1779,8 @@ function BusinessDashboard() {
   const [sponsoredShops, setSponsoredShops] = useState(ONLINE_B2B_ADS);
   const [featuredProducts, setFeaturedProducts] = useState(PRODUCTS);
   const [bannerAds, setBannerAds] = useState(ADS);
+  const [primeModalOpen, setPrimeModalOpen] = useState(false);
+  const [primeFeatureName, setPrimeFeatureName] = useState('access this feature');
 
   // Dynamic metrics fetching (Ads count)
   useEffect(() => {
@@ -1733,14 +1855,19 @@ function BusinessDashboard() {
       .then(data => {
         if (!data) return;
         if (Array.isArray(data.sponsored_shops) && data.sponsored_shops.length > 0) {
-          setSponsoredShops(data.sponsored_shops.map(ad => ({
+          const apiAds = data.sponsored_shops.map(ad => ({
             id: ad.id,
+            badge: "⚡ Wholesale Deal",
+            badgeColor: "#dc2626",
             title: ad.title || ad.shop_name || 'Sponsored Shop',
-            offer: ad.description || '',
+            offer: ad.description || 'Exclusive wholesale trade offer',
             image: resolveImageUrl(ad.image_url || ad.shop_image) || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=700&q=80',
             shopId: ad.shop_id,
-            sponsored: true,
-          })));
+            cta: 'View Offer →',
+            moq: 'Wholesale Trade',
+            supplier: 'Verified Supplier',
+          }));
+          setSponsoredShops([...apiAds, ...ONLINE_B2B_ADS]);
         }
         if (Array.isArray(data.featured_products) && data.featured_products.length > 0) {
           setFeaturedProducts(data.featured_products.map(ad => ({
@@ -1848,11 +1975,20 @@ function BusinessDashboard() {
       navigate("/business/orders");
       return;
     }
+    if (action === "packages" || action === "prime") {
+      navigate("/business/packages");
+      return;
+    }
     if (action === "passwordReset") {
       setActiveModal("passwordReset");
       return;
     }
     if (action === "addShop") {
+      if (!isMerchantPrime()) {
+        setPrimeFeatureName("add and register new merchant shops");
+        setPrimeModalOpen(true);
+        return;
+      }
       navigate("/business/shops");
       return;
     }
@@ -1860,39 +1996,12 @@ function BusinessDashboard() {
       navigate("/business/online-products");
       return;
     }
-    if (action === "inventory") {
-      navigate("/business/inventory");
-      return;
-    }
-    if (action === "kyc") {
-      navigate("/business/kyc");
-      return;
-    }
-    if (action === "completedOrders") {
-      setActiveModal("completedOrders");
-      return;
-    }
-    if (action === "terms") {
-      setActiveModal("terms");
-      return;
-    }
-    if (action === "refund") {
-      setActiveModal("refund");
-      return;
-    }
-    if (action === "refer") {
-      setActiveModal("refer");
-      return;
-    }
-    if (action === "logout") {
-      setActiveModal("logout");
-      return;
-    }
-    if (action === "ads") {
-      navigate("/business/ads");
-      return;
-    }
-    if (action === "inventoryManagement") {
+    if (action === "inventory" || action === "inventoryManagement") {
+      if (!isMerchantPrime()) {
+        setPrimeFeatureName("manage product inventory");
+        setPrimeModalOpen(true);
+        return;
+      }
       navigate("/business/inventory");
       return;
     }
@@ -2063,6 +2172,85 @@ function BusinessDashboard() {
               4.8 ★
             </Typography>
           </Card>
+        </Box>
+
+        {/* Prime Membership Status Banner */}
+        <Box
+          onClick={() => navigate('/business/packages')}
+          sx={{
+            p: 2,
+            borderRadius: '16px',
+            border: '1.5px solid #f59e0b',
+            background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 2px 10px rgba(245, 158, 11, 0.1)',
+            transition: 'all 0.18s',
+            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.2)' },
+            mb: 2,
+          }}
+        >
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: '12px',
+                bgcolor: '#f59e0b',
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <WorkspacePremiumOutlinedIcon sx={{ fontSize: 24 }} />
+            </Box>
+            <Box>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography sx={{ fontSize: '0.88rem', fontWeight: 900, color: '#92400e' }}>
+                  {isMerchantPrime() ? 'Trikonekt Prime Active' : 'Free Merchant Plan'}
+                </Typography>
+                <Chip
+                  size="small"
+                  label={isMerchantPrime() ? 'PRIME' : 'FREE'}
+                  sx={{
+                    height: 18,
+                    fontSize: '0.62rem',
+                    fontWeight: 900,
+                    bgcolor: isMerchantPrime() ? '#10b981' : '#f59e0b',
+                    color: '#fff',
+                  }}
+                />
+              </Stack>
+              <Typography sx={{ fontSize: '0.72rem', color: '#b45309', fontWeight: 600, mt: 0.2 }}>
+                {isMerchantPrime()
+                  ? 'All merchant features, shops & wholesale ordering unlocked'
+                  : 'Upgrade to ₹99/mo or ₹750/yr for unlimited shops, products & B2B orders'}
+              </Typography>
+            </Box>
+          </Stack>
+          <Button
+            size="small"
+            variant="contained"
+            sx={{
+              bgcolor: '#d97706',
+              color: '#fff',
+              fontWeight: 800,
+              fontSize: '0.72rem',
+              borderRadius: '10px',
+              px: 1.75,
+              py: 0.6,
+              textTransform: 'none',
+              boxShadow: 'none',
+              flexShrink: 0,
+              '&:hover': { bgcolor: '#b45309', boxShadow: 'none' },
+            }}
+          >
+            {isMerchantPrime() ? 'View Plan →' : 'Upgrade →'}
+          </Button>
         </Box>
 
         <Stack spacing={1.5}>
@@ -2490,6 +2678,12 @@ function BusinessDashboard() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <PrimeMembershipModal
+        open={primeModalOpen}
+        onClose={() => setPrimeModalOpen(false)}
+        featureName={primeFeatureName}
+      />
 
       <Snackbar
         open={!!toastMsg}

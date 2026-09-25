@@ -24,7 +24,11 @@ const BORDER = "#e2e8f0";
 
 export default function MerchantOrdersPage() {
   const navigate = useNavigate();
-  const token = localStorage.getItem('token_business') || localStorage.getItem('token_captain');
+  const token = localStorage.getItem('token_business') || 
+                localStorage.getItem('token_captain') || 
+                localStorage.getItem('captain_token') || 
+                localStorage.getItem('token') || 
+                localStorage.getItem('admin_token');
 
   const [profile, setProfile] = useState(null);
 
@@ -100,7 +104,7 @@ export default function MerchantOrdersPage() {
   // 4. Fetch offline payments
   const fetchPendingPayments = () => {
     if (!token) {
-      navigate('/login');
+      setLoading(false);
       return;
     }
 
@@ -113,9 +117,8 @@ export default function MerchantOrdersPage() {
       })
       .catch(err => {
         if (err.response?.status === 401) {
-          localStorage.removeItem('token_business');
-          localStorage.removeItem('token_captain');
-          navigate('/login');
+          setError('Session expired or unauthenticated. Please sign in with your mobile number.');
+          setLoading(false);
           return;
         }
         console.error('Failed to load merchant pending payments:', err);
@@ -127,7 +130,7 @@ export default function MerchantOrdersPage() {
   // 5. Fetch merchant shops (for online delivery assignment)
   const fetchMerchantShops = async () => {
     if (!token) {
-      navigate('/login');
+      setLoading(false);
       return;
     }
     try {
@@ -164,7 +167,7 @@ export default function MerchantOrdersPage() {
   // Load profile & default channelMode
   useEffect(() => {
     if (!token) {
-      navigate('/login');
+      setLoading(false);
       return;
     }
     setLoading(true);
@@ -193,7 +196,7 @@ export default function MerchantOrdersPage() {
       .finally(() => {
         setLoading(false);
       });
-  }, [token, navigate]);
+  }, [token]);
 
   // Initial loading triggers depending on channelMode
   useEffect(() => {
@@ -272,9 +275,8 @@ export default function MerchantOrdersPage() {
       })
       .catch(err => {
         if (err.response?.status === 401) {
-          localStorage.removeItem('token_business');
-          localStorage.removeItem('token_captain');
-          navigate('/login');
+          setError('Session expired or unauthenticated. Please sign in again.');
+          setActioningId(null);
           return;
         }
         console.error(`Failed to ${action.toLowerCase()} payment:`, err);
@@ -417,6 +419,50 @@ export default function MerchantOrdersPage() {
             </Typography>
           </Box>
         </Stack>
+
+        {/* Unauthenticated Sign-in Prompt Banner */}
+        {!token && (
+          <Box
+            sx={{
+              p: 2.5,
+              mb: 3,
+              borderRadius: '16px',
+              border: '1.5px solid #cbd5e1',
+              bgcolor: '#f8fafc',
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              justifyContent: 'space-between',
+              gap: 2,
+            }}
+          >
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>
+                Sign In to View Live Store Orders
+              </Typography>
+              <Typography sx={{ fontSize: '0.78rem', color: '#64748b', mt: 0.25 }}>
+                You are currently browsing in preview mode. Sign in with your registered mobile number to accept live orders and approve settlements.
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              onClick={() => navigate('/login')}
+              sx={{
+                bgcolor: PRIMARY,
+                fontWeight: 800,
+                fontSize: '0.78rem',
+                borderRadius: '10px',
+                px: 2.5,
+                py: 0.9,
+                textTransform: 'none',
+                flexShrink: 0,
+                '&:hover': { bgcolor: PRIMARY_DARK },
+              }}
+            >
+              Sign In with Mobile
+            </Button>
+          </Box>
+        )}
         
         {/* Toggle Channel selector pill buttons (Offline payments / Online deliveries) */}
         {showToggles && (

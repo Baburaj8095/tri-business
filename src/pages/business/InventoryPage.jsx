@@ -17,6 +17,24 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckIcon from "@mui/icons-material/Check";
+import PrimeMembershipModal from "../../components/business/PrimeMembershipModal";
+import { isMerchantPrime } from "../../utils/membershipHelper";
+
+const resolveImageUrl = (img) => {
+  if (!img) return null;
+  if (img.startsWith("http://") || img.startsWith("https://")) return img;
+  const apiBase = process.env.REACT_APP_API_URL || 'https://www.trikonekt.com/api';
+  let origin = '';
+  try {
+    const url = new URL(apiBase, window.location.origin);
+    origin = url.origin;
+  } catch (e) {
+    origin = window.location.origin;
+  }
+  const cleanImg = img.startsWith("/") ? img.slice(1) : img;
+  const mediaPath = cleanImg.startsWith("media/") ? cleanImg : `media/${cleanImg}`;
+  return `${origin}/${mediaPath}`;
+};
 
 import {
   getMerchantProfile,
@@ -89,6 +107,218 @@ const compressImage = (file, maxSizeMB = 0.8) => {
   });
 };
 
+function MobileInventoryProductCard({ p, onEdit, onDelete }) {
+  const defaultImg = "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80";
+  const rawImg = p.image || p.image_url || p.product_image;
+  const initialImg = rawImg ? resolveImageUrl(rawImg) : defaultImg;
+  const [imgSrc, setImgSrc] = useState(initialImg);
+
+  const qty = Number(p.stock_qty || p.stockQty || 0);
+  const price = Number(p.price || 0);
+  const mrp = Number(p.mrp || (price > 0 ? (price * 1.25).toFixed(0) : 0));
+  const discountPercent = p.discountPercent || (mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0);
+
+  let stockBadgeBg = "#ecfdf5";
+  let stockBadgeColor = "#059669";
+  let stockLabel = `In Stock (${qty} units)`;
+  if (qty === 0) {
+    stockBadgeBg = "#fef2f2";
+    stockBadgeColor = "#dc2626";
+    stockLabel = "Out of Stock";
+  } else if (qty <= 10) {
+    stockBadgeBg = "#fffbeb";
+    stockBadgeColor = "#d97706";
+    stockLabel = `Low Stock (${qty} left)`;
+  }
+
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        borderRadius: '18px',
+        border: '1px solid #e2e8f0',
+        bgcolor: '#ffffff',
+        boxShadow: '0 4px 12px rgba(15, 23, 42, 0.04)',
+        overflow: 'hidden',
+        transition: 'transform 0.15s, box-shadow 0.15s',
+        '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 8px 20px rgba(15, 23, 42, 0.08)' },
+      }}
+    >
+      <Stack direction="row" spacing={1.75} p={1.75}>
+        {/* Product Image Thumbnail */}
+        <Box sx={{ position: 'relative', width: 92, height: 92, flexShrink: 0 }}>
+          <Box
+            component="img"
+            src={imgSrc}
+            alt={p.title}
+            onError={() => setImgSrc(defaultImg)}
+            sx={{
+              width: 92,
+              height: 92,
+              borderRadius: '14px',
+              objectFit: 'cover',
+              bgcolor: '#f8fafc',
+              border: '1px solid #f1f5f9',
+            }}
+          />
+          {discountPercent > 0 && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 6,
+                left: 6,
+                bgcolor: '#dc2626',
+                color: '#fff',
+                fontSize: '0.62rem',
+                fontWeight: 900,
+                px: 0.75,
+                py: 0.2,
+                borderRadius: '6px',
+                lineHeight: 1.2,
+              }}
+            >
+              {discountPercent}% OFF
+            </Box>
+          )}
+        </Box>
+
+        {/* Product Details */}
+        <Box sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.35 }}>
+              <Chip
+                label={p.category || "General"}
+                size="small"
+                sx={{
+                  height: 18,
+                  fontSize: '0.65rem',
+                  fontWeight: 800,
+                  bgcolor: '#f1f5f9',
+                  color: '#475569',
+                  textTransform: 'uppercase',
+                }}
+              />
+              <Chip
+                label={p.is_active !== false ? "Active" : "Draft"}
+                size="small"
+                sx={{
+                  height: 18,
+                  fontSize: '0.65rem',
+                  fontWeight: 800,
+                  bgcolor: p.is_active !== false ? '#dcfce7' : '#f1f5f9',
+                  color: p.is_active !== false ? '#15803d' : '#64748b',
+                }}
+              />
+            </Stack>
+
+            <Typography
+              sx={{
+                fontWeight: 850,
+                fontSize: '0.92rem',
+                color: '#0f172a',
+                lineHeight: 1.25,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {p.title}
+            </Typography>
+          </div>
+
+          <Box sx={{ mt: 0.75 }}>
+            <Stack direction="row" alignItems="baseline" spacing={0.75}>
+              <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', color: '#1B4D3E' }}>
+                ₹{price.toFixed(2)}
+              </Typography>
+              {mrp > price && (
+                <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8', textDecoration: 'line-through', fontWeight: 600 }}>
+                  ₹{mrp.toFixed(2)}
+                </Typography>
+              )}
+            </Stack>
+
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                px: 1,
+                py: 0.25,
+                borderRadius: '6px',
+                bgcolor: stockBadgeBg,
+                color: stockBadgeColor,
+                fontSize: '0.68rem',
+                fontWeight: 800,
+                mt: 0.5,
+              }}
+            >
+              {stockLabel}
+            </Box>
+          </Box>
+        </Box>
+      </Stack>
+
+      {/* Quick Action Footer */}
+      <Box
+        sx={{
+          borderTop: '1px solid #f1f5f9',
+          px: 1.75,
+          py: 1,
+          bgcolor: '#fbfcfd',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+          SKU #{p.id}
+        </Typography>
+        <Stack direction="row" spacing={1}>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<EditOutlinedIcon sx={{ fontSize: 15 }} />}
+            onClick={() => onEdit(p)}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 800,
+              fontSize: '0.72rem',
+              py: 0.4,
+              px: 1.5,
+              borderColor: '#cbd5e1',
+              color: '#334155',
+              '&:hover': { bgcolor: '#f1f5f9', borderColor: '#94a3b8' },
+            }}
+          >
+            Edit
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteOutlineIcon sx={{ fontSize: 15 }} />}
+            onClick={() => onDelete(p.id)}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 800,
+              fontSize: '0.72rem',
+              py: 0.4,
+              px: 1.25,
+              borderColor: 'rgba(239, 68, 68, 0.4)',
+              '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.05)' },
+            }}
+          >
+            Delete
+          </Button>
+        </Stack>
+      </Box>
+    </Card>
+  );
+}
+
 export default function InventoryPage() {
   const navigate = useNavigate();
   
@@ -107,6 +337,7 @@ export default function InventoryPage() {
   // UI State
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState(null);
+  const [primeModalOpen, setPrimeModalOpen] = useState(false);
   
   // Add Form State
   const [formData, setFormData] = useState({
@@ -411,7 +642,13 @@ export default function InventoryPage() {
             <Button
               variant={isAddFormOpen ? "outlined" : "contained"}
               startIcon={isAddFormOpen ? <CloseIcon /> : <AddIcon />}
-              onClick={() => setIsAddFormOpen(!isAddFormOpen)}
+              onClick={() => {
+                if (!isAddFormOpen && !isMerchantPrime()) {
+                  setPrimeModalOpen(true);
+                  return;
+                }
+                setIsAddFormOpen(!isAddFormOpen);
+              }}
               color={isAddFormOpen ? "error" : "success"}
               sx={{ 
                 fontWeight: 800, 
@@ -1018,37 +1255,15 @@ export default function InventoryPage() {
               <Typography color="text.secondary" fontWeight={500}>Try adjusting your search or filters.</Typography>
             </Box>
           ) : isMobile ? (
-            <Stack spacing={2} p={2}>
-              {filteredProducts.map((p) => {
-                const qty = p.stock_qty || p.stockQty || 0;
-                let statusColor = "success";
-                let statusLabel = "In Stock";
-                if (qty === 0) { statusColor = "error"; statusLabel = "Out of Stock"; }
-                else if (qty <= 10) { statusColor = "warning"; statusLabel = "Low Stock"; }
-                if (!p.is_active) { statusColor = "default"; statusLabel = "Draft"; }
-
-                return (
-                  <Card key={p.id} variant="outlined" sx={{ borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                    <Stack direction="row" spacing={2} p={2}>
-                      <Box sx={{ width: 80, height: 80, borderRadius: '8px', flexShrink: 0, background: p.image ? `url(${p.image}) center/cover no-repeat` : "#f1f5f9", display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
-                        {!p.image && <ShoppingBagIcon sx={{ color: "#94a3b8" }} />}
-                      </Box>
-                      <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                        <Typography fontWeight={700} color="#0f172a" noWrap>{p.title}</Typography>
-                        <Typography fontSize="0.8rem" color="text.secondary" noWrap mb={1}>{p.category || "General"}</Typography>
-                        <Stack direction="row" alignItems="center" justifyContent="space-between">
-                          <Typography fontWeight={800} color="#228B22">₹{Number(p.price).toFixed(2)}</Typography>
-                          <Chip label={statusLabel} color={statusColor} size="small" sx={{ height: 20, fontSize: '0.7rem', fontWeight: 700 }} />
-                        </Stack>
-                      </Box>
-                    </Stack>
-                    <Box sx={{ borderTop: '1px solid #e2e8f0', p: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                      <Button size="small" variant="outlined" startIcon={<EditOutlinedIcon />} onClick={() => handleEditClick(p)} sx={{ textTransform: 'none', fontWeight: 600 }}>Edit</Button>
-                      <Button size="small" variant="outlined" color="error" startIcon={<DeleteOutlineIcon />} onClick={() => handleDelete(p.id)} sx={{ textTransform: 'none', fontWeight: 600 }}>Delete</Button>
-                    </Box>
-                  </Card>
-                );
-              })}
+            <Stack spacing={1.5} p={1.5}>
+              {filteredProducts.map((p) => (
+                <MobileInventoryProductCard
+                  key={p.id}
+                  p={p}
+                  onEdit={handleEditClick}
+                  onDelete={handleDelete}
+                />
+              ))}
             </Stack>
           ) : (
             <Box sx={{ width: '100%', height: 600 }}>
@@ -1163,6 +1378,12 @@ export default function InventoryPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <PrimeMembershipModal
+        open={primeModalOpen}
+        onClose={() => setPrimeModalOpen(false)}
+        featureName="add and list new products"
+      />
       </Container>
     </AppShell>
   );

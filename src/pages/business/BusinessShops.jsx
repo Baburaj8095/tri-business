@@ -41,8 +41,9 @@ import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import MapIcon from "@mui/icons-material/Map";
 import GpsFixedIcon from "@mui/icons-material/GpsFixed";
 import DescriptionIcon from "@mui/icons-material/Description";
-import AttachFileIcon from "@mui/icons-material/AttachFile";
 import { LuX } from "react-icons/lu";
+import PrimeMembershipModal from "../../components/business/PrimeMembershipModal";
+import { isMerchantPrime } from "../../utils/membershipHelper";
 
 import {
   listMyShops,
@@ -130,6 +131,7 @@ export default function BusinessShops() {
 
   // Search filter state for category selection
   const [categorySearch, setCategorySearch] = useState("");
+  const [primeModalOpen, setPrimeModalOpen] = useState(false);
 
   const shopImageRef = useRef(null);
   const bannerRef = useRef(null);
@@ -384,6 +386,10 @@ export default function BusinessShops() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.id && !isMerchantPrime()) {
+      setPrimeModalOpen(true);
+      return;
+    }
     if (!form.shop_name.trim()) { setError("Store Name is required."); return; }
     if (!form.contact_number.trim()) { setError("Mobile is required."); return; }
     if (!form.email.trim()) { setError("Email is required."); return; }
@@ -1244,6 +1250,12 @@ export default function BusinessShops() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <PrimeMembershipModal
+        open={primeModalOpen}
+        onClose={() => setPrimeModalOpen(false)}
+        featureName="add and register new merchant stores"
+      />
     </AppShell>
   );
 }
