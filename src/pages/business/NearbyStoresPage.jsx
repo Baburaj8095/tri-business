@@ -168,8 +168,9 @@ export default function NearbyStoresPage() {
               gap: 1.25,
               overflowX: 'auto',
               pb: 1,
-              '&::-webkit-scrollbar': { height: 4 },
-              '&::-webkit-scrollbar-thumb': { bgcolor: T.border, borderRadius: 2 },
+              '&::-webkit-scrollbar': { display: 'none' },
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
             }}
           >
             {categories.map((cat) => {
@@ -248,8 +249,12 @@ export default function NearbyStoresPage() {
                   >
                     <Box
                       component="img"
-                      src={store.image}
+                      src={store.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80'}
                       alt={store.name}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80';
+                      }}
                       sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   </Box>
@@ -303,63 +308,24 @@ export default function NearbyStoresPage() {
                       />
                     </Stack>
 
-                    {/* Action Buttons Row */}
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Button
-                        size="small"
-                        startIcon={<PhoneIcon sx={{ fontSize: 16 }} />}
-                        onClick={() => store.phone && window.open(`tel:${store.phone}`)}
-                        sx={{
-                          ...secondaryBtnSx,
-                          py: 0.5,
-                          px: 1.5,
-                          fontSize: '0.78rem',
-                          color: T.primary,
-                        }}
-                      >
-                        Call
-                      </Button>
-                      <Button
-                        size="small"
-                        startIcon={<PayIcon sx={{ fontSize: 16 }} />}
-                        onClick={() => navigate(`/business/shop/${store.id}`)}
-                        sx={{
-                          ...secondaryBtnSx,
-                          py: 0.5,
-                          px: 1.5,
-                          fontSize: '0.78rem',
-                        }}
-                      >
-                        Pay
-                      </Button>
-                      <Button
-                        size="small"
-                        startIcon={<DeliveryIcon sx={{ fontSize: 16 }} />}
-                        onClick={() => navigate(`/business/delivery`)}
-                        sx={{
-                          ...secondaryBtnSx,
-                          py: 0.5,
-                          px: 1.5,
-                          fontSize: '0.78rem',
-                        }}
-                      >
-                        Delivery
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        onClick={() => navigate(`/business/shop/${store.id}`)}
-                        sx={{
-                          ...primaryBtnSx,
-                          py: 0.55,
-                          px: 2,
-                          fontSize: '0.8rem',
-                          ml: 'auto',
-                        }}
-                      >
-                        View
-                      </Button>
-                    </Stack>
+                    {/* Single Primary View Store Action */}
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      onClick={() => navigate(`/business/shop/${store.id}`)}
+                      sx={{
+                        ...primaryBtnSx,
+                        py: 0.85,
+                        px: 2,
+                        fontSize: '0.82rem',
+                        fontWeight: 800,
+                        borderRadius: '10px',
+                        textTransform: 'none',
+                        boxShadow: 'none',
+                      }}
+                    >
+                      View Store
+                    </Button>
                   </Box>
                 </Card>
               </Grid>

@@ -2643,248 +2643,353 @@ function BusinessDashboard() {
         </Stack>
       </Box>
 
-      {/* Edit Profile Modal */}
-      <Dialog open={activeModal === 'edit'} onClose={() => setActiveModal(null)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '16px' } }}>
-        <DialogTitle sx={{ fontWeight: 800, color: UI.text, pb: 1 }}>Edit Business Profile</DialogTitle>
+      {/* Edit Profile Drawer */}
+      <Drawer
+        anchor="bottom"
+        open={activeModal === 'edit'}
+        onClose={() => setActiveModal(null)}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: '28px',
+            borderTopRightRadius: '28px',
+            maxWidth: 480,
+            mx: 'auto',
+            p: 3,
+            pt: 1.5,
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
+        <Typography sx={{ fontWeight: 800, fontSize: '1.2rem', color: UI.text, pb: 2 }}>Edit Business Profile</Typography>
         <Box component="form" onSubmit={handleEditSubmit}>
-          <DialogContent sx={{ pt: 1 }}>
-            <Stack spacing={2.5}>
-              <TextField
-                label="Business Name"
-                fullWidth
-                value={editForm.business_name}
-                onChange={(e) => setEditForm(p => ({ ...p, business_name: e.target.value }))}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '12px',
-                    bgcolor: '#fff',
-                    '& fieldset': { borderColor: alpha(UI.text, 0.15) },
-                    '&:hover fieldset': { borderColor: UI.primary },
-                    '&.Mui-focused fieldset': { borderColor: UI.primary, borderWidth: 2 },
-                  },
-                  '& .MuiInputLabel-root': { color: UI.textMuted, '&.Mui-focused': { color: UI.primary } },
-                  '& .MuiInputBase-input': { fontWeight: 600, color: UI.text },
-                }}
-              />
-              <TextField
-                label="Contact Number"
-                fullWidth
-                value={editForm.mobile_number}
-                onChange={(e) => setEditForm(p => ({ ...p, mobile_number: e.target.value }))}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '12px',
-                    bgcolor: '#fff',
-                    '& fieldset': { borderColor: alpha(UI.text, 0.15) },
-                    '&:hover fieldset': { borderColor: UI.primary },
-                    '&.Mui-focused fieldset': { borderColor: UI.primary, borderWidth: 2 },
-                  },
-                  '& .MuiInputLabel-root': { color: UI.textMuted, '&.Mui-focused': { color: UI.primary } },
-                  '& .MuiInputBase-input': { fontWeight: 600, color: UI.text },
-                }}
-              />
-              <TextField
-                label="Email Address"
-                fullWidth
-                type="email"
-                value={editForm.email}
-                onChange={(e) => setEditForm(p => ({ ...p, email: e.target.value }))}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '12px',
-                    bgcolor: '#fff',
-                    '& fieldset': { borderColor: alpha(UI.text, 0.15) },
-                    '&:hover fieldset': { borderColor: UI.primary },
-                    '&.Mui-focused fieldset': { borderColor: UI.primary, borderWidth: 2 },
-                  },
-                  '& .MuiInputLabel-root': { color: UI.textMuted, '&.Mui-focused': { color: UI.primary } },
-                  '& .MuiInputBase-input': { fontWeight: 600, color: UI.text },
-                }}
-              />
-              <TextField
-                label="Age"
-                fullWidth
-                type="number"
-                value={editForm.age}
-                onChange={(e) => setEditForm(p => ({ ...p, age: e.target.value }))}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '12px',
-                    bgcolor: '#fff',
-                    '& fieldset': { borderColor: alpha(UI.text, 0.15) },
-                    '&:hover fieldset': { borderColor: UI.primary },
-                    '&.Mui-focused fieldset': { borderColor: UI.primary, borderWidth: 2 },
-                  },
-                  '& .MuiInputLabel-root': { color: UI.textMuted, '&.Mui-focused': { color: UI.primary } },
-                  '& .MuiInputBase-input': { fontWeight: 600, color: UI.text },
-                }}
-              />
-              <TextField
-                label="Business Address"
-                fullWidth
-                multiline
-                rows={2}
-                value={editForm.address}
-                onChange={(e) => setEditForm(p => ({ ...p, address: e.target.value }))}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '12px',
-                    bgcolor: '#fff',
-                    '& fieldset': { borderColor: alpha(UI.text, 0.15) },
-                    '&:hover fieldset': { borderColor: UI.primary },
-                    '&.Mui-focused fieldset': { borderColor: UI.primary, borderWidth: 2 },
-                  },
-                  '& .MuiInputLabel-root': { color: UI.textMuted, '&.Mui-focused': { color: UI.primary } },
-                  '& .MuiInputBase-input': { fontWeight: 600, color: UI.text },
-                }}
-              />
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 3, pt: 1 }}>
+          <Stack spacing={2.5}>
+            <TextField
+              label="Business Name"
+              fullWidth
+              value={editForm.business_name}
+              onChange={(e) => setEditForm(p => ({ ...p, business_name: e.target.value }))}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  bgcolor: '#fff',
+                  '& fieldset': { borderColor: alpha(UI.text, 0.15) },
+                  '&:hover fieldset': { borderColor: UI.primary },
+                  '&.Mui-focused fieldset': { borderColor: UI.primary, borderWidth: 2 },
+                },
+                '& .MuiInputLabel-root': { color: UI.textMuted, '&.Mui-focused': { color: UI.primary } },
+                '& .MuiInputBase-input': { fontWeight: 600, color: UI.text },
+              }}
+            />
+            <TextField
+              label="Contact Number"
+              fullWidth
+              value={editForm.mobile_number}
+              onChange={(e) => setEditForm(p => ({ ...p, mobile_number: e.target.value }))}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  bgcolor: '#fff',
+                  '& fieldset': { borderColor: alpha(UI.text, 0.15) },
+                  '&:hover fieldset': { borderColor: UI.primary },
+                  '&.Mui-focused fieldset': { borderColor: UI.primary, borderWidth: 2 },
+                },
+                '& .MuiInputLabel-root': { color: UI.textMuted, '&.Mui-focused': { color: UI.primary } },
+                '& .MuiInputBase-input': { fontWeight: 600, color: UI.text },
+              }}
+            />
+            <TextField
+              label="Email Address"
+              fullWidth
+              type="email"
+              value={editForm.email}
+              onChange={(e) => setEditForm(p => ({ ...p, email: e.target.value }))}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  bgcolor: '#fff',
+                  '& fieldset': { borderColor: alpha(UI.text, 0.15) },
+                  '&:hover fieldset': { borderColor: UI.primary },
+                  '&.Mui-focused fieldset': { borderColor: UI.primary, borderWidth: 2 },
+                },
+                '& .MuiInputLabel-root': { color: UI.textMuted, '&.Mui-focused': { color: UI.primary } },
+                '& .MuiInputBase-input': { fontWeight: 600, color: UI.text },
+              }}
+            />
+            <TextField
+              label="Age"
+              fullWidth
+              type="number"
+              value={editForm.age}
+              onChange={(e) => setEditForm(p => ({ ...p, age: e.target.value }))}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  bgcolor: '#fff',
+                  '& fieldset': { borderColor: alpha(UI.text, 0.15) },
+                  '&:hover fieldset': { borderColor: UI.primary },
+                  '&.Mui-focused fieldset': { borderColor: UI.primary, borderWidth: 2 },
+                },
+                '& .MuiInputLabel-root': { color: UI.textMuted, '&.Mui-focused': { color: UI.primary } },
+                '& .MuiInputBase-input': { fontWeight: 600, color: UI.text },
+              }}
+            />
+            <TextField
+              label="Business Address"
+              fullWidth
+              multiline
+              rows={2}
+              value={editForm.address}
+              onChange={(e) => setEditForm(p => ({ ...p, address: e.target.value }))}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  bgcolor: '#fff',
+                  '& fieldset': { borderColor: alpha(UI.text, 0.15) },
+                  '&:hover fieldset': { borderColor: UI.primary },
+                  '&.Mui-focused fieldset': { borderColor: UI.primary, borderWidth: 2 },
+                },
+                '& .MuiInputLabel-root': { color: UI.textMuted, '&.Mui-focused': { color: UI.primary } },
+                '& .MuiInputBase-input': { fontWeight: 600, color: UI.text },
+              }}
+            />
+          </Stack>
+          <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ pt: 3, pb: 1 }}>
             <Button onClick={() => setActiveModal(null)} sx={{ textTransform: 'none', color: UI.textMuted, fontWeight: 700 }}>Cancel</Button>
-            <Button type="submit" disabled={loading} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
+            <Button type="submit" disabled={loading} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary }, borderRadius: '12px', px: 3 }}>
               Save Changes
             </Button>
-          </DialogActions>
-        </Box>
-      </Dialog>
-
-      {/* Wallet Dialog */}
-      <Dialog open={activeModal === 'wallet'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
-        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>Wallet Balance</DialogTitle>
-        <DialogContent>
-          <Box sx={{ 
-            background: 'linear-gradient(135deg, #1B4D3E 0%, #228B22 100%)', 
-            color: '#fff', 
-            borderRadius: 3, 
-            p: 3, 
-            textAlign: 'center',
-            boxShadow: '0 8px 24px rgba(34, 139, 34, 0.18)',
-            mb: 2,
-            minWidth: 240
-          }}>
-            <Typography sx={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.85)', mb: 1, fontWeight: 700 }}>Wallet Balance</Typography>
-            <Typography sx={{ fontSize: '1.8rem', fontWeight: 900 }}>₹ {Number(profile?.walletBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Typography>
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setActiveModal(null)} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Password Reset Dialog */}
-      <Dialog open={activeModal === 'passwordReset'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
-        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>Reset Password</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1, minWidth: 260 }}>
-            <TextField label="Current Password" type="password" fullWidth size="small" />
-            <TextField label="New Password" type="password" fullWidth size="small" />
-            <TextField label="Confirm New Password" type="password" fullWidth size="small" />
           </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setActiveModal(null)} sx={{ textTransform: 'none', color: UI.textMuted }}>Cancel</Button>
+        </Box>
+      </Drawer>
+
+      {/* Wallet Drawer */}
+      <Drawer
+        anchor="bottom"
+        open={activeModal === 'wallet'}
+        onClose={() => setActiveModal(null)}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: '28px',
+            borderTopRightRadius: '28px',
+            maxWidth: 480,
+            mx: 'auto',
+            p: 3,
+            pt: 1.5,
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
+        <Typography sx={{ fontWeight: 800, fontSize: '1.2rem', color: UI.text, mb: 2 }}>Wallet Balance</Typography>
+        <Box sx={{ 
+          background: 'linear-gradient(135deg, #1B4D3E 0%, #228B22 100%)', 
+          color: '#fff', 
+          borderRadius: 3, 
+          p: 3, 
+          textAlign: 'center',
+          boxShadow: '0 8px 24px rgba(34, 139, 34, 0.18)',
+          mb: 3
+        }}>
+          <Typography sx={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.85)', mb: 1, fontWeight: 700 }}>Available Balance</Typography>
+          <Typography sx={{ fontSize: '2rem', fontWeight: 900 }}>₹ {Number(profile?.walletBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Typography>
+        </Box>
+        <Button onClick={() => setActiveModal(null)} variant="contained" fullWidth sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', py: 1.25, borderRadius: '14px', '&:hover': { bgcolor: UI.secondary } }}>
+          Close
+        </Button>
+      </Drawer>
+
+      {/* Password Reset Drawer */}
+      <Drawer
+        anchor="bottom"
+        open={activeModal === 'passwordReset'}
+        onClose={() => setActiveModal(null)}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: '28px',
+            borderTopRightRadius: '28px',
+            maxWidth: 480,
+            mx: 'auto',
+            p: 3,
+            pt: 1.5,
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
+        <Typography sx={{ fontWeight: 800, fontSize: '1.2rem', color: UI.text, mb: 2 }}>Reset Password</Typography>
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          <TextField label="Current Password" type="password" fullWidth size="small" />
+          <TextField label="New Password" type="password" fullWidth size="small" />
+          <TextField label="Confirm New Password" type="password" fullWidth size="small" />
+        </Stack>
+        <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ pt: 3, pb: 1 }}>
+          <Button onClick={() => setActiveModal(null)} sx={{ textTransform: 'none', color: UI.textMuted, fontWeight: 700 }}>Cancel</Button>
           <Button 
             onClick={() => {
               setActiveModal(null);
               setToastMsg("Password reset request submitted successfully!");
             }} 
             variant="contained" 
-            sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}
+            sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', borderRadius: '12px', px: 3, '&:hover': { bgcolor: UI.secondary } }}
           >
             Submit
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Stack>
+      </Drawer>
 
-      {/* KYC Dialog */}
-      <Dialog open={activeModal === 'kyc'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
-        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>KYC Verification Details</DialogTitle>
-        <DialogContent>
-          <Typography sx={{ color: UI.textMuted, fontSize: 14, whiteSpace: 'pre-line', lineHeight: 1.6 }}>
-            Your business profile registration is active.
-            
-            To upgrade your account limits, verify or submit verification documents (GSTIN, PAN, and Shop Registration certificate), please navigate to the Shop Registration dashboard or contact support.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setActiveModal(null)} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* KYC Drawer */}
+      <Drawer
+        anchor="bottom"
+        open={activeModal === 'kyc'}
+        onClose={() => setActiveModal(null)}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: '28px',
+            borderTopRightRadius: '28px',
+            maxWidth: 480,
+            mx: 'auto',
+            p: 3,
+            pt: 1.5,
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
+        <Typography sx={{ fontWeight: 800, fontSize: '1.2rem', color: UI.text, mb: 1.5 }}>KYC Verification Details</Typography>
+        <Typography sx={{ color: UI.textMuted, fontSize: 14, whiteSpace: 'pre-line', lineHeight: 1.6, mb: 3 }}>
+          Your business profile registration is active.
+          
+          To upgrade your account limits, verify or submit verification documents (GSTIN, PAN, and Shop Registration certificate), please navigate to the Shop Registration dashboard or contact support.
+        </Typography>
+        <Button onClick={() => setActiveModal(null)} variant="contained" fullWidth sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', py: 1.25, borderRadius: '14px', '&:hover': { bgcolor: UI.secondary } }}>
+          Close
+        </Button>
+      </Drawer>
 
-      {/* Completed Orders Dialog */}
-      <Dialog open={activeModal === 'completedOrders'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
-        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>Completed Orders</DialogTitle>
-        <DialogContent>
-          <Typography sx={{ color: UI.textMuted, fontSize: 14, whiteSpace: 'pre-line', lineHeight: 1.6 }}>
-            Detailed summaries, transaction receipts, and pending customer payments are available under the Orders panel.
-            
-            Tap on "Go to Orders" below to view and manage customer payments.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3, pt: 1 }}>
-          <Button onClick={() => setActiveModal(null)} sx={{ textTransform: 'none', color: UI.textMuted, fontWeight: 700 }}>Close</Button>
-          <Button onClick={() => { setActiveModal(null); navigate("/business/orders"); }} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
+      {/* Completed Orders Drawer */}
+      <Drawer
+        anchor="bottom"
+        open={activeModal === 'completedOrders'}
+        onClose={() => setActiveModal(null)}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: '28px',
+            borderTopRightRadius: '28px',
+            maxWidth: 480,
+            mx: 'auto',
+            p: 3,
+            pt: 1.5,
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
+        <Typography sx={{ fontWeight: 800, fontSize: '1.2rem', color: UI.text, mb: 1.5 }}>Completed Orders</Typography>
+        <Typography sx={{ color: UI.textMuted, fontSize: 14, whiteSpace: 'pre-line', lineHeight: 1.6, mb: 3 }}>
+          Detailed summaries, transaction receipts, and pending customer payments are available under the Orders panel.
+          
+          Tap on "Go to Orders" below to view and manage customer payments.
+        </Typography>
+        <Stack direction="row" spacing={1.5} sx={{ pb: 1 }}>
+          <Button onClick={() => setActiveModal(null)} sx={{ textTransform: 'none', color: UI.textMuted, fontWeight: 700, flex: 1 }}>Close</Button>
+          <Button onClick={() => { setActiveModal(null); navigate("/business/orders"); }} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', flex: 1.5, borderRadius: '12px', py: 1.25, '&:hover': { bgcolor: UI.secondary } }}>
             Go to Orders
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Stack>
+      </Drawer>
 
-      {/* Terms Dialog */}
-      <Dialog open={activeModal === 'terms'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
-        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>Terms & Conditions</DialogTitle>
-        <DialogContent>
-          <Typography sx={{ color: UI.textMuted, fontSize: 14, whiteSpace: 'pre-line', lineHeight: 1.6 }}>
-            Welcome to Trikonekt Business. By enabling store integration, you agree to:
-            
-            1. Deliver genuine products to customers.
-            2. Maintain correct store locations and GPS coordinates.
-            3. Process eligible customer refunds in accordance with standard return windows.
-            
-            Trikonekt reserves the right to suspend store profiles that violate local trade guidelines.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setActiveModal(null)} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Terms Drawer */}
+      <Drawer
+        anchor="bottom"
+        open={activeModal === 'terms'}
+        onClose={() => setActiveModal(null)}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: '28px',
+            borderTopRightRadius: '28px',
+            maxWidth: 480,
+            mx: 'auto',
+            p: 3,
+            pt: 1.5,
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
+        <Typography sx={{ fontWeight: 800, fontSize: '1.2rem', color: UI.text, mb: 1.5 }}>Terms & Conditions</Typography>
+        <Typography sx={{ color: UI.textMuted, fontSize: 14, whiteSpace: 'pre-line', lineHeight: 1.6, mb: 3 }}>
+          Welcome to Trikonekt Business. By enabling store integration, you agree to:
+          
+          1. Deliver genuine products to customers.
+          2. Maintain correct store locations and GPS coordinates.
+          3. Process eligible customer refunds in accordance with standard return windows.
+          
+          Trikonekt reserves the right to suspend store profiles that violate local trade guidelines.
+        </Typography>
+        <Button onClick={() => setActiveModal(null)} variant="contained" fullWidth sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', py: 1.25, borderRadius: '14px', '&:hover': { bgcolor: UI.secondary } }}>
+          Close
+        </Button>
+      </Drawer>
 
-      {/* Refund Policy Dialog */}
-      <Dialog open={activeModal === 'refund'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
-        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>Refund Policy</DialogTitle>
-        <DialogContent>
-          <Typography sx={{ color: UI.textMuted, fontSize: 14, whiteSpace: 'pre-line', lineHeight: 1.6 }}>
-            Standard Refund Processing:
-            
-            Refunds for cancelled or returned customer orders are credited back to their wallet or bank accounts within 3 to 5 business days. Merchants are requested to verify return items before approving refund requests via the Shop dashboard.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setActiveModal(null)} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Refund Policy Drawer */}
+      <Drawer
+        anchor="bottom"
+        open={activeModal === 'refund'}
+        onClose={() => setActiveModal(null)}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: '28px',
+            borderTopRightRadius: '28px',
+            maxWidth: 480,
+            mx: 'auto',
+            p: 3,
+            pt: 1.5,
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
+        <Typography sx={{ fontWeight: 800, fontSize: '1.2rem', color: UI.text, mb: 1.5 }}>Refund Policy</Typography>
+        <Typography sx={{ color: UI.textMuted, fontSize: 14, whiteSpace: 'pre-line', lineHeight: 1.6, mb: 3 }}>
+          Standard Refund Processing:
+          
+          Refunds for cancelled or returned customer orders are credited back to their wallet or bank accounts within 3 to 5 business days. Merchants are requested to verify return items before approving refund requests via the Shop dashboard.
+        </Typography>
+        <Button onClick={() => setActiveModal(null)} variant="contained" fullWidth sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', py: 1.25, borderRadius: '14px', '&:hover': { bgcolor: UI.secondary } }}>
+          Close
+        </Button>
+      </Drawer>
 
-      {/* Refer Friends Dialog */}
-      <Dialog open={activeModal === 'refer'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
-        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>Refer Friends</DialogTitle>
-        <DialogContent>
-          <Typography sx={{ color: UI.textMuted, fontSize: 14, mb: 2 }}>
-            Share the joy of growing business together! Invite your friends to join Trikonekt Business using your Sponsor ID.
+      {/* Refer Friends Drawer */}
+      <Drawer
+        anchor="bottom"
+        open={activeModal === 'refer'}
+        onClose={() => setActiveModal(null)}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: '28px',
+            borderTopRightRadius: '28px',
+            maxWidth: 480,
+            mx: 'auto',
+            p: 3,
+            pt: 1.5,
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
+        <Typography sx={{ fontWeight: 800, fontSize: '1.2rem', color: UI.text, mb: 1.5 }}>Refer Friends</Typography>
+        <Typography sx={{ color: UI.textMuted, fontSize: 14, mb: 2 }}>
+          Share the joy of growing business together! Invite your friends to join Trikonekt Business using your Sponsor ID.
+        </Typography>
+        <Box sx={{ p: 2, bgcolor: alpha(UI.primary, 0.05), borderRadius: 2, border: `1px dashed ${UI.primary}`, textAlign: 'center', mb: 2 }}>
+          <Typography variant="caption" sx={{ color: UI.textMuted, fontWeight: 700 }}>YOUR SPONSOR ID</Typography>
+          <Typography variant="h6" sx={{ color: UI.primary, fontWeight: 900, mt: 0.5 }}>
+            {profile?.username || localStorage.getItem('username_business') || 'TRPN8095809500'}
           </Typography>
-          <Box sx={{ p: 2, bgcolor: alpha(UI.primary, 0.05), borderRadius: 2, border: `1px dashed ${UI.primary}`, textAlign: 'center', mb: 2 }}>
-            <Typography variant="caption" sx={{ color: UI.textMuted, fontWeight: 700 }}>YOUR SPONSOR ID</Typography>
-            <Typography variant="h6" sx={{ color: UI.primary, fontWeight: 900, mt: 0.5 }}>
-              {profile?.username || localStorage.getItem('username_business') || 'TRPN8095809500'}
-            </Typography>
-          </Box>
+        </Box>
+        <Stack spacing={1.5} sx={{ pb: 1 }}>
           <Button 
             fullWidth 
             variant="outlined" 
@@ -2892,33 +2997,45 @@ function BusinessDashboard() {
               navigator.clipboard.writeText(profile?.username || localStorage.getItem('username_business') || 'TRPN8095809500');
               setToastMsg("Referral code copied to clipboard!");
             }}
-            sx={{ textTransform: 'none', fontWeight: 800, borderRadius: 2 }}
+            sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '12px', py: 1.2 }}
           >
             Copy Code
           </Button>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setActiveModal(null)} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', '&:hover': { bgcolor: UI.secondary } }}>
+          <Button onClick={() => setActiveModal(null)} variant="contained" fullWidth sx={{ textTransform: 'none', fontWeight: 800, bgcolor: UI.primary, color: '#fff', py: 1.25, borderRadius: '14px', '&:hover': { bgcolor: UI.secondary } }}>
             Close
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Stack>
+      </Drawer>
 
-      {/* Logout Confirmation */}
-      <Dialog open={activeModal === 'logout'} onClose={() => setActiveModal(null)} PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}>
-        <DialogTitle sx={{ fontWeight: 800, color: UI.text }}>Confirm Logout</DialogTitle>
-        <DialogContent>
-          <Typography sx={{ color: UI.textMuted, fontSize: 14 }}>
-            Are you sure you want to log out of your business account? This will end your current session.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setActiveModal(null)} sx={{ textTransform: 'none', color: UI.textMuted, fontWeight: 700 }}>Cancel</Button>
-          <Button onClick={handleLogoutConfirm} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: 'error.main', color: '#fff' }}>
+      {/* Logout Confirmation Drawer */}
+      <Drawer
+        anchor="bottom"
+        open={activeModal === 'logout'}
+        onClose={() => setActiveModal(null)}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: '28px',
+            borderTopRightRadius: '28px',
+            maxWidth: 480,
+            mx: 'auto',
+            p: 3,
+            pt: 1.5,
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
+        <Typography sx={{ fontWeight: 800, fontSize: '1.2rem', color: UI.text, mb: 1.5 }}>Confirm Logout</Typography>
+        <Typography sx={{ color: UI.textMuted, fontSize: 14, mb: 3 }}>
+          Are you sure you want to log out of your business account? This will end your current session.
+        </Typography>
+        <Stack direction="row" spacing={1.5} sx={{ pb: 1 }}>
+          <Button onClick={() => setActiveModal(null)} sx={{ textTransform: 'none', color: UI.textMuted, fontWeight: 700, flex: 1 }}>Cancel</Button>
+          <Button onClick={handleLogoutConfirm} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, bgcolor: 'error.main', color: '#fff', flex: 1, borderRadius: '12px', py: 1.25, '&:hover': { bgcolor: 'error.dark' } }}>
             Log Out
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Stack>
+      </Drawer>
 
       <PrimeMembershipModal
         open={primeModalOpen}

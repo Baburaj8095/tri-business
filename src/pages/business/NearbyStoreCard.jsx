@@ -37,8 +37,12 @@ export default function NearbyStoreCard({ store }) {
         bgcolor: '#f1f5f9'
       }}>
         <img 
-          src={store.image} 
+          src={store.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80'} 
           alt={store.name} 
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80';
+          }}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
         />
       </Box>
@@ -63,32 +67,41 @@ export default function NearbyStoreCard({ store }) {
 
         {/* Stats Row */}
         <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: '6px' }}>
-          <Box sx={{ bgcolor: 'rgba(34, 139, 34, 0.1)', color: '#228B22', px: 1, py: 0.25, borderRadius: '4px', fontSize: '0.7rem', fontWeight: 800 }}>
+          <Box sx={{ bgcolor: 'rgba(5, 150, 105, 0.1)', color: '#059669', px: 1, py: 0.25, borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800 }}>
             5% Cashback
           </Box>
-          <Box sx={{ border: '1px solid #e2e8f0', px: 1, py: 0.25, borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700, color: '#475569', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Box sx={{ border: '1px solid #e2e8f0', px: 1, py: 0.25, borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, color: '#475569', display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <LuMapPin size={12} /> {store.distance || '1.2 Km'}
           </Box>
-          <Box sx={{ border: '1px solid #e2e8f0', px: 1, py: 0.25, borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700, color: '#475569', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Box sx={{ border: '1px solid #e2e8f0', px: 1, py: 0.25, borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, color: '#475569', display: 'flex', alignItems: 'center', gap: 0.5 }}>
             {store.rating} <LuStar size={12} style={{ color: '#f59e0b', fill: '#f59e0b' }} /> (202)
           </Box>
         </Stack>
 
-        {/* Action Buttons */}
-        <Stack direction="row" spacing={1} sx={{ mt: 'auto' }}>
-          <Button size="small" variant="outlined" sx={{ flex: 1, minWidth: 0, py: 0.6, fontSize: '0.7rem', fontWeight: 700, textTransform: 'none', color: '#228B22', borderColor: '#228B22', '&:hover': { bgcolor: 'rgba(34, 139, 34, 0.05)', borderColor: '#1B4D3E' } }} onClick={(e) => { e.stopPropagation(); alert('Calling shop...'); }}>
-            Call
+        {/* Single Primary Action Button */}
+        <Box sx={{ mt: 'auto' }}>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/business/shop/${store.id}`);
+            }}
+            sx={{
+              py: 0.85,
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 800,
+              fontSize: '0.82rem',
+              bgcolor: '#059669',
+              color: '#ffffff',
+              boxShadow: 'none',
+              '&:hover': { bgcolor: '#047857', boxShadow: 'none' },
+            }}
+          >
+            View Store
           </Button>
-          <Button size="small" variant="outlined" sx={{ flex: 1, minWidth: 0, py: 0.6, fontSize: '0.7rem', fontWeight: 700, textTransform: 'none', color: '#228B22', borderColor: '#228B22', '&:hover': { bgcolor: 'rgba(34, 139, 34, 0.05)', borderColor: '#1B4D3E' } }} onClick={(e) => { e.stopPropagation(); alert('Opening payment...'); }}>
-            Pay
-          </Button>
-          <Button size="small" variant="outlined" sx={{ flex: 1, minWidth: 0, py: 0.6, fontSize: '0.7rem', fontWeight: 700, textTransform: 'none', color: '#228B22', borderColor: '#228B22', '&:hover': { bgcolor: 'rgba(34, 139, 34, 0.05)', borderColor: '#1B4D3E' } }} onClick={(e) => { e.stopPropagation(); alert('Delivery options...'); }}>
-            Delivery
-          </Button>
-          <Button size="small" variant="contained" sx={{ flex: 1, minWidth: 0, py: 0.6, fontSize: '0.75rem', fontWeight: 800, textTransform: 'none', bgcolor: '#228B22', color: '#fff', boxShadow: 'none', '&:hover': { bgcolor: '#1B4D3E' } }}>
-            View
-          </Button>
-        </Stack>
+        </Box>
       </Box>
     </Box>
   );

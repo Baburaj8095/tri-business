@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Dialog,
-  DialogContent,
+  Drawer,
   Box,
   Typography,
   Button,
@@ -33,18 +32,19 @@ export default function PrimeMembershipModal({ open, onClose, featureName = "thi
   };
 
   return (
-    <Dialog
+    <Drawer
+      anchor="bottom"
       open={open}
       onClose={onClose}
-      maxWidth="xs"
-      fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '24px',
+          borderTopLeftRadius: '28px',
+          borderTopRightRadius: '28px',
+          maxWidth: 480,
+          mx: 'auto',
           overflow: 'hidden',
-          p: 0,
           border: '1px solid #e2e8f0',
-          boxShadow: '0 20px 40px rgba(15, 23, 42, 0.15)',
+          boxShadow: '0 -10px 40px rgba(15, 23, 42, 0.15)',
         },
       }}
     >
@@ -53,11 +53,13 @@ export default function PrimeMembershipModal({ open, onClose, featureName = "thi
         sx={{
           background: 'linear-gradient(135deg, #1B4D3E 0%, #228B22 100%)',
           p: 3,
+          pt: 1.5,
           color: '#ffffff',
           position: 'relative',
           textAlign: 'center',
         }}
       >
+        <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: 'rgba(255, 255, 255, 0.4)', mx: 'auto', mb: 1.5 }} />
         <IconButton
           onClick={onClose}
           sx={{
@@ -114,7 +116,7 @@ export default function PrimeMembershipModal({ open, onClose, featureName = "thi
       </Box>
 
       {/* Content */}
-      <DialogContent sx={{ p: 2.75, bgcolor: '#ffffff' }}>
+      <Box sx={{ p: 2.75, bgcolor: '#ffffff' }}>
         <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', mb: 1.5 }}>
           VIP Member Benefits:
         </Typography>
@@ -239,7 +241,7 @@ export default function PrimeMembershipModal({ open, onClose, featureName = "thi
             Maybe Later
           </Button>
         </Stack>
-      </DialogContent>
-    </Dialog>
+      </Box>
+    </Drawer>
   );
 }
