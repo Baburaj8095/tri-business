@@ -3,52 +3,14 @@ import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import {
   Box, Container, Typography, TextField, Button, Stack, Alert,
   CircularProgress, InputAdornment, IconButton, FormControlLabel,
-  Checkbox, Chip, Divider, Fade, Select, MenuItem, FormControl,
+  Checkbox, Chip, Select, MenuItem, FormControl,
 } from '@mui/material';
 import {
-  Verified, Phone, Email, Person, Lock, Visibility, VisibilityOff,
-  LocationOn, CheckCircle, ArrowBack, ArrowForward,
-  Shield, VerifiedUser, ContentCopy, Done, Store, Storefront,
-  Language, Check, LocalShipping, TrendingUp, Security,
-  Bolt, People, InfoOutlined, Business, Close,
+  Check, ArrowBack, ArrowForward, Person, Lock, Visibility, VisibilityOff,
+  Store, Storefront, Shield, CheckCircle, ContentCopy, Done,
+  Phone, LocationOn, Email,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
-
-/* ─── Executive Design Tokens ─── */
-const THEMES = {
-  BUSINESS: {
-    primary: '#047857',
-    primaryDark: '#064e3b',
-    primaryLight: '#ecfdf5',
-    accent: '#10b981',
-    gradient: 'linear-gradient(135deg, #047857 0%, #059669 100%)',
-    glow: 'rgba(4, 120, 87, 0.25)',
-    bg: '#f8fafc',
-    surface: '#ffffff',
-    text: '#0f172a',
-    textSecondary: '#475569',
-    textMuted: '#94a3b8',
-    border: '#e2e8f0',
-    error: '#ef4444',
-    success: '#10b981',
-  },
-  CAPTAIN: {
-    primary: '#0d9488',
-    primaryDark: '#0f766e',
-    primaryLight: '#ccfbf1',
-    accent: '#06b6d4',
-    gradient: 'linear-gradient(135deg, #0d9488 0%, #0891b2 100%)',
-    glow: 'rgba(13, 148, 136, 0.25)',
-    bg: '#f8fafc',
-    surface: '#ffffff',
-    text: '#0f172a',
-    textSecondary: '#475569',
-    textMuted: '#94a3b8',
-    border: '#e2e8f0',
-    error: '#ef4444',
-    success: '#10b981',
-  },
-};
 
 const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
   || window.REACT_APP_CAPTAIN_API_URL
@@ -57,7 +19,7 @@ const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
 const TOTAL_STEPS = 5;
 
 const CATEGORIES = [
-  "Grocery & Staples",
+  "Grocery & Daily Needs",
   "Dairy, Bread & Eggs",
   "Fruits & Vegetables",
   "Snacks & Packaged Food",
@@ -74,11 +36,11 @@ const CATEGORIES = [
 
 const slideVariants = {
   enter: (dir) => ({ x: dir > 0 ? 30 : -30, opacity: 0 }),
-  center: { x: 0, opacity: 1, transition: { duration: 0.22, ease: [0.4, 0, 0.2, 1] } },
+  center: { x: 0, opacity: 1, transition: { duration: 0.2, ease: [0.4, 0, 0.2, 1] } },
   exit: (dir) => ({ x: dir > 0 ? -30 : 30, opacity: 0, transition: { duration: 0.15 } }),
 };
 
-/* ─── Password Strength Helper ─── */
+/* ─── Password Strength ─── */
 const getStrength = (pwd) => {
   if (!pwd) return { score: 0, label: '', color: '#e2e8f0' };
   let s = 0;
@@ -94,44 +56,42 @@ const getStrength = (pwd) => {
   return { score: 100, label: 'Very Strong', color: '#047857' };
 };
 
-/* ─── Modern Input Style Helper ─── */
-const inputSx = (hasError, T) => ({
+/* ─── Clean Form Input Styling ─── */
+const inputSx = (hasError) => ({
   '& .MuiOutlinedInput-root': {
-    borderRadius: '14px',
+    borderRadius: '12px',
     bgcolor: '#ffffff',
-    fontSize: '0.95rem',
+    fontSize: '0.94rem',
     fontWeight: 600,
-    transition: 'all 0.2s ease',
+    transition: 'all 0.15s ease',
     '& fieldset': {
-      borderColor: hasError ? T.error : '#cbd5e1',
+      borderColor: hasError ? '#ef4444' : '#e2e8f0',
       borderWidth: 1.5,
     },
     '&:hover fieldset': {
-      borderColor: hasError ? T.error : T.primary,
+      borderColor: hasError ? '#ef4444' : '#047857',
     },
     '&.Mui-focused fieldset': {
-      borderColor: T.primary,
+      borderColor: '#047857',
       borderWidth: 2,
     },
     '&.Mui-focused': {
-      boxShadow: `0 0 0 3px ${T.glow}`,
+      boxShadow: '0 0 0 3px rgba(4, 120, 87, 0.12)',
     },
   },
   '& .MuiInputBase-input': {
-    py: 1.35,
-    px: 1.4,
+    py: 1.3,
+    px: 1.5,
   },
 });
 
-/* ─── Field Label ─── */
+/* ─── Clean Label ─── */
 const FieldLabel = ({ label, required = false, badge = null, error = null }) => (
   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.6 }}>
     <Typography sx={{
-      fontSize: '0.78rem',
-      fontWeight: 800,
+      fontSize: '0.8rem',
+      fontWeight: 700,
       color: error ? '#ef4444' : '#1e293b',
-      textTransform: 'uppercase',
-      letterSpacing: '0.04em',
     }}>
       {label} {required && <Box component="span" sx={{ color: '#ef4444' }}>*</Box>}
     </Typography>
@@ -144,7 +104,7 @@ const FieldLabel = ({ label, required = false, badge = null, error = null }) => 
 );
 
 /* ══════════════════════════════════════════════════
-   PRINCIPAL ARCHITECT REGISTRATION COMPONENT
+   UNIFIED REGISTER (MATCHING MOCKUP DESIGN THEME)
 ══════════════════════════════════════════════════ */
 const UnifiedRegister = ({ initialRole = null }) => {
   const navigate = useNavigate();
@@ -160,7 +120,6 @@ const UnifiedRegister = ({ initialRole = null }) => {
   };
 
   const [role, setRole] = useState(determineInitialRole);
-  const T = THEMES[role] || THEMES.BUSINESS;
 
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
@@ -170,22 +129,23 @@ const UnifiedRegister = ({ initialRole = null }) => {
   const [alertMsg, setAlertMsg] = useState('');
   const [copied, setCopied] = useState(false);
 
-  /* Sponsor State */
+  /* Sponsor state */
   const [sponsorId, setSponsorId] = useState('');
   const [sponsorVerifying, setSponsorVerifying] = useState(false);
   const [sponsorInfo, setSponsorInfo] = useState(null);
   const [sponsorError, setSponsorError] = useState('');
 
-  /* Password Toggles */
+  /* Password view toggles */
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   /* Form Data */
   const [form, setForm] = useState({
     businessName: '',
-    serviceMode: 'ONLINE', // 'ONLINE' | 'OFFLINE'
+    serviceMode: 'ONLINE', // 'ONLINE' | 'OFFLINE' | 'BOTH'
     businessModel: 'B2B',  // 'B2B' | 'B2C'
-    category: 'Grocery & Staples',
+    category: 'Grocery & Daily Needs',
+    gstin: '',
     address: '',
     fullName: '',
     phone: '',
@@ -200,13 +160,11 @@ const UnifiedRegister = ({ initialRole = null }) => {
     termsAccepted: true,
   });
 
-  /* URL Sponsor Detection */
   useEffect(() => {
     const ref = searchParams.get('ref') || searchParams.get('sponsor');
     if (ref) setSponsorId(ref.trim());
   }, [searchParams]);
 
-  /* Draft Save/Restore */
   const storageKey = `trikonekt_reg_${role.toLowerCase()}_draft`;
 
   useEffect(() => {
@@ -226,7 +184,6 @@ const UnifiedRegister = ({ initialRole = null }) => {
     }
   }, [form, sponsorId, submitted, storageKey]);
 
-  /* Track Switch Handler */
   const handleRoleChange = (newRole) => {
     if (newRole === role) return;
     setRole(newRole);
@@ -234,19 +191,16 @@ const UnifiedRegister = ({ initialRole = null }) => {
     setAlertMsg('');
     setSponsorInfo(null);
     setSponsorError('');
+    setStep(1);
   };
 
-  /* ── Universal Sponsor Verification ──
-     Guarantees that a 10-digit mobile number is validated as:
-     - Captain Partner (for Business registration)
-     - Trikonekt Member (for Captain registration)
-  */
+  /* ── Sponsor Verification ── */
   const verifySponsor = async () => {
     const id = sponsorId.trim();
     if (!id) {
       setSponsorError(role === 'BUSINESS'
-        ? "Enter your Captain's 10-digit Mobile or Captain ID"
-        : "Enter your sponsor's 10-digit Mobile or Sponsor ID");
+        ? "Enter your Captain's mobile number or ID"
+        : "Enter your sponsor's mobile number or ID");
       return;
     }
     setSponsorVerifying(true);
@@ -284,7 +238,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
       }
     } catch (_) {}
 
-    // Robust format fallback (Never reject a clean 10-digit phone)
+    // Clean 10-digit mobile fallback (Never rejects valid phone)
     if (is10DigitMobile) {
       if (role === 'BUSINESS') {
         setSponsorInfo({
@@ -319,7 +273,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
     setSponsorVerifying(false);
   };
 
-  /* ── Pincode Auto-Lookup (India Post API) ── */
+  /* ── Pincode Lookup ── */
   const handlePincodeChange = useCallback(async (raw) => {
     const val = raw.replace(/\D/g, '').slice(0, 6);
     setForm(prev => ({
@@ -368,20 +322,20 @@ const UnifiedRegister = ({ initialRole = null }) => {
     }
   }, []);
 
-  /* ── Step Validation ── */
+  /* ── Validation ── */
   const validate = (s) => {
     const e = {};
     if (s === 1) {
       if (!sponsorInfo || !sponsorInfo.valid) {
         e.sponsor = role === 'BUSINESS'
-          ? 'Please verify your Captain Sponsor to proceed'
-          : 'Please verify your Sponsor ID to proceed';
+          ? 'Verify your Captain Sponsor to proceed'
+          : 'Verify your Sponsor ID to proceed';
       }
     }
     if (s === 2) {
       if (role === 'BUSINESS') {
-        if (!form.businessName.trim()) e.businessName = 'Store / Business name is required';
-        if (!form.fullName.trim()) e.fullName = 'Owner full name is required';
+        if (!form.businessName.trim()) e.businessName = 'Business name is required';
+        if (!form.fullName.trim()) e.fullName = 'Owner name is required';
       } else {
         if (!form.fullName.trim()) e.fullName = 'Full name is required';
       }
@@ -390,7 +344,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
     }
     if (s === 3) {
       if (form.pincode.length !== 6) e.pincode = 'Valid 6-digit pincode is required';
-      if (role === 'BUSINESS' && !form.address.trim()) e.address = 'Store address / street is required';
+      if (role === 'BUSINESS' && !form.address.trim()) e.address = 'Store address is required';
     }
     if (s === 4) {
       if (form.password.length < 8) e.password = 'Password must be at least 8 characters';
@@ -419,7 +373,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  /* ── Submission ── */
+  /* ── Submit ── */
   const handleSubmit = async () => {
     if (!validate(5)) return;
     setLoading(true);
@@ -507,7 +461,6 @@ const UnifiedRegister = ({ initialRole = null }) => {
 
   const captainId = `CB${form.phone.replace(/\D/g, '')}`;
   const strength = getStrength(form.password);
-  const progressPercent = (step / TOTAL_STEPS) * 100;
 
   const copyId = () => {
     navigator.clipboard.writeText(captainId).then(() => {
@@ -516,132 +469,171 @@ const UnifiedRegister = ({ initialRole = null }) => {
     });
   };
 
-  const stepLabels = ['Sponsor', 'Details', 'Location', 'Security', 'Review'];
+  const stepLabels = role === 'BUSINESS'
+    ? ['Sponsor', 'Business', 'Store', 'Security', 'Review']
+    : ['Sponsor', 'Personal', 'Territory', 'Security', 'Review'];
 
-  /* ────────────────── RENDER ────────────────── */
   return (
     <Box sx={{
       minHeight: '100vh',
       bgcolor: '#ffffff',
       display: 'flex',
       flexDirection: 'column',
+      position: 'relative',
     }}>
-
-      {/* ── TOP APP BAR (Compact, Precision-Engineered, Mobile-Native) ── */}
+      {/* ── Top Curved Green Arc Accent (Matches Mockup) ── */}
       <Box sx={{
-        position: 'sticky',
+        position: 'absolute',
         top: 0,
-        zIndex: 100,
-        bgcolor: '#ffffff',
-        borderBottom: '1px solid #f1f5f9',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
+        left: 0,
+        right: 0,
+        height: 60,
+        background: 'linear-gradient(180deg, #047857 0%, rgba(4,120,87,0) 100%)',
+        opacity: 0.1,
+        pointerEvents: 'none',
+      }} />
+
+      {/* ── Top Header Bar (Matching Mockup: Back Button + Title + Role Toggle) ── */}
+      <Box sx={{
+        px: 2.5,
+        pt: 2.5,
+        pb: 1.5,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'relative',
+        zIndex: 10,
       }}>
-        <Container maxWidth="sm" disableGutters sx={{ px: 2, py: 1.2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-            
-            {/* Back Button */}
-            <IconButton
-              onClick={() => step > 1 ? back() : navigate('/login')}
-              size="small"
-              sx={{
-                bgcolor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                color: '#334155',
-                p: 0.85,
-                '&:hover': { bgcolor: '#f1f5f9' },
-              }}
-            >
-              <ArrowBack sx={{ fontSize: 18 }} />
-            </IconButton>
-
-            {/* Seamless Segmented Control Pill (No Wrapping) */}
-            <Box
-              sx={{
-                bgcolor: '#f1f5f9',
-                p: 0.4,
-                borderRadius: '12px',
-                display: 'flex',
-                gap: 0.4,
-              }}
-            >
-              <Button
-                onClick={() => handleRoleChange('BUSINESS')}
-                startIcon={<Store sx={{ fontSize: 16 }} />}
-                sx={{
-                  borderRadius: '9px',
-                  textTransform: 'none',
-                  fontSize: '0.82rem',
-                  fontWeight: role === 'BUSINESS' ? 900 : 700,
-                  bgcolor: role === 'BUSINESS' ? '#ffffff' : 'transparent',
-                  color: role === 'BUSINESS' ? '#047857' : '#64748b',
-                  boxShadow: role === 'BUSINESS' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                  px: 1.5,
-                  py: 0.5,
-                  minHeight: 32,
-                  transition: 'all 0.15s ease',
-                  '&:hover': { bgcolor: role === 'BUSINESS' ? '#ffffff' : 'rgba(255,255,255,0.4)' },
-                }}
-              >
-                Business
-              </Button>
-
-              <Button
-                onClick={() => handleRoleChange('CAPTAIN')}
-                startIcon={<Shield sx={{ fontSize: 16 }} />}
-                sx={{
-                  borderRadius: '9px',
-                  textTransform: 'none',
-                  fontSize: '0.82rem',
-                  fontWeight: role === 'CAPTAIN' ? 900 : 700,
-                  bgcolor: role === 'CAPTAIN' ? '#ffffff' : 'transparent',
-                  color: role === 'CAPTAIN' ? '#0d9488' : '#64748b',
-                  boxShadow: role === 'CAPTAIN' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                  px: 1.5,
-                  py: 0.5,
-                  minHeight: 32,
-                  transition: 'all 0.15s ease',
-                  '&:hover': { bgcolor: role === 'CAPTAIN' ? '#ffffff' : 'rgba(255,255,255,0.4)' },
-                }}
-              >
-                Captain
-              </Button>
-            </Box>
-
-            {/* Step Counter Pill */}
-            <Box sx={{
-              bgcolor: T.primaryLight,
-              color: T.primary,
-              px: 1.2,
-              py: 0.4,
-              borderRadius: '20px',
-              fontWeight: 800,
-              fontSize: '0.74rem',
-              letterSpacing: '0.02em',
-            }}>
-              {step}/{TOTAL_STEPS}
-            </Box>
-          </Box>
-        </Container>
-
-        {/* ── Hairline Gradient Progress Indicator ── */}
-        <Box sx={{ width: '100%', height: '3px', bgcolor: '#f1f5f9' }}>
-          <Box
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+          <IconButton
+            onClick={() => step > 1 ? back() : navigate('/login')}
+            size="small"
             sx={{
-              width: `${progressPercent}%`,
-              height: '100%',
-              background: T.gradient,
-              transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              p: 0.7,
+              color: '#0f172a',
+              '&:hover': { bgcolor: '#f1f5f9' },
             }}
-          />
+          >
+            <ArrowBack sx={{ fontSize: 20 }} />
+          </IconButton>
+
+          <Typography sx={{
+            fontWeight: 800,
+            fontSize: '1.05rem',
+            color: '#0f172a',
+            letterSpacing: '-0.02em',
+          }}>
+            {role === 'BUSINESS' ? 'Register as Business' : 'Register as Captain'}
+          </Typography>
+        </Box>
+
+        {/* Compact Role Switcher Pill */}
+        <Box sx={{
+          bgcolor: '#f1f5f9',
+          borderRadius: '20px',
+          p: 0.3,
+          display: 'flex',
+          gap: 0.3,
+        }}>
+          <Button
+            onClick={() => handleRoleChange('BUSINESS')}
+            sx={{
+              borderRadius: '16px',
+              textTransform: 'none',
+              fontSize: '0.74rem',
+              fontWeight: role === 'BUSINESS' ? 800 : 600,
+              py: 0.3,
+              px: 1.2,
+              minHeight: 26,
+              bgcolor: role === 'BUSINESS' ? '#ffffff' : 'transparent',
+              color: role === 'BUSINESS' ? '#047857' : '#64748b',
+              boxShadow: role === 'BUSINESS' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+            }}
+          >
+            Business
+          </Button>
+
+          <Button
+            onClick={() => handleRoleChange('CAPTAIN')}
+            sx={{
+              borderRadius: '16px',
+              textTransform: 'none',
+              fontSize: '0.74rem',
+              fontWeight: role === 'CAPTAIN' ? 800 : 600,
+              py: 0.3,
+              px: 1.2,
+              minHeight: 26,
+              bgcolor: role === 'CAPTAIN' ? '#ffffff' : 'transparent',
+              color: role === 'CAPTAIN' ? '#047857' : '#64748b',
+              boxShadow: role === 'CAPTAIN' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+            }}
+          >
+            Captain
+          </Button>
         </Box>
       </Box>
 
-      {/* ── MAIN WORKSPACE CONTAINER ── */}
-      <Container maxWidth="sm" sx={{ flex: 1, py: { xs: 2.5, sm: 4 }, display: 'flex', flexDirection: 'column' }}>
+      {/* ── Stepper Indicator (Exact Match to Mockup Connected Nodes) ── */}
+      {!submitted && (
+        <Box sx={{ px: 3, pt: 1, pb: 2.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {stepLabels.map((lbl, idx) => {
+              const stepNum = idx + 1;
+              const isDone = stepNum < step;
+              const isCurrent = stepNum === step;
 
-        {/* Error Notification */}
+              return (
+                <React.Fragment key={lbl}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Box sx={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      display: 'grid',
+                      placeItems: 'center',
+                      bgcolor: isCurrent || isDone ? '#047857' : '#ffffff',
+                      color: isCurrent || isDone ? '#ffffff' : '#94a3b8',
+                      border: isCurrent || isDone ? 'none' : '1.5px solid #cbd5e1',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      transition: 'all 0.2s',
+                    }}>
+                      {isDone ? <Check sx={{ fontSize: 16 }} /> : stepNum}
+                    </Box>
+                    <Typography sx={{
+                      fontSize: '0.68rem',
+                      fontWeight: isCurrent ? 800 : 600,
+                      color: isCurrent ? '#047857' : isDone ? '#0f172a' : '#94a3b8',
+                      mt: 0.5,
+                      letterSpacing: '0.01em',
+                    }}>
+                      {lbl}
+                    </Typography>
+                  </Box>
+
+                  {idx < stepLabels.length - 1 && (
+                    <Box sx={{
+                      flex: 1,
+                      maxWidth: 42,
+                      height: 2,
+                      bgcolor: stepNum < step ? '#047857' : '#e2e8f0',
+                      mx: 0.8,
+                      mb: 2.2,
+                      transition: 'all 0.2s',
+                    }} />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </Box>
+        </Box>
+      )}
+
+      {/* ── Main Form Body Container ── */}
+      <Container maxWidth="xs" sx={{ flex: 1, px: 3, pb: 4, display: 'flex', flexDirection: 'column' }}>
+
         {alertMsg && (
-          <Alert severity="error" onClose={() => setAlertMsg('')} sx={{ mb: 2.5, borderRadius: '12px' }}>
+          <Alert severity="error" onClose={() => setAlertMsg('')} sx={{ mb: 2, borderRadius: '12px' }}>
             {alertMsg}
           </Alert>
         )}
@@ -660,71 +652,45 @@ const UnifiedRegister = ({ initialRole = null }) => {
 
               {/* ══════════════════════════════════════════
                   STEP 1: SPONSOR VERIFICATION
+                  (Matches Mockup 4. / 3. Sponsor Verification)
               ══════════════════════════════════════════ */}
               {step === 1 && (
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  
-                  {/* Title & Context */}
-                  <Box sx={{ mb: 3 }}>
-                    <Typography sx={{
-                      fontSize: '0.75rem',
-                      fontWeight: 800,
-                      color: T.primary,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.08em',
-                      mb: 0.5,
-                    }}>
-                      Step 1 of 5 • {role === 'BUSINESS' ? 'Captain Link' : 'Sponsor Link'}
+                  <Box sx={{ mb: 2.5 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', letterSpacing: '-0.02em', mb: 0.4 }}>
+                      {role === 'BUSINESS' ? 'Captain Sponsor Verification' : 'Sponsor Verification'}
                     </Typography>
-
-                    <Typography sx={{
-                      fontWeight: 900,
-                      fontSize: { xs: '1.45rem', sm: '1.65rem' },
-                      color: '#0f172a',
-                      letterSpacing: '-0.03em',
-                      lineHeight: 1.25,
-                      mb: 0.8,
-                    }}>
-                      {role === 'BUSINESS' ? 'Connect Your Captain' : 'Sponsor Verification'}
-                    </Typography>
-
-                    <Typography sx={{ color: '#64748b', fontSize: '0.88rem', fontWeight: 500, lineHeight: 1.5 }}>
+                    <Typography sx={{ color: '#64748b', fontSize: '0.82rem', fontWeight: 500, lineHeight: 1.5 }}>
                       {role === 'BUSINESS'
-                        ? "Enter your territory Captain's 10-digit mobile number or Captain ID (CB...) to activate wholesale & local delivery."
-                        : "Enter your sponsor's 10-digit mobile number or partner code to activate your franchise territory."}
+                        ? "Enter your territory Captain's 10-digit mobile number or Captain ID (CB/TRPN) to link your store."
+                        : "Enter your sponsor's 10-digit mobile number or referral code to activate your franchise account."}
                     </Typography>
                   </Box>
 
-                  {/* Input Card Container */}
                   <Stack spacing={2} sx={{ mb: 3 }}>
                     <Box>
                       <FieldLabel
-                        label={role === 'BUSINESS' ? "Captain Mobile or ID" : "Sponsor Mobile or ID"}
+                        label={role === 'BUSINESS' ? "Captain Mobile Number or Sponsor ID" : "Sponsor Mobile Number or ID"}
                         required
                         error={sponsorError || errors.sponsor}
                       />
                       
-                      {/* Integrated Action Input Bar */}
+                      {/* Integrated Input + Inline Green Verify Button (Exact Match to Mockup) */}
                       <Box sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        border: `1.5px solid ${sponsorError || errors.sponsor ? '#ef4444' : sponsorInfo ? '#10b981' : '#cbd5e1'}`,
-                        borderRadius: '14px',
+                        border: `1.5px solid ${sponsorError || errors.sponsor ? '#ef4444' : sponsorInfo ? '#10b981' : '#e2e8f0'}`,
+                        borderRadius: '12px',
                         bgcolor: '#ffffff',
                         px: 1.5,
                         py: 0.5,
                         transition: 'all 0.2s',
-                        boxShadow: sponsorInfo ? '0 0 0 3px rgba(16, 185, 129, 0.15)' : 'none',
                         '&:focus-within': {
-                          borderColor: T.primary,
-                          boxShadow: `0 0 0 3px ${T.glow}`,
+                          borderColor: '#047857',
+                          boxShadow: '0 0 0 3px rgba(4, 120, 87, 0.12)',
                         },
                       }}>
-                        {role === 'BUSINESS' ? (
-                          <Shield sx={{ color: sponsorInfo ? T.primary : '#94a3b8', fontSize: 22, mr: 1 }} />
-                        ) : (
-                          <Person sx={{ color: sponsorInfo ? T.primary : '#94a3b8', fontSize: 22, mr: 1 }} />
-                        )}
+                        <Person sx={{ color: '#94a3b8', fontSize: 20, mr: 1 }} />
 
                         <TextField
                           fullWidth
@@ -735,40 +701,30 @@ const UnifiedRegister = ({ initialRole = null }) => {
                             setSponsorInfo(null);
                             setSponsorError('');
                           }}
-                          placeholder={role === 'BUSINESS' ? "10-digit phone or CB..." : "10-digit phone or TRPN..."}
+                          placeholder={role === 'BUSINESS' ? "e.g. 9876543210 or CB..." : "e.g. 9876543210 or TRPN..."}
                           onKeyDown={e => e.key === 'Enter' && verifySponsor()}
                           InputProps={{
                             disableUnderline: true,
-                            sx: { fontSize: '0.96rem', fontWeight: 600, color: '#0f172a' },
+                            sx: { fontSize: '0.92rem', fontWeight: 600, color: '#0f172a' },
                           }}
                         />
-
-                        {sponsorId && (
-                          <IconButton
-                            size="small"
-                            onClick={() => { setSponsorId(''); setSponsorInfo(null); setSponsorError(''); }}
-                            sx={{ color: '#94a3b8', p: 0.5, mr: 0.5 }}
-                          >
-                            <Close sx={{ fontSize: 16 }} />
-                          </IconButton>
-                        )}
 
                         <Button
                           onClick={verifySponsor}
                           disabled={sponsorVerifying || !sponsorId.trim()}
                           variant="contained"
                           sx={{
-                            borderRadius: '10px',
+                            borderRadius: '8px',
                             textTransform: 'none',
-                            fontWeight: 800,
-                            fontSize: '0.84rem',
-                            bgcolor: T.primary,
+                            fontWeight: 700,
+                            fontSize: '0.82rem',
+                            bgcolor: '#047857',
                             color: '#ffffff',
-                            px: 2,
-                            py: 0.7,
-                            minWidth: 78,
+                            px: 1.8,
+                            py: 0.6,
+                            minWidth: 70,
                             boxShadow: 'none',
-                            '&:hover': { bgcolor: T.primaryDark },
+                            '&:hover': { bgcolor: '#065f46' },
                           }}
                         >
                           {sponsorVerifying ? <CircularProgress size={16} color="inherit" /> : 'Verify'}
@@ -776,61 +732,56 @@ const UnifiedRegister = ({ initialRole = null }) => {
                       </Box>
 
                       {(sponsorError || errors.sponsor) && (
-                        <Typography sx={{ color: '#ef4444', fontSize: '0.78rem', fontWeight: 600, mt: 0.8 }}>
+                        <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.6 }}>
                           {sponsorError || errors.sponsor}
                         </Typography>
                       )}
                     </Box>
 
-                    {/* Verified Partner Confirmation Card */}
+                    {/* Verified Sponsor Confirmation Card (Exact Match to Mockup) */}
                     {sponsorInfo && (
-                      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-                        <Box sx={{
-                          bgcolor: '#f0fdf4',
-                          border: '1.5px solid #86efac',
-                          borderRadius: '14px',
-                          p: 1.8,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1.5,
-                        }}>
-                          <Box sx={{
-                            width: 38, height: 38, borderRadius: '10px', bgcolor: '#dcfce7',
-                            display: 'grid', placeItems: 'center', color: '#16a34a', flexShrink: 0,
-                          }}>
-                            <CheckCircle sx={{ fontSize: 22 }} />
-                          </Box>
-                          <Box sx={{ flex: 1 }}>
-                            <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#14532d' }}>
-                              {role === 'BUSINESS' ? 'Captain Partner Linked ✓' : 'Sponsor Verified ✓'}
-                            </Typography>
-                            <Typography sx={{ fontSize: '0.78rem', color: '#166534', fontWeight: 600 }}>
-                              {sponsorInfo.sponsorName || sponsorInfo.sponsorId}
-                            </Typography>
-                          </Box>
-                          <Chip
-                            label="Active"
-                            size="small"
-                            sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 800, fontSize: '0.7rem' }}
-                          />
+                      <Box sx={{
+                        bgcolor: '#f0fdf4',
+                        border: '1.5px solid #86efac',
+                        borderRadius: '12px',
+                        p: 1.5,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.2,
+                      }}>
+                        <CheckCircle sx={{ color: '#16a34a', fontSize: 20 }} />
+                        <Box sx={{ flex: 1 }}>
+                          <Typography sx={{ fontWeight: 800, fontSize: '0.84rem', color: '#14532d' }}>
+                            {role === 'BUSINESS' ? 'Captain Verified ✓' : 'Sponsor Verified ✓'}
+                          </Typography>
+                          <Typography sx={{ fontSize: '0.76rem', color: '#166534', fontWeight: 600 }}>
+                            {sponsorInfo.sponsorName || sponsorInfo.sponsorId}
+                          </Typography>
                         </Box>
-                      </motion.div>
+                        <Chip
+                          label="Active"
+                          size="small"
+                          sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 800, fontSize: '0.68rem', height: 22 }}
+                        />
+                      </Box>
                     )}
 
-                    {/* Clean Helper Micro-Guidance */}
+                    {/* Clean Helper Card (Exact Match to Mockup Screen 3 / 4) */}
                     <Box sx={{
                       bgcolor: '#f8fafc',
                       borderRadius: '12px',
-                      p: 1.8,
+                      p: 1.6,
                       border: '1px solid #e2e8f0',
                       display: 'flex',
                       alignItems: 'flex-start',
                       gap: 1,
                     }}>
-                      <InfoOutlined sx={{ color: '#64748b', fontSize: 18, mt: 0.1 }} />
-                      <Typography sx={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5, fontWeight: 500 }}>
+                      <Typography sx={{ color: '#047857', fontWeight: 800, fontSize: '0.85rem', mt: 0.1 }}>
+                        ⓘ
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.75rem', color: '#64748b', lineHeight: 1.45, fontWeight: 500 }}>
                         {role === 'BUSINESS'
-                          ? "Enter your local Captain's 10-digit mobile number, or their official franchise code starting with CB or TRPN."
+                          ? "Enter your territory Captain's 10-digit mobile number, or their official CB or TRPN code."
                           : "Enter any active Trikonekt member's 10-digit mobile number, or a fellow Captain's ID."}
                       </Typography>
                     </Box>
@@ -839,108 +790,51 @@ const UnifiedRegister = ({ initialRole = null }) => {
               )}
 
               {/* ══════════════════════════════════════════
-                  STEP 2: DETAILS
+                  STEP 2: BUSINESS / PERSONAL DETAILS
+                  (Matches Mockup Screen 4 & Screen 4 Captain)
               ══════════════════════════════════════════ */}
               {step === 2 && (
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Box sx={{ mb: 2.8 }}>
-                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: T.primary, textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.5 }}>
-                      Step 2 of 5 • {role === 'BUSINESS' ? 'Store & Owner' : 'Partner Profile'}
+                  <Box sx={{ mb: 2.5 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', letterSpacing: '-0.02em', mb: 0.4 }}>
+                      {role === 'BUSINESS' ? 'Business Details' : 'Personal Details'}
                     </Typography>
-                    <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.45rem', sm: '1.65rem' }, color: '#0f172a', letterSpacing: '-0.03em', lineHeight: 1.25, mb: 0.8 }}>
-                      {role === 'BUSINESS' ? 'Store Information' : 'Personal Details'}
-                    </Typography>
-                    <Typography sx={{ color: '#64748b', fontSize: '0.88rem', fontWeight: 500 }}>
-                      {role === 'BUSINESS' ? 'Tell us your trade name and primary contact details.' : 'Provide your legal name and primary mobile number.'}
+                    <Typography sx={{ color: '#64748b', fontSize: '0.82rem', fontWeight: 500 }}>
+                      {role === 'BUSINESS' ? 'Tell us about your business' : 'Provide your basic information'}
                     </Typography>
                   </Box>
 
-                  <Stack spacing={2.2} sx={{ mb: 3 }}>
+                  <Stack spacing={2} sx={{ mb: 3 }}>
                     {role === 'BUSINESS' && (
                       <Box>
-                        <FieldLabel label="Store / Trade Name" required error={errors.businessName} />
+                        <FieldLabel label="Business Name" required error={errors.businessName} />
                         <TextField
                           fullWidth
                           value={form.businessName}
                           onChange={e => setForm(p => ({ ...p, businessName: e.target.value }))}
-                          placeholder="e.g. Apex Supermarket & Traders"
-                          sx={inputSx(!!errors.businessName, T)}
-                          InputProps={{
-                            startAdornment: <InputAdornment position="start"><Storefront sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment>,
-                          }}
+                          placeholder="e.g. Online B2C"
+                          sx={inputSx(!!errors.businessName)}
                         />
-                        {errors.businessName && <Typography sx={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, mt: 0.5 }}>{errors.businessName}</Typography>}
-                      </Box>
-                    )}
-
-                    {/* Business Channel Selector (2 Clean Cards) */}
-                    {role === 'BUSINESS' && (
-                      <Box>
-                        <FieldLabel label="Operating Channel" required />
-                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.2 }}>
-                          <Box
-                            onClick={() => setForm(p => ({ ...p, serviceMode: 'ONLINE' }))}
-                            sx={{
-                              border: form.serviceMode === 'ONLINE' ? `2px solid ${T.primary}` : '1.5px solid #e2e8f0',
-                              bgcolor: form.serviceMode === 'ONLINE' ? T.primaryLight : '#ffffff',
-                              borderRadius: '12px',
-                              p: 1.5,
-                              cursor: 'pointer',
-                              transition: 'all 0.2s',
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.3 }}>
-                              <Language sx={{ color: form.serviceMode === 'ONLINE' ? T.primary : '#64748b', fontSize: 18 }} />
-                              <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: form.serviceMode === 'ONLINE' ? T.primaryDark : '#1e293b' }}>
-                                Online Store
-                              </Typography>
-                            </Box>
-                            <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }}>
-                              TriSarathi area delivery
-                            </Typography>
-                          </Box>
-
-                          <Box
-                            onClick={() => setForm(p => ({ ...p, serviceMode: 'OFFLINE' }))}
-                            sx={{
-                              border: form.serviceMode === 'OFFLINE' ? `2px solid ${T.primary}` : '1.5px solid #e2e8f0',
-                              bgcolor: form.serviceMode === 'OFFLINE' ? T.primaryLight : '#ffffff',
-                              borderRadius: '12px',
-                              p: 1.5,
-                              cursor: 'pointer',
-                              transition: 'all 0.2s',
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.3 }}>
-                              <Storefront sx={{ color: form.serviceMode === 'OFFLINE' ? T.primary : '#64748b', fontSize: 18 }} />
-                              <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: form.serviceMode === 'OFFLINE' ? T.primaryDark : '#1e293b' }}>
-                                Nearby Store
-                              </Typography>
-                            </Box>
-                            <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }}>
-                              Local walk-in discovery
-                            </Typography>
-                          </Box>
-                        </Box>
+                        {errors.businessName && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.businessName}</Typography>}
                       </Box>
                     )}
 
                     {role === 'BUSINESS' && (
                       <Box>
-                        <FieldLabel label="Store Category" required />
+                        <FieldLabel label="Business Category" required />
                         <FormControl fullWidth>
                           <Select
                             value={form.category}
                             onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
                             sx={{
-                              borderRadius: '14px', bgcolor: '#ffffff', fontSize: '0.94rem', fontWeight: 600,
-                              '& fieldset': { borderColor: '#cbd5e1', borderWidth: 1.5 },
-                              '&:hover fieldset': { borderColor: T.primary },
-                              '&.Mui-focused fieldset': { borderColor: T.primary, borderWidth: 2 },
+                              borderRadius: '12px', bgcolor: '#ffffff', fontSize: '0.92rem', fontWeight: 600,
+                              '& fieldset': { borderColor: '#e2e8f0', borderWidth: 1.5 },
+                              '&:hover fieldset': { borderColor: '#047857' },
+                              '&.Mui-focused fieldset': { borderColor: '#047857', borderWidth: 2 },
                             }}
                           >
                             {CATEGORIES.map(c => (
-                              <MenuItem key={c} value={c} sx={{ fontSize: '0.88rem', fontWeight: 600, py: 1 }}>
+                              <MenuItem key={c} value={c} sx={{ fontSize: '0.86rem', fontWeight: 600, py: 1 }}>
                                 {c}
                               </MenuItem>
                             ))}
@@ -949,19 +843,29 @@ const UnifiedRegister = ({ initialRole = null }) => {
                       </Box>
                     )}
 
+                    {role === 'BUSINESS' && (
+                      <Box>
+                        <FieldLabel label="GSTIN" badge="(Optional)" />
+                        <TextField
+                          fullWidth
+                          value={form.gstin}
+                          onChange={e => setForm(p => ({ ...p, gstin: e.target.value.toUpperCase() }))}
+                          placeholder="e.g. 29AAAAA0000A1Z5"
+                          sx={inputSx(false)}
+                        />
+                      </Box>
+                    )}
+
                     <Box>
-                      <FieldLabel label={role === 'BUSINESS' ? "Owner Full Name" : "Captain Full Name"} required error={errors.fullName} />
+                      <FieldLabel label={role === 'BUSINESS' ? "Owner Full Name" : "Full Name"} required error={errors.fullName} />
                       <TextField
                         fullWidth
                         value={form.fullName}
                         onChange={e => setForm(p => ({ ...p, fullName: e.target.value }))}
-                        placeholder="e.g. Ramesh Kumar"
-                        sx={inputSx(!!errors.fullName, T)}
-                        InputProps={{
-                          startAdornment: <InputAdornment position="start"><Person sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment>,
-                        }}
+                        placeholder="Ramesh Kumar"
+                        sx={inputSx(!!errors.fullName)}
                       />
-                      {errors.fullName && <Typography sx={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, mt: 0.5 }}>{errors.fullName}</Typography>}
+                      {errors.fullName && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.fullName}</Typography>}
                     </Box>
 
                     <Box>
@@ -970,130 +874,158 @@ const UnifiedRegister = ({ initialRole = null }) => {
                         fullWidth
                         value={form.phone}
                         onChange={e => setForm(p => ({ ...p, phone: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
-                        placeholder="10-digit number"
+                        placeholder="9876543210"
                         inputMode="numeric"
-                        sx={inputSx(!!errors.phone, T)}
+                        sx={inputSx(!!errors.phone)}
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <Typography sx={{ fontWeight: 800, color: '#64748b', fontSize: '0.9rem', mr: 0.5 }}>+91</Typography>
+                              <Typography sx={{ fontWeight: 700, color: '#64748b', fontSize: '0.88rem', mr: 0.5 }}>+91</Typography>
                             </InputAdornment>
                           ),
                         }}
                       />
-                      {errors.phone && <Typography sx={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, mt: 0.5 }}>{errors.phone}</Typography>}
+                      {errors.phone && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.phone}</Typography>}
                       {role === 'CAPTAIN' && form.phone.length === 10 && (
-                        <Typography sx={{ fontSize: '0.75rem', color: T.primary, fontWeight: 700, mt: 0.5 }}>
+                        <Typography sx={{ fontSize: '0.74rem', color: '#047857', fontWeight: 700, mt: 0.5 }}>
                           Your Captain ID will be: <strong>{captainId}</strong>
                         </Typography>
                       )}
                     </Box>
 
                     <Box>
-                      <FieldLabel label="Email Address" badge="Optional" error={errors.email} />
+                      <FieldLabel label="Email" badge="(Optional)" error={errors.email} />
                       <TextField
                         fullWidth
                         value={form.email}
                         onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                        placeholder="name@store.com"
+                        placeholder="merchant@trikonekt.com"
                         type="email"
-                        sx={inputSx(!!errors.email, T)}
-                        InputProps={{
-                          startAdornment: <InputAdornment position="start"><Email sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment>,
-                        }}
+                        sx={inputSx(!!errors.email)}
                       />
-                      {errors.email && <Typography sx={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, mt: 0.5 }}>{errors.email}</Typography>}
+                      {errors.email && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.email}</Typography>}
                     </Box>
                   </Stack>
                 </Box>
               )}
 
               {/* ══════════════════════════════════════════
-                  STEP 3: LOCATION
+                  STEP 3: STORE & LOCATION SETUP
+                  (Matches Mockup Screen 5 & Screen 6 Captain)
               ══════════════════════════════════════════ */}
               {step === 3 && (
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Box sx={{ mb: 2.8 }}>
-                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: T.primary, textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.5 }}>
-                      Step 3 of 5 • Territory
+                  <Box sx={{ mb: 2.5 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', letterSpacing: '-0.02em', mb: 0.4 }}>
+                      {role === 'BUSINESS' ? 'Set up your first store' : 'Territory & Location'}
                     </Typography>
-                    <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.45rem', sm: '1.65rem' }, color: '#0f172a', letterSpacing: '-0.03em', lineHeight: 1.25, mb: 0.8 }}>
-                      {role === 'BUSINESS' ? 'Store Address & Pincode' : 'Service Territory'}
-                    </Typography>
-                    <Typography sx={{ color: '#64748b', fontSize: '0.88rem', fontWeight: 500 }}>
-                      Enter your 6-digit pincode for automatic district & state lookup.
+                    <Typography sx={{ color: '#64748b', fontSize: '0.82rem', fontWeight: 500 }}>
+                      {role === 'BUSINESS' ? 'Add store details and location' : 'Set up your operating territory'}
                     </Typography>
                   </Box>
 
-                  <Stack spacing={2.2} sx={{ mb: 3 }}>
+                  <Stack spacing={2} sx={{ mb: 3 }}>
+                    {role === 'BUSINESS' && (
+                      <Box>
+                        <FieldLabel label="Store Name" required error={errors.businessName} />
+                        <TextField
+                          fullWidth
+                          value={form.businessName}
+                          onChange={e => setForm(p => ({ ...p, businessName: e.target.value }))}
+                          placeholder="Main Store"
+                          sx={inputSx(!!errors.businessName)}
+                        />
+                      </Box>
+                    )}
+
                     <Box>
                       <FieldLabel label="Postal Pincode" required error={errors.pincode} />
                       <TextField
                         fullWidth
                         value={form.pincode}
                         onChange={e => handlePincodeChange(e.target.value)}
-                        placeholder="6-digit pincode"
+                        placeholder="e.g. 560102"
                         inputMode="numeric"
-                        sx={inputSx(!!errors.pincode, T)}
+                        sx={inputSx(!!errors.pincode)}
                         InputProps={{
-                          startAdornment: <InputAdornment position="start"><LocationOn sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment>,
                           endAdornment: form.pincodeLoading ? (
-                            <InputAdornment position="end"><CircularProgress size={18} sx={{ color: T.primary }} /></InputAdornment>
+                            <InputAdornment position="end"><CircularProgress size={16} sx={{ color: '#047857' }} /></InputAdornment>
                           ) : form.pincodeVerified ? (
-                            <InputAdornment position="end"><CheckCircle sx={{ color: '#10b981', fontSize: 20 }} /></InputAdornment>
+                            <InputAdornment position="end"><CheckCircle sx={{ color: '#10b981', fontSize: 18 }} /></InputAdornment>
                           ) : null,
                         }}
                       />
-                      {errors.pincode && <Typography sx={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, mt: 0.5 }}>{errors.pincode}</Typography>}
+                      {errors.pincode && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.pincode}</Typography>}
                     </Box>
 
                     {role === 'BUSINESS' && (
                       <Box>
-                        <FieldLabel label="Store Street Address" required error={errors.address} />
+                        <FieldLabel label="Store Address" required error={errors.address} />
                         <TextField
                           fullWidth
                           value={form.address}
                           onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
-                          placeholder="Shop #, Street name, Landmark, Area"
-                          sx={inputSx(!!errors.address, T)}
+                          placeholder="Main Market Road, Bengaluru - 560102"
+                          sx={inputSx(!!errors.address)}
                         />
-                        {errors.address && <Typography sx={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, mt: 0.5 }}>{errors.address}</Typography>}
+                        {errors.address && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.address}</Typography>}
                       </Box>
                     )}
 
-                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.2 }}>
                       <Box>
                         <FieldLabel label="District / City" required />
                         <TextField
                           fullWidth
                           value={form.district}
                           onChange={e => setForm(p => ({ ...p, district: e.target.value }))}
-                          placeholder="District"
-                          sx={inputSx(false, T)}
+                          placeholder="Bengaluru"
+                          sx={inputSx(false)}
                         />
                       </Box>
-
                       <Box>
                         <FieldLabel label="State" required />
                         <TextField
                           fullWidth
                           value={form.state}
                           onChange={e => setForm(p => ({ ...p, state: e.target.value }))}
-                          placeholder="State"
-                          sx={inputSx(false, T)}
+                          placeholder="Karnataka"
+                          sx={inputSx(false)}
                         />
                       </Box>
                     </Box>
 
-                    {form.pincodeVerified && (
-                      <Box sx={{
-                        bgcolor: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: '12px', p: 1.5,
-                        display: 'flex', alignItems: 'center', gap: 1,
-                      }}>
-                        <CheckCircle sx={{ color: '#16a34a', fontSize: 18 }} />
-                        <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#15803d' }}>
-                          Location verified: {form.district || 'City'}, {form.state || 'Karnataka'}
-                        </Typography>
+                    {/* Fulfillment Mode Radio Pills (Exact Match to Mockup Screen 5) */}
+                    {role === 'BUSINESS' && (
+                      <Box>
+                        <FieldLabel label="Fulfillment Mode" required />
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          {[
+                            { id: 'ONLINE', label: 'Online' },
+                            { id: 'OFFLINE', label: 'Self Pickup' },
+                            { id: 'BOTH', label: 'Both' },
+                          ].map(mode => (
+                            <Button
+                              key={mode.id}
+                              onClick={() => setForm(p => ({ ...p, serviceMode: mode.id }))}
+                              startIcon={form.serviceMode === mode.id ? <Check sx={{ fontSize: 14 }} /> : null}
+                              sx={{
+                                flex: 1,
+                                borderRadius: '10px',
+                                textTransform: 'none',
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                py: 0.8,
+                                bgcolor: form.serviceMode === mode.id ? '#ecfdf5' : '#ffffff',
+                                color: form.serviceMode === mode.id ? '#047857' : '#64748b',
+                                border: form.serviceMode === mode.id ? '1.5px solid #047857' : '1.5px solid #e2e8f0',
+                                '&:hover': { bgcolor: '#f0fdf4' },
+                              }}
+                            >
+                              {mode.label}
+                            </Button>
+                          ))}
+                        </Box>
                       </Box>
                     )}
                   </Stack>
@@ -1101,23 +1033,20 @@ const UnifiedRegister = ({ initialRole = null }) => {
               )}
 
               {/* ══════════════════════════════════════════
-                  STEP 4: PASSWORD
+                  STEP 4: SECURITY / PASSWORD
               ══════════════════════════════════════════ */}
               {step === 4 && (
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Box sx={{ mb: 2.8 }}>
-                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: T.primary, textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.5 }}>
-                      Step 4 of 5 • Security
+                  <Box sx={{ mb: 2.5 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', letterSpacing: '-0.02em', mb: 0.4 }}>
+                      Account Security
                     </Typography>
-                    <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.45rem', sm: '1.65rem' }, color: '#0f172a', letterSpacing: '-0.03em', lineHeight: 1.25, mb: 0.8 }}>
-                      Set Account Password
-                    </Typography>
-                    <Typography sx={{ color: '#64748b', fontSize: '0.88rem', fontWeight: 500 }}>
-                      Create a strong password to safeguard your store data and orders.
+                    <Typography sx={{ color: '#64748b', fontSize: '0.82rem', fontWeight: 500 }}>
+                      Set a password to protect your store and login credentials
                     </Typography>
                   </Box>
 
-                  <Stack spacing={2.2} sx={{ mb: 3 }}>
+                  <Stack spacing={2} sx={{ mb: 3 }}>
                     <Box>
                       <FieldLabel label="Password" required error={errors.password} />
                       <TextField
@@ -1126,9 +1055,8 @@ const UnifiedRegister = ({ initialRole = null }) => {
                         value={form.password}
                         onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
                         placeholder="Minimum 8 characters"
-                        sx={inputSx(!!errors.password, T)}
+                        sx={inputSx(!!errors.password)}
                         InputProps={{
-                          startAdornment: <InputAdornment position="start"><Lock sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment>,
                           endAdornment: (
                             <InputAdornment position="end">
                               <IconButton onClick={() => setShowPwd(v => !v)} edge="end" size="small">
@@ -1138,20 +1066,20 @@ const UnifiedRegister = ({ initialRole = null }) => {
                           ),
                         }}
                       />
-                      {errors.password && <Typography sx={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, mt: 0.5 }}>{errors.password}</Typography>}
+                      {errors.password && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.password}</Typography>}
 
                       {form.password && (
-                        <Box sx={{ mt: 1.2 }}>
+                        <Box sx={{ mt: 1 }}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.4 }}>
-                            <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>Strength</Typography>
-                            <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: strength.color }}>{strength.label}</Typography>
+                            <Typography sx={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700 }}>Strength</Typography>
+                            <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: strength.color }}>{strength.label}</Typography>
                           </Box>
                           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0.6 }}>
                             {[20, 40, 60, 80, 100].map((th) => (
                               <Box
                                 key={th}
                                 sx={{
-                                  height: 4,
+                                  height: 3,
                                   borderRadius: 2,
                                   bgcolor: strength.score >= th ? strength.color : '#e2e8f0',
                                   transition: 'all 0.2s',
@@ -1171,9 +1099,8 @@ const UnifiedRegister = ({ initialRole = null }) => {
                         value={form.confirmPassword}
                         onChange={e => setForm(p => ({ ...p, confirmPassword: e.target.value }))}
                         placeholder="Re-enter password"
-                        sx={inputSx(!!errors.confirmPassword, T)}
+                        sx={inputSx(!!errors.confirmPassword)}
                         InputProps={{
-                          startAdornment: <InputAdornment position="start"><Lock sx={{ color: '#94a3b8', fontSize: 20 }} /></InputAdornment>,
                           endAdornment: (
                             <InputAdornment position="end">
                               <IconButton onClick={() => setShowConfirm(v => !v)} edge="end" size="small">
@@ -1183,10 +1110,10 @@ const UnifiedRegister = ({ initialRole = null }) => {
                           ),
                         }}
                       />
-                      {errors.confirmPassword && <Typography sx={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, mt: 0.5 }}>{errors.confirmPassword}</Typography>}
+                      {errors.confirmPassword && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.confirmPassword}</Typography>}
                       {form.confirmPassword && form.confirmPassword === form.password && (
-                        <Typography sx={{ fontSize: '0.76rem', color: '#16a34a', fontWeight: 700, mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <CheckCircle sx={{ fontSize: 15 }} /> Passwords match
+                        <Typography sx={{ fontSize: '0.74rem', color: '#16a34a', fontWeight: 700, mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                          <CheckCircle sx={{ fontSize: 14 }} /> Passwords match
                         </Typography>
                       )}
                     </Box>
@@ -1195,75 +1122,95 @@ const UnifiedRegister = ({ initialRole = null }) => {
               )}
 
               {/* ══════════════════════════════════════════
-                  STEP 5: REVIEW
+                  STEP 5: REVIEW & SUBMIT
+                  (Matches Mockup Screen 7 Review & Submit)
               ══════════════════════════════════════════ */}
               {step === 5 && (
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Box sx={{ mb: 2.8 }}>
-                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: T.primary, textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.5 }}>
-                      Step 5 of 5 • Final Review
+                  <Box sx={{ mb: 2 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', letterSpacing: '-0.02em', mb: 0.3 }}>
+                      Review & Submit
                     </Typography>
-                    <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.45rem', sm: '1.65rem' }, color: '#0f172a', letterSpacing: '-0.03em', lineHeight: 1.25, mb: 0.8 }}>
-                      Confirm & Activate
-                    </Typography>
-                    <Typography sx={{ color: '#64748b', fontSize: '0.88rem', fontWeight: 500 }}>
-                      Review your details before completing registration.
+                    <Typography sx={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>
+                      Please review your information
                     </Typography>
                   </Box>
 
-                  <Stack spacing={2} sx={{ mb: 3 }}>
-                    <Box sx={{ bgcolor: '#f8fafc', borderRadius: '14px', border: '1.5px solid #e2e8f0', p: 2 }}>
+                  <Stack spacing={1.8} sx={{ mb: 3 }}>
+                    {/* Details Box */}
+                    <Box sx={{ bgcolor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', p: 1.8 }}>
+                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 1 }}>
+                        Personal & Store Details
+                      </Typography>
                       {[
-                        { label: 'Role', value: role === 'BUSINESS' ? 'Business Merchant' : 'Captain Partner', highlight: true },
-                        { label: 'Sponsor', value: `${sponsorInfo?.sponsorName || sponsorId}` },
-                        ...(role === 'BUSINESS' ? [
-                          { label: 'Store Name', value: form.businessName, highlight: true },
-                          { label: 'Channel', value: form.serviceMode === 'ONLINE' ? 'Online Delivery' : 'Nearby Store' },
-                          { label: 'Category', value: form.category },
-                          { label: 'Address', value: form.address || `${form.district}, Pincode: ${form.pincode}` },
-                        ] : [
-                          { label: 'Captain ID', value: captainId, highlight: true },
-                        ]),
-                        { label: 'Owner / Name', value: form.fullName },
+                        { label: 'Name', value: form.fullName },
                         { label: 'Mobile', value: `+91 ${form.phone}` },
                         { label: 'Email', value: form.email || '—' },
-                        { label: 'Pincode', value: `${form.district || 'City'} (${form.pincode})` },
-                      ].map(({ label, value, highlight }, i) => (
-                        <Box key={label} sx={{
-                          display: 'flex', justifyContent: 'space-between', py: 0.8,
-                          borderBottom: i < 6 ? '1px solid #f1f5f9' : 'none',
-                        }}>
-                          <Typography sx={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>{label}</Typography>
-                          <Typography sx={{ fontSize: '0.8rem', color: highlight ? T.primary : '#0f172a', fontWeight: highlight ? 900 : 700 }}>
-                            {value}
-                          </Typography>
+                        ...(role === 'BUSINESS' ? [
+                          { label: 'Business Name', value: form.businessName },
+                          { label: 'Category', value: form.category },
+                        ] : [
+                          { label: 'Captain ID', value: captainId },
+                        ]),
+                      ].map(item => (
+                        <Box key={item.label} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.4 }}>
+                          <Typography sx={{ fontSize: '0.76rem', color: '#64748b' }}>{item.label}</Typography>
+                          <Typography sx={{ fontSize: '0.78rem', color: '#0f172a', fontWeight: 700 }}>{item.value}</Typography>
                         </Box>
                       ))}
                     </Box>
 
-                    <Box>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={form.termsAccepted}
-                            onChange={e => setForm(p => ({ ...p, termsAccepted: e.target.checked }))}
-                            sx={{ color: errors.termsAccepted ? '#ef4444' : T.primary, '&.Mui-checked': { color: T.primary } }}
-                          />
-                        }
-                        label={
-                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#334155' }}>
-                            I agree to Trikonekt's <Box component="span" sx={{ color: T.primary, fontWeight: 800 }}>Terms of Service</Box> and <Box component="span" sx={{ color: T.primary, fontWeight: 800 }}>Merchant Policy</Box>
-                          </Typography>
-                        }
-                      />
-                      {errors.termsAccepted && <Typography sx={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, ml: 4 }}>{errors.termsAccepted}</Typography>}
+                    {/* Sponsor Details Box */}
+                    <Box sx={{ bgcolor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', p: 1.8 }}>
+                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 1 }}>
+                        Sponsor Details
+                      </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.4 }}>
+                        <Typography sx={{ fontSize: '0.76rem', color: '#64748b' }}>Sponsor ID</Typography>
+                        <Typography sx={{ fontSize: '0.78rem', color: '#0f172a', fontWeight: 700 }}>{sponsorInfo?.sponsorId || sponsorId}</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.4 }}>
+                        <Typography sx={{ fontSize: '0.76rem', color: '#64748b' }}>Status</Typography>
+                        <Typography sx={{ fontSize: '0.78rem', color: '#16a34a', fontWeight: 800 }}>Verified ✓</Typography>
+                      </Box>
                     </Box>
+
+                    {/* Territory Details Box */}
+                    <Box sx={{ bgcolor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', p: 1.8 }}>
+                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 1 }}>
+                        Territory & Location
+                      </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.4 }}>
+                        <Typography sx={{ fontSize: '0.76rem', color: '#64748b' }}>Location</Typography>
+                        <Typography sx={{ fontSize: '0.78rem', color: '#0f172a', fontWeight: 700 }}>{form.district || 'Bengaluru'}, {form.state || 'Karnataka'}</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.4 }}>
+                        <Typography sx={{ fontSize: '0.76rem', color: '#64748b' }}>Pincode</Typography>
+                        <Typography sx={{ fontSize: '0.78rem', color: '#0f172a', fontWeight: 700 }}>{form.pincode}</Typography>
+                      </Box>
+                    </Box>
+
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={form.termsAccepted}
+                          onChange={e => setForm(p => ({ ...p, termsAccepted: e.target.checked }))}
+                          sx={{ color: '#047857', '&.Mui-checked': { color: '#047857' } }}
+                          size="small"
+                        />
+                      }
+                      label={
+                        <Typography sx={{ fontSize: '0.78rem', color: '#334155', fontWeight: 600 }}>
+                          I agree to Trikonekt's <Box component="span" sx={{ color: '#047857', fontWeight: 700 }}>Terms of Service</Box> and <Box component="span" sx={{ color: '#047857', fontWeight: 700 }}>Privacy Policy</Box>
+                        </Typography>
+                      }
+                    />
                   </Stack>
                 </Box>
               )}
 
-              {/* ── ERGONOMIC FULL-WIDTH BOTTOM BUTTON ── */}
-              <Box sx={{ mt: 'auto', pt: 2 }}>
+              {/* ── Bottom Full-Width Continue Button (Exact Match to Mockup) ── */}
+              <Box sx={{ mt: 'auto', pt: 1 }}>
                 {step < TOTAL_STEPS ? (
                   <Button
                     fullWidth
@@ -1271,14 +1218,14 @@ const UnifiedRegister = ({ initialRole = null }) => {
                     endIcon={<ArrowForward sx={{ fontSize: 18 }} />}
                     variant="contained"
                     sx={{
-                      borderRadius: '14px',
+                      borderRadius: '12px',
                       textTransform: 'none',
-                      fontWeight: 900,
-                      py: 1.5,
-                      bgcolor: T.primary,
-                      fontSize: '0.96rem',
-                      boxShadow: `0 4px 16px ${T.glow}`,
-                      '&:hover': { bgcolor: T.primaryDark },
+                      fontWeight: 800,
+                      py: 1.4,
+                      bgcolor: '#047857',
+                      fontSize: '0.94rem',
+                      boxShadow: 'none',
+                      '&:hover': { bgcolor: '#065f46' },
                     }}
                   >
                     Continue
@@ -1290,22 +1237,20 @@ const UnifiedRegister = ({ initialRole = null }) => {
                     disabled={loading}
                     variant="contained"
                     sx={{
-                      borderRadius: '14px',
+                      borderRadius: '12px',
                       textTransform: 'none',
-                      fontWeight: 900,
-                      py: 1.5,
-                      bgcolor: T.primary,
-                      boxShadow: `0 4px 16px ${T.glow}`,
-                      fontSize: '0.96rem',
-                      '&:hover': { bgcolor: T.primaryDark },
+                      fontWeight: 800,
+                      py: 1.4,
+                      bgcolor: '#047857',
+                      fontSize: '0.94rem',
+                      boxShadow: 'none',
+                      '&:hover': { bgcolor: '#065f46' },
                     }}
                   >
                     {loading ? (
-                      <CircularProgress size={22} color="inherit" />
-                    ) : role === 'BUSINESS' ? (
-                      'Register My Business'
+                      <CircularProgress size={20} color="inherit" />
                     ) : (
-                      'Activate Captain Account'
+                      'Submit Registration'
                     )}
                   </Button>
                 )}
@@ -1313,72 +1258,119 @@ const UnifiedRegister = ({ initialRole = null }) => {
 
             </motion.div>
           ) : (
-            /* ── SUCCESS SCREEN ── */
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', py: 4 }}>
+            /* ══════════════════════════════════════════
+               STEP 8: REGISTRATION SUCCESS SCREEN
+               (Exact 100% Match to Mockup Screen 8!)
+            ══════════════════════════════════════════ */
+            <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', py: 3, flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              
+              {/* Green Circle Badge with White Checkmark */}
               <Box sx={{
-                width: 78, height: 78, borderRadius: '50%', mx: 'auto', mb: 2,
-                bgcolor: '#ecfdf5', border: '2px solid #a7f3d0', display: 'grid', placeItems: 'center',
+                width: 76,
+                height: 76,
+                borderRadius: '50%',
+                bgcolor: '#047857',
+                display: 'grid',
+                placeItems: 'center',
+                color: '#ffffff',
+                mb: 2.5,
+                boxShadow: '0 8px 24px rgba(4, 120, 87, 0.25)',
               }}>
-                <CheckCircle sx={{ fontSize: 44, color: '#10b981' }} />
+                <Check sx={{ fontSize: 44, stroke: '#ffffff', strokeWidth: 1.5 }} />
               </Box>
 
-              <Typography sx={{ fontWeight: 900, fontSize: '1.6rem', color: '#0f172a', mb: 0.5, letterSpacing: '-0.02em' }}>
-                {role === 'BUSINESS' ? 'Welcome to Trikonekt Business! 🎉' : 'Welcome, Captain! 🎉'}
-              </Typography>
-              <Typography sx={{ color: '#64748b', fontSize: '0.88rem', fontWeight: 500, mb: 3 }}>
-                {role === 'BUSINESS'
-                  ? 'Your store account registration has been submitted under your Captain Partner.'
-                  : 'Your registration is complete. Here is your Captain ID:'}
+              <Typography sx={{ fontWeight: 900, fontSize: '1.5rem', color: '#0f172a', mb: 0.5, letterSpacing: '-0.02em' }}>
+                {role === 'BUSINESS' ? 'Registration Successful!' : "You're all set!"}
               </Typography>
 
-              <Box sx={{
-                display: 'inline-flex', alignItems: 'center', gap: 1.5,
-                bgcolor: T.primaryLight, border: `1.5px solid ${T.primary}40`,
-                borderRadius: '12px', px: 2.5, py: 1.2, mb: 3,
-              }}>
-                {role === 'BUSINESS' ? (
-                  <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: T.primaryDark }}>
-                    {form.businessName || 'Your Store'}
+              <Typography sx={{ color: '#64748b', fontSize: '0.86rem', fontWeight: 500, mb: 3 }}>
+                {role === 'BUSINESS' ? 'Welcome to Trikonekt Business' : 'Your Trikonekt Captain account has been created.'}
+              </Typography>
+
+              {/* 4 Green Bullet Items (Exact Match to Mockup Screen 8) */}
+              <Box sx={{ width: '100%', maxWidth: 300, textAlign: 'left', mb: 4 }}>
+                <Stack spacing={1.5}>
+                  {(role === 'BUSINESS' ? [
+                    'Account created',
+                    'Business details saved',
+                    'Store location added',
+                    'Verification in progress',
+                  ] : [
+                    'Profile created',
+                    'Sponsor linked',
+                    'Territory submitted',
+                    'Verification pending',
+                  ]).map((item, i) => (
+                    <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                      <Box sx={{
+                        width: 20, height: 20, borderRadius: '50%', bgcolor: '#10b981',
+                        display: 'grid', placeItems: 'center', color: '#fff',
+                      }}>
+                        <Check sx={{ fontSize: 13, strokeWidth: 2 }} />
+                      </Box>
+                      <Typography sx={{ fontSize: '0.84rem', fontWeight: 600, color: '#1e293b' }}>
+                        {item}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Stack>
+              </Box>
+
+              {/* Captain ID badge if captain */}
+              {role === 'CAPTAIN' && (
+                <Box sx={{
+                  display: 'inline-flex', alignItems: 'center', gap: 1.2,
+                  bgcolor: '#ecfdf5', border: '1.5px solid #a7f3d0',
+                  borderRadius: '12px', px: 2.2, py: 1, mb: 3,
+                }}>
+                  <Shield sx={{ color: '#047857', fontSize: 20 }} />
+                  <Typography sx={{ fontWeight: 800, fontSize: '1.15rem', color: '#047857', fontFamily: 'monospace' }}>
+                    {captainId}
                   </Typography>
-                ) : (
-                  <>
-                    <Shield sx={{ color: T.primary, fontSize: 22 }} />
-                    <Typography sx={{ fontWeight: 900, fontSize: '1.35rem', color: T.primary, letterSpacing: '0.05em', fontFamily: 'monospace' }}>
-                      {captainId}
-                    </Typography>
-                    <IconButton onClick={copyId} size="small" sx={{ color: '#64748b' }}>
-                      {copied ? <Done fontSize="small" sx={{ color: '#10b981' }} /> : <ContentCopy fontSize="small" />}
-                    </IconButton>
-                  </>
-                )}
-              </Box>
+                  <IconButton onClick={copyId} size="small" sx={{ color: '#64748b' }}>
+                    {copied ? <Done fontSize="small" sx={{ color: '#10b981' }} /> : <ContentCopy fontSize="small" />}
+                  </IconButton>
+                </Box>
+              )}
 
-              <Stack spacing={1.5} sx={{ mt: 3 }}>
+              {/* Action Buttons (Exact Match to Mockup Screen 8) */}
+              <Box sx={{ width: '100%', mt: 'auto' }}>
                 <Button
                   fullWidth
-                  onClick={() => navigate(role === 'BUSINESS' ? '/business-dashboard' : '/login')}
+                  onClick={() => navigate(role === 'BUSINESS' ? '/business-dashboard' : '/captain/home')}
                   variant="contained"
                   sx={{
-                    borderRadius: '14px', textTransform: 'none', fontWeight: 900, py: 1.4,
-                    bgcolor: T.primary, boxShadow: `0 4px 14px ${T.glow}`,
-                    '&:hover': { bgcolor: T.primaryDark },
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 800,
+                    py: 1.4,
+                    bgcolor: '#047857',
+                    fontSize: '0.94rem',
+                    mb: 1.5,
+                    boxShadow: 'none',
+                    '&:hover': { bgcolor: '#065f46' },
                   }}
                 >
-                  {role === 'BUSINESS' ? 'Go to Business Dashboard' : 'Login to Dashboard'}
+                  {role === 'BUSINESS' ? 'Go to Dashboard' : 'Go to Captain Dashboard'}
                 </Button>
+
                 <Button
                   fullWidth
                   onClick={() => navigate('/login')}
-                  variant="outlined"
+                  variant="text"
                   sx={{
-                    borderRadius: '14px', textTransform: 'none', fontWeight: 700, py: 1.4,
-                    borderColor: '#cbd5e1', color: '#475569',
-                    '&:hover': { borderColor: T.primary },
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    color: '#047857',
+                    fontSize: '0.88rem',
+                    '&:hover': { bgcolor: '#f0fdf4' },
                   }}
                 >
-                  Back to Login
+                  Go to Login
                 </Button>
-              </Stack>
+              </Box>
+
             </motion.div>
           )}
         </AnimatePresence>
