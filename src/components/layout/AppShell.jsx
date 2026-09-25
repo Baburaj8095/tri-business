@@ -1207,31 +1207,70 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
         </MenuItem>
       </Menu>
 
-      {/* ─── LOGOUT CONFIRMATION DIALOG ─── */}
-      <Dialog
+      {/* ─── LOGOUT CONFIRMATION BOTTOM DRAWER (No Popup) ─── */}
+      <Drawer
+        anchor="bottom"
         open={logoutModalOpen}
         onClose={() => setLogoutModalOpen(false)}
-        PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: '24px',
+            borderTopRightRadius: '24px',
+            maxWidth: 480,
+            mx: 'auto',
+            width: '100%',
+            p: 3,
+            pb: 4,
+            bgcolor: '#ffffff',
+            boxShadow: '0 -8px 32px rgba(15, 23, 42, 0.18)',
+          }
+        }}
       >
-        <DialogTitle sx={{ fontWeight: 800, color: '#0F172A' }}>Confirm Logout</DialogTitle>
-        <DialogContent>
-          <Typography sx={{ color: '#64748B', fontSize: 14 }}>
+        <Box sx={{ width: 44, height: 5, bgcolor: '#cbd5e1', borderRadius: 999, mx: 'auto', mb: 2 }} />
+        <Box sx={{ textAlign: 'center', py: 1 }}>
+          <Box
+            sx={{
+              width: 52,
+              height: 52,
+              borderRadius: '50%',
+              bgcolor: '#fef2f2',
+              color: '#ef4444',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 1.5,
+            }}
+          >
+            <LogoutIcon sx={{ fontSize: 26 }} />
+          </Box>
+          <Typography sx={{ fontWeight: 900, fontSize: '1.15rem', color: '#0F172A', mb: 0.5 }}>
+            Confirm Logout
+          </Typography>
+          <Typography sx={{ fontSize: '0.82rem', color: '#64748B', mb: 2.5, px: 2 }}>
             Are you sure you want to log out of your business account? This will end your active session.
           </Typography>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setLogoutModalOpen(false)} sx={{ textTransform: 'none', color: '#64748B', fontWeight: 700 }}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleLogout}
-            variant="contained"
-            sx={{ textTransform: 'none', fontWeight: 800, bgcolor: 'error.main', color: '#fff', '&:hover': { bgcolor: '#dc2626' } }}
-          >
-            Log Out
-          </Button>
-        </DialogActions>
-      </Dialog>
+
+          <Stack direction="row" spacing={1.5}>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={() => setLogoutModalOpen(false)}
+              sx={{ borderColor: '#e2e8f0', color: '#64748B', fontWeight: 700, borderRadius: '12px', py: 1.2, textTransform: 'none' }}
+            >
+              Cancel
+            </Button>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={handleLogout}
+              sx={{ bgcolor: '#ef4444', color: '#fff', fontWeight: 800, borderRadius: '12px', py: 1.2, textTransform: 'none', '&:hover': { bgcolor: '#dc2626' } }}
+            >
+              Log Out
+            </Button>
+          </Stack>
+        </Box>
+      </Drawer>
     </Box>
   );
 }

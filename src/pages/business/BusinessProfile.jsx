@@ -4,17 +4,12 @@ import {
   Typography,
   TextField,
   Button,
-  Grid,
   Chip,
   Avatar,
   Stack,
   Divider,
   Container,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Drawer,
   Snackbar,
   Alert,
@@ -41,8 +36,6 @@ import {
   DescriptionOutlined as DocIcon,
   CalendarTodayOutlined as CalendarIcon,
   WidgetsOutlined as CategoryIcon,
-  ContentCopyRounded as CopyIcon,
-  ShareRounded as ShareIcon,
   CloseRounded as CloseIcon,
   CameraAltRounded as CameraIcon,
   ChevronRightRounded as ChevronRightIcon,
@@ -61,9 +54,23 @@ const PRIMARY_DARK = "#047857";
 const BG = "#f8fafc";
 const SURFACE = "#ffffff";
 const TEXT = "#0f172a";
-const TEXT_SECONDARY = "#475569";
 const TEXT_MUTED = "#64748b";
 const BORDER = "#e2e8f0";
+
+const DRAWER_PAPER_PROPS = {
+  sx: {
+    borderTopLeftRadius: "24px",
+    borderTopRightRadius: "24px",
+    maxWidth: 480,
+    mx: "auto",
+    width: "100%",
+    p: { xs: 2.5, sm: 3 },
+    pb: 4,
+    maxHeight: "88vh",
+    bgcolor: "#ffffff",
+    boxShadow: "0 -8px 32px rgba(15, 23, 42, 0.18)",
+  },
+};
 
 export default function BusinessProfile() {
   const navigate = useNavigate();
@@ -75,11 +82,10 @@ export default function BusinessProfile() {
   const [saving, setSaving] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
 
-  // Modals & Drawers
+  // Bottom Drawers (NO Center Popups)
   const [editInfoOpen, setEditInfoOpen] = useState(false);
   const [editLocationOpen, setEditLocationOpen] = useState(false);
   const [editPayoutOpen, setEditPayoutOpen] = useState(false);
-  const [qrDrawerOpen, setQrDrawerOpen] = useState(false);
   const [enquiryModalOpen, setEnquiryModalOpen] = useState(false);
   const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
   const [securityModalOpen, setSecurityModalOpen] = useState(false);
@@ -108,7 +114,7 @@ export default function BusinessProfile() {
     active_outlets: "1",
     monthly_sales: "₹12,450",
     cover_image: "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=1200&q=80",
-    store_thumbnail: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80"
+    store_thumbnail: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80",
   });
 
   useEffect(() => {
@@ -133,7 +139,9 @@ export default function BusinessProfile() {
       const activeShop = myShops[0] || {};
       const resolvedName = apiProf?.business_name || activeShop.shop_name || "Online B2C";
       const resolvedMobile = apiProf?.mobile_number || "9876543210";
-      const formattedMobile = resolvedMobile.startsWith("+91") ? resolvedMobile : `+91 ${resolvedMobile.replace(/\D/g, "")}`;
+      const formattedMobile = resolvedMobile.startsWith("+91")
+        ? resolvedMobile
+        : `+91 ${resolvedMobile.replace(/\D/g, "")}`;
 
       setForm((prev) => ({
         ...prev,
@@ -141,7 +149,9 @@ export default function BusinessProfile() {
         mobile_number: formattedMobile,
         email: apiProf?.email || "merchant@trikonekt.com",
         trade_category: activeShop.category || apiProf?.trade_category || "Grocery & Daily Needs",
-        address: activeShop.address ? `${activeShop.address}, ${activeShop.city || "Bengaluru"} - ${activeShop.pincode || "560102"}` : "Main Market Road, Bengaluru - 560102",
+        address: activeShop.address
+          ? `${activeShop.address}, ${activeShop.city || "Bengaluru"} - ${activeShop.pincode || "560102"}`
+          : "Main Market Road, Bengaluru - 560102",
         city: activeShop.city || "Bengaluru",
         pincode: activeShop.pincode || "560102",
         gstin: activeShop.gst_number || "29AAAAA0000A1Z5",
@@ -154,7 +164,9 @@ export default function BusinessProfile() {
     }
 
     loadData();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleChange = (e) => {
@@ -190,15 +202,6 @@ export default function BusinessProfile() {
     navigate("/login");
   };
 
-  const copyToClipboard = (text, label) => {
-    try {
-      navigator.clipboard.writeText(text);
-      setToastMsg(`${label} copied to clipboard!`);
-    } catch (_) {
-      setToastMsg(`Copied: ${text}`);
-    }
-  };
-
   const merchantInitials = form.business_name
     ? form.business_name
         .split(" ")
@@ -210,7 +213,7 @@ export default function BusinessProfile() {
 
   return (
     <AppShell activeTab="/business/profile" title="Business Profile">
-      <Container maxWidth="md" sx={{ px: { xs: 1.75, sm: 3 }, py: { xs: 1.5, sm: 2.5 } }}>
+      <Container maxWidth="md" sx={{ px: { xs: 1.5, sm: 3 }, py: { xs: 1.5, sm: 2.5 } }}>
 
         {/* ══════════════════════════════════════════════════════════════════════════
             2. STORE IDENTITY (Clean hero section with cover, avatar, rating & badges)
@@ -407,7 +410,7 @@ export default function BusinessProfile() {
         {/* ══════════════════════════════════════════════════════════════════════════
             3. QUICK ACTIONS (Common actions to connect with business)
            ══════════════════════════════════════════════════════════════════════════ */}
-        <Stack direction="row" spacing={{ xs: 1, sm: 1.5 }} sx={{ mb: 2.5, width: "100%" }}>
+        <Stack direction="row" spacing={{ xs: 0.75, sm: 1.5 }} sx={{ mb: 2.5, width: "100%" }}>
           {/* Action 1: Call */}
           <Box
             onClick={() => window.location.href = `tel:${form.mobile_number.replace(/\s+/g, "")}`}
@@ -548,125 +551,132 @@ export default function BusinessProfile() {
         </Stack>
 
         {/* ══════════════════════════════════════════════════════════════════════════
-            4. KEY METRICS (Important business insights at a glance)
+            4. KEY METRICS (Exact 4 Cards in 1 Row - Never Wrap onto 2nd line)
            ══════════════════════════════════════════════════════════════════════════ */}
-        <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: { xs: 0.75, sm: 1.25 },
+            mb: 2.5,
+          }}
+        >
           {/* Metric 1: Total Orders */}
-          <Grid item xs={6} sm={3}>
-            <Box
-              onClick={() => navigate("/business/orders")}
-              sx={{
-                p: 1.75,
-                borderRadius: "16px",
-                bgcolor: "#f0fdf4",
-                border: "1.5px solid #bbf7d0",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                textAlign: "center",
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-                "&:hover": { transform: "translateY(-2px)", boxShadow: "0 4px 12px rgba(22, 101, 52, 0.08)" },
-              }}
-            >
-              <BagIcon sx={{ fontSize: 22, color: "#16a34a", mb: 0.5 }} />
-              <Typography sx={{ fontSize: "1.45rem", fontWeight: 900, color: "#166534", lineHeight: 1.1 }}>
-                {form.total_orders}
-              </Typography>
-              <Typography sx={{ fontSize: "0.74rem", fontWeight: 700, color: "#15803d", mt: 0.4 }}>
-                Total Orders
-              </Typography>
-              <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: "#15803d", mt: 0.2 }}>
-                Today →
-              </Typography>
-            </Box>
-          </Grid>
+          <Box
+            onClick={() => navigate("/business/orders")}
+            sx={{
+              py: { xs: 1.25, sm: 1.75 },
+              px: { xs: 0.5, sm: 1 },
+              borderRadius: "16px",
+              bgcolor: "#f0fdf4",
+              border: "1.5px solid #bbf7d0",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              textAlign: "center",
+              cursor: "pointer",
+              minWidth: 0,
+              transition: "all 0.15s ease",
+              "&:active": { transform: "scale(0.97)" },
+            }}
+          >
+            <BagIcon sx={{ fontSize: { xs: 18, sm: 22 }, color: "#16a34a", mb: 0.25 }} />
+            <Typography sx={{ fontSize: { xs: "1.15rem", sm: "1.45rem" }, fontWeight: 900, color: "#166534", lineHeight: 1 }}>
+              {form.total_orders}
+            </Typography>
+            <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 700, color: "#15803d", mt: 0.35, whiteSpace: "nowrap" }}>
+              Total Orders
+            </Typography>
+            <Typography sx={{ fontSize: { xs: "0.58rem", sm: "0.68rem" }, fontWeight: 800, color: "#15803d", mt: 0.2, whiteSpace: "nowrap" }}>
+              Today →
+            </Typography>
+          </Box>
 
           {/* Metric 2: Active Outlets */}
-          <Grid item xs={6} sm={3}>
-            <Box
-              onClick={() => navigate("/business/shops")}
-              sx={{
-                p: 1.75,
-                borderRadius: "16px",
-                bgcolor: "#eff6ff",
-                border: "1.5px solid #bfdbfe",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                textAlign: "center",
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-                "&:hover": { transform: "translateY(-2px)", boxShadow: "0 4px 12px rgba(30, 64, 175, 0.08)" },
-              }}
-            >
-              <StorefrontIcon sx={{ fontSize: 22, color: "#2563eb", mb: 0.5 }} />
-              <Typography sx={{ fontSize: "1.45rem", fontWeight: 900, color: "#1e40af", lineHeight: 1.1 }}>
-                {form.active_outlets}
-              </Typography>
-              <Typography sx={{ fontSize: "0.74rem", fontWeight: 700, color: "#1d4ed8", mt: 0.4 }}>
-                Active Outlets
-              </Typography>
-              <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: "#1d4ed8", mt: 0.2 }}>
-                Manage →
-              </Typography>
-            </Box>
-          </Grid>
+          <Box
+            onClick={() => navigate("/business/shops")}
+            sx={{
+              py: { xs: 1.25, sm: 1.75 },
+              px: { xs: 0.5, sm: 1 },
+              borderRadius: "16px",
+              bgcolor: "#eff6ff",
+              border: "1.5px solid #bfdbfe",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              textAlign: "center",
+              cursor: "pointer",
+              minWidth: 0,
+              transition: "all 0.15s ease",
+              "&:active": { transform: "scale(0.97)" },
+            }}
+          >
+            <StorefrontIcon sx={{ fontSize: { xs: 18, sm: 22 }, color: "#2563eb", mb: 0.25 }} />
+            <Typography sx={{ fontSize: { xs: "1.15rem", sm: "1.45rem" }, fontWeight: 900, color: "#1e40af", lineHeight: 1 }}>
+              {form.active_outlets}
+            </Typography>
+            <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 700, color: "#1d4ed8", mt: 0.35, whiteSpace: "nowrap" }}>
+              Active Outlets
+            </Typography>
+            <Typography sx={{ fontSize: { xs: "0.58rem", sm: "0.68rem" }, fontWeight: 800, color: "#1d4ed8", mt: 0.2, whiteSpace: "nowrap" }}>
+              Manage →
+            </Typography>
+          </Box>
 
           {/* Metric 3: Monthly Sales */}
-          <Grid item xs={6} sm={3}>
-            <Box
-              sx={{
-                p: 1.75,
-                borderRadius: "16px",
-                bgcolor: "#fffbeb",
-                border: "1.5px solid #fde68a",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            >
-              <MoneyIcon sx={{ fontSize: 22, color: "#d97706", mb: 0.5 }} />
-              <Typography sx={{ fontSize: "1.35rem", fontWeight: 900, color: "#b45309", lineHeight: 1.1 }}>
-                {form.monthly_sales}
-              </Typography>
-              <Typography sx={{ fontSize: "0.74rem", fontWeight: 700, color: "#b45309", mt: 0.4 }}>
-                Monthly Sales
-              </Typography>
-              <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: "#15803d", mt: 0.2 }}>
-                +12% ↗
-              </Typography>
-            </Box>
-          </Grid>
+          <Box
+            sx={{
+              py: { xs: 1.25, sm: 1.75 },
+              px: { xs: 0.5, sm: 1 },
+              borderRadius: "16px",
+              bgcolor: "#fffbeb",
+              border: "1.5px solid #fde68a",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              textAlign: "center",
+              minWidth: 0,
+            }}
+          >
+            <MoneyIcon sx={{ fontSize: { xs: 18, sm: 22 }, color: "#d97706", mb: 0.25 }} />
+            <Typography sx={{ fontSize: { xs: "0.95rem", sm: "1.3rem" }, fontWeight: 900, color: "#b45309", lineHeight: 1, whiteSpace: "nowrap" }}>
+              {form.monthly_sales}
+            </Typography>
+            <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 700, color: "#b45309", mt: 0.35, whiteSpace: "nowrap" }}>
+              Monthly Sales
+            </Typography>
+            <Typography sx={{ fontSize: { xs: "0.58rem", sm: "0.68rem" }, fontWeight: 800, color: "#15803d", mt: 0.2, whiteSpace: "nowrap" }}>
+              +12% ↗
+            </Typography>
+          </Box>
 
           {/* Metric 4: Merchant Rating */}
-          <Grid item xs={6} sm={3}>
-            <Box
-              sx={{
-                p: 1.75,
-                borderRadius: "16px",
-                bgcolor: "#faf5ff",
-                border: "1.5px solid #e9d5ff",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            >
-              <PeopleIcon sx={{ fontSize: 22, color: "#9333ea", mb: 0.5 }} />
-              <Typography sx={{ fontSize: "1.45rem", fontWeight: 900, color: "#6b21a8", lineHeight: 1.1 }}>
-                {form.rating}
-              </Typography>
-              <Typography sx={{ fontSize: "0.74rem", fontWeight: 700, color: "#7e22ce", mt: 0.4 }}>
-                Merchant Rating
-              </Typography>
-              <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: "#7e22ce", mt: 0.2 }}>
-                ({form.reviews_count})
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
+          <Box
+            sx={{
+              py: { xs: 1.25, sm: 1.75 },
+              px: { xs: 0.5, sm: 1 },
+              borderRadius: "16px",
+              bgcolor: "#faf5ff",
+              border: "1.5px solid #e9d5ff",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              textAlign: "center",
+              minWidth: 0,
+            }}
+          >
+            <PeopleIcon sx={{ fontSize: { xs: 18, sm: 22 }, color: "#9333ea", mb: 0.25 }} />
+            <Typography sx={{ fontSize: { xs: "1.15rem", sm: "1.45rem" }, fontWeight: 900, color: "#6b21a8", lineHeight: 1 }}>
+              {form.rating}
+            </Typography>
+            <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 700, color: "#7e22ce", mt: 0.35, whiteSpace: "nowrap" }}>
+              Merchant Rating
+            </Typography>
+            <Typography sx={{ fontSize: { xs: "0.58rem", sm: "0.68rem" }, fontWeight: 800, color: "#7e22ce", mt: 0.2, whiteSpace: "nowrap" }}>
+              ({form.reviews_count})
+            </Typography>
+          </Box>
+        </Box>
 
         {/* ══════════════════════════════════════════════════════════════════════════
             5. BUSINESS DETAILS (Organized and easy to read information)
@@ -894,11 +904,11 @@ export default function BusinessProfile() {
         </Box>
 
         {/* ══════════════════════════════════════════════════════════════════════════
-            7. OPERATIONS TOOLS (All main actions with clear icons and descriptions)
+            7. OPERATIONS TOOLS (Exact 4 Tools in 1 Row - Pixel Match)
            ══════════════════════════════════════════════════════════════════════════ */}
         <Box
           sx={{
-            p: 2.25,
+            p: { xs: 1.75, sm: 2.25 },
             borderRadius: "18px",
             border: `1.5px solid ${BORDER}`,
             bgcolor: SURFACE,
@@ -906,123 +916,125 @@ export default function BusinessProfile() {
             boxShadow: "0 2px 10px rgba(15, 23, 42, 0.02)",
           }}
         >
-          <Typography sx={{ fontWeight: 900, fontSize: "0.96rem", color: TEXT, mb: 2 }}>
+          <Typography sx={{ fontWeight: 900, fontSize: "0.96rem", color: TEXT, mb: 1.5 }}>
             Merchant Operations & Tools
           </Typography>
 
-          <Grid container spacing={1.5}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: { xs: 0.75, sm: 1.25 },
+            }}
+          >
             {/* Tool 1: Manage Outlets & Shops */}
-            <Grid item xs={6}>
-              <Box
-                onClick={() => navigate("/business/shops")}
-                sx={{
-                  p: 1.5,
-                  borderRadius: "14px",
-                  bgcolor: "#f0fdf4",
-                  border: "1.5px solid #bbf7d0",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  textAlign: "center",
-                  height: 76,
-                  transition: "all 0.15s ease",
-                  "&:hover": { borderColor: "#86efac", transform: "translateY(-1px)" },
-                  "&:active": { transform: "scale(0.98)" },
-                }}
-              >
-                <StorefrontIcon sx={{ fontSize: 24, color: "#15803d", mb: 0.4 }} />
-                <Typography sx={{ fontSize: "0.76rem", fontWeight: 800, color: "#166534", lineHeight: 1.2 }}>
-                  Manage Outlets & Shops &gt;
-                </Typography>
-              </Box>
-            </Grid>
+            <Box
+              onClick={() => navigate("/business/shops")}
+              sx={{
+                py: { xs: 1.25, sm: 1.5 },
+                px: { xs: 0.5, sm: 1 },
+                borderRadius: "14px",
+                bgcolor: "#f0fdf4",
+                border: "1.5px solid #bbf7d0",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                textAlign: "center",
+                minHeight: { xs: 78, sm: 84 },
+                transition: "all 0.15s ease",
+                "&:hover": { borderColor: "#86efac" },
+                "&:active": { transform: "scale(0.97)" },
+              }}
+            >
+              <StorefrontIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: "#15803d", mb: 0.4 }} />
+              <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 800, color: "#166534", lineHeight: 1.15 }}>
+                Manage Outlets & Shops &gt;
+              </Typography>
+            </Box>
 
             {/* Tool 2: Inventory & Billing POS */}
-            <Grid item xs={6}>
-              <Box
-                onClick={() => navigate("/business/inventory")}
-                sx={{
-                  p: 1.5,
-                  borderRadius: "14px",
-                  bgcolor: "#eff6ff",
-                  border: "1.5px solid #bfdbfe",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  textAlign: "center",
-                  height: 76,
-                  transition: "all 0.15s ease",
-                  "&:hover": { borderColor: "#93c5fd", transform: "translateY(-1px)" },
-                  "&:active": { transform: "scale(0.98)" },
-                }}
-              >
-                <InventoryIcon sx={{ fontSize: 24, color: "#2563eb", mb: 0.4 }} />
-                <Typography sx={{ fontSize: "0.76rem", fontWeight: 800, color: "#1e40af", lineHeight: 1.2 }}>
-                  Inventory & Billing POS &gt;
-                </Typography>
-              </Box>
-            </Grid>
+            <Box
+              onClick={() => navigate("/business/inventory")}
+              sx={{
+                py: { xs: 1.25, sm: 1.5 },
+                px: { xs: 0.5, sm: 1 },
+                borderRadius: "14px",
+                bgcolor: "#eff6ff",
+                border: "1.5px solid #bfdbfe",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                textAlign: "center",
+                minHeight: { xs: 78, sm: 84 },
+                transition: "all 0.15s ease",
+                "&:hover": { borderColor: "#93c5fd" },
+                "&:active": { transform: "scale(0.97)" },
+              }}
+            >
+              <InventoryIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: "#2563eb", mb: 0.4 }} />
+              <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 800, color: "#1e40af", lineHeight: 1.15 }}>
+                Inventory & Billing POS &gt;
+              </Typography>
+            </Box>
 
             {/* Tool 3: Ads & Local Promotions */}
-            <Grid item xs={6}>
-              <Box
-                onClick={() => navigate("/business/ads")}
-                sx={{
-                  p: 1.5,
-                  borderRadius: "14px",
-                  bgcolor: "#fffbeb",
-                  border: "1.5px solid #fde68a",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  textAlign: "center",
-                  height: 76,
-                  transition: "all 0.15s ease",
-                  "&:hover": { borderColor: "#fcd34d", transform: "translateY(-1px)" },
-                  "&:active": { transform: "scale(0.98)" },
-                }}
-              >
-                <AdsIcon sx={{ fontSize: 24, color: "#d97706", mb: 0.4 }} />
-                <Typography sx={{ fontSize: "0.76rem", fontWeight: 800, color: "#b45309", lineHeight: 1.2 }}>
-                  Ads & Local Promotions &gt;
-                </Typography>
-              </Box>
-            </Grid>
+            <Box
+              onClick={() => navigate("/business/ads")}
+              sx={{
+                py: { xs: 1.25, sm: 1.5 },
+                px: { xs: 0.5, sm: 1 },
+                borderRadius: "14px",
+                bgcolor: "#fffbeb",
+                border: "1.5px solid #fde68a",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                textAlign: "center",
+                minHeight: { xs: 78, sm: 84 },
+                transition: "all 0.15s ease",
+                "&:hover": { borderColor: "#fcd34d" },
+                "&:active": { transform: "scale(0.97)" },
+              }}
+            >
+              <AdsIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: "#d97706", mb: 0.4 }} />
+              <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 800, color: "#b45309", lineHeight: 1.15 }}>
+                Ads & Local Promotions &gt;
+              </Typography>
+            </Box>
 
             {/* Tool 4: KYC & Verification */}
-            <Grid item xs={6}>
-              <Box
-                onClick={() => navigate("/business/kyc")}
-                sx={{
-                  p: 1.5,
-                  borderRadius: "14px",
-                  bgcolor: "#faf5ff",
-                  border: "1.5px solid #e9d5ff",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  textAlign: "center",
-                  height: 76,
-                  transition: "all 0.15s ease",
-                  "&:hover": { borderColor: "#d8b4fe", transform: "translateY(-1px)" },
-                  "&:active": { transform: "scale(0.98)" },
-                }}
-              >
-                <ShieldIcon sx={{ fontSize: 24, color: "#7c3aed", mb: 0.4 }} />
-                <Typography sx={{ fontSize: "0.76rem", fontWeight: 800, color: "#6b21a8", lineHeight: 1.2 }}>
-                  KYC & Verification &gt;
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
+            <Box
+              onClick={() => navigate("/business/kyc")}
+              sx={{
+                py: { xs: 1.25, sm: 1.5 },
+                px: { xs: 0.5, sm: 1 },
+                borderRadius: "14px",
+                bgcolor: "#faf5ff",
+                border: "1.5px solid #e9d5ff",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                textAlign: "center",
+                minHeight: { xs: 78, sm: 84 },
+                transition: "all 0.15s ease",
+                "&:hover": { borderColor: "#d8b4fe" },
+                "&:active": { transform: "scale(0.97)" },
+              }}
+            >
+              <ShieldIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: "#7c3aed", mb: 0.4 }} />
+              <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 800, color: "#6b21a8", lineHeight: 1.15 }}>
+                KYC & Verification &gt;
+              </Typography>
+            </Box>
+          </Box>
         </Box>
 
         {/* ══════════════════════════════════════════════════════════════════════════
@@ -1039,7 +1051,7 @@ export default function BusinessProfile() {
           }}
         >
           {/* Header */}
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
             <Typography sx={{ fontWeight: 900, fontSize: "0.96rem", color: TEXT }}>
               Payout Account
             </Typography>
@@ -1071,8 +1083,8 @@ export default function BusinessProfile() {
             {/* Bank Icon */}
             <Box
               sx={{
-                width: 40,
-                height: 40,
+                width: 38,
+                height: 38,
                 borderRadius: "10px",
                 bgcolor: "#eff6ff",
                 color: "#2563eb",
@@ -1081,41 +1093,41 @@ export default function BusinessProfile() {
                 flexShrink: 0,
               }}
             >
-              <BankIcon sx={{ fontSize: 22 }} />
+              <BankIcon sx={{ fontSize: 20 }} />
             </Box>
 
             {/* 3 Detail Columns */}
-            <Grid container spacing={1} sx={{ flex: 1, minWidth: 0 }}>
-              <Grid item xs={4}>
-                <Typography sx={{ fontSize: "0.66rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
-                  Bank Name
+            <Box sx={{ flex: 1, minWidth: 0, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 1 }}>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: "0.62rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }} noWrap>
+                  BANK NAME
                 </Typography>
-                <Typography sx={{ fontSize: "0.84rem", fontWeight: 800, color: TEXT, mt: 0.15 }} noWrap>
+                <Typography sx={{ fontSize: { xs: "0.78rem", sm: "0.85rem" }, fontWeight: 800, color: TEXT, mt: 0.15 }} noWrap>
                   {form.bank_name}
                 </Typography>
-              </Grid>
+              </Box>
 
-              <Grid item xs={4}>
-                <Typography sx={{ fontSize: "0.66rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
-                  Account Number
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: "0.62rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }} noWrap>
+                  ACCOUNT NUMBER
                 </Typography>
-                <Typography sx={{ fontSize: "0.84rem", fontWeight: 800, color: TEXT, mt: 0.15 }} noWrap>
+                <Typography sx={{ fontSize: { xs: "0.78rem", sm: "0.85rem" }, fontWeight: 800, color: TEXT, mt: 0.15 }} noWrap>
                   {form.account_number}
                 </Typography>
-              </Grid>
+              </Box>
 
-              <Grid item xs={4}>
-                <Typography sx={{ fontSize: "0.66rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }}>
-                  IFSC Code
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: "0.62rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }} noWrap>
+                  IFSC CODE
                 </Typography>
-                <Typography sx={{ fontSize: "0.84rem", fontWeight: 800, color: TEXT, mt: 0.15 }} noWrap>
+                <Typography sx={{ fontSize: { xs: "0.78rem", sm: "0.85rem" }, fontWeight: 800, color: TEXT, mt: 0.15 }} noWrap>
                   {form.ifsc_code}
                 </Typography>
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
 
             {/* Right Chevron */}
-            <ChevronRightIcon sx={{ fontSize: 20, color: "#94a3b8", flexShrink: 0 }} />
+            <ChevronRightIcon sx={{ fontSize: 18, color: "#94a3b8", flexShrink: 0 }} />
           </Stack>
         </Box>
 
@@ -1182,7 +1194,7 @@ export default function BusinessProfile() {
             fontSize: "0.88rem",
             borderRadius: "14px",
             height: 48,
-            mb: 5,
+            mb: 6,
             boxShadow: "none",
             "&:hover": { bgcolor: "#fee2e2", borderColor: "#fca5a5" },
             "&:active": { transform: "scale(0.99)" },
@@ -1193,85 +1205,101 @@ export default function BusinessProfile() {
 
       </Container>
 
-      {/* ─── MODAL: EDIT BUSINESS INFO ─── */}
-      <Dialog
+      {/* ─── BOTTOM DRAWER: EDIT BUSINESS INFO ─── */}
+      <Drawer
+        anchor="bottom"
         open={editInfoOpen}
         onClose={() => setEditInfoOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: "18px", p: 1 } }}
+        PaperProps={DRAWER_PAPER_PROPS}
       >
-        <DialogTitle sx={{ fontWeight: 900, fontSize: "1.1rem" }}>
-          Edit Business Information
-        </DialogTitle>
-        <Box component="form" onSubmit={handleSaveInfo}>
-          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-            <TextField
-              label="Business Name"
-              name="business_name"
-              value={form.business_name}
-              onChange={handleChange}
+        <Box sx={{ width: 44, height: 5, bgcolor: "#cbd5e1", borderRadius: 999, mx: "auto", mb: 2 }} />
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", color: TEXT }}>
+            Edit Business Information
+          </Typography>
+          <IconButton size="small" onClick={() => setEditInfoOpen(false)}>
+            <CloseIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </Stack>
+
+        <Box component="form" onSubmit={handleSaveInfo} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <TextField
+            label="Business Name"
+            name="business_name"
+            value={form.business_name}
+            onChange={handleChange}
+            fullWidth
+            required
+          />
+          <TextField
+            label="Category"
+            name="trade_category"
+            value={form.trade_category}
+            onChange={handleChange}
+            fullWidth
+          />
+          <TextField
+            label="Mobile Number"
+            name="mobile_number"
+            value={form.mobile_number}
+            onChange={handleChange}
+            fullWidth
+          />
+          <TextField
+            label="Email Address"
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+            fullWidth
+          />
+          <TextField
+            label="GSTIN"
+            name="gstin"
+            value={form.gstin}
+            onChange={handleChange}
+            fullWidth
+          />
+          <Stack direction="row" spacing={1.5} sx={{ mt: 1 }}>
+            <Button
               fullWidth
-              required
-            />
-            <TextField
-              label="Category"
-              name="trade_category"
-              value={form.trade_category}
-              onChange={handleChange}
-              fullWidth
-            />
-            <TextField
-              label="Mobile Number"
-              name="mobile_number"
-              value={form.mobile_number}
-              onChange={handleChange}
-              fullWidth
-            />
-            <TextField
-              label="Email Address"
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              fullWidth
-            />
-            <TextField
-              label="GSTIN"
-              name="gstin"
-              value={form.gstin}
-              onChange={handleChange}
-              fullWidth
-            />
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2 }}>
-            <Button onClick={() => setEditInfoOpen(false)} sx={{ fontWeight: 700, color: TEXT_MUTED }}>
+              variant="outlined"
+              onClick={() => setEditInfoOpen(false)}
+              sx={{ fontWeight: 700, color: TEXT_MUTED, borderRadius: "12px", py: 1.2 }}
+            >
               Cancel
             </Button>
             <Button
+              fullWidth
               type="submit"
               variant="contained"
               disabled={saving}
-              sx={{ bgcolor: PRIMARY, color: "#fff", fontWeight: 800, borderRadius: "10px", "&:hover": { bgcolor: PRIMARY_DARK } }}
+              sx={{ bgcolor: PRIMARY, color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: PRIMARY_DARK } }}
             >
               {saving ? "Saving..." : "Save Changes"}
             </Button>
-          </DialogActions>
+          </Stack>
         </Box>
-      </Dialog>
+      </Drawer>
 
-      {/* ─── MODAL: EDIT LOCATION & TIMINGS ─── */}
-      <Dialog
+      {/* ─── BOTTOM DRAWER: EDIT LOCATION & TIMINGS ─── */}
+      <Drawer
+        anchor="bottom"
         open={editLocationOpen}
         onClose={() => setEditLocationOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: "18px", p: 1 } }}
+        PaperProps={DRAWER_PAPER_PROPS}
       >
-        <DialogTitle sx={{ fontWeight: 900, fontSize: "1.1rem" }}>
-          Edit Operating Store & Location
-        </DialogTitle>
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+        <Box sx={{ width: 44, height: 5, bgcolor: "#cbd5e1", borderRadius: 999, mx: "auto", mb: 2 }} />
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", color: TEXT }}>
+            Edit Operating Store & Location
+          </Typography>
+          <IconButton size="small" onClick={() => setEditLocationOpen(false)}>
+            <CloseIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </Stack>
+
+        <Stack spacing={2}>
           <TextField
             label="Operating Address"
             name="address"
@@ -1295,36 +1323,52 @@ export default function BusinessProfile() {
             fullWidth
             placeholder="10–15 mins delivery"
           />
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setEditLocationOpen(false)} sx={{ fontWeight: 700, color: TEXT_MUTED }}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              setToastMsg("Operating location updated!");
-              setEditLocationOpen(false);
-            }}
-            sx={{ bgcolor: PRIMARY, color: "#fff", fontWeight: 800, borderRadius: "10px", "&:hover": { bgcolor: PRIMARY_DARK } }}
-          >
-            Save Location
-          </Button>
-        </DialogActions>
-      </Dialog>
+          <Stack direction="row" spacing={1.5} sx={{ mt: 1 }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={() => setEditLocationOpen(false)}
+              sx={{ fontWeight: 700, color: TEXT_MUTED, borderRadius: "12px", py: 1.2 }}
+            >
+              Cancel
+            </Button>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={() => {
+                setToastMsg("Operating location updated!");
+                setEditLocationOpen(false);
+              }}
+              sx={{ bgcolor: PRIMARY, color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: PRIMARY_DARK } }}
+            >
+              Save Location
+            </Button>
+          </Stack>
+        </Stack>
+      </Drawer>
 
-      {/* ─── MODAL: MANAGE PAYOUT ACCOUNT ─── */}
-      <Dialog
+      {/* ─── BOTTOM DRAWER: MANAGE PAYOUT ACCOUNT (NO POPUP!) ─── */}
+      <Drawer
+        anchor="bottom"
         open={editPayoutOpen}
         onClose={() => setEditPayoutOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: "18px", p: 1 } }}
+        PaperProps={DRAWER_PAPER_PROPS}
       >
-        <DialogTitle sx={{ fontWeight: 900, fontSize: "1.1rem" }}>
-          Manage Payout Account
-        </DialogTitle>
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+        <Box sx={{ width: 44, height: 5, bgcolor: "#cbd5e1", borderRadius: 999, mx: "auto", mb: 2 }} />
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", color: TEXT }}>
+            Manage Payout Account
+          </Typography>
+          <IconButton size="small" onClick={() => setEditPayoutOpen(false)}>
+            <CloseIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </Stack>
+
+        <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, mb: 2 }}>
+          Daily settlement earnings will be deposited directly to this registered bank account.
+        </Typography>
+
+        <Stack spacing={2}>
           <TextField
             label="Bank Name"
             name="bank_name"
@@ -1346,169 +1390,195 @@ export default function BusinessProfile() {
             onChange={handleChange}
             fullWidth
           />
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setEditPayoutOpen(false)} sx={{ fontWeight: 700, color: TEXT_MUTED }}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              setToastMsg("Payout account details updated!");
-              setEditPayoutOpen(false);
-            }}
-            sx={{ bgcolor: PRIMARY, color: "#fff", fontWeight: 800, borderRadius: "10px", "&:hover": { bgcolor: PRIMARY_DARK } }}
-          >
-            Update Account
-          </Button>
-        </DialogActions>
-      </Dialog>
+          <Stack direction="row" spacing={1.5} sx={{ mt: 1 }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={() => setEditPayoutOpen(false)}
+              sx={{ fontWeight: 700, color: TEXT_MUTED, borderRadius: "12px", py: 1.2 }}
+            >
+              Cancel
+            </Button>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={() => {
+                setToastMsg("Payout account details updated!");
+                setEditPayoutOpen(false);
+              }}
+              sx={{ bgcolor: PRIMARY, color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: PRIMARY_DARK } }}
+            >
+              Update Account
+            </Button>
+          </Stack>
+        </Stack>
+      </Drawer>
 
-      {/* ─── MODAL: ASK ANYTHING (AI ASSISTANT) ─── */}
-      <Dialog
+      {/* ─── BOTTOM DRAWER: ASK ANYTHING (AI ASSISTANT) ─── */}
+      <Drawer
+        anchor="bottom"
         open={aiAssistantOpen}
         onClose={() => setAiAssistantOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: "18px", p: 1 } }}
+        PaperProps={DRAWER_PAPER_PROPS}
       >
-        <DialogTitle sx={{ fontWeight: 900, fontSize: "1.1rem", display: "flex", alignItems: "center", gap: 1 }}>
-          <ChatIcon sx={{ color: "#2563eb" }} />
-          Ask Anything - Merchant Assistant
-        </DialogTitle>
-        <DialogContent sx={{ pt: 1 }}>
-          <Typography sx={{ fontSize: "0.85rem", color: TEXT_MUTED, mb: 2 }}>
-            Ask anything about order fulfillment, inventory management, settlement schedules, or customer inquiries.
-          </Typography>
-          <TextField
-            label="Your question or request..."
+        <Box sx={{ width: 44, height: 5, bgcolor: "#cbd5e1", borderRadius: 999, mx: "auto", mb: 2 }} />
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <ChatIcon sx={{ color: "#2563eb" }} />
+            <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", color: TEXT }}>
+              Ask Anything
+            </Typography>
+          </Stack>
+          <IconButton size="small" onClick={() => setAiAssistantOpen(false)}>
+            <CloseIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </Stack>
+
+        <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, mb: 2 }}>
+          Ask anything about order fulfillment, inventory, settlements, or marketing.
+        </Typography>
+
+        <TextField
+          label="Your question..."
+          fullWidth
+          multiline
+          rows={3}
+          placeholder="e.g. How do I enable delivery partner tracking?"
+          sx={{ mb: 2 }}
+        />
+
+        <Stack direction="row" spacing={1.5}>
+          <Button
             fullWidth
-            multiline
-            rows={3}
-            placeholder="e.g. How can I boost sales for my grocery store this weekend?"
-          />
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setAiAssistantOpen(false)} sx={{ fontWeight: 700, color: TEXT_MUTED }}>
+            variant="outlined"
+            onClick={() => setAiAssistantOpen(false)}
+            sx={{ fontWeight: 700, color: TEXT_MUTED, borderRadius: "12px", py: 1.2 }}
+          >
             Close
           </Button>
           <Button
+            fullWidth
             variant="contained"
             onClick={() => {
               setToastMsg("Query submitted to AI Assistant!");
               setAiAssistantOpen(false);
             }}
-            sx={{ bgcolor: "#2563eb", color: "#fff", fontWeight: 800, borderRadius: "10px", "&:hover": { bgcolor: "#1d4ed8" } }}
+            sx={{ bgcolor: "#2563eb", color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: "#1d4ed8" } }}
           >
             Submit Question
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Stack>
+      </Drawer>
 
-      {/* ─── MODAL: ENQUIRY ─── */}
-      <Dialog
+      {/* ─── BOTTOM DRAWER: ENQUIRY ─── */}
+      <Drawer
+        anchor="bottom"
         open={enquiryModalOpen}
         onClose={() => setEnquiryModalOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: "18px", p: 1 } }}
+        PaperProps={DRAWER_PAPER_PROPS}
       >
-        <DialogTitle sx={{ fontWeight: 900, fontSize: "1.1rem", display: "flex", alignItems: "center", gap: 1 }}>
-          <InfoIcon sx={{ color: "#d97706" }} />
-          Customer & Partner Enquiry
-        </DialogTitle>
-        <DialogContent sx={{ pt: 1 }}>
-          <Typography sx={{ fontSize: "0.85rem", color: TEXT_MUTED, mb: 2 }}>
-            Reach out directly to Trikonekt Merchant Support or submit an inquiry for custom integrations.
-          </Typography>
-          <TextField
-            label="Subject"
+        <Box sx={{ width: 44, height: 5, bgcolor: "#cbd5e1", borderRadius: 999, mx: "auto", mb: 2 }} />
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <InfoIcon sx={{ color: "#d97706" }} />
+            <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", color: TEXT }}>
+              Customer & Partner Enquiry
+            </Typography>
+          </Stack>
+          <IconButton size="small" onClick={() => setEnquiryModalOpen(false)}>
+            <CloseIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </Stack>
+
+        <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, mb: 2 }}>
+          Reach out directly to Trikonekt Merchant Support for assistance.
+        </Typography>
+
+        <TextField label="Subject" fullWidth sx={{ mb: 1.5 }} placeholder="e.g. Bulk catalog upload" />
+        <TextField label="Details" fullWidth multiline rows={3} placeholder="Describe your query..." sx={{ mb: 2 }} />
+
+        <Stack direction="row" spacing={1.5}>
+          <Button
             fullWidth
-            sx={{ mb: 2 }}
-            placeholder="e.g. Bulk catalog upload assistance"
-          />
-          <TextField
-            label="Details"
-            fullWidth
-            multiline
-            rows={3}
-            placeholder="Describe your query or requirement in detail..."
-          />
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setEnquiryModalOpen(false)} sx={{ fontWeight: 700, color: TEXT_MUTED }}>
+            variant="outlined"
+            onClick={() => setEnquiryModalOpen(false)}
+            sx={{ fontWeight: 700, color: TEXT_MUTED, borderRadius: "12px", py: 1.2 }}
+          >
             Cancel
           </Button>
           <Button
+            fullWidth
             variant="contained"
             onClick={() => {
-              setToastMsg("Enquiry sent to merchant support desk!");
+              setToastMsg("Enquiry sent to support desk!");
               setEnquiryModalOpen(false);
             }}
-            sx={{ bgcolor: "#d97706", color: "#fff", fontWeight: 800, borderRadius: "10px", "&:hover": { bgcolor: "#b45309" } }}
+            sx={{ bgcolor: "#d97706", color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: "#b45309" } }}
           >
             Send Enquiry
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Stack>
+      </Drawer>
 
-      {/* ─── MODAL: SECURITY & PREFERENCES ─── */}
-      <Dialog
+      {/* ─── BOTTOM DRAWER: SECURITY & PREFERENCES ─── */}
+      <Drawer
+        anchor="bottom"
         open={securityModalOpen}
         onClose={() => setSecurityModalOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: "18px", p: 1 } }}
+        PaperProps={DRAWER_PAPER_PROPS}
       >
-        <DialogTitle sx={{ fontWeight: 900, fontSize: "1.1rem" }}>
-          Security & Account Preferences
-        </DialogTitle>
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-          <Typography sx={{ fontSize: "0.85rem", color: TEXT_MUTED }}>
-            Update your account login security and communication preferences.
+        <Box sx={{ width: 44, height: 5, bgcolor: "#cbd5e1", borderRadius: 999, mx: "auto", mb: 2 }} />
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+          <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", color: TEXT }}>
+            Security & Preferences
           </Typography>
-          <TextField
-            label="Current Password"
-            type="password"
+          <IconButton size="small" onClick={() => setSecurityModalOpen(false)}>
+            <CloseIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </Stack>
+
+        <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, mb: 2 }}>
+          Update your login password and account credentials.
+        </Typography>
+
+        <Stack spacing={1.5} sx={{ mb: 2 }}>
+          <TextField label="Current Password" type="password" fullWidth />
+          <TextField label="New Password" type="password" fullWidth />
+          <TextField label="Confirm New Password" type="password" fullWidth />
+        </Stack>
+
+        <Stack direction="row" spacing={1.5}>
+          <Button
             fullWidth
-          />
-          <TextField
-            label="New Password"
-            type="password"
-            fullWidth
-          />
-          <TextField
-            label="Confirm New Password"
-            type="password"
-            fullWidth
-          />
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setSecurityModalOpen(false)} sx={{ fontWeight: 700, color: TEXT_MUTED }}>
+            variant="outlined"
+            onClick={() => setSecurityModalOpen(false)}
+            sx={{ fontWeight: 700, color: TEXT_MUTED, borderRadius: "12px", py: 1.2 }}
+          >
             Cancel
           </Button>
           <Button
+            fullWidth
             variant="contained"
             onClick={() => {
               setToastMsg("Password updated successfully!");
               setSecurityModalOpen(false);
             }}
-            sx={{ bgcolor: PRIMARY, color: "#fff", fontWeight: 800, borderRadius: "10px", "&:hover": { bgcolor: PRIMARY_DARK } }}
+            sx={{ bgcolor: PRIMARY, color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: PRIMARY_DARK } }}
           >
             Update Password
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Stack>
+      </Drawer>
 
-      {/* ─── MODAL: LOGOUT CONFIRMATION ─── */}
-      <Dialog
+      {/* ─── BOTTOM DRAWER: LOGOUT CONFIRMATION ─── */}
+      <Drawer
+        anchor="bottom"
         open={logoutDialogOpen}
         onClose={() => setLogoutDialogOpen(false)}
-        maxWidth="xs"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: "18px", p: 1, textAlign: "center" } }}
+        PaperProps={DRAWER_PAPER_PROPS}
       >
-        <DialogContent sx={{ pt: 3 }}>
+        <Box sx={{ width: 44, height: 5, bgcolor: "#cbd5e1", borderRadius: 999, mx: "auto", mb: 2 }} />
+        <Box sx={{ textAlign: "center", py: 1 }}>
           <Box
             sx={{
               width: 52,
@@ -1525,30 +1595,33 @@ export default function BusinessProfile() {
           >
             <LogoutIcon sx={{ fontSize: 26 }} />
           </Box>
-          <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", color: TEXT, mb: 1 }}>
+          <Typography sx={{ fontWeight: 900, fontSize: "1.15rem", color: TEXT, mb: 0.5 }}>
             Sign Out of Business Terminal?
           </Typography>
-          <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, mb: 2 }}>
-            You will need to re-enter your merchant login to access your store and orders.
+          <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, mb: 2.5, px: 2 }}>
+            You will need to re-enter your credentials to manage your store, inventory, and orders.
           </Typography>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2.5, justifyContent: "center", gap: 1 }}>
-          <Button
-            onClick={() => setLogoutDialogOpen(false)}
-            variant="outlined"
-            sx={{ flex: 1, borderColor: BORDER, color: TEXT_MUTED, fontWeight: 700, borderRadius: "10px", py: 1 }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleLogout}
-            variant="contained"
-            sx={{ flex: 1, bgcolor: "#ef4444", color: "#fff", fontWeight: 800, borderRadius: "10px", py: 1, "&:hover": { bgcolor: "#dc2626" } }}
-          >
-            Sign Out
-          </Button>
-        </DialogActions>
-      </Dialog>
+
+          <Stack direction="row" spacing={1.5}>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={() => setLogoutDialogOpen(false)}
+              sx={{ borderColor: BORDER, color: TEXT_MUTED, fontWeight: 700, borderRadius: "12px", py: 1.2 }}
+            >
+              Cancel
+            </Button>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={handleLogout}
+              sx={{ bgcolor: "#ef4444", color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: "#dc2626" } }}
+            >
+              Sign Out
+            </Button>
+          </Stack>
+        </Box>
+      </Drawer>
 
       {/* Toast Feedback */}
       <Snackbar
