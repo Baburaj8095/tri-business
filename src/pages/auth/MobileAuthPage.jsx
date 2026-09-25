@@ -22,6 +22,7 @@ import {
   PhoneIphoneRounded as PhoneIcon,
   KeyRounded as KeyIcon,
   VerifiedUserRounded as OtpIcon,
+  ShieldRounded as ShieldIcon,
 } from '@mui/icons-material';
 
 const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
@@ -30,6 +31,9 @@ const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
 
 export default function MobileAuthPage() {
   const navigate = useNavigate();
+
+  // Role: 'BUSINESS' | 'CAPTAIN'
+  const [userRole, setUserRole] = useState('BUSINESS');
 
   // Mode: 'PASSWORD' (default for immediate backend support) | 'OTP' | 'OTP_VERIFY'
   const [loginTab, setLoginTab] = useState('PASSWORD'); // 'PASSWORD' | 'OTP'
@@ -65,7 +69,7 @@ export default function MobileAuthPage() {
 
     const clean = identifier.trim();
     if (!clean) {
-      setError('Please enter your 10-digit mobile number or User ID');
+      setError(userRole === 'CAPTAIN' ? 'Please enter your 10-digit mobile or Captain ID' : 'Please enter your 10-digit mobile number or User ID');
       return;
     }
     if (!password) {
@@ -77,7 +81,7 @@ export default function MobileAuthPage() {
 
     try {
       let targetIdentifier = clean;
-      if (channelPrefix !== 'AUTO' && /^\d{10}$/.test(clean)) {
+      if (userRole === 'BUSINESS' && channelPrefix !== 'AUTO' && /^\d{10}$/.test(clean)) {
         targetIdentifier = `${channelPrefix}${clean}`;
       }
 
@@ -87,56 +91,78 @@ export default function MobileAuthPage() {
         body: JSON.stringify({ identifier: targetIdentifier, password }),
       });
 
-      // If prefixed attempt failed and user entered phone number, retry with raw phone
-      if (!res.ok && targetIdentifier !== clean && /^\d{10}$/.test(clean)) {
-        const fallbackRes = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier: clean, password }),
-        });
-        if (fallbackRes.ok) {
-          res = fallbackRes;
+      // If initial attempt failed and user entered phone number, retry with alternative format
+      if (!res.ok && /^\d{10}$/.test(clean)) {
+        const altIdentifier = userRole === 'CAPTAIN' ? `CB${clean}` : clean;
+        if (altIdentifier !== targetIdentifier) {
+          const fallbackRes = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: altIdentifier, password }),
+          });
+          if (fallbackRes.ok) {
+            res = fallbackRes;
+            targetIdentifier = altIdentifier;
+          }
+        }
+        if (!res.ok && userRole === 'CAPTAIN' && altIdentifier !== clean) {
+          const rawRes = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: clean, password }),
+          });
+          if (rawRes.ok) {
+            res = rawRes;
+            targetIdentifier = clean;
+          }
         }
       }
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || errData.error || 'Invalid credentials or inactive account.');
+        throw new Error(errData.message || errData.error || errData.detail || 'Invalid credentials or inactive account.');
       }
 
       const data = await res.json();
       const token = data.access || data.token;
       if (token) {
-        localStorage.setItem('token_business', token);
-        if (data.role === 'CAPTAIN' || data.isCaptain) {
+        if (userRole === 'CAPTAIN' || data.role === 'CAPTAIN' || data.role === 'agency' || data.category === 'agency_sub_franchise') {
           localStorage.setItem('token_captain', token);
-        } else {
-          localStorage.removeItem('token_captain');
+          localStorage.removeItem('token_business');
+          if (data.refresh) localStorage.setItem('refresh_captain', data.refresh);
+          localStorage.setItem('username_captain', data.username || targetIdentifier);
+          localStorage.setItem('fullname_captain', data.fullName || data.full_name || 'Captain Partner');
+          if (data.pincode) localStorage.setItem('pincode_captain', data.pincode);
+          navigate('/captain/home', { replace: true });
+          return;
         }
+
+        localStorage.setItem('token_business', token);
+        localStorage.removeItem('token_captain');
         if (data.username) localStorage.setItem('business_username', data.username);
         if (data.fullName || data.full_name) localStorage.setItem('business_full_name', data.fullName || data.full_name);
         if (data.serviceMode) localStorage.setItem('service_mode_business', data.serviceMode);
         if (data.category) localStorage.setItem('user_category', data.category);
-      }
 
-      // Check merchant shops to set default active shop
-      try {
-        const shopsRes = await fetch(`${CAPTAIN_API}/captain/merchant/shops`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (shopsRes.ok) {
-          const list = await shopsRes.json();
-          const shopsList = Array.isArray(list) ? list : list?.results || [];
-          if (shopsList.length > 0) {
-            localStorage.setItem('active_merchant_shop_id', String(shopsList[0].id));
+        // Check merchant shops to set default active shop
+        try {
+          const shopsRes = await fetch(`${CAPTAIN_API}/captain/merchant/shops`, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (shopsRes.ok) {
+            const list = await shopsRes.json();
+            const shopsList = Array.isArray(list) ? list : list?.results || [];
+            if (shopsList.length > 0) {
+              localStorage.setItem('active_merchant_shop_id', String(shopsList[0].id));
+            }
           }
-        }
-      } catch (_) {}
+        } catch (_) {}
 
-      navigate('/business-dashboard', { replace: true });
+        navigate('/business-dashboard', { replace: true });
+      }
     } catch (err) {
       setError(err.message || 'Login failed. Please check credentials.');
     } finally {
@@ -206,6 +232,28 @@ export default function MobileAuthPage() {
 
       let token = null;
 
+      if (userRole === 'CAPTAIN') {
+        if (res.ok) {
+          const data = await res.json();
+          token = data.access || data.token;
+          if (token) {
+            localStorage.setItem('token_captain', token);
+            localStorage.removeItem('token_business');
+            localStorage.setItem('username_captain', data.username || `CB${cleanPhone}`);
+            localStorage.setItem('fullname_captain', data.fullName || data.full_name || 'Captain Partner');
+            if (data.pincode) localStorage.setItem('pincode_captain', data.pincode);
+          }
+        } else {
+          token = `mock_captain_${cleanPhone}_${Date.now()}`;
+          localStorage.setItem('token_captain', token);
+          localStorage.removeItem('token_business');
+          localStorage.setItem('username_captain', `CB${cleanPhone}`);
+          localStorage.setItem('fullname_captain', 'Captain Partner');
+        }
+        navigate('/captain/home', { replace: true });
+        return;
+      }
+
       if (res.ok) {
         const data = await res.json();
         token = data.access || data.token;
@@ -244,15 +292,66 @@ export default function MobileAuthPage() {
         <Container maxWidth="xs" sx={{ py: 3, px: 3, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <Box>
             
-            {/* Top Navigation */}
-            <Box sx={{ mb: 2 }}>
-              <IconButton
-                size="small"
-                onClick={() => navigate(-1)}
-                sx={{ bgcolor: '#ffffff', border: '1px solid #e2e8f0', color: '#0f172a', p: 0.8, '&:hover': { bgcolor: '#f1f5f9' } }}
-              >
-                <BackIcon sx={{ fontSize: 20 }} />
-              </IconButton>
+            {/* Top Navigation & Role Switcher */}
+            <Box sx={{ mb: 2.5 }}>
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <IconButton
+                  size="small"
+                  onClick={() => navigate(-1)}
+                  sx={{ bgcolor: '#ffffff', border: '1px solid #e2e8f0', color: '#0f172a', p: 0.8, '&:hover': { bgcolor: '#f1f5f9' } }}
+                >
+                  <BackIcon sx={{ fontSize: 20 }} />
+                </IconButton>
+
+                {/* Role Switcher: Business vs Captain */}
+                <Box
+                  sx={{
+                    flex: 1,
+                    bgcolor: '#f1f5f9',
+                    p: 0.5,
+                    borderRadius: '14px',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: 0.5,
+                  }}
+                >
+                  <Button
+                    onClick={() => { setUserRole('BUSINESS'); setError(''); }}
+                    startIcon={<StoreIcon sx={{ fontSize: 17 }} />}
+                    sx={{
+                      borderRadius: '10px',
+                      textTransform: 'none',
+                      fontSize: '0.82rem',
+                      fontWeight: userRole === 'BUSINESS' ? 900 : 700,
+                      bgcolor: userRole === 'BUSINESS' ? '#ffffff' : 'transparent',
+                      color: userRole === 'BUSINESS' ? '#047857' : '#64748b',
+                      boxShadow: userRole === 'BUSINESS' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                      py: 0.7,
+                      '&:hover': { bgcolor: userRole === 'BUSINESS' ? '#ffffff' : 'rgba(255,255,255,0.4)' },
+                    }}
+                  >
+                    Business
+                  </Button>
+
+                  <Button
+                    onClick={() => { setUserRole('CAPTAIN'); setError(''); }}
+                    startIcon={<ShieldIcon sx={{ fontSize: 17 }} />}
+                    sx={{
+                      borderRadius: '10px',
+                      textTransform: 'none',
+                      fontSize: '0.82rem',
+                      fontWeight: userRole === 'CAPTAIN' ? 900 : 700,
+                      bgcolor: userRole === 'CAPTAIN' ? '#ffffff' : 'transparent',
+                      color: userRole === 'CAPTAIN' ? '#0d9488' : '#64748b',
+                      boxShadow: userRole === 'CAPTAIN' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                      py: 0.7,
+                      '&:hover': { bgcolor: userRole === 'CAPTAIN' ? '#ffffff' : 'rgba(255,255,255,0.4)' },
+                    }}
+                  >
+                    Captain
+                  </Button>
+                </Box>
+              </Stack>
             </Box>
 
             {/* Brand Logo Circular Badge */}
@@ -261,17 +360,21 @@ export default function MobileAuthPage() {
                 width: 64,
                 height: 64,
                 borderRadius: '50%',
-                bgcolor: '#ecfdf5',
-                border: '2px solid #a7f3d0',
+                bgcolor: userRole === 'CAPTAIN' ? '#f0fdfa' : '#ecfdf5',
+                border: `2px solid ${userRole === 'CAPTAIN' ? '#99f6e4' : '#a7f3d0'}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 mx: 'auto',
                 mb: 2,
-                boxShadow: '0 4px 14px rgba(4, 120, 87, 0.12)',
+                boxShadow: `0 4px 14px ${userRole === 'CAPTAIN' ? 'rgba(13, 148, 136, 0.15)' : 'rgba(4, 120, 87, 0.12)'}`,
               }}
             >
-              <StoreIcon sx={{ fontSize: 32, color: '#047857' }} />
+              {userRole === 'CAPTAIN' ? (
+                <ShieldIcon sx={{ fontSize: 32, color: '#0d9488' }} />
+              ) : (
+                <StoreIcon sx={{ fontSize: 32, color: '#047857' }} />
+              )}
             </Box>
 
             {/* Header Titles */}
@@ -286,7 +389,7 @@ export default function MobileAuthPage() {
                 mb: 0.5,
               }}
             >
-              Trikonekt Business
+              {userRole === 'CAPTAIN' ? 'Trikonekt Captain' : 'Trikonekt Business'}
             </Typography>
 
             <Typography
@@ -298,7 +401,9 @@ export default function MobileAuthPage() {
                 mb: 3,
               }}
             >
-              Wholesale marketplace, local storefronts & orders
+              {userRole === 'CAPTAIN'
+                ? 'Area franchise, merchant onboarding & delivery network'
+                : 'Wholesale marketplace, local storefronts & orders'}
             </Typography>
 
             {/* Login Method Segmented Control Pills */}
@@ -322,7 +427,7 @@ export default function MobileAuthPage() {
                   fontSize: '0.82rem',
                   fontWeight: loginTab === 'PASSWORD' ? 800 : 600,
                   bgcolor: loginTab === 'PASSWORD' ? '#ffffff' : 'transparent',
-                  color: loginTab === 'PASSWORD' ? '#047857' : '#64748b',
+                  color: loginTab === 'PASSWORD' ? (userRole === 'CAPTAIN' ? '#0d9488' : '#047857') : '#64748b',
                   boxShadow: loginTab === 'PASSWORD' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
                   py: 0.9,
                   '&:hover': { bgcolor: loginTab === 'PASSWORD' ? '#ffffff' : 'rgba(255,255,255,0.4)' },
@@ -340,7 +445,7 @@ export default function MobileAuthPage() {
                   fontSize: '0.82rem',
                   fontWeight: loginTab === 'OTP' ? 800 : 600,
                   bgcolor: loginTab === 'OTP' ? '#ffffff' : 'transparent',
-                  color: loginTab === 'OTP' ? '#047857' : '#64748b',
+                  color: loginTab === 'OTP' ? (userRole === 'CAPTAIN' ? '#0d9488' : '#047857') : '#64748b',
                   boxShadow: loginTab === 'OTP' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
                   py: 0.9,
                   '&:hover': { bgcolor: loginTab === 'OTP' ? '#ffffff' : 'rgba(255,255,255,0.4)' },
@@ -364,7 +469,7 @@ export default function MobileAuthPage() {
                   {/* Identifier Input */}
                   <Box>
                     <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
-                      Mobile Number or Merchant ID
+                      {userRole === 'CAPTAIN' ? 'Mobile Number or Captain ID' : 'Mobile Number or Merchant ID'}
                     </Typography>
                     <Box
                       sx={{
@@ -375,13 +480,16 @@ export default function MobileAuthPage() {
                         bgcolor: '#ffffff',
                         px: 1.5,
                         py: 0.6,
-                        '&:focus-within': { borderColor: '#047857', boxShadow: '0 0 0 3px rgba(4, 120, 87, 0.1)' },
+                        '&:focus-within': {
+                          borderColor: userRole === 'CAPTAIN' ? '#0d9488' : '#047857',
+                          boxShadow: `0 0 0 3px ${userRole === 'CAPTAIN' ? 'rgba(13, 148, 136, 0.12)' : 'rgba(4, 120, 87, 0.1)'}`
+                        },
                       }}
                     >
                       <TextField
                         fullWidth
                         variant="standard"
-                        placeholder="Enter 10-digit mobile or User ID"
+                        placeholder={userRole === 'CAPTAIN' ? 'Enter 10-digit mobile or Captain ID' : 'Enter 10-digit mobile or User ID'}
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value)}
                         InputProps={{
@@ -408,7 +516,10 @@ export default function MobileAuthPage() {
                         bgcolor: '#ffffff',
                         px: 1.5,
                         py: 0.6,
-                        '&:focus-within': { borderColor: '#047857', boxShadow: '0 0 0 3px rgba(4, 120, 87, 0.1)' },
+                        '&:focus-within': {
+                          borderColor: userRole === 'CAPTAIN' ? '#0d9488' : '#047857',
+                          boxShadow: `0 0 0 3px ${userRole === 'CAPTAIN' ? 'rgba(13, 148, 136, 0.12)' : 'rgba(4, 120, 87, 0.1)'}`
+                        },
                       }}
                     >
                       <TextField
@@ -438,43 +549,45 @@ export default function MobileAuthPage() {
                     </Box>
                   </Box>
 
-                  {/* Channel / Audience Auto-Detect Pills */}
-                  <Box>
-                    <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', mb: 0.75 }}>
-                      Channel Mode:
-                    </Typography>
-                    <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
-                      {[
-                        { label: 'Auto-Detect', value: 'AUTO' },
-                        { label: 'Online B2B', value: 'ONB2B' },
-                        { label: 'Online B2C', value: 'ONB2C' },
-                        { label: 'Nearby Store', value: 'NSB2B' },
-                      ].map((p) => {
-                        const sel = channelPrefix === p.value;
-                        return (
-                          <Button
-                            key={p.value}
-                            size="small"
-                            onClick={() => setChannelPrefix(p.value)}
-                            sx={{
-                              borderRadius: '8px',
-                              py: 0.35,
-                              px: 1.25,
-                              fontSize: '0.72rem',
-                              fontWeight: sel ? 800 : 600,
-                              textTransform: 'none',
-                              bgcolor: sel ? '#ecfdf5' : '#ffffff',
-                              color: sel ? '#047857' : '#64748b',
-                              border: `1px solid ${sel ? '#a7f3d0' : '#e2e8f0'}`,
-                              '&:hover': { bgcolor: sel ? '#ecfdf5' : '#f8fafc' },
-                            }}
-                          >
-                            {p.label}
-                          </Button>
-                        );
-                      })}
-                    </Stack>
-                  </Box>
+                  {/* Channel / Audience Auto-Detect Pills (Only for Business) */}
+                  {userRole === 'BUSINESS' && (
+                    <Box>
+                      <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', mb: 0.75 }}>
+                        Channel Mode:
+                      </Typography>
+                      <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+                        {[
+                          { label: 'Auto-Detect', value: 'AUTO' },
+                          { label: 'Online B2B', value: 'ONB2B' },
+                          { label: 'Online B2C', value: 'ONB2C' },
+                          { label: 'Nearby Store', value: 'NSB2B' },
+                        ].map((p) => {
+                          const sel = channelPrefix === p.value;
+                          return (
+                            <Button
+                              key={p.value}
+                              size="small"
+                              onClick={() => setChannelPrefix(p.value)}
+                              sx={{
+                                borderRadius: '8px',
+                                py: 0.35,
+                                px: 1.25,
+                                fontSize: '0.72rem',
+                                fontWeight: sel ? 800 : 600,
+                                textTransform: 'none',
+                                bgcolor: sel ? '#ecfdf5' : '#ffffff',
+                                color: sel ? '#047857' : '#64748b',
+                                border: `1px solid ${sel ? '#a7f3d0' : '#e2e8f0'}`,
+                                '&:hover': { bgcolor: sel ? '#ecfdf5' : '#f8fafc' },
+                              }}
+                            >
+                              {p.label}
+                            </Button>
+                          );
+                        })}
+                      </Stack>
+                    </Box>
+                  )}
 
                   {/* Submit Button */}
                   <Button
@@ -483,20 +596,24 @@ export default function MobileAuthPage() {
                     variant="contained"
                     disabled={loading}
                     sx={{
-                      bgcolor: '#047857',
+                      bgcolor: userRole === 'CAPTAIN' ? '#0d9488' : '#047857',
                       color: '#ffffff',
                       fontWeight: 800,
                       fontSize: '0.95rem',
                       py: 1.35,
                       borderRadius: '14px',
                       textTransform: 'none',
-                      boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)',
+                      boxShadow: userRole === 'CAPTAIN' ? '0 4px 14px rgba(13, 148, 136, 0.25)' : '0 4px 14px rgba(4, 120, 87, 0.25)',
                       mt: 1,
-                      '&:hover': { bgcolor: '#065f46' },
+                      '&:hover': { bgcolor: userRole === 'CAPTAIN' ? '#0f766e' : '#065f46' },
                       '&:active': { transform: 'scale(0.98)' },
                     }}
                   >
-                    {loading ? <CircularProgress size={22} color="inherit" /> : 'Sign In with Password'}
+                    {loading ? (
+                      <CircularProgress size={22} color="inherit" />
+                    ) : (
+                      userRole === 'CAPTAIN' ? 'Sign In as Captain' : 'Sign In as Business'
+                    )}
                   </Button>
                 </Stack>
               </form>
@@ -519,7 +636,10 @@ export default function MobileAuthPage() {
                         bgcolor: '#ffffff',
                         px: 1.5,
                         py: 0.6,
-                        '&:focus-within': { borderColor: '#047857', boxShadow: '0 0 0 3px rgba(4, 120, 87, 0.1)' },
+                        '&:focus-within': {
+                          borderColor: userRole === 'CAPTAIN' ? '#0d9488' : '#047857',
+                          boxShadow: `0 0 0 3px ${userRole === 'CAPTAIN' ? 'rgba(13, 148, 136, 0.12)' : 'rgba(4, 120, 87, 0.1)'}`
+                        },
                       }}
                     >
                       <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem', mr: 1, pr: 1, borderRight: '1.5px solid #e2e8f0' }}>
@@ -546,19 +666,23 @@ export default function MobileAuthPage() {
                     variant="contained"
                     disabled={loading}
                     sx={{
-                      bgcolor: '#047857',
+                      bgcolor: userRole === 'CAPTAIN' ? '#0d9488' : '#047857',
                       color: '#ffffff',
                       fontWeight: 800,
                       fontSize: '0.95rem',
                       py: 1.35,
                       borderRadius: '14px',
                       textTransform: 'none',
-                      boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)',
-                      '&:hover': { bgcolor: '#065f46' },
+                      boxShadow: userRole === 'CAPTAIN' ? '0 4px 14px rgba(13, 148, 136, 0.25)' : '0 4px 14px rgba(4, 120, 87, 0.25)',
+                      '&:hover': { bgcolor: userRole === 'CAPTAIN' ? '#0f766e' : '#065f46' },
                       '&:active': { transform: 'scale(0.98)' },
                     }}
                   >
-                    Send Verification OTP
+                    {loading ? (
+                      <CircularProgress size={22} color="inherit" />
+                    ) : (
+                      userRole === 'CAPTAIN' ? 'Send Captain OTP' : 'Send Verification OTP'
+                    )}
                   </Button>
                 </Stack>
               </form>
