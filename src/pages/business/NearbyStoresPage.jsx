@@ -105,7 +105,7 @@ export default function NearbyStoresPage() {
 
   return (
     <AppShell activeTab="/business/nearby-stores">
-      <Container maxWidth="xl" sx={{ pt: 3.5, px: { xs: 2, sm: 3, lg: 4 } }}>
+      <Container maxWidth="xl" sx={{ pt: { xs: 2, sm: 3.5 }, px: { xs: 1.5, sm: 3, lg: 4 } }}>
         {/* ─── HEADER BAR (Matching Image 1 Screen 4) ─── */}
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
@@ -239,6 +239,7 @@ export default function NearbyStoresPage() {
                     transition: 'all 0.22s ease',
                     boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)',
                     height: '100%',
+                    width: '100%',
                     '&:hover': {
                       borderColor: '#047857',
                       boxShadow: '0 8px 24px rgba(4, 120, 87, 0.12)',

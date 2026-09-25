@@ -803,11 +803,8 @@ function ShopCard({ shop }) {
         borderRadius: '18px',
         border: '1px solid #e2e8f0',
         bgcolor: '#ffffff',
-        minWidth: { xs: 224, sm: 240 },
-        width: { xs: 224, sm: 240 },
-        maxWidth: 240,
+        width: '100%',
         flexShrink: 0,
-        scrollSnapAlign: "start",
         cursor: 'pointer',
         overflow: 'hidden',
         boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)',
@@ -819,7 +816,7 @@ function ShopCard({ shop }) {
         },
       }}
     >
-      <Box sx={{ position: 'relative', width: '100%', height: 124, bgcolor: '#f1f5f9', overflow: 'hidden' }}>
+      <Box sx={{ position: 'relative', width: '100%', height: { xs: 150, sm: 168 }, bgcolor: '#f1f5f9', overflow: 'hidden' }}>
         <Box
           component="img"
           src={imgSrc}
@@ -831,21 +828,21 @@ function ShopCard({ shop }) {
             objectFit: "cover",
             display: "block",
             transition: 'transform 0.3s ease',
-            '&:hover': { transform: 'scale(1.05)' }
+            '&:hover': { transform: 'scale(1.04)' }
           }}
         />
         <Box
           sx={{
             position: 'absolute',
-            top: 8,
-            left: 8,
+            top: 10,
+            left: 10,
             bgcolor: 'rgba(6, 78, 59, 0.92)',
             backdropFilter: 'blur(4px)',
             color: '#ffffff',
-            px: 0.8,
-            py: 0.25,
+            px: 1,
+            py: 0.35,
             borderRadius: '6px',
-            fontSize: '9.5px',
+            fontSize: '10px',
             fontWeight: 800,
             letterSpacing: '0.3px',
           }}
@@ -855,15 +852,15 @@ function ShopCard({ shop }) {
         <Box
           sx={{
             position: 'absolute',
-            bottom: 8,
-            right: 8,
-            bgcolor: 'rgba(15, 23, 42, 0.75)',
+            bottom: 10,
+            right: 10,
+            bgcolor: 'rgba(15, 23, 42, 0.78)',
             backdropFilter: 'blur(4px)',
             color: '#ffffff',
-            px: 0.7,
-            py: 0.2,
+            px: 0.9,
+            py: 0.3,
             borderRadius: '6px',
-            fontSize: '10px',
+            fontSize: '10.5px',
             fontWeight: 800,
             display: 'flex',
             alignItems: 'center',
@@ -872,33 +869,60 @@ function ShopCard({ shop }) {
         >
           ★ 4.5
         </Box>
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 10,
+            left: 10,
+            bgcolor: 'rgba(15, 23, 42, 0.78)',
+            backdropFilter: 'blur(4px)',
+            color: '#ffffff',
+            px: 1,
+            py: 0.3,
+            borderRadius: '6px',
+            fontSize: '10.5px',
+            fontWeight: 700,
+          }}
+        >
+          📍 {shopLoc} • 26 mins • 8.4 km
+        </Box>
       </Box>
 
-      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 0.8 }}>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }} noWrap>
+      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Typography sx={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }} noWrap>
             {shopName}
           </Typography>
-          <Typography sx={{ fontSize: '0.74rem', color: '#64748b', mt: 0.25, lineHeight: 1.2 }} noWrap>
-            📍 {shopLoc} • 26 mins
-          </Typography>
-        </Box>
+          <Chip
+            size="small"
+            label="✓ Verified"
+            sx={{
+              bgcolor: '#f0fdf4',
+              color: '#15803d',
+              fontWeight: 800,
+              fontSize: '0.68rem',
+              height: 22,
+              border: '1px solid #bbf7d0',
+            }}
+          />
+        </Stack>
 
         <Button
           fullWidth
           variant="contained"
           onClick={(e) => { e.stopPropagation(); handleViewStore(); }}
-          startIcon={<HiOutlineBuildingStorefront style={{ fontSize: 16 }} />}
+          startIcon={<HiOutlineBuildingStorefront style={{ fontSize: 18 }} />}
           sx={{
-            borderRadius: '10px',
+            borderRadius: '12px',
             textTransform: "none",
             fontWeight: 800,
-            fontSize: '0.78rem',
-            height: '34px',
+            fontSize: '0.86rem',
+            height: '42px',
             bgcolor: '#047857',
             color: '#ffffff',
-            boxShadow: 'none',
-            '&:hover': { bgcolor: '#065f46', boxShadow: 'none' },
+            boxShadow: '0 2px 8px rgba(4, 120, 87, 0.25)',
+            '&:hover': { bgcolor: '#065f46', boxShadow: '0 4px 12px rgba(4, 120, 87, 0.35)' },
+            '&:active': { transform: 'scale(0.98)' },
           }}
         >
           View Store
@@ -2752,13 +2776,22 @@ function BusinessDashboard() {
             <SectionShell
               title="Nearby Stores"
               subtitle="Browse B2B merchants in your area"
+              action={
+                <Button
+                  size="small"
+                  onClick={() => navigate('/business/nearby-stores')}
+                  sx={{ textTransform: 'none', fontWeight: 800, color: '#047857', fontSize: '0.8rem' }}
+                >
+                  View All ({b2bShops.length || 0}) →
+                </Button>
+              }
             >
               {Array.isArray(b2bShops) && b2bShops.length > 0 ? (
-                <ScrollRow gap={0.9}>
-                  {b2bShops.map((shop) => (
+                <Stack spacing={2} sx={{ width: '100%', mt: 0.5 }}>
+                  {b2bShops.slice(0, 4).map((shop) => (
                     <ShopCard key={shop.id} shop={shop} />
                   ))}
-                </ScrollRow>
+                </Stack>
               ) : (
                 <Typography sx={{ p: 2, fontSize: 13, color: UI.textMuted, textAlign: "center" }}>
                   No nearby stores found right now.
