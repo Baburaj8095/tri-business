@@ -97,7 +97,7 @@ function App() {
         <Route path="/registration/add-products" element={<ProductAddition />} />
         <Route path="/product-registration" element={<ProductRegistration />} />
         {/* Captain Routes */}
-        <Route path="/captain/register" element={<CaptainRegister />} />
+        <Route path="/captain/register" element={<CaptainRegister initialRole="CAPTAIN" />} />
         <Route path="/captain/login" element={<CaptainLogin />} />
         <Route path="/login" element={<MobileAuthPage />} />
         <Route path="/auth/mobile" element={<MobileAuthPage />} />

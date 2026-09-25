@@ -428,7 +428,7 @@ const UnifiedLogin = () => {
                 Don&apos;t have an account?{' '}
                 <Box
                   component="span"
-                  onClick={() => navigate('/onboarding')}
+                  onClick={() => navigate('/registration?role=captain')}
                   sx={{ color: T.accent, fontWeight: 800, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
                 >
                   Register Now

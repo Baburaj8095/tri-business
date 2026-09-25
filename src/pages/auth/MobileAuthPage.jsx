@@ -704,20 +704,20 @@ export default function MobileAuthPage() {
               <Button
                 variant="contained"
                 fullWidth
-                onClick={() => navigate('/onboarding')}
+                onClick={() => navigate(`/registration?role=${userRole.toLowerCase()}`)}
                 sx={{
-                  bgcolor: '#047857',
+                  bgcolor: userRole === 'CAPTAIN' ? '#0d9488' : '#047857',
                   color: '#ffffff',
                   fontWeight: 800,
                   fontSize: '0.86rem',
                   borderRadius: '12px',
                   py: 1.2,
                   textTransform: 'none',
-                  boxShadow: '0 4px 12px rgba(4, 120, 87, 0.2)',
-                  '&:hover': { bgcolor: '#065f46' },
+                  boxShadow: userRole === 'CAPTAIN' ? '0 4px 12px rgba(13, 148, 136, 0.25)' : '0 4px 12px rgba(4, 120, 87, 0.2)',
+                  '&:hover': { bgcolor: userRole === 'CAPTAIN' ? '#0f766e' : '#065f46' },
                 }}
               >
-                Join Trikonekt (Choose Business or Captain)
+                {userRole === 'CAPTAIN' ? 'Register as Captain Partner' : 'Register as Business Merchant'}
               </Button>
             </Box>
 
