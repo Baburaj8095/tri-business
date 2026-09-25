@@ -586,8 +586,8 @@ export default function NearbyStoresPage() {
                       </Typography>
                     </Box>
 
-                    {/* Line 3: 3 Action Buttons (Call, WhatsApp, View Store) */}
-                    <Stack direction="row" spacing={1} sx={{ mt: 0.25 }}>
+                    {/* Line 3: 3 Action Buttons (Call, WhatsApp, View Store) - Guaranteed Zero Breaking */}
+                    <Stack direction="row" spacing={{ xs: 0.75, sm: 1 }} sx={{ mt: 0.5, width: '100%' }}>
                       {/* Call Button */}
                       <Button
                         variant="outlined"
@@ -595,18 +595,22 @@ export default function NearbyStoresPage() {
                           e.stopPropagation();
                           window.location.href = `tel:${store.phone}`;
                         }}
-                        startIcon={<PhoneIcon sx={{ fontSize: 16, color: '#047857' }} />}
+                        startIcon={<PhoneIcon sx={{ fontSize: 15, color: '#047857' }} />}
                         sx={{
                           flex: 1,
-                          height: 40,
+                          minWidth: 0,
+                          height: 38,
+                          px: { xs: 0.8, sm: 1.5 },
                           borderColor: '#e2e8f0',
                           color: '#0f172a',
-                          borderRadius: '11px',
+                          borderRadius: '10px',
                           fontWeight: 800,
-                          fontSize: '0.82rem',
+                          fontSize: { xs: '0.74rem', sm: '0.8rem' },
                           textTransform: 'none',
+                          whiteSpace: 'nowrap',
                           bgcolor: '#ffffff',
                           boxShadow: 'none',
+                          '& .MuiButton-startIcon': { mr: { xs: 0.4, sm: 0.75 }, ml: 0 },
                           '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' },
                           '&:active': { transform: 'scale(0.98)' }
                         }}
@@ -621,18 +625,22 @@ export default function NearbyStoresPage() {
                           e.stopPropagation();
                           window.open(`https://wa.me/91${String(store.phone).replace(/\D/g, '')}?text=Hello%20${encodeURIComponent(store.name)}`, '_blank');
                         }}
-                        startIcon={<WhatsAppIcon sx={{ fontSize: 18, color: '#25d366' }} />}
+                        startIcon={<WhatsAppIcon sx={{ fontSize: 16, color: '#25d366' }} />}
                         sx={{
-                          flex: 1.25,
-                          height: 40,
+                          flex: 1.15,
+                          minWidth: 0,
+                          height: 38,
+                          px: { xs: 0.8, sm: 1.5 },
                           borderColor: '#e2e8f0',
                           color: '#0f172a',
-                          borderRadius: '11px',
+                          borderRadius: '10px',
                           fontWeight: 800,
-                          fontSize: '0.82rem',
+                          fontSize: { xs: '0.74rem', sm: '0.8rem' },
                           textTransform: 'none',
+                          whiteSpace: 'nowrap',
                           bgcolor: '#ffffff',
                           boxShadow: 'none',
+                          '& .MuiButton-startIcon': { mr: { xs: 0.4, sm: 0.75 }, ml: 0 },
                           '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' },
                           '&:active': { transform: 'scale(0.98)' }
                         }}
@@ -647,17 +655,21 @@ export default function NearbyStoresPage() {
                           e.stopPropagation();
                           navigate(`/business/shop/${store.id}`);
                         }}
-                        startIcon={<StorefrontIcon sx={{ fontSize: 18 }} />}
+                        startIcon={<StorefrontIcon sx={{ fontSize: 16 }} />}
                         sx={{
-                          flex: 1.5,
-                          height: 40,
+                          flex: 1.35,
+                          minWidth: 0,
+                          height: 38,
+                          px: { xs: 0.8, sm: 1.5 },
                           bgcolor: '#15803d',
                           color: '#ffffff',
-                          borderRadius: '11px',
+                          borderRadius: '10px',
                           fontWeight: 800,
-                          fontSize: '0.84rem',
+                          fontSize: { xs: '0.74rem', sm: '0.82rem' },
                           textTransform: 'none',
+                          whiteSpace: 'nowrap',
                           boxShadow: 'none',
+                          '& .MuiButton-startIcon': { mr: { xs: 0.4, sm: 0.75 }, ml: 0 },
                           '&:hover': { bgcolor: '#166534', boxShadow: 'none' },
                           '&:active': { transform: 'scale(0.98)' }
                         }}
