@@ -2304,76 +2304,115 @@ function BusinessDashboard() {
           px: { xs: 1, sm: 2, lg: 3 }
         }}
       >
-        {/* Hero Promo Banner (Desktop & Mobile) */}
+        {/* Hero Promo Banner (Compact, Sleek Quick-Commerce Design) */}
         <Box
           sx={{
-            mb: 2.5,
-            p: { xs: 2.5, sm: 3.5, lg: 4 },
+            mb: 2.25,
+            p: { xs: 2, sm: 3 },
             borderRadius: '20px',
-            background: 'linear-gradient(135deg, #059669 0%, #10B981 60%, #047857 100%)',
+            background: 'linear-gradient(135deg, #064e3b 0%, #047857 55%, #0d9488 100%)',
             color: '#ffffff',
             position: 'relative',
             overflow: 'hidden',
-            boxShadow: '0 8px 30px rgba(5, 150, 105, 0.22)'
+            boxShadow: '0 6px 20px rgba(6, 78, 59, 0.16)'
           }}
         >
-          {/* Luminous background accent */}
-          <Box sx={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.12)', pointerEvents: 'none' }} />
+          {/* Subtle luminous accent glow */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: -30,
+              right: -30,
+              width: 140,
+              height: 140,
+              borderRadius: '50%',
+              bgcolor: 'rgba(255,255,255,0.1)',
+              pointerEvents: 'none',
+              filter: 'blur(10px)'
+            }}
+          />
 
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Box sx={{ maxWidth: 650, position: 'relative' }}>
-              <Chip label="⚡ B2B QUICK COMMERCE & WHOLESALE" size="small" sx={{ bgcolor: 'rgba(255,255,255,0.22)', color: '#fff', fontWeight: 900, fontSize: '10.5px', mb: 1.25 }} />
-              <Typography variant="h5" sx={{ fontWeight: 900, mb: 0.75, letterSpacing: '-0.02em', fontSize: { xs: '1.25rem', sm: '1.75rem' } }}>
-                Grow Your Business With Trikonekt
+          <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={1.5}>
+            <Box sx={{ maxWidth: 580, position: 'relative' }}>
+              <Stack direction="row" alignItems="center" spacing={1} mb={0.75}>
+                <Chip
+                  label="⚡ 15–30 MIN DISPATCH"
+                  size="small"
+                  sx={{
+                    bgcolor: 'rgba(255,255,255,0.2)',
+                    color: '#ffffff',
+                    fontWeight: 900,
+                    fontSize: '10px',
+                    height: '20px',
+                    letterSpacing: '0.3px'
+                  }}
+                />
+                <Chip
+                  label="DIRECT WHOLESALE"
+                  size="small"
+                  sx={{
+                    bgcolor: '#fef08a',
+                    color: '#854d0e',
+                    fontWeight: 900,
+                    fontSize: '10px',
+                    height: '20px'
+                  }}
+                />
+              </Stack>
+
+              <Typography variant="h6" sx={{ fontWeight: 900, mb: 0.4, letterSpacing: '-0.02em', fontSize: { xs: '1.1rem', sm: '1.35rem' }, lineHeight: 1.25 }}>
+                Restock Inventory at Direct Factory Rates
               </Typography>
-              <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: { xs: '0.82rem', sm: '0.95rem' }, mb: 2, lineHeight: 1.45 }}>
-                Connect with verified wholesale suppliers, order inventory with 15-30m dispatch, and scale your sales pipeline across India.
+              <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: { xs: '0.76rem', sm: '0.85rem' }, mb: 1.5, lineHeight: 1.35 }}>
+                Connect with verified FMCG suppliers and order wholesale packs with rapid local fulfillment.
               </Typography>
-              <Stack direction="row" spacing={1.5} sx={{ mt: 0.5 }}>
+
+              {/* Action Buttons Row - Guaranteed Zero Truncation */}
+              <Stack direction="row" spacing={1.25} sx={{ width: '100%', maxWidth: 440 }}>
                 <Button
                   variant="contained"
                   onClick={() => navigate('/business/online-marketplace')}
-                  startIcon={<StorefrontOutlinedIcon sx={{ fontSize: 18 }} />}
+                  startIcon={<StorefrontOutlinedIcon sx={{ fontSize: 16 }} />}
                   sx={{
                     flex: 1,
-                    height: '42px',
+                    height: '38px',
                     bgcolor: '#ffffff',
                     color: '#064e3b',
                     fontWeight: 800,
-                    fontSize: '0.84rem',
-                    borderRadius: '12px',
+                    fontSize: '0.78rem',
+                    borderRadius: '10px',
                     textTransform: 'none',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.12)',
+                    px: 1.5,
                     whiteSpace: 'nowrap',
-                    px: 2,
                     '&:hover': { bgcolor: '#f0fdf4' },
-                    '&:active': { transform: 'scale(0.97)' }
+                    '&:active': { transform: 'scale(0.98)' }
                   }}
                 >
-                  Wholesale Marketplace
+                  Buy Wholesale
                 </Button>
                 <Button
                   variant="outlined"
                   onClick={() => navigate('/business/inventory')}
-                  startIcon={<Inventory2RoundedIcon sx={{ fontSize: 18 }} />}
+                  startIcon={<Inventory2RoundedIcon sx={{ fontSize: 16 }} />}
                   sx={{
                     flex: 1,
-                    height: '42px',
-                    bgcolor: 'rgba(255, 255, 255, 0.16)',
-                    borderColor: 'rgba(255, 255, 255, 0.45)',
+                    height: '38px',
+                    bgcolor: 'rgba(255, 255, 255, 0.14)',
+                    borderColor: 'rgba(255, 255, 255, 0.4)',
                     color: '#ffffff',
                     fontWeight: 800,
-                    fontSize: '0.84rem',
-                    borderRadius: '12px',
+                    fontSize: '0.78rem',
+                    borderRadius: '10px',
                     textTransform: 'none',
+                    px: 1.5,
                     whiteSpace: 'nowrap',
-                    px: 2,
                     backdropFilter: 'blur(4px)',
-                    '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.25)', borderColor: '#ffffff' },
-                    '&:active': { transform: 'scale(0.97)' }
+                    '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.22)', borderColor: '#ffffff' },
+                    '&:active': { transform: 'scale(0.98)' }
                   }}
                 >
-                  Manage Inventory
+                  My Inventory
                 </Button>
               </Stack>
             </Box>

@@ -438,127 +438,194 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
           </Box>
         )}
 
-        {/* ─── MOBILE FIXED TOP HEADER (Screen 1 & 2 Brand Pine Green Header) ─── */}
+        {/* ─── MOBILE FIXED TOP HEADER (Context-Aware: Orders vs Home) ─── */}
         {!isDesktop && !shouldHideHeader && (
-          <Box
-            component="header"
-            sx={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: '102px',
-              zIndex: 1100,
-              background: 'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
-              color: '#ffffff',
-              boxShadow: '0 4px 16px rgba(6, 78, 59, 0.25)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-            }}
-          >
-            {/* Top Greeting & Controls Row */}
-            <Box
-              sx={{
-                height: '58px',
-                px: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              {/* Left: Avatar & Greeting (Clean, consistent across all screens) */}
-              <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
-                <Avatar
-                  onClick={() => setMobileDrawerOpen(true)}
+          (() => {
+            const isOrdersPage = location.pathname.startsWith('/business/orders') || activeTab === '/business/orders';
+
+            if (isOrdersPage) {
+              return (
+                <Box
+                  component="header"
                   sx={{
-                    width: 38,
-                    height: 38,
-                    bgcolor: 'rgba(255,255,255,0.18)',
-                    color: '#ffffff',
-                    fontWeight: 800,
-                    fontSize: '0.85rem',
-                    border: '1.5px solid rgba(255,255,255,0.7)',
-                    cursor: 'pointer',
-                    '&:hover': { transform: 'scale(1.04)' },
-                    transition: 'transform 0.15s ease'
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '62px',
+                    zIndex: 1100,
+                    bgcolor: '#ffffff',
+                    borderBottom: '1px solid #e2e8f0',
+                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+                    px: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                   }}
                 >
-                  {initials}
-                </Avatar>
+                  <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0 }}>
+                    <IconButton
+                      onClick={() => navigate('/business-dashboard')}
+                      sx={{ bgcolor: '#f8fafc', color: '#0f172a', p: 1, '&:hover': { bgcolor: '#f1f5f9' } }}
+                    >
+                      <BackIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: '#0f172a', lineHeight: 1.2 }} noWrap>
+                        Orders & Deliveries
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }} noWrap>
+                        {activeShop?.shop_name || displayName} • {profile?.service_mode || 'Online B2C'}
+                      </Typography>
+                    </Box>
+                  </Stack>
 
-                {/* Center Merchant Info */}
-                <Box sx={{ minWidth: 0, flex: 1 }}>
-                  <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.8)', textTransform: 'capitalize', letterSpacing: '0.2px', lineHeight: 1.1 }}>
-                    {getGreeting()}
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.92rem', fontWeight: 800, color: '#ffffff', lineHeight: 1.25 }} noWrap>
-                    {displayName}
-                  </Typography>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <IconButton
+                      aria-label="Cart"
+                      onClick={() => navigate('/business/online-marketplace/cart')}
+                      sx={{ color: '#0f172a', p: 0.8 }}
+                    >
+                      <Badge badgeContent={cartCount} color="success" max={99}>
+                        <CartIcon sx={{ fontSize: 22 }} />
+                      </Badge>
+                    </IconButton>
+                    <IconButton
+                      onClick={() => setStoreModalOpen(true)}
+                      title="Switch Store"
+                      sx={{ bgcolor: '#ecfdf5', color: '#047857', p: 0.8, '&:hover': { bgcolor: '#d1fae5' } }}
+                    >
+                      <NearbyIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                  </Stack>
                 </Box>
-              </Stack>
+              );
+            }
 
-              {/* Right Action Icons */}
-              <Stack direction="row" alignItems="center" spacing={0.5}>
-                <IconButton
-                  aria-label="Notifications"
-                  sx={{ color: '#ffffff', p: 0.85, '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' } }}
-                >
-                  <Badge color="error" variant="dot">
-                    <BellIcon sx={{ fontSize: 20 }} />
-                  </Badge>
-                </IconButton>
+            // Default Home Dashboard Header
+            return (
+              <Box
+                component="header"
+                sx={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '100px',
+                  zIndex: 1100,
+                  background: 'linear-gradient(135deg, #064e3b 0%, #047857 55%, #0d9488 100%)',
+                  color: '#ffffff',
+                  boxShadow: '0 4px 18px rgba(6, 78, 59, 0.22)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  px: 2,
+                  py: 1.2,
+                }}
+              >
+                {/* Top Row: Merchant Profile Info & Action Icons */}
+                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                  <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
+                    <Avatar
+                      onClick={() => setMobileDrawerOpen(true)}
+                      sx={{
+                        width: 38,
+                        height: 38,
+                        bgcolor: 'rgba(255,255,255,0.2)',
+                        color: '#ffffff',
+                        fontWeight: 900,
+                        fontSize: '0.85rem',
+                        border: '1.5px solid rgba(255,255,255,0.6)',
+                        cursor: 'pointer',
+                        '&:hover': { transform: 'scale(1.04)' },
+                        transition: 'transform 0.15s ease'
+                      }}
+                    >
+                      {initials}
+                    </Avatar>
 
-                <IconButton
-                  aria-label="Cart"
-                  onClick={() => navigate('/business/online-marketplace/cart')}
-                  sx={{ color: '#ffffff', p: 0.85, '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' } }}
-                >
-                  <Badge badgeContent={cartCount} color="success" max={99}>
-                    <CartIcon sx={{ fontSize: 20 }} />
-                  </Badge>
-                </IconButton>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography sx={{ fontSize: '0.66rem', fontWeight: 700, color: 'rgba(255,255,255,0.85)', letterSpacing: '0.2px', lineHeight: 1.1 }}>
+                        {getGreeting()}
+                      </Typography>
+                      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.15 }}>
+                        <Typography sx={{ fontSize: '0.92rem', fontWeight: 900, color: '#ffffff', lineHeight: 1.2 }} noWrap>
+                          {displayName}
+                        </Typography>
+                        <Chip
+                          label={profile?.service_mode || 'Online B2C'}
+                          size="small"
+                          sx={{
+                            bgcolor: 'rgba(255,255,255,0.22)',
+                            color: '#ffffff',
+                            fontWeight: 800,
+                            fontSize: '0.65rem',
+                            height: '18px',
+                            border: '1px solid rgba(255,255,255,0.3)'
+                          }}
+                        />
+                      </Stack>
+                    </Box>
+                  </Stack>
 
-                <IconButton
-                  aria-label="Wallet"
-                  onClick={() => navigate('/business/profile')}
-                  sx={{ color: '#ffffff', p: 0.85, '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' } }}
-                >
-                  <WalletIcon sx={{ fontSize: 20 }} />
-                </IconButton>
-              </Stack>
-            </Box>
+                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                    <IconButton
+                      aria-label="Notifications"
+                      sx={{ color: '#ffffff', p: 0.75, '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}
+                    >
+                      <Badge color="error" variant="dot">
+                        <BellIcon sx={{ fontSize: 20 }} />
+                      </Badge>
+                    </IconButton>
 
-            {/* Bottom Row: Operating Store Selector (Clickable Pill) */}
-            <Box
-              onClick={() => setStoreModalOpen(true)}
-              sx={{
-                height: '44px',
-                px: 2,
-                bgcolor: 'rgba(0,0,0,0.14)',
-                borderTop: '1px solid rgba(255,255,255,0.08)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                cursor: 'pointer',
-                transition: 'background-color 0.15s ease',
-                '&:hover': { bgcolor: 'rgba(0,0,0,0.22)' }
-              }}
-            >
-              <Box sx={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <Typography sx={{ fontSize: '0.58rem', fontWeight: 750, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                  OPERATING STORE / OUTLET
-                </Typography>
-                <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.1 }}>
-                  <NearbyIcon sx={{ fontSize: 13, color: '#34d399', flexShrink: 0 }} />
-                  <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#ffffff' }} noWrap>
-                    {activeShop ? `${activeShop.shop_name}${activeShop.city ? `, ${activeShop.city}` : ''}` : 'Select Operating Store Location'}
-                  </Typography>
+                    <IconButton
+                      aria-label="Cart"
+                      onClick={() => navigate('/business/online-marketplace/cart')}
+                      sx={{ color: '#ffffff', p: 0.75, '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}
+                    >
+                      <Badge badgeContent={cartCount} color="warning" max={99}>
+                        <CartIcon sx={{ fontSize: 20 }} />
+                      </Badge>
+                    </IconButton>
+
+                    <IconButton
+                      aria-label="Profile"
+                      onClick={() => navigate('/business/profile')}
+                      sx={{ color: '#ffffff', p: 0.75, '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}
+                    >
+                      <WalletIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                  </Stack>
                 </Stack>
+
+                {/* Bottom Row: Sleek Location Pill */}
+                <Box
+                  onClick={() => setStoreModalOpen(true)}
+                  sx={{
+                    height: '34px',
+                    px: 1.5,
+                    bgcolor: 'rgba(0,0,0,0.15)',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    '&:hover': { bgcolor: 'rgba(0,0,0,0.22)' }
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" spacing={0.75} sx={{ minWidth: 0, flex: 1 }}>
+                    <NearbyIcon sx={{ fontSize: 14, color: '#34d399', flexShrink: 0 }} />
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#ffffff' }} noWrap>
+                      {activeShop ? `${activeShop.shop_name}${activeShop.city ? `, ${activeShop.city}` : ''}` : 'Select Operating Store Location'}
+                    </Typography>
+                  </Stack>
+                  <ArrowDownIcon sx={{ fontSize: 16, color: 'rgba(255,255,255,0.85)', flexShrink: 0, ml: 1 }} />
+                </Box>
               </Box>
-              <ArrowDownIcon sx={{ fontSize: 18, color: 'rgba(255,255,255,0.85)', flexShrink: 0, ml: 1 }} />
-            </Box>
-          </Box>
+            );
+          })()
         )}
 
         {/* ─── PAGE CONTENT CONTAINER (Guaranteed Breathing Room) ─── */}
@@ -566,7 +633,14 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
           component="main"
           sx={{
             flex: 1,
-            pt: { xs: shouldHideHeader ? '0px' : '112px', lg: '24px' },
+            pt: {
+              xs: shouldHideHeader
+                ? '0px'
+                : (location.pathname.startsWith('/business/orders') || activeTab === '/business/orders')
+                  ? '72px'
+                  : '110px',
+              lg: '24px'
+            },
             pb: { xs: '84px', lg: '40px' },
             maxWidth: T.maxContentWidth,
             width: '100%',
