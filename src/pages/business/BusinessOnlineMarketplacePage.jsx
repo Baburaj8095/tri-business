@@ -49,6 +49,7 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import AppShell from '../../components/layout/AppShell';
+import { getMerchantCategories } from '../../api/api';
 
 const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
   || window.REACT_APP_CAPTAIN_API_URL
@@ -118,7 +119,7 @@ const BLINKIT_CATEGORIES_DATA = {
         packSize: "400 g (2 pcs)",
         price: 73,
         mrp: 94,
-        image: "https://images.unsplash.com/photo-1536511135899-736f1c4e772e?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=400&q=80",
         deliveryMins: "10-15 mins",
         rating: 4.7,
         description: "Crisp white flesh large Thai guavas with pleasant aroma and sweet mild taste.",
@@ -154,7 +155,7 @@ const BLINKIT_CATEGORIES_DATA = {
         packSize: "1 kg",
         price: 36,
         mrp: 48,
-        image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1546470427-e26264be0b11?auto=format&fit=crop&w=400&q=80",
         deliveryMins: "10-15 mins",
         rating: 4.7,
         description: "Firm, plump, naturally ripened farm tomatoes perfect for everyday Indian curries.",
@@ -166,7 +167,7 @@ const BLINKIT_CATEGORIES_DATA = {
         packSize: "500 g",
         price: 48,
         mrp: 65,
-        image: "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1596797038530-2c107229654b?auto=format&fit=crop&w=400&q=80",
         deliveryMins: "10-15 mins",
         rating: 4.8,
         description: "Crunchy, dark green bell peppers freshly picked from polyhouse farms.",
@@ -178,7 +179,7 @@ const BLINKIT_CATEGORIES_DATA = {
         packSize: "1 pc (350 g)",
         price: 89,
         mrp: 120,
-        image: "https://images.unsplash.com/photo-1527324688151-0e627063f2b1?auto=format&fit=crop&w=400&q=80",
+        image: "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?auto=format&fit=crop&w=400&q=80",
         deliveryMins: "10-15 mins",
         rating: 4.9,
         description: "Exotic pink dragon fruit with antioxidant-packed vibrant purple pulp.",
@@ -373,6 +374,108 @@ const BLINKIT_CATEGORIES_DATA = {
   }
 };
 
+function hashString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash;
+}
+
+export const MASTER_CATEGORIES = [
+  { id: 'cat-veg-fruit', label: 'Vegetables & Fruits', icon: '🥦', image: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=300&q=80', count: '120+ items', badge: 'Fresh Farm' },
+  { id: 'cat-dairy-bread', label: 'Dairy, Bread & Eggs', icon: '🥛', image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=300&q=80', count: '85+ items', badge: 'Chilled' },
+  { id: 'cat-atta-rice', label: 'Atta, Rice & Dal', icon: '🌾', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=300&q=80', count: '140+ items', badge: 'Wholesale' },
+  { id: 'cat-snacks-drinks', label: 'Snacks & Drinks', icon: '🍿', image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=300&q=80', count: '210+ items', badge: 'Quick Bite' },
+  { id: 'cat-instant-food', label: 'Instant Food & Noodles', icon: '🍜', image: 'https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=300&q=80', count: '90+ items', badge: '10 Mins' },
+  { id: 'cat-tea-coffee', label: 'Tea, Coffee & Health Drinks', icon: '☕', image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=300&q=80', count: '75+ items' },
+  { id: 'cat-bakery-biscuits', label: 'Bakery & Biscuits', icon: '🍪', image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=300&q=80', count: '110+ items' },
+  { id: 'cat-sweet-choc', label: 'Sweet Tooth & Chocolates', icon: '🍫', image: 'https://images.unsplash.com/photo-1582293041079-7814c2f12063?auto=format&fit=crop&w=300&q=80', count: '65+ items' },
+  { id: 'cat-cold-drinks', label: 'Cold Drinks & Juices', icon: '🥤', image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=300&q=80', count: '130+ items' },
+  { id: 'cat-masalas-spices', label: 'Masalas & Spices', icon: '🌶️', image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=300&q=80', count: '95+ items' },
+  { id: 'cat-sauces-spreads', label: 'Sauces & Spreads', icon: '🍯', image: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&w=300&q=80', count: '45+ items' },
+  { id: 'cat-cleaning', label: 'Cleaning & Household', icon: '🧹', image: 'https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=300&q=80', count: '160+ items' },
+  { id: 'cat-personal-care', label: 'Personal Care & Hygiene', icon: '🧼', image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=300&q=80', count: '180+ items' },
+  { id: 'cat-baby-care', label: 'Baby Care & Diapers', icon: '👶', image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=300&q=80', count: '55+ items' },
+  { id: 'cat-pet-supplies', label: 'Pet Supplies & Food', icon: '🐾', image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=300&q=80', count: '40+ items' },
+  { id: 'cat-electronics', label: 'Electronics & Mobiles', icon: '📱', image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=300&q=80', count: '190+ items', badge: 'Hot' },
+  { id: 'cat-kitchen-dining', label: 'Kitchen & Dining Essentials', icon: '🍽️', image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=300&q=80', count: '115+ items' },
+  { id: 'cat-hardware', label: 'Hardware & Electricals', icon: '🔌', image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=300&q=80', count: '80+ items' },
+  { id: 'cat-beauty', label: 'Beauty & Cosmetics', icon: '💄', image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=300&q=80', count: '120+ items' },
+  { id: 'cat-stationery', label: 'Stationery & Office Supplies', icon: '✏️', image: 'https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?auto=format&fit=crop&w=300&q=80', count: '70+ items' },
+  { id: 'cat-restaurant-bulk', label: 'Restaurant & Hotel Supplies', icon: '👨‍🍳', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=300&q=80', count: '60+ items', badge: 'B2B Bulk' },
+  { id: 'cat-fashion', label: 'Fashion & Garments', icon: '👕', image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=300&q=80', count: '250+ items' },
+  { id: 'cat-meat-seafood', label: 'Fresh Meat & Seafood', icon: '🍗', image: 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?auto=format&fit=crop&w=300&q=80', count: '35+ items' },
+  { id: 'cat-organic', label: 'Organic & Gourmet', icon: '🌱', image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=300&q=80', count: '50+ items' },
+];
+
+function resolveCategoryData(key) {
+  if (!key) return BLINKIT_CATEGORIES_DATA["Vegetables & Fruits"];
+  if (BLINKIT_CATEGORIES_DATA[key]) {
+    return BLINKIT_CATEGORIES_DATA[key];
+  }
+  const foundKey = Object.keys(BLINKIT_CATEGORIES_DATA).find(
+    k => k.toLowerCase() === String(key).toLowerCase()
+  );
+  if (foundKey) return BLINKIT_CATEGORIES_DATA[foundKey];
+
+  const h = Math.abs(hashString(String(key)));
+  return {
+    label: key,
+    banner: {
+      title: `${key} Wholesale Hub`,
+      subtitle: `Browse B2B wholesale prices, bulk cartons and direct distributor packs for ${key}`,
+      image: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80",
+      bg: "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)",
+    },
+    subcategories: [
+      { id: "all", label: "All", icon: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=120&q=80" },
+      { id: "trending", label: "Top Sellers", icon: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=120&q=80" },
+      { id: "wholesale", label: "Bulk Cartons", icon: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=120&q=80" },
+      { id: "value", label: "Super Value", icon: "https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=120&q=80" },
+    ],
+    catalog: [
+      {
+        id: (h % 9000) + 1000,
+        title: `${key} Premium Grade Pack`,
+        subcat: "trending",
+        packSize: "1 Standard Pack",
+        price: 145,
+        mrp: 195,
+        image: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.8,
+        description: `Verified merchant quality ${key} ready for express dispatch across local trade zones.`,
+      },
+      {
+        id: (h % 9000) + 1001,
+        title: `${key} Master Wholesale Carton`,
+        subcat: "wholesale",
+        packSize: "Box of 12 pcs",
+        price: 1150,
+        mrp: 1600,
+        image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "15-20 mins",
+        rating: 4.9,
+        description: `Wholesale distributor packaging with tier discounts and verified GST invoice.`,
+      },
+      {
+        id: (h % 9000) + 1002,
+        title: `${key} Economy Retail Pack`,
+        subcat: "value",
+        packSize: "500 g / Unit",
+        price: 78,
+        mrp: 99,
+        image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=400&q=80",
+        deliveryMins: "10-15 mins",
+        rating: 4.7,
+        description: `Fast moving retail units with attractive consumer margin and quick stock turn.`,
+      },
+    ],
+  };
+}
+
 export default function BusinessOnlineMarketplacePage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -381,16 +484,63 @@ export default function BusinessOnlineMarketplacePage() {
 
   // Selected Category from URL or default
   const paramCategory = searchParams.get('category');
-  const initialCategory = paramCategory && BLINKIT_CATEGORIES_DATA[paramCategory]
-    ? paramCategory
-    : "Vegetables & Fruits";
+  const initialCategory = paramCategory || "Vegetables & Fruits";
 
   const [currentCategoryKey, setCurrentCategoryKey] = useState(initialCategory);
   const [activeSubcatId, setActiveSubcatId] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("relevance");
-  const [categoryMenuAnchor, setCategoryMenuAnchor] = useState(null);
   const [sortMenuAnchor, setSortMenuAnchor] = useState(null);
+
+  // 100+ Category Selection Drawer & Search
+  const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
+  const [categorySearchQuery, setCategorySearchQuery] = useState("");
+  const [apiCategories, setApiCategories] = useState([]);
+
+  // Fetch live merchant categories from Spring Boot API
+  useEffect(() => {
+    let mounted = true;
+    getMerchantCategories()
+      .then(cats => {
+        if (mounted && Array.isArray(cats) && cats.length > 0) {
+          setApiCategories(cats);
+        }
+      })
+      .catch(() => {});
+    return () => { mounted = false; };
+  }, []);
+
+  // Merge MASTER_CATEGORIES with API categories
+  const allAvailableCategories = useMemo(() => {
+    const list = [...MASTER_CATEGORIES];
+    const existingLabels = new Set(list.map(c => c.label.toLowerCase()));
+
+    apiCategories.forEach(apiCat => {
+      const name = apiCat.name || apiCat.label;
+      if (name && !existingLabels.has(name.toLowerCase())) {
+        list.push({
+          id: `api-cat-${apiCat.id || name}`,
+          label: name,
+          icon: '📦',
+          image: apiCat.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80',
+          count: 'Live Merchant',
+          badge: 'Verified',
+        });
+        existingLabels.add(name.toLowerCase());
+      }
+    });
+
+    return list;
+  }, [apiCategories]);
+
+  // Filtered categories for Drawer
+  const filteredMasterCategories = useMemo(() => {
+    if (!categorySearchQuery.trim()) return allAvailableCategories;
+    const q = categorySearchQuery.toLowerCase();
+    return allAvailableCategories.filter(c =>
+      c.label.toLowerCase().includes(q) || (c.badge && c.badge.toLowerCase().includes(q))
+    );
+  }, [allAvailableCategories, categorySearchQuery]);
 
   // Cart State (Synchronized with tri_business_b2b_cart)
   const [b2bCart, setB2bCart] = useState(() => readB2BCart());
@@ -403,13 +553,15 @@ export default function BusinessOnlineMarketplacePage() {
 
   // Sync category from URL parameter
   useEffect(() => {
-    if (paramCategory && BLINKIT_CATEGORIES_DATA[paramCategory]) {
+    if (paramCategory) {
       setCurrentCategoryKey(paramCategory);
       setActiveSubcatId("all");
     }
   }, [paramCategory]);
 
-  const activeCategoryData = BLINKIT_CATEGORIES_DATA[currentCategoryKey] || BLINKIT_CATEGORIES_DATA["Vegetables & Fruits"];
+  const activeCategoryData = useMemo(() => {
+    return resolveCategoryData(currentCategoryKey);
+  }, [currentCategoryKey]);
 
   // Quantity in cart helper
   const getProductQtyInCart = useCallback((productId) => {
@@ -543,44 +695,48 @@ export default function BusinessOnlineMarketplacePage() {
                     direction="row"
                     alignItems="center"
                     spacing={0.5}
-                    onClick={(e) => setCategoryMenuAnchor(e.currentTarget)}
-                    sx={{ cursor: 'pointer' }}
+                    onClick={() => setCategoryDrawerOpen(true)}
+                    sx={{
+                      cursor: 'pointer',
+                      bgcolor: '#f0fdf4',
+                      px: 1.2,
+                      py: 0.35,
+                      borderRadius: '10px',
+                      border: '1px solid #bbf7d0',
+                      '&:hover': { bgcolor: '#dcfce7' },
+                    }}
                   >
-                    <Typography sx={{ fontSize: { xs: '1rem', sm: '1.15rem' }, fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>
+                    <Typography sx={{ fontSize: { xs: '0.92rem', sm: '1.05rem' }, fontWeight: 900, color: '#047857', lineHeight: 1.2 }}>
                       {activeCategoryData.label}
                     </Typography>
-                    <ArrowDownIcon sx={{ fontSize: 18, color: '#64748b' }} />
+                    <ArrowDownIcon sx={{ fontSize: 18, color: '#047857' }} />
                   </Stack>
-                  <Typography sx={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, mt: 0.1 }}>
-                    ⚡ Delivering in 10-15 mins • 1.8 km away
+                  <Typography sx={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, mt: 0.2 }}>
+                    ⚡ 10-15 mins delivery • Wholesale B2B
                   </Typography>
                 </Box>
               </Stack>
 
-              <Menu
-                anchorEl={categoryMenuAnchor}
-                open={Boolean(categoryMenuAnchor)}
-                onClose={() => setCategoryMenuAnchor(null)}
-                PaperProps={{ sx: { borderRadius: '16px', minWidth: 220, p: 0.5 } }}
-              >
-                {Object.keys(BLINKIT_CATEGORIES_DATA).map((catKey) => (
-                  <MenuItem
-                    key={catKey}
-                    selected={catKey === currentCategoryKey}
-                    onClick={() => {
-                      setCurrentCategoryKey(catKey);
-                      setActiveSubcatId("all");
-                      setSearchParams({ category: catKey });
-                      setCategoryMenuAnchor(null);
-                    }}
-                    sx={{ fontSize: '0.85rem', fontWeight: 800, borderRadius: '8px' }}
-                  >
-                    {catKey}
-                  </MenuItem>
-                ))}
-              </Menu>
-
               <Stack direction="row" spacing={1} alignItems="center">
+                <Button
+                  size="small"
+                  startIcon={<FilterIcon sx={{ fontSize: 16 }} />}
+                  onClick={() => setCategoryDrawerOpen(true)}
+                  sx={{
+                    bgcolor: '#ecfdf5',
+                    color: '#047857',
+                    fontWeight: 800,
+                    fontSize: '0.72rem',
+                    textTransform: 'none',
+                    borderRadius: '10px',
+                    border: '1px solid #a7f3d0',
+                    py: 0.5,
+                    px: 1.2,
+                    display: { xs: 'none', sm: 'inline-flex' }
+                  }}
+                >
+                  All Categories (100+)
+                </Button>
                 <IconButton
                   size="small"
                   onClick={() => navigate('/business/online-marketplace/cart')}
@@ -647,6 +803,44 @@ export default function BusinessOnlineMarketplacePage() {
             }}
           >
             <Stack spacing={1}>
+              {/* Category Explorer shortcut */}
+              <Box
+                onClick={() => setCategoryDrawerOpen(true)}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  py: 1,
+                  px: 0.5,
+                  cursor: 'pointer',
+                  borderBottom: '1px solid #f1f5f9',
+                  bgcolor: '#f8fafc',
+                  mb: 0.5,
+                  transition: 'all 0.15s ease',
+                  '&:hover': { bgcolor: '#f0fdf4' },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '14px',
+                    bgcolor: '#ecfdf5',
+                    color: '#059669',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1.5px dashed #059669',
+                    mb: 0.5,
+                  }}
+                >
+                  <FilterIcon sx={{ fontSize: 20 }} />
+                </Box>
+                <Typography sx={{ fontSize: '0.62rem', fontWeight: 900, color: '#047857', textAlign: 'center' }}>
+                  All 100+
+                </Typography>
+              </Box>
+
               {activeCategoryData.subcategories.map((subcat) => {
                 const isActive = activeSubcatId === subcat.id;
                 return (
@@ -669,6 +863,10 @@ export default function BusinessOnlineMarketplacePage() {
                       component="img"
                       src={subcat.icon}
                       alt={subcat.label}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=120&q=80';
+                      }}
                       sx={{
                         width: 48,
                         height: 48,
@@ -728,24 +926,47 @@ export default function BusinessOnlineMarketplacePage() {
                   component="img"
                   src={activeCategoryData.banner.image}
                   alt="Banner"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80';
+                  }}
                   sx={{ width: { xs: 70, sm: 100 }, height: { xs: 70, sm: 100 }, objectFit: 'cover', borderRadius: '16px' }}
                 />
               </Box>
             )}
 
-            {/* Quick Sort / Filter Bar matching Screen 3 */}
-            <Stack direction="row" spacing={1} sx={{ mb: 2, overflowX: 'auto', pb: 0.5 }}>
+            {/* Quick Sort / Filter Bar matching Screen 3 (Hidden Scrollbars) */}
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                mb: 2,
+                overflowX: 'auto',
+                pb: 0.5,
+                '&::-webkit-scrollbar': { display: 'none' },
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+              }}
+            >
               <Chip
-                label="Filters ▾"
+                label="📁 All Categories ▾"
                 size="small"
-                onClick={() => setSortBy(prev => prev === 'price_asc' ? 'relevance' : 'price_asc')}
-                sx={{ fontWeight: 800, fontSize: '0.72rem', bgcolor: '#ffffff', border: '1px solid #e2e8f0' }}
+                onClick={() => setCategoryDrawerOpen(true)}
+                sx={{
+                  fontWeight: 900,
+                  fontSize: '0.72rem',
+                  bgcolor: '#ecfdf5',
+                  color: '#047857',
+                  border: '1.5px solid #10b981',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
               />
               <Chip
                 label={`Sort: ${sortBy === 'price_asc' ? 'Price: Low to High' : sortBy === 'price_desc' ? 'Price: High to Low' : 'Relevance'} ▾`}
                 size="small"
                 onClick={(e) => setSortMenuAnchor(e.currentTarget)}
-                sx={{ fontWeight: 800, fontSize: '0.72rem', bgcolor: '#ffffff', border: '1px solid #e2e8f0' }}
+                sx={{ fontWeight: 800, fontSize: '0.72rem', bgcolor: '#ffffff', border: '1px solid #e2e8f0', flexShrink: 0 }}
               />
               <Menu
                 anchorEl={sortMenuAnchor}
@@ -760,7 +981,7 @@ export default function BusinessOnlineMarketplacePage() {
               <Chip
                 label="⚡ Fast 10-15 Mins"
                 size="small"
-                sx={{ fontWeight: 800, fontSize: '0.72rem', bgcolor: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' }}
+                sx={{ fontWeight: 800, fontSize: '0.72rem', bgcolor: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', flexShrink: 0 }}
               />
             </Stack>
 
@@ -797,7 +1018,7 @@ export default function BusinessOnlineMarketplacePage() {
                     key={p.id}
                         elevation={0}
                         sx={{
-                          borderRadius: '18px',
+                          borderRadius: '16px',
                           border: '1px solid #e2e8f0',
                           bgcolor: '#ffffff',
                           height: '100%',
@@ -806,9 +1027,10 @@ export default function BusinessOnlineMarketplacePage() {
                           position: 'relative',
                           overflow: 'hidden',
                           transition: 'all 0.15s ease',
+                          boxShadow: '0 2px 6px rgba(15, 23, 42, 0.03)',
                           '&:hover': {
                             borderColor: '#10b981',
-                            boxShadow: '0 6px 18px rgba(16, 185, 129, 0.08)',
+                            boxShadow: '0 6px 18px rgba(16, 185, 129, 0.1)',
                           },
                         }}
                       >
@@ -838,23 +1060,31 @@ export default function BusinessOnlineMarketplacePage() {
                         <Box
                           onClick={() => setSelectedProductDetails(p)}
                           sx={{
-                            p: 1.5,
+                            height: { xs: 125, sm: 145 },
+                            width: '100%',
                             display: 'flex',
+                            alignItems: 'center',
                             justifyContent: 'center',
                             bgcolor: '#f8fafc',
+                            p: 1,
                             cursor: 'pointer',
                             position: 'relative',
+                            overflow: 'hidden',
                           }}
                         >
                           <Box
                             component="img"
-                            src={p.image}
+                            src={p.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80'}
                             alt={p.title}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80';
+                            }}
                             sx={{
-                              width: '100%',
-                              height: { xs: 120, sm: 140 },
+                              maxHeight: { xs: 110, sm: 125 },
+                              maxWidth: '100%',
                               objectFit: 'contain',
-                              borderRadius: '12px',
+                              display: 'block',
                             }}
                           />
                         </Box>
@@ -1438,6 +1668,178 @@ export default function BusinessOnlineMarketplacePage() {
             >
               Place Order • ₹{totalCartSubtotal.toFixed(2)}
             </Button>
+          </Box>
+        </Drawer>
+
+        {/* ════════════════════════════════════════════════════════════════════════════════
+            6. MASTER CATEGORY SELECTION BOTTOM DRAWER (Supports 100+ Categories)
+           ════════════════════════════════════════════════════════════════════════════════ */}
+        <Drawer
+          anchor="bottom"
+          open={categoryDrawerOpen}
+          onClose={() => setCategoryDrawerOpen(false)}
+          PaperProps={{
+            sx: {
+              borderTopLeftRadius: '28px',
+              borderTopRightRadius: '28px',
+              bgcolor: '#ffffff',
+              maxHeight: '90vh',
+              maxWidth: 620,
+              mx: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            },
+          }}
+        >
+          {/* Drag Handle */}
+          <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mt: 1.5, mb: 1 }} />
+
+          {/* Drawer Header */}
+          <Box sx={{ px: 3, py: 1.5, borderBottom: '1px solid #f1f5f9' }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+              <Box>
+                <Typography sx={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a' }}>
+                  All Categories ({allAvailableCategories.length})
+                </Typography>
+                <Typography sx={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>
+                  Select a category to browse wholesale products & subcategories
+                </Typography>
+              </Box>
+              <IconButton size="small" onClick={() => setCategoryDrawerOpen(false)} sx={{ bgcolor: '#f8fafc' }}>
+                <CloseIcon sx={{ fontSize: 20 }} />
+              </IconButton>
+            </Stack>
+
+            {/* Search Categories */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                bgcolor: '#f1f5f9',
+                borderRadius: '12px',
+                px: 1.5,
+                py: 0.5,
+              }}
+            >
+              <SearchIcon sx={{ color: '#64748b', fontSize: 20, mr: 1 }} />
+              <TextField
+                fullWidth
+                variant="standard"
+                placeholder="Search across 100+ categories (e.g. Dairy, Fruits, Snacks, Mobiles)..."
+                value={categorySearchQuery}
+                onChange={(e) => setCategorySearchQuery(e.target.value)}
+                InputProps={{
+                  disableUnderline: true,
+                  sx: { fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' },
+                }}
+              />
+              {categorySearchQuery && (
+                <IconButton size="small" onClick={() => setCategorySearchQuery('')} sx={{ p: 0.25 }}>
+                  <CloseIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              )}
+            </Box>
+          </Box>
+
+          {/* Categories Grid (Scrollable) */}
+          <Box sx={{ p: 2.5, overflowY: 'auto', flex: 1 }}>
+            <Grid container spacing={1.5}>
+              {filteredMasterCategories.map((cat) => {
+                const isSelected = cat.label.toLowerCase() === currentCategoryKey.toLowerCase();
+                return (
+                  <Grid item xs={4} sm={3} key={cat.label}>
+                    <Box
+                      onClick={() => {
+                        setCurrentCategoryKey(cat.label);
+                        setActiveSubcatId('all');
+                        setSearchParams({ category: cat.label });
+                        setCategoryDrawerOpen(false);
+                        setCategorySearchQuery('');
+                      }}
+                      sx={{
+                        p: 1.25,
+                        borderRadius: '16px',
+                        border: isSelected ? '2px solid #059669' : '1px solid #e2e8f0',
+                        bgcolor: isSelected ? '#ecfdf5' : '#ffffff',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        position: 'relative',
+                        boxShadow: isSelected ? '0 4px 12px rgba(5, 150, 105, 0.15)' : 'none',
+                        '&:hover': {
+                          borderColor: '#059669',
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 4px 12px rgba(5, 150, 105, 0.12)',
+                        },
+                      }}
+                    >
+                      {cat.badge && (
+                        <Chip
+                          label={cat.badge}
+                          size="small"
+                          sx={{
+                            position: 'absolute',
+                            top: -6,
+                            height: 16,
+                            fontSize: '0.58rem',
+                            fontWeight: 900,
+                            bgcolor: '#059669',
+                            color: '#ffffff',
+                          }}
+                        />
+                      )}
+                      <Box
+                        sx={{
+                          width: { xs: 52, sm: 60 },
+                          height: { xs: 52, sm: 60 },
+                          borderRadius: '14px',
+                          overflow: 'hidden',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: '#f8fafc',
+                          mb: 1,
+                          mt: cat.badge ? 0.5 : 0,
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={cat.image}
+                          alt={cat.label}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=200&q=80';
+                          }}
+                          sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      </Box>
+                      <Typography
+                        sx={{
+                          fontSize: { xs: '0.72rem', sm: '0.78rem' },
+                          fontWeight: isSelected ? 900 : 700,
+                          color: isSelected ? '#047857' : '#0f172a',
+                          lineHeight: 1.2,
+                          height: '2.4em',
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                        }}
+                      >
+                        {cat.label}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 600, mt: 0.25 }}>
+                        {cat.count || 'View items'}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                );
+              })}
+            </Grid>
           </Box>
         </Drawer>
 

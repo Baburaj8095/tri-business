@@ -469,28 +469,15 @@ export default function BusinessShops() {
     <AppShell activeTab="/business/shops" title="My Shops">
       <Container maxWidth="lg" sx={{ py: 2 }}>
         {/* Top Header */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <IconButton
-              onClick={() => navigate("/business-dashboard")}
-              sx={{
-                bgcolor: T.surface,
-                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-                color: T.primary,
-                "&:hover": { bgcolor: alpha(T.primary, 0.08) }
-              }}
-            >
-              <ArrowBackIcon />
-            </IconButton>
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 950, color: T.text, lineHeight: 1.2 }}>
-                Register Retail Store
-              </Typography>
-              <Typography variant="body2" sx={{ color: T.textSecondary, fontWeight: 500 }}>
-                Create shop profiles, configure locations, and submit verification documents
-              </Typography>
-            </Box>
-          </Stack>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 900, color: T.text, lineHeight: 1.2 }}>
+              Store Management
+            </Typography>
+            <Typography variant="body2" sx={{ color: T.textSecondary, fontWeight: 500, mt: 0.25 }}>
+              Configure your retail storefronts, timings, and delivery radius
+            </Typography>
+          </Box>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -500,8 +487,8 @@ export default function BusinessShops() {
               borderRadius: '12px',
               textTransform: 'none',
               fontWeight: 800,
-              px: { xs: 2, sm: 3 },
-              py: 1.1,
+              px: { xs: 2, sm: 2.5 },
+              py: 1,
               boxShadow: '0 4px 14px rgba(34, 139, 34, 0.25)',
               '&:hover': { opacity: 0.95 }
             }}
@@ -1031,22 +1018,6 @@ export default function BusinessShops() {
             <Typography variant="h6" sx={{ fontWeight: 800, color: T.text }}>
               Your Registered Stores ({shops.length})
             </Typography>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<AddIcon />}
-              onClick={() => { resetForm(); setDrawerOpen(true); }}
-              sx={{
-                borderRadius: '10px',
-                fontWeight: 800,
-                textTransform: 'none',
-                borderColor: T.primary,
-                color: T.primary,
-                '&:hover': { bgcolor: alpha(T.primary, 0.08), borderColor: T.primaryDark }
-              }}
-            >
-              + Add Store
-            </Button>
           </Stack>
 
           {loading ? (
@@ -1253,78 +1224,80 @@ export default function BusinessShops() {
           )}
         </Box>
 
-        {/* Floating Add Store Button on Mobile */}
-        <Box sx={{ position: 'fixed', bottom: 80, right: 20, zIndex: 900, display: { sm: 'none' } }}>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => { resetForm(); setDrawerOpen(true); }}
-            sx={{
-              background: T.btnGradient,
-              borderRadius: '28px',
-              px: 3,
-              py: 1.3,
-              fontWeight: 900,
-              fontSize: '0.9rem',
-              boxShadow: '0 8px 24px rgba(34, 139, 34, 0.4)',
-              textTransform: 'none'
-            }}
-          >
-            Add Store
-          </Button>
-        </Box>
       </Container>
 
-      <Dialog open={categoryDialogOpen} onClose={() => { setCategoryDialogOpen(false); resetCategoryDialog(); }} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 900, color: T.text }}>Create Category</DialogTitle>
-        <DialogContent sx={{ pt: 1 }}>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label="Category Name"
+      {/* ── Category Creation Bottom Drawer ── */}
+      <Drawer
+        anchor="bottom"
+        open={categoryDialogOpen}
+        onClose={() => { setCategoryDialogOpen(false); resetCategoryDialog(); }}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: '28px',
+            borderTopRightRadius: '28px',
+            maxWidth: 480,
+            mx: 'auto',
+            p: 3,
+            pt: 1.5,
+          }
+        }}
+      >
+        <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: T.text }}>Create Category</Typography>
+          <IconButton size="small" onClick={() => { setCategoryDialogOpen(false); resetCategoryDialog(); }}>
+            <LuX size={18} />
+          </IconButton>
+        </Stack>
+        <Stack spacing={2}>
+          <TextField
+            label="Category Name"
+            fullWidth
+            value={newCategory.name}
+            onChange={(e) => setNewCategory((p) => ({ ...p, name: e.target.value }))}
+            sx={inputSx}
+          />
+          <TextField
+            label="Audience"
+            select
+            fullWidth
+            value={newCategory.audience}
+            onChange={(e) => setNewCategory((p) => ({ ...p, audience: e.target.value }))}
+            sx={inputSx}
+          >
+            <MenuItem value="MERCHANT">Merchant</MenuItem>
+            <MenuItem value="CONSUMER">Consumer</MenuItem>
+          </TextField>
+          <TextField
+            label="Sort Order"
+            fullWidth
+            type="number"
+            value={newCategory.sortOrder}
+            onChange={(e) => setNewCategory((p) => ({ ...p, sortOrder: e.target.value }))}
+            helperText="Optional — leave blank to auto-assign"
+            sx={inputSx}
+          />
+          <Stack direction="row" spacing={1.5} sx={{ pt: 1 }}>
+            <Button
               fullWidth
-              value={newCategory.name}
-              onChange={(e) => setNewCategory((p) => ({ ...p, name: e.target.value }))}
-              sx={inputSx}
-            />
-            <TextField
-              label="Audience"
-              select
-              fullWidth
-              value={newCategory.audience}
-              onChange={(e) => setNewCategory((p) => ({ ...p, audience: e.target.value }))}
-              sx={inputSx}
+              variant="outlined"
+              onClick={() => { setCategoryDialogOpen(false); resetCategoryDialog(); }}
+              sx={{ color: T.textSecondary, borderColor: T.border, textTransform: 'none', fontWeight: 800, borderRadius: '12px', py: 1.2 }}
             >
-              <MenuItem value="MERCHANT">Merchant</MenuItem>
-              <MenuItem value="CONSUMER">Consumer</MenuItem>
-            </TextField>
-            <TextField
-              label="Sort Order"
+              Cancel
+            </Button>
+            <Button
               fullWidth
-              type="number"
-              value={newCategory.sortOrder}
-              onChange={(e) => setNewCategory((p) => ({ ...p, sortOrder: e.target.value }))}
-              helperText="Optional — leave blank to auto-assign"
-              sx={inputSx}
-            />
+              variant="contained"
+              onClick={handleCreateCategory}
+              disabled={creatingCategory}
+              sx={{ bgcolor: T.primary, color: '#fff', textTransform: 'none', fontWeight: 800, borderRadius: '12px', py: 1.2, '&:hover': { bgcolor: T.primaryDark } }}
+            >
+              {creatingCategory ? 'Creating…' : 'Create Category'}
+            </Button>
           </Stack>
-        </DialogContent>
-        <DialogActions sx={{ p: 2.5, pt: 1 }}>
-          <Button
-            onClick={() => { setCategoryDialogOpen(false); resetCategoryDialog(); }}
-            sx={{ textTransform: 'none', fontWeight: 800 }}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleCreateCategory}
-            disabled={creatingCategory}
-            sx={{ bgcolor: T.primary, textTransform: 'none', fontWeight: 800, '&:hover': { bgcolor: T.primaryDark } }}
-          >
-            {creatingCategory ? 'Creating…' : 'Create'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        </Stack>
+      </Drawer>
 
       <PrimeMembershipModal
         open={primeModalOpen}

@@ -976,20 +976,40 @@ export default function BusinessProfile() {
       </Drawer>
 
       {/* ══════════════════════════════════════════════════════════════════════════
-          MODAL 2: EDIT PROFILE DIALOG
+          MODAL 2: EDIT PROFILE BOTTOM DRAWER
          ══════════════════════════════════════════════════════════════════════════ */}
-      <Dialog
+      <Drawer
+        anchor="bottom"
         open={editDialogOpen}
         onClose={() => setEditDialogOpen(false)}
-        fullWidth
-        maxWidth="sm"
-        PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: "28px",
+            borderTopRightRadius: "28px",
+            maxWidth: 480,
+            mx: "auto",
+            pb: 2,
+            pt: 1.5,
+            maxHeight: "90vh",
+            display: "flex",
+            flexDirection: "column",
+          },
+        }}
       >
-        <DialogTitle sx={{ fontWeight: 900, fontSize: "1.1rem", color: TEXT }}>
-          Edit Business Information
-        </DialogTitle>
-        <Box component="form" onSubmit={handleSaveProfile}>
-          <DialogContent sx={{ pt: 1 }}>
+        {/* Drag Handle */}
+        <Box sx={{ width: 44, height: 5, bgcolor: "#cbd5e1", borderRadius: 999, mx: "auto", mb: 2 }} />
+
+        <Box sx={{ px: 3, pb: 1, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", color: TEXT }}>
+            Edit Business Information
+          </Typography>
+          <IconButton size="small" onClick={() => setEditDialogOpen(false)}>
+            <CloseIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        </Box>
+
+        <Box component="form" onSubmit={handleSaveProfile} sx={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
+          <Box sx={{ px: 3, py: 1.5, overflowY: "auto", flex: 1 }}>
             <Stack spacing={2}>
               <TextField
                 label="Registered Business Name"
@@ -1058,15 +1078,20 @@ export default function BusinessProfile() {
                 placeholder="08:00 AM - 10:00 PM"
               />
             </Stack>
-          </DialogContent>
-          <DialogActions sx={{ p: 2, pt: 1 }}>
+          </Box>
+
+          <Divider />
+          <Stack direction="row" spacing={1.5} sx={{ p: 2, px: 3, bgcolor: "#ffffff" }}>
             <Button
+              fullWidth
+              variant="outlined"
               onClick={() => setEditDialogOpen(false)}
-              sx={{ color: TEXT_MUTED, textTransform: "none", fontWeight: 700 }}
+              sx={{ color: TEXT_MUTED, borderColor: BORDER, textTransform: "none", fontWeight: 700, borderRadius: "12px", py: 1.2 }}
             >
               Cancel
             </Button>
             <Button
+              fullWidth
               type="submit"
               variant="contained"
               disabled={saving}
@@ -1075,57 +1100,91 @@ export default function BusinessProfile() {
                 color: "#ffffff",
                 textTransform: "none",
                 fontWeight: 800,
-                borderRadius: "10px",
-                px: 3,
+                borderRadius: "12px",
+                py: 1.2,
                 "&:hover": { bgcolor: PRIMARY_DARK },
               }}
             >
               {saving ? "Saving..." : "Save Changes"}
             </Button>
-          </DialogActions>
+          </Stack>
         </Box>
-      </Dialog>
+      </Drawer>
 
       {/* ══════════════════════════════════════════════════════════════════════════
-          MODAL 3: LOGOUT CONFIRMATION
+          MODAL 3: LOGOUT BOTTOM DRAWER
          ══════════════════════════════════════════════════════════════════════════ */}
-      <Dialog
+      <Drawer
+        anchor="bottom"
         open={logoutDialogOpen}
         onClose={() => setLogoutDialogOpen(false)}
-        maxWidth="xs"
-        PaperProps={{ sx: { borderRadius: "18px", p: 1 } }}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: "28px",
+            borderTopRightRadius: "28px",
+            maxWidth: 480,
+            mx: "auto",
+            pb: 3,
+            pt: 1.5,
+          },
+        }}
       >
-        <DialogTitle sx={{ fontWeight: 900, color: TEXT }}>
-          Sign Out of Business Terminal?
-        </DialogTitle>
-        <DialogContent>
-          <Typography sx={{ fontSize: "0.88rem", color: TEXT_SECONDARY }}>
-            You will need to re-enter your merchant credentials to manage your store, orders, and inventory.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button
-            onClick={() => setLogoutDialogOpen(false)}
-            sx={{ color: TEXT_MUTED, textTransform: "none", fontWeight: 700 }}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleLogout}
+        {/* Drag Handle */}
+        <Box sx={{ width: 44, height: 5, bgcolor: "#cbd5e1", borderRadius: 999, mx: "auto", mb: 2 }} />
+
+        <Box sx={{ px: 3, textAlign: "center" }}>
+          <Box
             sx={{
-              bgcolor: "#ef4444",
-              color: "#ffffff",
-              textTransform: "none",
-              fontWeight: 800,
-              borderRadius: "10px",
-              "&:hover": { bgcolor: "#dc2626" },
+              width: 52,
+              height: 52,
+              borderRadius: "50%",
+              bgcolor: "#fef2f2",
+              color: "#ef4444",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              mx: "auto",
+              mb: 1.5,
             }}
           >
-            Confirm Sign Out
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <LogoutIcon sx={{ fontSize: 26 }} />
+          </Box>
+
+          <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", color: TEXT, mb: 1 }}>
+            Sign Out of Business Terminal?
+          </Typography>
+          <Typography sx={{ fontSize: "0.85rem", color: TEXT_SECONDARY, mb: 3, lineHeight: 1.5 }}>
+            You will need to re-enter your merchant credentials to manage your store, orders, and inventory.
+          </Typography>
+
+          <Stack direction="row" spacing={1.5}>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={() => setLogoutDialogOpen(false)}
+              sx={{ color: TEXT_MUTED, borderColor: BORDER, textTransform: "none", fontWeight: 700, borderRadius: "12px", py: 1.2 }}
+            >
+              Cancel
+            </Button>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={handleLogout}
+              sx={{
+                bgcolor: "#ef4444",
+                color: "#ffffff",
+                textTransform: "none",
+                fontWeight: 800,
+                borderRadius: "12px",
+                py: 1.2,
+                "&:hover": { bgcolor: "#dc2626" },
+              }}
+            >
+              Confirm Sign Out
+            </Button>
+          </Stack>
+        </Box>
+      </Drawer>
 
       {/* Toast Feedback */}
       <Snackbar

@@ -1262,24 +1262,30 @@ function ProductCard({ product }) {
       {/* Product Image Frame */}
       <Box
         sx={{
-          p: 1.25,
+          height: { xs: 130, sm: 150 },
+          width: '100%',
           bgcolor: '#f8fafc',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          aspectRatio: '1/1',
-          width: '100%',
+          p: 1.25,
+          overflow: 'hidden',
+          borderRadius: '16px 16px 0 0',
         }}
       >
         <Box
           component="img"
           src={product.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80'}
           alt={product.name}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80';
+          }}
           sx={{
-            width: '100%',
-            height: '100%',
+            maxHeight: { xs: 110, sm: 130 },
+            maxWidth: '100%',
             objectFit: 'contain',
-            borderRadius: '10px',
+            display: 'block',
           }}
         />
       </Box>
