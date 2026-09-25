@@ -145,7 +145,7 @@ export default function NearbyStoresPage() {
           <TextField
             fullWidth
             size="small"
-            placeholder="Search nearby stores by name, area or service..."
+            placeholder="Search stores, categories or location..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{
@@ -158,7 +158,7 @@ export default function NearbyStoresPage() {
             sx={{
               maxWidth: 540,
               bgcolor: T.surface,
-              '& .MuiOutlinedInput-root': { borderRadius: T.radiusSm, '& fieldset': { borderColor: T.border } }
+              '& .MuiOutlinedInput-root': { borderRadius: '14px', '& fieldset': { borderColor: T.border } }
             }}
           />
 
@@ -204,7 +204,7 @@ export default function NearbyStoresPage() {
           </Box>
         </Stack>
 
-        {/* ─── STORES LIST (Matching Image 1 Screen 4) ─── */}
+        {/* ─── STORES LIST (Matching Image 1 Screen 12) ─── */}
         {loading ? (
           <Box sx={{ textAlign: 'center', py: 12 }}>
             <CircularProgress sx={{ color: T.primary }} />
@@ -222,28 +222,39 @@ export default function NearbyStoresPage() {
             </Typography>
           </Card>
         ) : (
-          <Grid container spacing={2.5}>
+          <Grid container spacing={2}>
             {filteredStores.map((store) => (
               <Grid item xs={12} md={6} key={store.id}>
                 <Card
                   elevation={0}
+                  onClick={() => navigate(`/business/shop/${store.id}`)}
                   sx={{
-                    ...cardHoverSx,
-                    p: { xs: 2, sm: 2.5 },
+                    borderRadius: '18px',
+                    border: '1px solid #e2e8f0',
+                    bgcolor: '#ffffff',
+                    p: { xs: 1.5, sm: 2 },
                     display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    gap: 2.5,
-                    alignItems: { xs: 'stretch', sm: 'center' },
+                    flexDirection: 'row',
+                    gap: 1.75,
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
+                    '&:hover': {
+                      borderColor: '#10b981',
+                      boxShadow: '0 6px 18px rgba(16, 185, 129, 0.1)',
+                      transform: 'translateY(-1px)',
+                    },
                   }}
                 >
-                  {/* Store Thumbnail */}
+                  {/* Store Thumbnail (Square with Rounded Corners) */}
                   <Box
                     sx={{
-                      width: { xs: '100%', sm: 150 },
-                      height: 120,
-                      borderRadius: T.radiusMd,
+                      width: { xs: 84, sm: 104 },
+                      height: { xs: 84, sm: 104 },
+                      borderRadius: '14px',
                       overflow: 'hidden',
-                      bgcolor: T.surfaceAlt,
+                      bgcolor: '#f1f5f9',
                       flexShrink: 0,
                     }}
                   >
@@ -261,71 +272,85 @@ export default function NearbyStoresPage() {
 
                   {/* Store Info */}
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.5 }}>
-                      <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: T.text }} noWrap>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.35 }}>
+                      <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: '#0f172a' }} noWrap>
                         {store.name}
                       </Typography>
-                      <Chip
-                        size="small"
-                        label="Nearby"
-                        sx={{
-                          bgcolor: T.surfaceAlt,
-                          color: T.textSecondary,
-                          fontWeight: 700,
-                          fontSize: '0.72rem',
-                          height: 22,
-                        }}
-                      />
+                      <IconButton size="small" onClick={(e) => e.stopPropagation()} sx={{ p: 0.25, color: '#94a3b8' }}>
+                        <StarIcon sx={{ fontSize: 18, color: '#cbd5e1' }} />
+                      </IconButton>
                     </Stack>
 
-                    <Typography sx={{ fontSize: '0.82rem', color: T.textSecondary, mb: 1 }} noWrap>
-                      {store.category} • <strong style={{ color: T.text }}>{store.location}</strong>
+                    {/* Rating • Experience */}
+                    <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.35 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, bgcolor: '#f0fdf4', px: 0.75, py: 0.15, borderRadius: '4px', border: '1px solid #bbf7d0' }}>
+                        <StarIcon sx={{ fontSize: 13, color: '#16a34a' }} />
+                        <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#15803d' }}>
+                          {store.rating || '4.3'}
+                        </Typography>
+                      </Box>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>
+                        {store.category} • 25 Years of Service
+                      </Typography>
+                    </Stack>
+
+                    {/* Location & ETA */}
+                    <Typography sx={{ fontSize: '0.72rem', color: '#64748b', mb: 1 }} noWrap>
+                      {store.location} • 26 mins • 8.4 km
                     </Typography>
 
-                    {/* Ratings & Cashback Row */}
-                    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
-                      <Stack direction="row" alignItems="center" spacing={0.3} sx={{ color: '#D97706' }}>
-                        <StarIcon sx={{ fontSize: 16, color: '#F59E0B' }} />
-                        <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: T.text }}>
-                          {store.rating}
-                        </Typography>
-                        <Typography sx={{ fontSize: '0.75rem', color: T.textMuted }}>
-                          ({store.reviewCount})
-                        </Typography>
+                    {/* Badges & View Store Action */}
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 0.5 }}>
+                      <Stack direction="row" spacing={0.6}>
+                        <Chip
+                          size="small"
+                          label="5% Cashback"
+                          sx={{
+                            bgcolor: '#ecfdf5',
+                            color: '#059669',
+                            fontWeight: 800,
+                            fontSize: '0.65rem',
+                            height: 20,
+                            border: '1px solid #a7f3d0',
+                          }}
+                        />
+                        <Chip
+                          size="small"
+                          label="Verified"
+                          sx={{
+                            bgcolor: '#ecfeff',
+                            color: '#0891b2',
+                            fontWeight: 800,
+                            fontSize: '0.65rem',
+                            height: 20,
+                            border: '1px solid #a5f3fc',
+                          }}
+                        />
                       </Stack>
 
-                      <Chip
+                      <Button
                         size="small"
-                        label={store.cashback}
-                        sx={{
-                          bgcolor: T.successBg,
-                          color: T.successText,
-                          fontWeight: 800,
-                          fontSize: '0.72rem',
-                          height: 22,
-                          border: `1px solid ${T.successBorder}`,
+                        variant="contained"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/business/shop/${store.id}`);
                         }}
-                      />
+                        sx={{
+                          bgcolor: '#047857',
+                          color: '#ffffff',
+                          py: 0.35,
+                          px: 1.5,
+                          fontSize: '0.75rem',
+                          fontWeight: 800,
+                          borderRadius: '16px',
+                          textTransform: 'none',
+                          boxShadow: 'none',
+                          '&:hover': { bgcolor: '#065f46' },
+                        }}
+                      >
+                        View Store
+                      </Button>
                     </Stack>
-
-                    {/* Single Primary View Store Action */}
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      onClick={() => navigate(`/business/shop/${store.id}`)}
-                      sx={{
-                        ...primaryBtnSx,
-                        py: 0.85,
-                        px: 2,
-                        fontSize: '0.82rem',
-                        fontWeight: 800,
-                        borderRadius: '10px',
-                        textTransform: 'none',
-                        boxShadow: 'none',
-                      }}
-                    >
-                      View Store
-                    </Button>
                   </Box>
                 </Card>
               </Grid>
