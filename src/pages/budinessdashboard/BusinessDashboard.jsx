@@ -86,6 +86,8 @@ import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
 import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import RemoveRoundedIcon from '@mui/icons-material/RemoveRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import HandshakeOutlinedIcon from '@mui/icons-material/HandshakeOutlined';
 import WorkspacePremiumOutlinedIcon from '@mui/icons-material/WorkspacePremiumOutlined';
@@ -297,10 +299,42 @@ const ONLINE_B2B_ADS = [
 ];
 
 const PRODUCTS = [
-  { id: 1, name: "Home Office Chair", mrp: "Rs. 12,499", price: "Rs. 9,999", discount: "20% OFF" },
-  { id: 2, name: "Smart Watch Pro", mrp: "Rs. 6,799", price: "Rs. 4,999", discount: "26% OFF" },
-  { id: 3, name: "Mixer Grinder", mrp: "Rs. 3,950", price: "Rs. 2,899", discount: "27% OFF" },
-  { id: 4, name: "Industrial Tool Kit", mrp: "Rs. 8,400", price: "Rs. 6,299", discount: "25% OFF" },
+  {
+    id: 1,
+    name: "Royal Supreme Basmati Rice (25 kg Bag)",
+    mrp: "Rs. 3,200",
+    price: "Rs. 2,450",
+    discount: "23% OFF",
+    packSize: "25 kg Sack",
+    image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: 2,
+    name: "Pure Cold Pressed Mustard Oil (15 L Tin)",
+    mrp: "Rs. 2,400",
+    price: "Rs. 1,890",
+    discount: "21% OFF",
+    packSize: "15 L Can",
+    image: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: 3,
+    name: "Farm Fresh Grade-A Red Onions (50 kg)",
+    mrp: "Rs. 1,800",
+    price: "Rs. 1,350",
+    discount: "25% OFF",
+    packSize: "50 kg Mandi Bag",
+    image: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: 4,
+    name: "Eco-friendly Meal Box 3-CP (Pack of 200)",
+    mrp: "Rs. 1,400",
+    price: "Rs. 980",
+    discount: "30% OFF",
+    packSize: "200 Pcs Box",
+    image: "https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=400&q=80",
+  },
 ];
 
 const FOOTER_ITEMS = [
@@ -1119,105 +1153,248 @@ function CityCard({ city }) {
 }
 
 function ProductCard({ product }) {
+  const [qty, setQty] = React.useState(0);
+  const [wished, setWished] = React.useState(false);
+
+  const displayPrice = product.price && product.price !== '₹ —' && product.price !== 'Rs. —'
+    ? product.price
+    : (product.mrp ? `Rs. ${Math.round(parseInt(String(product.mrp).replace(/\D/g, '') || '500') * 0.75)}` : 'Rs. 499');
+
+  const handleAdd = () => {
+    setQty(1);
+    try {
+      const raw = localStorage.getItem('tri_business_b2b_cart');
+      const cart = raw ? JSON.parse(raw) : { items: [] };
+      const items = cart.items || [];
+      const existing = items.find(i => String(i.id) === String(product.id));
+      if (existing) {
+        existing.quantity = (existing.quantity || 1) + 1;
+      } else {
+        items.push({
+          id: product.id,
+          title: product.name,
+          price: parseInt(String(displayPrice).replace(/\D/g, '') || '499'),
+          image: product.image,
+          quantity: 1,
+        });
+      }
+      localStorage.setItem('tri_business_b2b_cart', JSON.stringify({ ...cart, items }));
+      window.dispatchEvent(new Event('storage'));
+    } catch (_) {}
+  };
+
+  const handleIncrement = () => {
+    setQty(prev => prev + 1);
+    try {
+      const raw = localStorage.getItem('tri_business_b2b_cart');
+      if (raw) {
+        const cart = JSON.parse(raw);
+        const item = (cart.items || []).find(i => String(i.id) === String(product.id));
+        if (item) {
+          item.quantity += 1;
+          localStorage.setItem('tri_business_b2b_cart', JSON.stringify(cart));
+          window.dispatchEvent(new Event('storage'));
+        }
+      }
+    } catch (_) {}
+  };
+
+  const handleDecrement = () => {
+    setQty(prev => {
+      const next = prev - 1;
+      try {
+        const raw = localStorage.getItem('tri_business_b2b_cart');
+        if (raw) {
+          const cart = JSON.parse(raw);
+          if (next <= 0) {
+            cart.items = (cart.items || []).filter(i => String(i.id) !== String(product.id));
+          } else {
+            const item = (cart.items || []).find(i => String(i.id) === String(product.id));
+            if (item) item.quantity = next;
+          }
+          localStorage.setItem('tri_business_b2b_cart', JSON.stringify(cart));
+          window.dispatchEvent(new Event('storage'));
+        }
+      } catch (_) {}
+      return Math.max(0, next);
+    });
+  };
+
   return (
-    <Card sx={{ ...sectionCardStyles(), height: "100%" }}>
-      <CardContent sx={{ p: 1.15, height: "100%", "&:last-child": { pb: 1.15 } }}>
-        <Stack spacing={0.85} height="100%">
-          {product.image ? (
+    <Card
+      elevation={0}
+      sx={{
+        borderRadius: '16px',
+        bgcolor: '#ffffff',
+        border: '1px solid #e2e8f0',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        overflow: 'hidden',
+        boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+        transition: 'all 0.15s ease',
+        '&:hover': {
+          borderColor: UI.primary,
+          boxShadow: '0 6px 18px rgba(5, 150, 105, 0.12)',
+        },
+      }}
+    >
+      {/* Wishlist Button Top-Right Overlay */}
+      <IconButton
+        size="small"
+        onClick={() => setWished(!wished)}
+        sx={{
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          zIndex: 2,
+          bgcolor: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(4px)',
+          p: 0.5,
+          color: wished ? '#ef4444' : '#94a3b8',
+          '&:hover': { bgcolor: '#ffffff' },
+        }}
+      >
+        <FavoriteBorderRoundedIcon sx={{ fontSize: 16, color: wished ? '#ef4444' : '#94a3b8' }} />
+      </IconButton>
+
+      {/* Product Image Frame */}
+      <Box
+        sx={{
+          p: 1.25,
+          bgcolor: '#f8fafc',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          aspectRatio: '1/1',
+          width: '100%',
+        }}
+      >
+        <Box
+          component="img"
+          src={product.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80'}
+          alt={product.name}
+          sx={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            borderRadius: '10px',
+          }}
+        />
+      </Box>
+
+      {/* Content */}
+      <CardContent sx={{ p: 1.5, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', '&:last-child': { pb: 1.5 } }}>
+        <Box>
+          {product.packSize && (
             <Box
               sx={{
-                width: "100%",
-                minHeight: 104,
-                borderRadius: "8px",
-                background: `url(${product.image}) center/cover no-repeat`,
-                border: "1px solid #e2e8f0",
+                display: 'inline-block',
+                bgcolor: '#f1f5f9',
+                color: '#475569',
+                fontSize: '0.68rem',
+                fontWeight: 800,
+                px: 0.75,
+                py: 0.2,
+                borderRadius: '6px',
+                mb: 0.5,
               }}
-            />
-          ) : (
-            <PlaceholderImage label="Product Image" minHeight={104} />
+            >
+              {product.packSize}
+            </Box>
           )}
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography sx={{ fontSize: 12, fontWeight: 800, color: UI.text, lineHeight: 1.25, minHeight: 30 }}>
-              {product.name}
+
+          <Typography
+            sx={{
+              fontSize: '0.82rem',
+              fontWeight: 800,
+              color: UI.text,
+              lineHeight: 1.25,
+              height: '2.5em',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+            }}
+          >
+            {product.name}
+          </Typography>
+
+          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.5, flexWrap: 'wrap' }}>
+            <Typography sx={{ fontSize: '0.95rem', fontWeight: 900, color: UI.primary, lineHeight: 1 }}>
+              {displayPrice}
             </Typography>
-            {product.mrp ? (
-              <Typography
-                sx={{
-                  fontSize: 10,
-                  color: UI.textMuted,
-                  textDecoration: "line-through",
-                  mt: 0.35,
-                }}
-              >
+            {product.mrp && (
+              <Typography sx={{ fontSize: '0.72rem', color: UI.textMuted, textDecoration: 'line-through', fontWeight: 600 }}>
                 {product.mrp}
               </Typography>
-            ) : null}
-            <Stack direction="row" spacing={0.55} alignItems="center" sx={{ mt: 0.35, flexWrap: "wrap" }}>
-              <Typography sx={{ fontSize: 13, fontWeight: 850, color: UI.primary, lineHeight: 1.2 }}>
-                {product.price || '₹ —'}
-              </Typography>
-              {product.discount ? (
-                <Box
-                  sx={{
-                    height: 18,
-                    px: 0.65,
-                    borderRadius: 999,
-                    bgcolor: alpha(UI.primary, 0.12),
-                    color: UI.primary,
-                    display: "grid",
-                    placeItems: "center",
-                    fontSize: 9.5,
-                    fontWeight: 800,
-                  }}
-                >
-                  {product.discount}
-                </Box>
-              ) : null}
-            </Stack>
-          </Box>
-          <Stack direction="row" spacing={0.65} sx={{ mt: "auto" }}>
+            )}
+            {product.discount && (
+              <Box
+                sx={{
+                  px: 0.6,
+                  py: 0.15,
+                  borderRadius: '6px',
+                  bgcolor: alpha(UI.primary, 0.12),
+                  color: UI.primary,
+                  fontSize: '0.68rem',
+                  fontWeight: 800,
+                }}
+              >
+                {product.discount}
+              </Box>
+            )}
+          </Stack>
+        </Box>
+
+        {/* Action Button: Add or Stepper */}
+        <Box sx={{ mt: 1.5 }}>
+          {qty === 0 ? (
             <Button
               fullWidth
               variant="contained"
-              startIcon={<AddShoppingCartRoundedIcon sx={{ fontSize: 15 }} />}
+              onClick={handleAdd}
+              startIcon={<AddShoppingCartRoundedIcon sx={{ fontSize: 16 }} />}
               sx={{
-                borderRadius: 1.5,
-                textTransform: "none",
-                fontWeight: 700,
-                fontSize: 10.5,
+                borderRadius: '10px',
+                textTransform: 'none',
+                fontWeight: 800,
+                fontSize: '0.8rem',
                 bgcolor: UI.primary,
-                color: UI.onPrimary,
-                boxShadow: "none",
-                minWidth: 0,
-                minHeight: 32,
-                px: 0.65,
-                "& .MuiButton-startIcon": { mr: 0.45 },
-                "&:hover": { bgcolor: UI.secondary, boxShadow: "none" },
+                color: '#ffffff',
+                boxShadow: 'none',
+                py: 0.75,
+                '&:hover': { bgcolor: UI.secondary, boxShadow: 'none' },
               }}
             >
-              Add
+              Add to Cart
             </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              startIcon={<FavoriteBorderRoundedIcon sx={{ fontSize: 15 }} />}
+          ) : (
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
               sx={{
-                borderRadius: 1.5,
-                textTransform: "none",
-                fontWeight: 700,
-                fontSize: 10.5,
-                borderColor: UI.border,
-                color: UI.text,
-                minWidth: 0,
-                minHeight: 32,
-                px: 0.65,
-                "& .MuiButton-startIcon": { mr: 0.45 },
+                bgcolor: '#ecfdf5',
+                border: '1.5px solid #10b981',
+                borderRadius: '10px',
+                p: 0.25,
               }}
             >
-              Wish
-            </Button>
-          </Stack>
-        </Stack>
+              <IconButton size="small" onClick={handleDecrement} sx={{ color: '#059669', p: 0.5 }}>
+                <RemoveRoundedIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+              <Typography sx={{ fontWeight: 900, fontSize: '0.85rem', color: '#059669' }}>
+                {qty}
+              </Typography>
+              <IconButton size="small" onClick={handleIncrement} sx={{ color: '#059669', p: 0.5 }}>
+                <AddRoundedIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Stack>
+          )}
+        </Box>
       </CardContent>
     </Card>
   );
@@ -1917,15 +2094,21 @@ function BusinessDashboard() {
           setSponsoredShops([...apiAds, ...ONLINE_B2B_ADS]);
         }
         if (Array.isArray(data.featured_products) && data.featured_products.length > 0) {
-          setFeaturedProducts(data.featured_products.map(ad => ({
-            id: ad.id,
-            name: ad.product_title || ad.title || 'Featured Product',
-            mrp: ad.product_mrp ? `Rs. ${Math.round(ad.product_mrp).toLocaleString()}` : '',
-            price: ad.product_price ? `Rs. ${Math.round(ad.product_price).toLocaleString()}` : '',
-            discount: ad.product_discount_percent ? `${Math.round(ad.product_discount_percent)}% OFF` : '',
-            image: resolveImageUrl(ad.image_url || ad.product_image) || null,
-            productId: ad.product_id,
-          })));
+          setFeaturedProducts(data.featured_products.map(ad => {
+            const rawPrice = Number(ad.product_price) || (ad.product_mrp ? Math.round(Number(ad.product_mrp) * 0.75) : 349);
+            const rawMrp = Number(ad.product_mrp) || Math.round(rawPrice * 1.3);
+            const discount = Math.max(10, Math.round(((rawMrp - rawPrice) / rawMrp) * 100));
+            return {
+              id: ad.id,
+              name: ad.product_title || ad.title || 'Wholesale Featured Product',
+              mrp: `Rs. ${Math.round(rawMrp).toLocaleString()}`,
+              price: `Rs. ${Math.round(rawPrice).toLocaleString()}`,
+              discount: `${discount}% OFF`,
+              packSize: ad.pack_size || 'Wholesale Pack',
+              image: resolveImageUrl(ad.image_url || ad.product_image) || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80',
+              productId: ad.product_id,
+            };
+          }));
         }
         if (Array.isArray(data.banners) && data.banners.length > 0) {
           setBannerAds(data.banners.map(ad => ({

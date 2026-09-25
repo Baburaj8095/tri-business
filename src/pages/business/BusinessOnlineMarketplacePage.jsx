@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Alert,
+  Badge,
   Box,
   Button,
   Card,
@@ -579,7 +580,16 @@ export default function BusinessOnlineMarketplacePage() {
                 ))}
               </Menu>
 
-              <Stack direction="row" spacing={0.5}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <IconButton
+                  size="small"
+                  onClick={() => navigate('/business/online-marketplace/cart')}
+                  sx={{ bgcolor: '#f1f5f9', color: '#0f172a' }}
+                >
+                  <Badge badgeContent={(b2bCart?.items || []).reduce((s, i) => s + (i.quantity || 1), 0)} color="success" max={99}>
+                    <BagIcon sx={{ fontSize: 20, color: '#059669' }} />
+                  </Badge>
+                </IconButton>
                 <IconButton size="small" sx={{ bgcolor: '#f8fafc', color: '#475569' }}>
                   <ShareIcon sx={{ fontSize: 18 }} />
                 </IconButton>
@@ -769,15 +779,22 @@ export default function BusinessOnlineMarketplacePage() {
                 </Button>
               </Box>
             ) : (
-              <Grid container spacing={{ xs: 1.25, sm: 2 }}>
-                {filteredProducts.map((p) => {
-                  const qtyInCart = getProductQtyInCart(p.id);
-                  const isWish = wishlist[p.id];
-                  const discountPct = Math.round(((p.mrp - p.price) / p.mrp) * 100);
+              <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', sm: 'repeat(3, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' },
+                gap: { xs: 1.25, sm: 2 },
+                width: '100%',
+              }}
+            >
+              {filteredProducts.map((p) => {
+                const qtyInCart = getProductQtyInCart(p.id);
+                const isWish = wishlist[p.id];
+                const discountPct = Math.round(((p.mrp - p.price) / p.mrp) * 100);
 
-                  return (
-                    <Grid item xs={6} sm={4} md={3} key={p.id}>
-                      <Card
+                return (
+                  <Card
+                    key={p.id}
                         elevation={0}
                         sx={{
                           borderRadius: '18px',
@@ -961,10 +978,9 @@ export default function BusinessOnlineMarketplacePage() {
                           </Stack>
                         </CardContent>
                       </Card>
-                    </Grid>
                   );
                 })}
-              </Grid>
+              </Box>
             )}
           </Box>
         </Box>

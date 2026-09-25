@@ -65,11 +65,13 @@ const NAV_ITEMS = [
   { label: 'Profile & KYC', path: '/business/profile', icon: <ProfileIcon /> },
 ];
 
-export default function AppShell({ children, activeTab, title }) {
+export default function AppShell({ children, activeTab, title, hideHeader = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('lg')); // >= 1200px
+
+  const shouldHideHeader = hideHeader || location.pathname === '/business/online-marketplace';
 
   // Stores & Profile State
   const [profile, setProfile] = useState(null);
@@ -437,7 +439,7 @@ export default function AppShell({ children, activeTab, title }) {
         )}
 
         {/* ─── MOBILE FIXED TOP HEADER (Screen 1 & 2 Brand Pine Green Header) ─── */}
-        {!isDesktop && (
+        {!isDesktop && !shouldHideHeader && (
           <Box
             component="header"
             sx={{
@@ -578,7 +580,7 @@ export default function AppShell({ children, activeTab, title }) {
           component="main"
           sx={{
             flex: 1,
-            pt: { xs: '118px', lg: '24px' },
+            pt: { xs: shouldHideHeader ? '0px' : '118px', lg: '24px' },
             pb: { xs: '84px', lg: '40px' },
             maxWidth: T.maxContentWidth,
             width: '100%',
