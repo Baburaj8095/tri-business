@@ -118,13 +118,13 @@ export default function CaptainLayout() {
                 Welcome back,
               </Typography>
               <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                {fullName}
+                {fullName || 'Captain'}
               </Typography>
             </Box>
             <Avatar 
               sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 36, height: 36, fontWeight: 'bold' }}
             >
-              {fullName.charAt(0).toUpperCase()}
+              {(fullName || 'Captain').charAt(0).toUpperCase()}
             </Avatar>
             <IconButton onClick={handleLogout} color="inherit" size="small" title="Logout">
               <LogoutIcon />

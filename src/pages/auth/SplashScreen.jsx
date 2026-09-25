@@ -8,28 +8,14 @@ export default function SplashScreen() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const isCaptain = !!localStorage.getItem('token_captain');
-      const isBusiness = !!localStorage.getItem('token_business');
-
-      if (isCaptain) {
-        navigate('/captain/home', { replace: true });
-      } else if (isBusiness) {
-        navigate('/business-dashboard', { replace: true });
-      } else {
-        navigate('/login', { replace: true });
-      }
+      navigate('/login', { replace: true });
     }, 1800);
 
     return () => clearTimeout(timer);
   }, [navigate]);
 
   const handleSkip = () => {
-    const isBusiness = !!localStorage.getItem('token_business');
-    if (isBusiness) {
-      navigate('/business-dashboard', { replace: true });
-    } else {
-      navigate('/login', { replace: true });
-    }
+    navigate('/login', { replace: true });
   };
 
   return (

@@ -108,7 +108,11 @@ export default function MobileAuthPage() {
       const token = data.access || data.token;
       if (token) {
         localStorage.setItem('token_business', token);
-        localStorage.setItem('token_captain', token);
+        if (data.role === 'CAPTAIN' || data.isCaptain) {
+          localStorage.setItem('token_captain', token);
+        } else {
+          localStorage.removeItem('token_captain');
+        }
         if (data.username) localStorage.setItem('business_username', data.username);
         if (data.fullName || data.full_name) localStorage.setItem('business_full_name', data.fullName || data.full_name);
         if (data.serviceMode) localStorage.setItem('service_mode_business', data.serviceMode);
@@ -207,7 +211,11 @@ export default function MobileAuthPage() {
         token = data.access || data.token;
         if (token) {
           localStorage.setItem('token_business', token);
-          localStorage.setItem('token_captain', token);
+          if (data.role === 'CAPTAIN' || data.isCaptain) {
+            localStorage.setItem('token_captain', token);
+          } else {
+            localStorage.removeItem('token_captain');
+          }
           if (data.username) localStorage.setItem('business_username', data.username);
           if (data.fullName) localStorage.setItem('business_full_name', data.fullName);
         }
@@ -215,7 +223,7 @@ export default function MobileAuthPage() {
         // Fallback session for verified mobile OTP
         token = `mock_session_${cleanPhone}_${Date.now()}`;
         localStorage.setItem('token_business', token);
-        localStorage.setItem('token_captain', token);
+        localStorage.removeItem('token_captain');
         localStorage.setItem('business_username', `BU${cleanPhone}`);
         localStorage.setItem('business_full_name', 'Business User');
       }
@@ -569,43 +577,24 @@ export default function MobileAuthPage() {
               <Typography sx={{ fontSize: '0.82rem', color: '#64748b', mb: 1.2 }}>
                 New to Trikonekt? Get started today
               </Typography>
-              <Stack spacing={1}>
-                <Button
-                  variant="contained"
-                  fullWidth
-                  onClick={() => navigate('/onboarding')}
-                  sx={{
-                    bgcolor: '#047857',
-                    color: '#ffffff',
-                    fontWeight: 800,
-                    fontSize: '0.84rem',
-                    borderRadius: '12px',
-                    py: 1.1,
-                    textTransform: 'none',
-                    boxShadow: '0 4px 12px rgba(4, 120, 87, 0.2)',
-                    '&:hover': { bgcolor: '#065f46' },
-                  }}
-                >
-                  Join Trikonekt (Choose Business or Captain)
-                </Button>
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  onClick={() => navigate('/registration')}
-                  sx={{
-                    borderColor: '#047857',
-                    color: '#047857',
-                    fontWeight: 800,
-                    fontSize: '0.82rem',
-                    borderRadius: '12px',
-                    py: 0.9,
-                    textTransform: 'none',
-                    '&:hover': { bgcolor: '#ecfdf5', borderColor: '#065f46' },
-                  }}
-                >
-                  Register as Merchant / Store Directly
-                </Button>
-              </Stack>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={() => navigate('/onboarding')}
+                sx={{
+                  bgcolor: '#047857',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '0.86rem',
+                  borderRadius: '12px',
+                  py: 1.2,
+                  textTransform: 'none',
+                  boxShadow: '0 4px 12px rgba(4, 120, 87, 0.2)',
+                  '&:hover': { bgcolor: '#065f46' },
+                }}
+              >
+                Join Trikonekt (Choose Business or Captain)
+              </Button>
             </Box>
 
           </Box>

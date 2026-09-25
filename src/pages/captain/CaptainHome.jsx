@@ -63,6 +63,7 @@ export default function CaptainHome() {
   const [copied, setCopied] = useState(false);
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
+  const [pendingShopCount, setPendingShopCount] = useState(3);
 
   const API_URL = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
 
@@ -86,7 +87,7 @@ export default function CaptainHome() {
           const data = await res.json();
           setProfile(data);
           // Sync full name in local storage if updated
-          localStorage.setItem('fullname_captain', data.fullName);
+          if (data.fullName) localStorage.setItem('fullname_captain', data.fullName);
         } else {
           // Fallback to local storage values if API fails
           const storedName = localStorage.getItem('fullname_captain') || 'Captain';
@@ -113,6 +114,13 @@ export default function CaptainHome() {
           active: false
         });
       } finally {
+        try {
+          const localQueue = JSON.parse(localStorage.getItem('trikonekt_captain_onboarding_queue') || '[]');
+          const pending = localQueue.filter(s => s.status !== 'APPROVED').length;
+          setPendingShopCount(pending > 0 ? pending : 3);
+        } catch (_) {
+          setPendingShopCount(3);
+        }
         setLoading(false);
       }
     };
@@ -237,7 +245,7 @@ export default function CaptainHome() {
                 {getGreeting().toUpperCase()}
               </Typography>
               <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5 }}>
-                {profile?.fullName}
+                {profile?.fullName || 'Captain'}
               </Typography>
             </Box>
             <Avatar
@@ -251,14 +259,14 @@ export default function CaptainHome() {
                 boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
               }}
             >
-              {profile?.fullName?.charAt(0).toUpperCase()}
+              {(profile?.fullName || 'Captain').charAt(0).toUpperCase()}
             </Avatar>
           </Box>
 
           {/* Row 2: Captain ID Chip */}
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
             <Chip
-              label={profile?.username}
+              label={profile?.username || 'CB_CAPTAIN'}
               onClick={handleCopyId}
               onDelete={handleCopyId}
               deleteIcon={
