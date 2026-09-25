@@ -3130,59 +3130,6 @@ function BusinessDashboard() {
           {toastMsg}
         </Alert>
       </Snackbar>
-
-      {/* Floating Cart Pill if B2B cart has items */}
-      {(() => {
-        let sc = null;
-        try { sc = JSON.parse(localStorage.getItem('tri_business_b2b_cart') || 'null'); } catch(e) {}
-        const count = (sc?.items || []).reduce((acc, item) => acc + Number(item.quantity || 0), 0);
-        const subtotal = (sc?.items || []).reduce((acc, item) => acc + (Number(item.price || 0) * Number(item.quantity || 0)), 0);
-        if (count <= 0) return null;
-        return (
-          <Box
-            sx={{
-              position: 'fixed',
-              bottom: { xs: 68, sm: 80 },
-              left: 0,
-              right: 0,
-              zIndex: 40,
-              px: 2,
-              display: 'flex',
-              justifyContent: 'center',
-            }}
-          >
-            <Box
-              onClick={() => navigate('/business/online-marketplace')}
-              sx={{
-                bgcolor: '#15803d',
-                color: '#ffffff',
-                borderRadius: '999px',
-                px: 2.25,
-                py: 1.15,
-                boxShadow: '0 8px 24px rgba(21, 128, 61, 0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1.75,
-                cursor: 'pointer',
-                maxWidth: 420,
-                width: '100%',
-                transition: 'transform 0.15s, background-color 0.15s',
-                '&:hover': { bgcolor: '#166534', transform: 'scale(1.02)' },
-              }}
-            >
-              <Box sx={{ flexGrow: 1 }}>
-                <Typography sx={{ fontSize: '0.88rem', fontWeight: 900, lineHeight: 1.1 }}>
-                  View cart
-                </Typography>
-                <Typography sx={{ fontSize: '0.72rem', color: '#bbf7d0', fontWeight: 700 }}>
-                  {count} items • ₹{subtotal.toFixed(2)}
-                </Typography>
-              </Box>
-              <KeyboardArrowRightRoundedIcon sx={{ color: '#ffffff', fontSize: 22 }} />
-            </Box>
-          </Box>
-        );
-      })()}
       </div>
       </AppShell>
     </ThemeProvider>

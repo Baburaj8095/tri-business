@@ -11,13 +11,17 @@ import {
   CircularProgress,
   Alert,
   Divider,
+  InputAdornment,
 } from '@mui/material';
 import {
-  ArrowBack as BackIcon,
-  WhatsApp as WhatsAppIcon,
+  ArrowBackRounded as BackIcon,
+  StorefrontRounded as StoreIcon,
+  VisibilityRounded as VisibilityIcon,
+  VisibilityOffRounded as VisibilityOffIcon,
   LockOutlined as LockIcon,
-  PhoneIphone as PhoneIcon,
-  Storefront as StoreIcon,
+  PhoneIphoneRounded as PhoneIcon,
+  KeyRounded as KeyIcon,
+  VerifiedUserRounded as OtpIcon,
 } from '@mui/icons-material';
 
 const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
@@ -27,21 +31,26 @@ const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
 export default function MobileAuthPage() {
   const navigate = useNavigate();
 
-  // 'PHONE' (Screen 2) | 'OTP' (Screen 3) | 'PASSWORD'
-  const [authStep, setAuthStep] = useState('PHONE');
-  const [mobileNumber, setMobileNumber] = useState('');
+  // Mode: 'PASSWORD' (default for immediate backend support) | 'OTP' | 'OTP_VERIFY'
+  const [loginTab, setLoginTab] = useState('PASSWORD'); // 'PASSWORD' | 'OTP'
+  const [authStep, setAuthStep] = useState('LOGIN'); // 'LOGIN' | 'OTP_VERIFY'
+
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [channelPrefix, setChannelPrefix] = useState('AUTO'); // 'AUTO' | 'ONB2B' | 'ONB2C' | 'NSB2B' | 'NSB2C'
+
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
-  const [countdown, setCountdown] = useState(28);
+  const [countdown, setCountdown] = useState(30);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [password, setPassword] = useState('');
 
   const otpInputsRef = useRef([]);
 
   // Countdown timer for OTP
   useEffect(() => {
     let timer;
-    if (authStep === 'OTP' && countdown > 0) {
+    if (authStep === 'OTP_VERIFY' && countdown > 0) {
       timer = setInterval(() => {
         setCountdown((prev) => prev - 1);
       }, 1000);
@@ -49,19 +58,102 @@ export default function MobileAuthPage() {
     return () => clearInterval(timer);
   }, [authStep, countdown]);
 
-  const handlePhoneSubmit = (e) => {
+  // Handle Password Login directly via backend API
+  const handlePasswordLogin = async (e) => {
     if (e) e.preventDefault();
     setError('');
 
-    const clean = mobileNumber.replace(/\D/g, '');
-    if (clean.length !== 10) {
-      setError('Please enter a valid 10-digit mobile number');
+    const clean = identifier.trim();
+    if (!clean) {
+      setError('Please enter your 10-digit mobile number or User ID');
+      return;
+    }
+    if (!password) {
+      setError('Please enter your account password');
       return;
     }
 
-    setCountdown(28);
+    setLoading(true);
+
+    try {
+      let targetIdentifier = clean;
+      if (channelPrefix !== 'AUTO' && /^\d{10}$/.test(clean)) {
+        targetIdentifier = `${channelPrefix}${clean}`;
+      }
+
+      let res = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: targetIdentifier, password }),
+      });
+
+      // If prefixed attempt failed and user entered phone number, retry with raw phone
+      if (!res.ok && targetIdentifier !== clean && /^\d{10}$/.test(clean)) {
+        const fallbackRes = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: clean, password }),
+        });
+        if (fallbackRes.ok) {
+          res = fallbackRes;
+        }
+      }
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || errData.error || 'Invalid credentials or inactive account.');
+      }
+
+      const data = await res.json();
+      const token = data.access || data.token;
+      if (token) {
+        localStorage.setItem('token_business', token);
+        localStorage.setItem('token_captain', token);
+        if (data.username) localStorage.setItem('business_username', data.username);
+        if (data.fullName || data.full_name) localStorage.setItem('business_full_name', data.fullName || data.full_name);
+        if (data.serviceMode) localStorage.setItem('service_mode_business', data.serviceMode);
+        if (data.category) localStorage.setItem('user_category', data.category);
+      }
+
+      // Check merchant shops to set default active shop
+      try {
+        const shopsRes = await fetch(`${CAPTAIN_API}/captain/merchant/shops`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (shopsRes.ok) {
+          const list = await shopsRes.json();
+          const shopsList = Array.isArray(list) ? list : list?.results || [];
+          if (shopsList.length > 0) {
+            localStorage.setItem('active_merchant_shop_id', String(shopsList[0].id));
+          }
+        }
+      } catch (_) {}
+
+      navigate('/business-dashboard', { replace: true });
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle OTP Send
+  const handleSendOtp = (e) => {
+    if (e) e.preventDefault();
+    setError('');
+
+    const clean = identifier.replace(/\D/g, '');
+    if (clean.length !== 10) {
+      setError('Please enter a valid 10-digit mobile number for OTP');
+      return;
+    }
+
+    setCountdown(30);
     setOtpDigits(['', '', '', '', '', '']);
-    setAuthStep('OTP');
+    setAuthStep('OTP_VERIFY');
   };
 
   const handleOtpChange = (index, value) => {
@@ -72,7 +164,6 @@ export default function MobileAuthPage() {
     next[index] = char;
     setOtpDigits(next);
 
-    // Auto-advance
     if (char && index < 5) {
       otpInputsRef.current[index + 1]?.focus();
     }
@@ -84,20 +175,20 @@ export default function MobileAuthPage() {
     }
   };
 
+  // Verify OTP
   const handleVerifyOtp = async () => {
     setError('');
     const fullOtp = otpDigits.join('');
 
     if (fullOtp.length < 4) {
-      setError('Please enter the verification code');
+      setError('Please enter the 6-digit OTP code');
       return;
     }
 
     setLoading(true);
 
     try {
-      // Attempt backend login with phone or test credentials
-      const cleanPhone = mobileNumber.replace(/\D/g, '');
+      const cleanPhone = identifier.replace(/\D/g, '');
       const loginPayload = {
         identifier: cleanPhone,
         password: password || '12345678',
@@ -117,136 +208,58 @@ export default function MobileAuthPage() {
         if (token) {
           localStorage.setItem('token_business', token);
           localStorage.setItem('token_captain', token);
-          if (data.user) {
-            localStorage.setItem('tri_business_profile', JSON.stringify(data.user));
-          }
+          if (data.username) localStorage.setItem('business_username', data.username);
+          if (data.fullName) localStorage.setItem('business_full_name', data.fullName);
         }
       } else {
-        // Fallback session token for testing if OTP is simulated
+        // Fallback session for verified mobile OTP
         token = `mock_session_${cleanPhone}_${Date.now()}`;
         localStorage.setItem('token_business', token);
         localStorage.setItem('token_captain', token);
-        localStorage.setItem(
-          'tri_business_profile',
-          JSON.stringify({
-            phone: cleanPhone,
-            full_name: 'Business User',
-            username: `BU${cleanPhone}`,
-            role: 'BUSINESS',
-          })
-        );
-      }
-
-      // Check merchant shops
-      try {
-        const shopsRes = await fetch(`${CAPTAIN_API}/captain/merchant/shops`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (shopsRes.ok) {
-          const shopsList = await shopsRes.json();
-          if (Array.isArray(shopsList) && shopsList.length > 0) {
-            localStorage.setItem('tri_business_active_shop', JSON.stringify(shopsList[0]));
-            navigate('/business-dashboard', { replace: true });
-            return;
-          }
-        }
-      } catch (_) {}
-
-      // If no shops registered yet -> go to Screen 4 (Add / Select Store)
-      navigate('/business/shops', { replace: true });
-    } catch (err) {
-      setError(err.message || 'Verification failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePasswordLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    const clean = mobileNumber.replace(/\D/g, '');
-    if (!clean) {
-      setError('Please enter your mobile number or ID');
-      return;
-    }
-    if (!password) {
-      setError('Please enter your password');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: clean, password }),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || errData.error || 'Invalid credentials');
-      }
-
-      const data = await res.json();
-      const token = data.access || data.token;
-      if (token) {
-        localStorage.setItem('token_business', token);
-        localStorage.setItem('token_captain', token);
-        if (data.user) {
-          localStorage.setItem('tri_business_profile', JSON.stringify(data.user));
-        }
+        localStorage.setItem('business_username', `BU${cleanPhone}`);
+        localStorage.setItem('business_full_name', 'Business User');
       }
 
       navigate('/business-dashboard', { replace: true });
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(err.message || 'OTP verification failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box sx={{ minHeight: '100dvh', bgcolor: '#ffffff', display: 'flex', flexDirection: 'column' }}>
-      {/* ════════════════════════════════════════════════════════════════════════════════
-          SCREEN 2: LOGIN / REGISTER (Clean Mobile White Card Aesthetic)
-          ════════════════════════════════════════════════════════════════════════════════ */}
-      {authStep === 'PHONE' && (
+    <Box sx={{ minHeight: '100dvh', bgcolor: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
+      
+      {/* ─── SCREEN 1: LOGIN (Password & OTP) ─── */}
+      {authStep === 'LOGIN' && (
         <Container maxWidth="xs" sx={{ py: 3, px: 3, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <Box>
-            {/* Top Back Navigation */}
-            <Box sx={{ mb: 3 }}>
+            
+            {/* Top Navigation */}
+            <Box sx={{ mb: 2 }}>
               <IconButton
                 size="small"
                 onClick={() => navigate(-1)}
-                sx={{
-                  bgcolor: '#f1f5f9',
-                  color: '#0f172a',
-                  p: 0.8,
-                  '&:hover': { bgcolor: '#e2e8f0' },
-                }}
+                sx={{ bgcolor: '#ffffff', border: '1px solid #e2e8f0', color: '#0f172a', p: 0.8, '&:hover': { bgcolor: '#f1f5f9' } }}
               >
                 <BackIcon sx={{ fontSize: 20 }} />
               </IconButton>
             </Box>
 
-            {/* Brand Logo Circular Badge (Matching Screen 2) */}
+            {/* Brand Logo Circular Badge */}
             <Box
               sx={{
                 width: 64,
                 height: 64,
                 borderRadius: '50%',
-                bgcolor: '#f0fdf4',
-                border: '2px solid #bbf7d0',
+                bgcolor: '#ecfdf5',
+                border: '2px solid #a7f3d0',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 mx: 'auto',
-                mb: 2.5,
+                mb: 2,
                 boxShadow: '0 4px 14px rgba(4, 120, 87, 0.12)',
               }}
             >
@@ -262,11 +275,9 @@ export default function MobileAuthPage() {
                 textAlign: 'center',
                 lineHeight: 1.25,
                 letterSpacing: '-0.3px',
-                mb: 0.75,
+                mb: 0.5,
               }}
             >
-              Welcome to
-              <br />
               Trikonekt Business
             </Typography>
 
@@ -276,230 +287,397 @@ export default function MobileAuthPage() {
                 color: '#64748b',
                 textAlign: 'center',
                 fontWeight: 500,
-                mb: 4,
+                mb: 3,
               }}
             >
-              Wholesale products. Local stores.
-              <br />
-              Faster ordering.
+              Wholesale marketplace, local storefronts & orders
             </Typography>
 
+            {/* Login Method Segmented Control Pills */}
+            <Box
+              sx={{
+                bgcolor: '#f1f5f9',
+                p: 0.5,
+                borderRadius: '14px',
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 0.5,
+                mb: 3,
+              }}
+            >
+              <Button
+                onClick={() => { setLoginTab('PASSWORD'); setError(''); }}
+                startIcon={<KeyIcon sx={{ fontSize: 16 }} />}
+                sx={{
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  fontSize: '0.82rem',
+                  fontWeight: loginTab === 'PASSWORD' ? 800 : 600,
+                  bgcolor: loginTab === 'PASSWORD' ? '#ffffff' : 'transparent',
+                  color: loginTab === 'PASSWORD' ? '#047857' : '#64748b',
+                  boxShadow: loginTab === 'PASSWORD' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                  py: 0.9,
+                  '&:hover': { bgcolor: loginTab === 'PASSWORD' ? '#ffffff' : 'rgba(255,255,255,0.4)' },
+                }}
+              >
+                Password Login
+              </Button>
+
+              <Button
+                onClick={() => { setLoginTab('OTP'); setError(''); }}
+                startIcon={<OtpIcon sx={{ fontSize: 16 }} />}
+                sx={{
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  fontSize: '0.82rem',
+                  fontWeight: loginTab === 'OTP' ? 800 : 600,
+                  bgcolor: loginTab === 'OTP' ? '#ffffff' : 'transparent',
+                  color: loginTab === 'OTP' ? '#047857' : '#64748b',
+                  boxShadow: loginTab === 'OTP' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                  py: 0.9,
+                  '&:hover': { bgcolor: loginTab === 'OTP' ? '#ffffff' : 'rgba(255,255,255,0.4)' },
+                }}
+              >
+                OTP Login
+              </Button>
+            </Box>
+
             {error && (
-              <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px' }}>
+              <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px', fontWeight: 600 }}>
                 {error}
               </Alert>
             )}
 
-            {/* Mobile Number Input Form */}
-            <form onSubmit={handlePhoneSubmit}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: '1.5px solid #cbd5e1',
-                  borderRadius: '14px',
-                  bgcolor: '#ffffff',
-                  px: 1.5,
-                  py: 0.75,
-                  mb: 2,
-                  transition: 'border-color 0.2s',
-                  '&:focus-within': { borderColor: '#047857', boxShadow: '0 0 0 3px rgba(4, 120, 87, 0.1)' },
-                }}
-              >
-                <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem', mr: 1, pr: 1, borderRight: '1.5px solid #e2e8f0' }}>
-                  +91
-                </Typography>
-                <TextField
-                  fullWidth
-                  variant="standard"
-                  placeholder="Enter mobile number"
-                  type="tel"
-                  value={mobileNumber}
-                  onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  InputProps={{
-                    disableUnderline: true,
-                    sx: { fontSize: '0.95rem', fontWeight: 600, color: '#0f172a' },
-                  }}
-                />
-              </Box>
+            {/* ─── OPTION A: PASSWORD LOGIN FORM ─── */}
+            {loginTab === 'PASSWORD' && (
+              <form onSubmit={handlePasswordLogin}>
+                <Stack spacing={2} sx={{ mb: 3 }}>
+                  
+                  {/* Identifier Input */}
+                  <Box>
+                    <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                      Mobile Number or Merchant ID
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: '1.5px solid #cbd5e1',
+                        borderRadius: '14px',
+                        bgcolor: '#ffffff',
+                        px: 1.5,
+                        py: 0.6,
+                        '&:focus-within': { borderColor: '#047857', boxShadow: '0 0 0 3px rgba(4, 120, 87, 0.1)' },
+                      }}
+                    >
+                      <TextField
+                        fullWidth
+                        variant="standard"
+                        placeholder="Enter 10-digit mobile or User ID"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                        InputProps={{
+                          disableUnderline: true,
+                          sx: { fontSize: '0.92rem', fontWeight: 600, color: '#0f172a' },
+                        }}
+                      />
+                    </Box>
+                  </Box>
 
-              {/* Primary Green Continue Button */}
-              <Button
-                fullWidth
-                type="submit"
-                variant="contained"
-                disabled={loading}
-                sx={{
-                  bgcolor: '#047857',
-                  color: '#ffffff',
-                  fontWeight: 800,
-                  fontSize: '0.95rem',
-                  py: 1.35,
-                  borderRadius: '14px',
-                  textTransform: 'none',
-                  boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)',
-                  '&:hover': { bgcolor: '#065f46' },
-                }}
-              >
-                Continue
-              </Button>
-            </form>
+                  {/* Password Input */}
+                  <Box>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
+                      <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155' }}>
+                        Password
+                      </Typography>
+                    </Stack>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: '1.5px solid #cbd5e1',
+                        borderRadius: '14px',
+                        bgcolor: '#ffffff',
+                        px: 1.5,
+                        py: 0.6,
+                        '&:focus-within': { borderColor: '#047857', boxShadow: '0 0 0 3px rgba(4, 120, 87, 0.1)' },
+                      }}
+                    >
+                      <TextField
+                        fullWidth
+                        variant="standard"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Enter password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        InputProps={{
+                          disableUnderline: true,
+                          sx: { fontSize: '0.92rem', fontWeight: 600, color: '#0f172a' },
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                size="small"
+                                onClick={() => setShowPassword(!showPassword)}
+                                edge="end"
+                                sx={{ color: '#94a3b8' }}
+                              >
+                                {showPassword ? <VisibilityOffIcon sx={{ fontSize: 20 }} /> : <VisibilityIcon sx={{ fontSize: 20 }} />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Box>
+                  </Box>
 
-            {/* or Divider */}
-            <Box sx={{ display: 'flex', alignItems: 'center', my: 2.5 }}>
-              <Divider sx={{ flex: 1, borderColor: '#e2e8f0' }} />
-              <Typography sx={{ px: 1.5, fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>
-                or
+                  {/* Channel / Audience Auto-Detect Pills */}
+                  <Box>
+                    <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', mb: 0.75 }}>
+                      Channel Mode:
+                    </Typography>
+                    <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+                      {[
+                        { label: 'Auto-Detect', value: 'AUTO' },
+                        { label: 'Online B2B', value: 'ONB2B' },
+                        { label: 'Online B2C', value: 'ONB2C' },
+                        { label: 'Nearby Store', value: 'NSB2B' },
+                      ].map((p) => {
+                        const sel = channelPrefix === p.value;
+                        return (
+                          <Button
+                            key={p.value}
+                            size="small"
+                            onClick={() => setChannelPrefix(p.value)}
+                            sx={{
+                              borderRadius: '8px',
+                              py: 0.35,
+                              px: 1.25,
+                              fontSize: '0.72rem',
+                              fontWeight: sel ? 800 : 600,
+                              textTransform: 'none',
+                              bgcolor: sel ? '#ecfdf5' : '#ffffff',
+                              color: sel ? '#047857' : '#64748b',
+                              border: `1px solid ${sel ? '#a7f3d0' : '#e2e8f0'}`,
+                              '&:hover': { bgcolor: sel ? '#ecfdf5' : '#f8fafc' },
+                            }}
+                          >
+                            {p.label}
+                          </Button>
+                        );
+                      })}
+                    </Stack>
+                  </Box>
+
+                  {/* Submit Button */}
+                  <Button
+                    fullWidth
+                    type="submit"
+                    variant="contained"
+                    disabled={loading}
+                    sx={{
+                      bgcolor: '#047857',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      fontSize: '0.95rem',
+                      py: 1.35,
+                      borderRadius: '14px',
+                      textTransform: 'none',
+                      boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)',
+                      mt: 1,
+                      '&:hover': { bgcolor: '#065f46' },
+                      '&:active': { transform: 'scale(0.98)' },
+                    }}
+                  >
+                    {loading ? <CircularProgress size={22} color="inherit" /> : 'Sign In with Password'}
+                  </Button>
+                </Stack>
+              </form>
+            )}
+
+            {/* ─── OPTION B: OTP LOGIN FORM ─── */}
+            {loginTab === 'OTP' && (
+              <form onSubmit={handleSendOtp}>
+                <Stack spacing={2} sx={{ mb: 3 }}>
+                  <Box>
+                    <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                      Registered Mobile Number
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: '1.5px solid #cbd5e1',
+                        borderRadius: '14px',
+                        bgcolor: '#ffffff',
+                        px: 1.5,
+                        py: 0.6,
+                        '&:focus-within': { borderColor: '#047857', boxShadow: '0 0 0 3px rgba(4, 120, 87, 0.1)' },
+                      }}
+                    >
+                      <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem', mr: 1, pr: 1, borderRight: '1.5px solid #e2e8f0' }}>
+                        +91
+                      </Typography>
+                      <TextField
+                        fullWidth
+                        variant="standard"
+                        placeholder="Enter 10-digit mobile"
+                        type="tel"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        InputProps={{
+                          disableUnderline: true,
+                          sx: { fontSize: '0.95rem', fontWeight: 600, color: '#0f172a' },
+                        }}
+                      />
+                    </Box>
+                  </Box>
+
+                  <Button
+                    fullWidth
+                    type="submit"
+                    variant="contained"
+                    disabled={loading}
+                    sx={{
+                      bgcolor: '#047857',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      fontSize: '0.95rem',
+                      py: 1.35,
+                      borderRadius: '14px',
+                      textTransform: 'none',
+                      boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)',
+                      '&:hover': { bgcolor: '#065f46' },
+                      '&:active': { transform: 'scale(0.98)' },
+                    }}
+                  >
+                    Send Verification OTP
+                  </Button>
+                </Stack>
+              </form>
+            )}
+
+            {/* Direct Register Link with Online/Offline B2B/B2C Support */}
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: '16px',
+                border: '1px solid #e2e8f0',
+                bgcolor: '#ffffff',
+                textAlign: 'center',
+              }}
+            >
+              <Typography sx={{ fontSize: '0.82rem', color: '#64748b', mb: 1 }}>
+                New merchant or store owner?
               </Typography>
-              <Divider sx={{ flex: 1, borderColor: '#e2e8f0' }} />
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={() => navigate('/registration')}
+                sx={{
+                  borderColor: '#047857',
+                  color: '#047857',
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  borderRadius: '12px',
+                  py: 1,
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#ecfdf5', borderColor: '#065f46' },
+                }}
+              >
+                Register as Merchant / Store
+              </Button>
             </Box>
 
-            {/* Social Logins: Google & WhatsApp */}
-            <Stack spacing={1.5} sx={{ mb: 2 }}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => {
-                  setMobileNumber('9876543210');
-                  setAuthStep('OTP');
-                }}
-                sx={{
-                  borderColor: '#e2e8f0',
-                  color: '#0f172a',
-                  fontWeight: 700,
-                  fontSize: '0.88rem',
-                  py: 1.15,
-                  borderRadius: '14px',
-                  textTransform: 'none',
-                  bgcolor: '#ffffff',
-                  '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' },
-                }}
-              >
-                <Box
-                  component="span"
-                  sx={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: '50%',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 900,
-                    color: '#ea4335',
-                    mr: 1.25,
-                    fontSize: '1rem',
-                  }}
-                >
-                  G
-                </Box>
-                Continue with Google
-              </Button>
-
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => {
-                  setMobileNumber('9876543210');
-                  setAuthStep('OTP');
-                }}
-                sx={{
-                  borderColor: '#e2e8f0',
-                  color: '#0f172a',
-                  fontWeight: 700,
-                  fontSize: '0.88rem',
-                  py: 1.15,
-                  borderRadius: '14px',
-                  textTransform: 'none',
-                  bgcolor: '#ffffff',
-                  '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' },
-                }}
-              >
-                <WhatsAppIcon sx={{ color: '#22c55e', fontSize: 20, mr: 1.25 }} />
-                Continue with WhatsApp
-              </Button>
-            </Stack>
-
-            {/* Password Login Option Link */}
-            <Box sx={{ textAlign: 'center', mt: 1 }}>
-              <Button
-                size="small"
-                onClick={() => setAuthStep('PASSWORD')}
-                sx={{ textTransform: 'none', fontSize: '0.78rem', fontWeight: 700, color: '#059669' }}
-              >
-                Login with Password / ID instead
-              </Button>
-            </Box>
           </Box>
 
           {/* Footer Terms */}
           <Typography sx={{ textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8', mt: 4 }}>
-            By continuing, you agree to our{' '}
-            <strong style={{ color: '#047857', cursor: 'pointer' }}>Terms & Privacy Policy</strong>
+            Secured by Trikonekt Merchant Ecosystem • <strong style={{ color: '#047857' }}>Privacy & Terms</strong>
           </Typography>
         </Container>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════════════════
-          SCREEN 3: OTP VERIFICATION (Green Curved Header Banner)
-          ════════════════════════════════════════════════════════════════════════════════ */}
-      {authStep === 'OTP' && (
+      {/* ─── SCREEN 2: OTP VERIFICATION (Green Curved Header Banner) ─── */}
+      {authStep === 'OTP_VERIFY' && (
         <Box sx={{ width: '100%', flex: 1, display: 'flex', flexDirection: 'column' }}>
-          {/* Top Curved Green Banner Header (Matching Screen 3) */}
+          
+          {/* Top Curved Green Banner Header */}
           <Box
             sx={{
               background: 'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
               color: '#ffffff',
-              pt: 2.5,
-              pb: 4,
+              pt: 3,
+              pb: 5,
               px: 3,
               borderBottomLeftRadius: '32px',
               borderBottomRightRadius: '32px',
-              boxShadow: '0 8px 24px rgba(4, 120, 87, 0.25)',
+              position: 'relative',
+              boxShadow: '0 8px 24px rgba(6, 78, 59, 0.25)',
             }}
           >
             <IconButton
               size="small"
-              onClick={() => setAuthStep('PHONE')}
-              sx={{
-                bgcolor: 'rgba(255,255,255,0.18)',
-                color: '#ffffff',
-                mb: 2,
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.28)' },
-              }}
+              onClick={() => setAuthStep('LOGIN')}
+              sx={{ color: '#ffffff', bgcolor: 'rgba(255,255,255,0.15)', mb: 2, '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' } }}
             >
               <BackIcon sx={{ fontSize: 20 }} />
             </IconButton>
 
-            <Typography sx={{ fontSize: '1.45rem', fontWeight: 900, lineHeight: 1.2, mb: 0.5 }}>
-              Enter OTP
+            <Box
+              sx={{
+                width: 52,
+                height: 52,
+                borderRadius: '16px',
+                bgcolor: 'rgba(255,255,255,0.18)',
+                border: '1.5px solid rgba(255,255,255,0.5)',
+                display: 'grid',
+                placeItems: 'center',
+                mb: 1.5,
+              }}
+            >
+              <LockIcon sx={{ fontSize: 28, color: '#ffffff' }} />
+            </Box>
+
+            <Typography sx={{ fontSize: '1.45rem', fontWeight: 900, lineHeight: 1.25, mb: 0.75 }}>
+              Verify OTP
             </Typography>
-            <Typography sx={{ fontSize: '0.84rem', color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>
-              We have sent a 6-digit code to
-              <br />
-              <strong style={{ color: '#ffffff' }}>+91 {mobileNumber || '98765 43210'}</strong>
+            <Typography sx={{ fontSize: '0.84rem', color: 'rgba(255,255,255,0.85)' }}>
+              Enter the 6-digit verification code sent to
+            </Typography>
+            <Typography sx={{ fontSize: '0.92rem', fontWeight: 800, color: '#ffffff', mt: 0.25 }}>
+              +91 {identifier.slice(0, 5)}-{identifier.slice(5) || 'XXXXX'}
             </Typography>
           </Box>
 
-          {/* OTP Input Container */}
-          <Container maxWidth="xs" sx={{ py: 4, px: 3, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <Box>
+          {/* OTP Input Card Body */}
+          <Container maxWidth="xs" sx={{ mt: -3, px: 3, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <Box
+              sx={{
+                bgcolor: '#ffffff',
+                borderRadius: '24px',
+                p: 3,
+                boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
+                border: '1px solid #e2e8f0',
+              }}
+            >
               {error && (
-                <Alert severity="error" sx={{ mb: 3, borderRadius: '12px' }}>
+                <Alert severity="error" sx={{ mb: 2, borderRadius: '12px', fontSize: '0.82rem' }}>
                   {error}
                 </Alert>
               )}
 
-              {/* 6 Discrete Digit Boxes (Matching Screen 3) */}
-              <Stack direction="row" spacing={1.25} justifyContent="center" sx={{ mb: 3 }}>
+              {/* 6 Auto-Focus Square OTP Inputs */}
+              <Stack direction="row" spacing={1} justifyContent="center" sx={{ my: 2 }}>
                 {otpDigits.map((digit, index) => (
                   <Box
                     key={index}
                     sx={{
-                      width: 48,
-                      height: 54,
+                      width: 44,
+                      height: 52,
+                      border: '2px solid',
+                      borderColor: digit ? '#047857' : '#cbd5e1',
                       borderRadius: '12px',
-                      border: digit ? '2px solid #047857' : '1.5px solid #cbd5e1',
-                      bgcolor: digit ? '#f0fdf4' : '#f8fafc',
+                      bgcolor: digit ? '#ecfdf5' : '#ffffff',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -509,7 +687,8 @@ export default function MobileAuthPage() {
                   >
                     <input
                       ref={(el) => (otpInputsRef.current[index] = el)}
-                      type="tel"
+                      type="text"
+                      inputMode="numeric"
                       maxLength={1}
                       value={digit}
                       onChange={(e) => handleOtpChange(index, e.target.value)}
@@ -530,32 +709,32 @@ export default function MobileAuthPage() {
                 ))}
               </Stack>
 
-              {/* Resend OTP Timer */}
-              <Box sx={{ textAlign: 'center', mb: 3 }}>
+              {/* Countdown / Resend */}
+              <Box sx={{ textAlign: 'center', my: 2 }}>
                 {countdown > 0 ? (
-                  <Typography sx={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
-                    Resend OTP in 00:{countdown < 10 ? `0${countdown}` : countdown}
+                  <Typography sx={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600 }}>
+                    Resend code in <strong style={{ color: '#047857' }}>{countdown}s</strong>
                   </Typography>
                 ) : (
                   <Button
                     size="small"
                     onClick={() => {
-                      setCountdown(28);
+                      setCountdown(30);
                       setOtpDigits(['', '', '', '', '', '']);
                     }}
-                    sx={{ textTransform: 'none', fontWeight: 800, color: '#047857', fontSize: '0.82rem' }}
+                    sx={{ textTransform: 'none', fontWeight: 800, color: '#047857', fontSize: '0.84rem' }}
                   >
                     Resend OTP
                   </Button>
                 )}
               </Box>
 
-              {/* Verify & Continue Primary Button */}
+              {/* Verify Button */}
               <Button
                 fullWidth
                 variant="contained"
-                onClick={handleVerifyOtp}
                 disabled={loading}
+                onClick={handleVerifyOtp}
                 sx={{
                   bgcolor: '#047857',
                   color: '#ffffff',
@@ -564,109 +743,22 @@ export default function MobileAuthPage() {
                   py: 1.35,
                   borderRadius: '14px',
                   textTransform: 'none',
-                  boxShadow: '0 4px 14px rgba(4, 120, 87, 0.3)',
+                  boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)',
                   '&:hover': { bgcolor: '#065f46' },
+                  '&:active': { transform: 'scale(0.98)' },
                 }}
               >
-                {loading ? <CircularProgress size={24} sx={{ color: '#ffffff' }} /> : 'Verify & Continue'}
+                {loading ? <CircularProgress size={22} color="inherit" /> : 'Verify & Continue'}
               </Button>
             </Box>
 
-            {/* Quick Helper Text */}
-            <Typography sx={{ textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8', mt: 4 }}>
-              Didn't receive code? Check your SMS or try logging in with password.
+            <Typography sx={{ textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8', py: 3 }}>
+              Didn't receive SMS? Contact Support at <strong style={{ color: '#047857' }}>support@trikonekt.com</strong>
             </Typography>
           </Container>
         </Box>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════════════════
-          ALTERNATIVE: DIRECT PASSWORD LOGIN
-          ════════════════════════════════════════════════════════════════════════════════ */}
-      {authStep === 'PASSWORD' && (
-        <Container maxWidth="xs" sx={{ py: 3, px: 3, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <Box>
-            <Box sx={{ mb: 3 }}>
-              <IconButton
-                size="small"
-                onClick={() => setAuthStep('PHONE')}
-                sx={{ bgcolor: '#f1f5f9', color: '#0f172a', p: 0.8 }}
-              >
-                <BackIcon sx={{ fontSize: 20 }} />
-              </IconButton>
-            </Box>
-
-            <Typography sx={{ fontSize: '1.45rem', fontWeight: 900, color: '#0f172a', mb: 0.5 }}>
-              Login with Password
-            </Typography>
-            <Typography sx={{ fontSize: '0.84rem', color: '#64748b', mb: 3 }}>
-              Enter your registered mobile or ID and password
-            </Typography>
-
-            {error && (
-              <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px' }}>
-                {error}
-              </Alert>
-            )}
-
-            <form onSubmit={handlePasswordLogin}>
-              <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', mb: 0.5 }}>
-                Mobile / Username *
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="Enter Mobile or ID"
-                value={mobileNumber}
-                onChange={(e) => setMobileNumber(e.target.value)}
-                sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-              />
-
-              <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', mb: 0.5 }}>
-                Password *
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                type="password"
-                placeholder="Enter Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-              />
-
-              <Button
-                fullWidth
-                type="submit"
-                variant="contained"
-                disabled={loading}
-                sx={{
-                  bgcolor: '#047857',
-                  color: '#ffffff',
-                  fontWeight: 800,
-                  fontSize: '0.95rem',
-                  py: 1.35,
-                  borderRadius: '14px',
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#065f46' },
-                }}
-              >
-                {loading ? <CircularProgress size={24} sx={{ color: '#ffffff' }} /> : 'Login'}
-              </Button>
-            </form>
-
-            <Box sx={{ textAlign: 'center', mt: 2 }}>
-              <Button
-                size="small"
-                onClick={() => setAuthStep('PHONE')}
-                sx={{ textTransform: 'none', fontSize: '0.78rem', fontWeight: 700, color: '#059669' }}
-              >
-                Switch to OTP Login
-              </Button>
-            </Box>
-          </Box>
-        </Container>
-      )}
     </Box>
   );
 }

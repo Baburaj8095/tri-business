@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -9,21 +9,18 @@ import {
   Grid,
   Button,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   Checkbox,
   FormControlLabel,
-  FormGroup,
-  RadioGroup,
-  Radio,
   IconButton,
   InputAdornment,
   Divider,
   Stack,
   Alert,
   Fade,
-  CircularProgress
+  CircularProgress,
+  Chip
 } from '@mui/material';
 import {
   Visibility,
@@ -31,486 +28,582 @@ import {
   Business,
   Person,
   ContactPhone,
-  Email,
   LocationOn,
   Lock,
   Assignment,
-  Category,
   Store,
-  Dashboard,
-  GroupAdd
+  Bolt,
+  Language,
+  Group,
+  Storefront
 } from '@mui/icons-material';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+
+const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
+  || window.REACT_APP_CAPTAIN_API_URL
+  || 'https://api-captain.trikonektbusiness.com/api';
 
 const UI = {
-  primaryGradient: 'linear-gradient(135deg, #228B22 0%, #1B4D3E 100%)',
-  orangeGradient: 'linear-gradient(135deg, #1B4D3E 0%, #013220 100%)',
+  primary: '#047857',
+  primaryDark: '#065f46',
   bg: '#f8fafc',
   surface: '#ffffff',
-  text: '#1e293b',
+  text: '#0f172a',
   textMuted: '#64748b',
   border: '#e2e8f0',
 };
 
 const CATEGORIES = [
-  "Food", "Grocery", "Fruits & Vegetables", "Milk & Milk Products", 
-  "Medicines", "Electronics", "Plumbing", "Automobile", 
-  "Baby Care", "Education", "Doctor", "Car Shop", "Others"
+  "Grocery & Staples",
+  "Dairy, Bread & Eggs",
+  "Fruits & Vegetables",
+  "Snacks & Packaged Food",
+  "Beverages",
+  "Electronics & Mobiles",
+  "Clothing & Apparel",
+  "Pharmacy & Medicines",
+  "Hardware & Sanitary",
+  "Automobile & Spares",
+  "Beauty & Personal Care",
+  "Stationery & Books",
+  "General Store / Others"
 ];
 
-const BUSINESS_TYPES = [
-  "Retailer", "Wholesaler", "Service Provider", "Distributor", 
-  "Manufacturer", "Yard", "Industry"
-];
-
-const BusinessRegistration = () => {
+export default function BusinessRegistration() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  
+
+  // Business Profile Channels (Matrix Selection)
+  // serviceMode: 'ONLINE' | 'OFFLINE' | 'BOTH'
+  const [serviceMode, setServiceMode] = useState('ONLINE');
+  // customerAudience: 'B2B' | 'B2C' | 'BOTH'
+  const [customerAudience, setCustomerAudience] = useState('B2B');
+
   const [formData, setFormData] = useState({
     sponsorId: '',
     ownerName: '',
     businessName: '',
-    category: '',
-    subCategory: { veg: false, nonVeg: false, both: false },
-    businessType: '',
-    dashboardType: 'Business Dashboard',
+    category: 'Grocery & Staples',
     mobile: '',
     email: '',
     address: '',
     pincode: '',
-    district: '',
-    state: '',
-    country: '',
+    city: 'Bengaluru',
+    state: 'Karnataka',
     password: '',
-    terms: false
+    terms: true
   });
 
-  const [errors, setErrors] = useState({});
+  const [formErrors, setFormErrors] = useState({});
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const handleSubCategoryChange = (e) => {
-    const { name, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      subCategory: { ...prev.subCategory, [name]: checked }
-    }));
-  };
-
-  const handlePincodeChange = async (e) => {
-    const pincode = e.target.value;
+  const handlePincodeChange = (e) => {
+    const pincode = e.target.value.replace(/\D/g, '').slice(0, 6);
     setFormData(prev => ({ ...prev, pincode }));
-    
-    if (pincode.length === 6) {
-      try {
-        const mapboxToken = process.env.REACT_APP_MAPBOX_API_KEY || '';
-        const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${pincode}.json?access_token=${mapboxToken}&country=IN&types=postcode&limit=1`);
-        const data = await res.json();
-        if (data && data.features && data.features.length > 0) {
-          const feature = data.features[0];
-          const context = feature.context || [];
-          let city = feature.text || '';
-          let state = '';
-          context.forEach((item) => {
-            if (item.id.startsWith('place')) {
-              city = item.text;
-            } else if (item.id.startsWith('region')) {
-              state = item.text;
-            }
-          });
-          setFormData(prev => ({
-            ...prev,
-            district: city,
-            state: state,
-            country: 'India'
-          }));
-        }
-      } catch (err) {
-        console.error("Failed to fetch pincode data", err);
-      }
-    }
   };
 
   const validateForm = () => {
-    const newErrors = {};
-    // Sponsor ID is optional (any customer, partner, or captain can be sponsor)
-    if (!formData.ownerName) newErrors.ownerName = "Owner Name is required";
-    if (!formData.businessName) newErrors.businessName = "Business Name is required";
-    if (!formData.category) newErrors.category = "Category is required";
-    if (!formData.mobile) newErrors.mobile = "Mobile Number is required";
-    if (!formData.password) newErrors.password = "Password is required";
-    if (!formData.terms) newErrors.terms = "Please accept the terms";
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const errs = {};
+    if (!formData.ownerName.trim()) errs.ownerName = "Owner name is required";
+    if (!formData.businessName.trim()) errs.businessName = "Business / Store name is required";
+    const cleanMobile = formData.mobile.replace(/\D/g, '');
+    if (cleanMobile.length !== 10) errs.mobile = "Valid 10-digit mobile number is required";
+    if (!formData.password || formData.password.length < 8) errs.password = "Password must be at least 8 characters";
+    if (!formData.city.trim()) errs.city = "City is required";
+    if (formData.pincode.length !== 6) errs.pincode = "Valid 6-digit pincode is required";
+    if (!formData.terms) errs.terms = "You must accept the terms";
+
+    setFormErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      setLoading(true);
+    setError('');
+
+    if (!validateForm()) return;
+
+    setLoading(true);
+
+    try {
+      // Map categoryAudience to backend model:
+      // 'merchant_business' -> B2B
+      // 'consumer_business' -> B2C
+      // 'both' -> Omnichannel
+      let backendCategory = 'merchant_business';
+      if (customerAudience === 'B2C') backendCategory = 'consumer_business';
+      else if (customerAudience === 'BOTH') backendCategory = 'both';
+
+      const payload = {
+        sponsorId: formData.sponsorId.trim() || 'TRPN1000000000',
+        fullName: formData.ownerName.trim(),
+        businessName: formData.businessName.trim(),
+        phone: formData.mobile.replace(/\D/g, ''),
+        email: formData.email.trim() || undefined,
+        password: formData.password,
+        address: formData.address.trim() || `${formData.city}, Pincode: ${formData.pincode}`,
+        city: formData.city.trim(),
+        pincode: formData.pincode,
+        serviceMode: serviceMode, // 'ONLINE' | 'OFFLINE' | 'BOTH'
+        category: backendCategory, // 'merchant_business' | 'consumer_business' | 'both'
+        discountPercent: 5.0
+      };
+
+      const res = await fetch(`${CAPTAIN_API}/captain/merchant/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || data.error || 'Registration failed. Check if phone is already registered.');
+      }
+
+      const data = await res.json();
+      const token = data.access || data.token;
+      if (token) {
+        localStorage.setItem('token_business', token);
+        localStorage.setItem('token_captain', token);
+        if (data.username) localStorage.setItem('business_username', data.username);
+        if (data.fullName || data.full_name) localStorage.setItem('business_full_name', data.fullName || data.full_name);
+        localStorage.setItem('service_mode_business', serviceMode);
+        localStorage.setItem('user_category', backendCategory);
+      }
+
+      setSuccess(true);
       setTimeout(() => {
-        setLoading(false);
-        setSuccess(true);
-        setTimeout(() => {
-          navigate('/registration/add-products', { state: { category: formData.category } });
-        }, 1500);
-      }, 2000);
+        navigate('/business-dashboard', { replace: true });
+      }, 1500);
+
+    } catch (err) {
+      setError(err.message || 'Failed to complete registration.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Box sx={{ bgcolor: UI.bg, minHeight: '100vh', py: { xs: 4, md: 8 } }}>
+    <Box sx={{ bgcolor: UI.bg, minHeight: '100vh', py: { xs: 3, md: 6 } }}>
       <Container maxWidth="md">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Box textAlign="center" mb={6}>
-            <Typography 
-              variant="h3" 
-              sx={{ 
-                fontWeight: 900, 
-                color: UI.text, 
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+          
+          {/* Header Title */}
+          <Box textAlign="center" mb={4}>
+            <Box
+              sx={{
+                width: 60,
+                height: 60,
+                borderRadius: '16px',
+                bgcolor: '#ecfdf5',
+                color: UI.primary,
+                border: '2px solid #a7f3d0',
+                display: 'grid',
+                placeItems: 'center',
+                mx: 'auto',
                 mb: 1.5,
-                fontSize: { xs: '1.75rem', md: '2.5rem' } 
+                boxShadow: '0 4px 12px rgba(4, 120, 87, 0.12)'
               }}
             >
-              Offline Business Registration
+              <Store sx={{ fontSize: 32 }} />
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 900, color: UI.text, letterSpacing: '-0.5px', fontSize: { xs: '1.65rem', md: '2.2rem' } }}>
+              Merchant Store Registration
             </Typography>
-            <Typography sx={{ color: UI.textMuted }}>
-              Expand your business horizons with our premium digital ecosystem.
+            <Typography sx={{ color: UI.textMuted, fontSize: '0.92rem', mt: 0.5, maxWidth: 480, mx: 'auto' }}>
+              Register your business across Online Delivery, Nearby Storefronts, B2B Wholesale, or Retail.
             </Typography>
           </Box>
 
+          {error && <Alert severity="error" sx={{ mb: 3, borderRadius: '14px', fontWeight: 700 }} onClose={() => setError('')}>{error}</Alert>}
+
           <Box component="form" onSubmit={handleSubmit}>
             
-            {/* SPONSOR & OWNER SECTION */}
-            <FormSection icon={<Person sx={{ color: '#228B22' }} />} title="Personal & Sponsor Details">
-              <Grid container spacing={4}>
-                <Grid item xs={12} md={6}>
-                  <FormField label="Sponsor / Referral ID (Optional)" error={errors.sponsorId}>
-                    <TextField
-                      fullWidth
-                      name="sponsorId"
-                      value={formData.sponsorId}
-                      onChange={handleInputChange}
-                      placeholder="Customer Mobile, Referral Code, or Sponsor ID"
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <Assignment sx={{ color: UI.textMuted, fontSize: 20 }} />
-                          </InputAdornment>
-                        ),
-                      }}
-                      sx={textFieldStyles}
-                    />
-                  </FormField>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormField label="Owner Name" error={errors.ownerName}>
-                    <TextField
-                      fullWidth
-                      name="ownerName"
-                      value={formData.ownerName}
-                      onChange={handleInputChange}
-                      placeholder="Full Name of Owner"
-                      sx={textFieldStyles}
-                    />
-                  </FormField>
-                </Grid>
-              </Grid>
-            </FormSection>
+            {/* ══════════════════════════════════════════════════════════════════
+                SECTION 1: BUSINESS CHANNEL & AUDIENCE SELECTOR MATRIX
+               ══════════════════════════════════════════════════════════════════ */}
+            <Paper elevation={0} sx={{ p: { xs: 2.5, md: 4 }, borderRadius: '24px', border: `1px solid ${UI.border}`, bgcolor: '#fff', mb: 3.5 }}>
+              <Stack direction="row" spacing={1.5} alignItems="center" mb={2.5}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: '#ecfdf5', color: UI.primary, display: 'grid', placeItems: 'center', border: '1px solid #a7f3d0' }}>
+                  <Language sx={{ fontSize: 22 }} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', color: UI.text }}>
+                    Channel & Audience Type *
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.78rem', color: UI.textMuted }}>
+                    Choose how your store operates and who you sell to
+                  </Typography>
+                </Box>
+              </Stack>
 
-            {/* BUSINESS INFO SECTION */}
-            <FormSection icon={<Business sx={{ color: '#1B4D3E' }} />} title="Business Information">
-              <Grid container spacing={4}>
-                <Grid item xs={12}>
-                  <FormField label="Business Name" error={errors.businessName}>
-                    <TextField
-                      fullWidth
-                      name="businessName"
-                      value={formData.businessName}
-                      onChange={handleInputChange}
-                      placeholder="Trade Name / Shop Name"
-                      sx={textFieldStyles}
-                    />
-                  </FormField>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormField label="Business Category" error={errors.category}>
-                    <FormControl fullWidth sx={textFieldStyles}>
-                      <Select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleInputChange}
-                        displayEmpty
+              {/* Selector A: Service Operation Mode */}
+              <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 1.25 }}>
+                1. Operating Channel:
+              </Typography>
+              <Grid container spacing={1.5} sx={{ mb: 3 }}>
+                {[
+                  { id: 'ONLINE', icon: <Bolt sx={{ fontSize: 20 }} />, title: 'Online Quick Commerce', desc: 'Accept online orders with home delivery & 15-30m dispatch' },
+                  { id: 'OFFLINE', icon: <Storefront sx={{ fontSize: 20 }} />, title: 'Nearby Physical Store', desc: 'Walk-in storefront, in-store pickup, and counter payments' },
+                  { id: 'BOTH', icon: <Language sx={{ fontSize: 20 }} />, title: 'Omnichannel (Both)', desc: 'Full hybrid: Online Delivery + Physical Local Storefront' },
+                ].map((item) => {
+                  const sel = serviceMode === item.id;
+                  return (
+                    <Grid item xs={12} sm={4} key={item.id}>
+                      <Box
+                        onClick={() => setServiceMode(item.id)}
+                        sx={{
+                          p: 2,
+                          borderRadius: '16px',
+                          border: `2px solid ${sel ? UI.primary : UI.border}`,
+                          bgcolor: sel ? '#ecfdf5' : '#ffffff',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          boxShadow: sel ? '0 4px 14px rgba(4, 120, 87, 0.12)' : 'none',
+                          '&:hover': { borderColor: sel ? UI.primary : '#cbd5e1' },
+                        }}
                       >
-                        <MenuItem value="" disabled>Select Category</MenuItem>
-                        {CATEGORIES.map(cat => (
-                          <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </FormField>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormField label="Business Type">
-                    <FormControl fullWidth sx={textFieldStyles}>
-                      <Select
-                        name="businessType"
-                        value={formData.businessType}
-                        onChange={handleInputChange}
-                        displayEmpty
-                      >
-                        <MenuItem value="" disabled>Select Type</MenuItem>
-                        {BUSINESS_TYPES.map(type => (
-                          <MenuItem key={type} value={type}>{type}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </FormField>
-                </Grid>
-                <AnimatePresence>
-                  {formData.category === "Food" && (
-                    <Grid item xs={12}>
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                        style={{ overflow: 'hidden' }}
-                      >
-                        <FormField label="Sub Category Selection">
-                          <Box sx={{ bgcolor: '#f8fafc', p: 2, borderRadius: 3, border: `1px solid ${UI.border}` }}>
-                            <FormGroup row sx={{ justifyContent: 'space-around' }}>
-                              <FormControlLabel
-                                  control={<Checkbox name="veg" checked={formData.subCategory.veg} onChange={handleSubCategoryChange} color="success" />}
-                                  label={<Typography fontWeight={600}>Veg Only</Typography>}
-                                />
-                                <FormControlLabel
-                                  control={<Checkbox name="nonVeg" checked={formData.subCategory.nonVeg} onChange={handleSubCategoryChange} color="error" />}
-                                  label={<Typography fontWeight={600}>Non-Veg</Typography>}
-                                />
-                                <FormControlLabel
-                                  control={<Checkbox name="both" checked={formData.subCategory.both} onChange={handleSubCategoryChange} color="primary" />}
-                                  label={<Typography fontWeight={600}>Both (Multi-cuisine)</Typography>}
-                                />
-                            </FormGroup>
-                          </Box>
-                        </FormField>
-                      </motion.div>
+                        <Stack direction="row" alignItems="center" spacing={1} sx={{ color: sel ? UI.primary : UI.textMuted, mb: 0.75 }}>
+                          {item.icon}
+                          <Typography sx={{ fontWeight: 900, fontSize: '0.88rem', color: sel ? UI.primary : UI.text }}>
+                            {item.title}
+                          </Typography>
+                        </Stack>
+                        <Typography sx={{ fontSize: '0.72rem', color: UI.textMuted, lineHeight: 1.35 }}>
+                          {item.desc}
+                        </Typography>
+                      </Box>
                     </Grid>
-                  )}
-                </AnimatePresence>
+                  );
+                })}
               </Grid>
-            </FormSection>
 
-            {/* PREFERENCES SECTION */}
-            <FormSection icon={<Dashboard sx={{ color: '#013220' }} />} title="Preferences">
-              <Grid container spacing={4}>
-                <Grid item xs={12}>
-                  <FormField label="Choose Default Dashboard">
-                    <Box sx={{ bgcolor: '#f8fafc', p: 2, borderRadius: 3, border: `1px solid ${UI.border}` }}>
-                      <RadioGroup
-                        row
-                        name="dashboardType"
-                        value={formData.dashboardType}
-                        onChange={handleInputChange}
-                        sx={{ justifyContent: 'space-around' }}
+              {/* Selector B: Customer Audience Target */}
+              <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 1.25 }}>
+                2. Target Customer Audience:
+              </Typography>
+              <Grid container spacing={1.5} sx={{ mb: 2 }}>
+                {[
+                  { id: 'B2B', title: 'B2B Wholesale', desc: 'Sell bulk quantities to retailers, shops & businesses' },
+                  { id: 'B2C', title: 'B2C Retail', desc: 'Sell directly to consumers, households & local shoppers' },
+                  { id: 'BOTH', title: 'B2B + B2C (Both)', desc: 'Dual-model: Wholesale bulk pricing + retail consumer catalog' },
+                ].map((item) => {
+                  const sel = customerAudience === item.id;
+                  return (
+                    <Grid item xs={12} sm={4} key={item.id}>
+                      <Box
+                        onClick={() => setCustomerAudience(item.id)}
+                        sx={{
+                          p: 2,
+                          borderRadius: '16px',
+                          border: `2px solid ${sel ? UI.primary : UI.border}`,
+                          bgcolor: sel ? '#ecfdf5' : '#ffffff',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          boxShadow: sel ? '0 4px 14px rgba(4, 120, 87, 0.12)' : 'none',
+                          '&:hover': { borderColor: sel ? UI.primary : '#cbd5e1' },
+                        }}
                       >
-                        <FormControlLabel 
-                          value="Consumer Dashboard" 
-                          control={<Radio color="success" />} 
-                          label={<Typography fontWeight={700}>Consumer Interface</Typography>} 
-                        />
-                        <FormControlLabel 
-                          value="Business Dashboard" 
-                          control={<Radio color="success" />} 
-                          label={<Typography fontWeight={700}>Merchant Dashboard</Typography>} 
-                        />
-                      </RadioGroup>
-                    </Box>
-                  </FormField>
+                        <Typography sx={{ fontWeight: 900, fontSize: '0.88rem', color: sel ? UI.primary : UI.text, mb: 0.5 }}>
+                          {item.title}
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.72rem', color: UI.textMuted, lineHeight: 1.35 }}>
+                          {item.desc}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+
+              {/* Active Profile Summary Chip */}
+              <Box sx={{ mt: 2, p: 1.5, borderRadius: '12px', bgcolor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                <Typography sx={{ fontSize: '0.78rem', color: '#475569', fontWeight: 600 }}>
+                  Selected Store Profile:
+                </Typography>
+                <Chip
+                  size="small"
+                  label={`${serviceMode} • ${customerAudience === 'BOTH' ? 'B2B + B2C DUAL' : customerAudience === 'B2B' ? 'B2B WHOLESALE' : 'B2C RETAIL'}`}
+                  sx={{ bgcolor: '#ecfdf5', color: UI.primary, fontWeight: 900, fontSize: '0.74rem', border: '1px solid #a7f3d0' }}
+                />
+              </Box>
+            </Paper>
+
+            {/* ══════════════════════════════════════════════════════════════════
+                SECTION 2: BUSINESS & STORE DETAILS
+               ══════════════════════════════════════════════════════════════════ */}
+            <Paper elevation={0} sx={{ p: { xs: 2.5, md: 4 }, borderRadius: '24px', border: `1px solid ${UI.border}`, bgcolor: '#fff', mb: 3.5 }}>
+              <Stack direction="row" spacing={1.5} alignItems="center" mb={3}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: '#ecfdf5', color: UI.primary, display: 'grid', placeItems: 'center', border: '1px solid #a7f3d0' }}>
+                  <Business sx={{ fontSize: 22 }} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', color: UI.text }}>
+                    Storefront & Owner Details
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.78rem', color: UI.textMuted }}>
+                    Basic registration info for billing and store verification
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <Grid container spacing={2.5}>
+                <Grid item xs={12} sm={6}>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                    Business / Store Name *
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    name="businessName"
+                    placeholder="E.g. Royal Supermarket"
+                    value={formData.businessName}
+                    onChange={handleInputChange}
+                    error={Boolean(formErrors.businessName)}
+                    helperText={formErrors.businessName}
+                    sx={inputFieldSx}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                    Owner Full Name *
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    name="ownerName"
+                    placeholder="Enter owner name"
+                    value={formData.ownerName}
+                    onChange={handleInputChange}
+                    error={Boolean(formErrors.ownerName)}
+                    helperText={formErrors.ownerName}
+                    sx={inputFieldSx}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                    Business Category *
+                  </Typography>
+                  <FormControl fullWidth sx={inputFieldSx}>
+                    <Select
+                      name="category"
+                      value={formData.category}
+                      onChange={handleInputChange}
+                    >
+                      {CATEGORIES.map(c => (
+                        <MenuItem key={c} value={c}>{c}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                    Sponsor / Referral ID (Optional)
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    name="sponsorId"
+                    placeholder="TRPN / Mobile (Optional)"
+                    value={formData.sponsorId}
+                    onChange={handleInputChange}
+                    sx={inputFieldSx}
+                  />
                 </Grid>
               </Grid>
-            </FormSection>
+            </Paper>
 
-            {/* CONTACT SECTION */}
-            <FormSection icon={<ContactPhone sx={{ color: '#228B22' }} />} title="Contact Information">
-              <Grid container spacing={4}>
-                <Grid item xs={12} md={6}>
-                  <FormField label="Mobile Number" error={errors.mobile}>
-                    <TextField
-                      fullWidth
-                      name="mobile"
-                      value={formData.mobile}
-                      onChange={handleInputChange}
-                      placeholder="+91 XXXXX XXXXX"
-                      sx={textFieldStyles}
-                    />
-                  </FormField>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormField label="Email Address">
-                    <TextField
-                      fullWidth
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="example@business.com"
-                      sx={textFieldStyles}
-                    />
-                  </FormField>
-                </Grid>
-              </Grid>
-            </FormSection>
+            {/* ══════════════════════════════════════════════════════════════════
+                SECTION 3: CONTACT & ACCOUNT SECURITY
+               ══════════════════════════════════════════════════════════════════ */}
+            <Paper elevation={0} sx={{ p: { xs: 2.5, md: 4 }, borderRadius: '24px', border: `1px solid ${UI.border}`, bgcolor: '#fff', mb: 3.5 }}>
+              <Stack direction="row" spacing={1.5} alignItems="center" mb={3}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: '#ecfdf5', color: UI.primary, display: 'grid', placeItems: 'center', border: '1px solid #a7f3d0' }}>
+                  <ContactPhone sx={{ fontSize: 22 }} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', color: UI.text }}>
+                    Contact & Login Password
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.78rem', color: UI.textMuted }}>
+                    Used for logging into your Business Dashboard & OTP alerts
+                  </Typography>
+                </Box>
+              </Stack>
 
-            {/* LOCATION SECTION */}
-            <FormSection icon={<LocationOn sx={{ color: '#1B4D3E' }} />} title="Location Details">
-              <Grid container spacing={4}>
+              <Grid container spacing={2.5}>
+                <Grid item xs={12} sm={6}>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                    Primary Mobile Number (+91) *
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    name="mobile"
+                    placeholder="10-digit mobile"
+                    value={formData.mobile}
+                    onChange={handleInputChange}
+                    error={Boolean(formErrors.mobile)}
+                    helperText={formErrors.mobile}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>+91</Typography>
+                        </InputAdornment>
+                      )
+                    }}
+                    sx={inputFieldSx}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                    Password (min 8 chars) *
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Create secure password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    error={Boolean(formErrors.password)}
+                    helperText={formErrors.password}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton size="small" onClick={() => setShowPassword(!showPassword)} edge="end">
+                            {showPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
+                          </IconButton>
+                        </InputAdornment>
+                      )
+                    }}
+                    sx={inputFieldSx}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                    Operating City *
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    name="city"
+                    placeholder="City / Town"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                    error={Boolean(formErrors.city)}
+                    helperText={formErrors.city}
+                    sx={inputFieldSx}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                    Pincode (6 digits) *
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    name="pincode"
+                    placeholder="6-digit postal code"
+                    value={formData.pincode}
+                    onChange={handlePincodeChange}
+                    error={Boolean(formErrors.pincode)}
+                    helperText={formErrors.pincode}
+                    sx={inputFieldSx}
+                  />
+                </Grid>
+
                 <Grid item xs={12}>
-                  <FormField label="Street Address / Building">
-                    <TextField
-                      fullWidth
-                      name="address"
-                      multiline
-                      rows={3}
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      placeholder="Shop No, Street, Landmark..."
-                      sx={textFieldStyles}
-                    />
-                  </FormField>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <FormField label="Pincode">
-                    <TextField
-                      fullWidth
-                      name="pincode"
-                      value={formData.pincode}
-                      onChange={handlePincodeChange}
-                      placeholder="6 Digit PIN"
-                      sx={textFieldStyles}
-                    />
-                  </FormField>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <FormField label="District">
-                    <TextField
-                      fullWidth
-                      name="district"
-                      value={formData.district}
-                      disabled
-                      placeholder="Auto-filled"
-                      sx={textFieldStyles}
-                    />
-                  </FormField>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <FormField label="State">
-                    <TextField
-                      fullWidth
-                      name="state"
-                      value={formData.state}
-                      disabled
-                      placeholder="Auto-filled"
-                      sx={textFieldStyles}
-                    />
-                  </FormField>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                    Full Street Address
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    name="address"
+                    placeholder="Shop No, Building Name, Street / Market Area"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    sx={inputFieldSx}
+                  />
                 </Grid>
               </Grid>
-            </FormSection>
+            </Paper>
 
-            {/* SECURITY SECTION */}
-            <FormSection icon={<Lock sx={{ color: '#013220' }} />} title="Account Security">
-              <Grid container spacing={4}>
-                <Grid item xs={12}>
-                  <FormField label="Create Password" error={errors.password}>
-                    <TextField
-                      fullWidth
-                      name="password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      placeholder="Strong unique password"
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment position="end">
-                            <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                              {showPassword ? <VisibilityOff /> : <Visibility />}
-                            </IconButton>
-                          </InputAdornment>
-                        ),
-                      }}
-                      sx={textFieldStyles}
-                    />
-                  </FormField>
-                </Grid>
-              </Grid>
-            </FormSection>
-
-            {/* FOOTER & SUBMIT */}
-            <Paper elevation={0} sx={{ p: 4, borderRadius: 6, border: `1px solid ${UI.border}`, bgcolor: '#fff', mb: 4 }}>
+            {/* Terms & Submit Card */}
+            <Paper elevation={0} sx={{ p: { xs: 2.5, md: 3 }, borderRadius: '24px', border: `1px solid ${UI.border}`, bgcolor: '#fff', mb: 4 }}>
               <FormControlLabel
-                control={<Checkbox checked={formData.terms} onChange={(e) => setFormData(prev => ({ ...prev, terms: e.target.checked }))} color="success" />}
-                label={<Typography sx={{ fontSize: 14, fontWeight: 500 }}>I accept the <Box component="span" sx={{ color: '#1B4D3E', fontWeight: 800, cursor: 'pointer', textDecoration: 'underline' }}>Terms & Conditions</Box> and Privacy Policy.</Typography>}
-                sx={{ mb: 3 }}
+                control={
+                  <Checkbox
+                    checked={formData.terms}
+                    onChange={(e) => setFormData(p => ({ ...p, terms: e.target.checked }))}
+                    color="success"
+                  />
+                }
+                label={
+                  <Typography sx={{ fontSize: '0.84rem', fontWeight: 600, color: '#475569' }}>
+                    I agree to the <strong style={{ color: UI.primary }}>Trikonekt Merchant Terms & Conditions</strong> and service guidelines.
+                  </Typography>
+                }
               />
-              {errors.terms && <Typography color="error" variant="caption" display="block" sx={{ mt: -2, mb: 2 }}>{errors.terms}</Typography>}
-              
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} justifyContent="center">
+              {formErrors.terms && (
+                <Typography color="error" variant="caption" sx={{ display: 'block', mt: 0.5, fontWeight: 700 }}>
+                  {formErrors.terms}
+                </Typography>
+              )}
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 3 }}>
                 <Button
+                  fullWidth
                   type="submit"
                   variant="contained"
                   disabled={loading}
                   sx={{
-                    flex: 1,
-                    py: 2,
-                    borderRadius: 4,
-                    fontSize: 16,
+                    flex: 2,
+                    height: '48px',
+                    bgcolor: UI.primary,
+                    color: '#ffffff',
                     fontWeight: 900,
+                    fontSize: '0.95rem',
+                    borderRadius: '14px',
                     textTransform: 'none',
-                    background: UI.primaryGradient,
-                    boxShadow: '0 10px 30px rgba(37, 211, 102, 0.3)',
-                    '&:hover': {
-                      background: UI.primaryGradient,
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 15px 35px rgba(37, 211, 102, 0.4)',
-                    },
-                    transition: 'all 0.3s ease'
+                    boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)',
+                    '&:hover': { bgcolor: UI.primaryDark },
+                    '&:active': { transform: 'scale(0.98)' }
                   }}
                 >
-                  {loading ? <CircularProgress size={26} color="inherit" /> : 'Confirm & Register'}
+                  {loading ? <CircularProgress size={22} color="inherit" /> : 'Complete Store Registration'}
                 </Button>
+
                 <Button
                   variant="outlined"
+                  onClick={() => navigate('/login')}
                   sx={{
                     flex: 1,
-                    py: 2,
-                    borderRadius: 4,
-                    fontSize: 16,
-                    fontWeight: 800,
-                    textTransform: 'none',
+                    height: '48px',
                     borderColor: UI.border,
-                    color: UI.textMuted,
-                    '&:hover': {
-                      borderColor: '#128C7E',
-                      color: '#128C7E',
-                      bgcolor: '#f0fdf4'
-                    }
+                    color: '#64748b',
+                    fontWeight: 800,
+                    fontSize: '0.9rem',
+                    borderRadius: '14px',
+                    textTransform: 'none',
+                    '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' }
                   }}
                 >
-                  Login to Account
+                  Login Instead
                 </Button>
               </Stack>
             </Paper>
@@ -521,115 +614,30 @@ const BusinessRegistration = () => {
 
       {success && (
         <Fade in={success}>
-          <Box 
-            sx={{ 
-              position: 'fixed', 
-              top: 24, 
-              left: '50%', 
-              transform: 'translateX(-50%)', 
-              zIndex: 2000,
-              width: '90%',
-              maxWidth: 400
-            }}
-          >
-            <Alert 
-              severity="success" 
-              variant="filled"
-              sx={{ 
-                borderRadius: 4, 
-                fontWeight: 800,
-                boxShadow: '0 10px 40px rgba(37, 211, 102, 0.4)'
-              }}
-            >
-              Registration Successful! Redirecting...
+          <Box sx={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 3000, width: '90%', maxWidth: 420 }}>
+            <Alert severity="success" sx={{ borderRadius: '16px', fontWeight: 900, fontSize: '0.92rem', boxShadow: '0 8px 30px rgba(4, 120, 87, 0.35)' }}>
+              🎉 Registration Successful! Redirecting to Dashboard...
             </Alert>
           </Box>
         </Fade>
       )}
     </Box>
   );
-};
+}
 
-const FormSection = ({ icon, title, children }) => (
-  <Paper 
-    elevation={0} 
-    sx={{ 
-      p: { xs: 3, md: 5 }, 
-      borderRadius: 6, 
-      border: `1px solid ${UI.border}`, 
-      bgcolor: '#fff', 
-      mb: 5,
-      transition: 'all 0.3s ease',
-      '&:hover': {
-        boxShadow: '0 15px 40px rgba(0,0,0,0.04)',
-      }
-    }}
-  >
-    <Stack direction="row" spacing={2} alignItems="center" mb={4}>
-      <Box 
-        sx={{ 
-          width: 44, 
-          height: 44, 
-          borderRadius: 3, 
-          bgcolor: '#f0fdf4', 
-          display: 'grid', 
-          placeItems: 'center',
-          boxShadow: '0 4px 10px rgba(37, 211, 102, 0.1)'
-        }}
-      >
-        {icon}
-      </Box>
-      <Typography variant="h6" fontWeight={900} color={UI.text} sx={{ letterSpacing: '-0.02em' }}>
-        {title}
-      </Typography>
-    </Stack>
-    {children}
-  </Paper>
-);
-
-const FormField = ({ label, children, error }) => (
-  <Stack spacing={1}>
-    <Typography 
-      variant="subtitle2" 
-      sx={{ 
-        fontWeight: 800, 
-        color: UI.text, 
-        ml: 0.5,
-        fontSize: 13,
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em'
-      }}
-    >
-      {label}
-    </Typography>
-    {children}
-    {error && (
-      <Typography color="error" variant="caption" sx={{ ml: 1, fontWeight: 600 }}>
-        {error}
-      </Typography>
-    )}
-  </Stack>
-);
-
-const textFieldStyles = {
+const inputFieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: 4,
+    borderRadius: '14px',
     bgcolor: '#f8fafc',
-    minHeight: 56,
-    '& fieldset': { borderColor: UI.border },
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    '& fieldset': { borderColor: '#e2e8f0' },
     '&:hover fieldset': { borderColor: '#cbd5e1' },
-    '&.Mui-focused fieldset': { borderColor: '#228B22', borderWidth: 2 },
+    '&.Mui-focused fieldset': { borderColor: '#047857', borderWidth: 2 },
   },
   '& .MuiInputBase-input': {
     fontWeight: 600,
-    color: UI.text,
-    '&::placeholder': { color: '#94a3b8', opacity: 1 },
-  },
-  '& .MuiSelect-select': {
-    display: 'flex',
-    alignItems: 'center',
-    fontWeight: 600,
+    color: '#0f172a',
+    py: 1.5,
   }
 };
-
-export default BusinessRegistration;
