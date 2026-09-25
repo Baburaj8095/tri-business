@@ -461,14 +461,14 @@ export default function MobileAuthPage() {
               </Alert>
             )}
 
-            {/* ─── OPTION A: PASSWORD LOGIN FORM ─── */}
+            {/* ─── OPTION A: PASSWORD LOGIN FORM (Screen 2) ─── */}
             {loginTab === 'PASSWORD' && (
               <form onSubmit={handlePasswordLogin}>
-                <Stack spacing={2} sx={{ mb: 3 }}>
+                <Stack spacing={2} sx={{ mb: 2.5 }}>
                   
                   {/* Identifier Input */}
                   <Box>
-                    <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
+                    <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#102033', mb: 0.75 }}>
                       {userRole === 'CAPTAIN' ? 'Mobile Number or Captain ID' : 'Mobile Number or Merchant ID'}
                     </Typography>
                     <Box
@@ -480,16 +480,21 @@ export default function MobileAuthPage() {
                         bgcolor: '#ffffff',
                         px: 1.5,
                         py: 0.6,
+                        transition: 'all 0.15s ease',
                         '&:focus-within': {
-                          borderColor: userRole === 'CAPTAIN' ? '#0d9488' : '#047857',
-                          boxShadow: `0 0 0 3px ${userRole === 'CAPTAIN' ? 'rgba(13, 148, 136, 0.12)' : 'rgba(4, 120, 87, 0.1)'}`
+                          borderColor: '#087F5B',
+                          boxShadow: '0 0 0 3px rgba(8, 127, 91, 0.12)',
                         },
                       }}
                     >
+                      <PhoneIcon sx={{ color: '#94a3b8', fontSize: 20, mr: 1 }} />
+                      <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem', mr: 1, pr: 1, borderRight: '1.5px solid #e2e8f0' }}>
+                        +91
+                      </Typography>
                       <TextField
                         fullWidth
                         variant="standard"
-                        placeholder={userRole === 'CAPTAIN' ? 'Enter 10-digit mobile or Captain ID' : 'Enter 10-digit mobile or User ID'}
+                        placeholder="Enter mobile number or ID"
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value)}
                         InputProps={{
@@ -502,11 +507,9 @@ export default function MobileAuthPage() {
 
                   {/* Password Input */}
                   <Box>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
-                      <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155' }}>
-                        Password
-                      </Typography>
-                    </Stack>
+                    <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#102033', mb: 0.75 }}>
+                      Password
+                    </Typography>
                     <Box
                       sx={{
                         display: 'flex',
@@ -516,12 +519,14 @@ export default function MobileAuthPage() {
                         bgcolor: '#ffffff',
                         px: 1.5,
                         py: 0.6,
+                        transition: 'all 0.15s ease',
                         '&:focus-within': {
-                          borderColor: userRole === 'CAPTAIN' ? '#0d9488' : '#047857',
-                          boxShadow: `0 0 0 3px ${userRole === 'CAPTAIN' ? 'rgba(13, 148, 136, 0.12)' : 'rgba(4, 120, 87, 0.1)'}`
+                          borderColor: '#087F5B',
+                          boxShadow: '0 0 0 3px rgba(8, 127, 91, 0.12)',
                         },
                       }}
                     >
+                      <LockIcon sx={{ color: '#94a3b8', fontSize: 20, mr: 1 }} />
                       <TextField
                         fullWidth
                         variant="standard"
@@ -546,6 +551,16 @@ export default function MobileAuthPage() {
                           ),
                         }}
                       />
+                    </Box>
+
+                    {/* Forgot Password Link */}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 0.75 }}>
+                      <Typography
+                        onClick={() => setLoginTab('OTP')}
+                        sx={{ fontSize: '0.76rem', color: '#087F5B', fontWeight: 700, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                      >
+                        Forgot Password?
+                      </Typography>
                     </Box>
                   </Box>
 
@@ -576,7 +591,7 @@ export default function MobileAuthPage() {
                                 fontWeight: sel ? 800 : 600,
                                 textTransform: 'none',
                                 bgcolor: sel ? '#ecfdf5' : '#ffffff',
-                                color: sel ? '#047857' : '#64748b',
+                                color: sel ? '#087F5B' : '#64748b',
                                 border: `1px solid ${sel ? '#a7f3d0' : '#e2e8f0'}`,
                                 '&:hover': { bgcolor: sel ? '#ecfdf5' : '#f8fafc' },
                               }}
@@ -589,23 +604,23 @@ export default function MobileAuthPage() {
                     </Box>
                   )}
 
-                  {/* Submit Button */}
+                  {/* Primary Submit Button */}
                   <Button
                     fullWidth
                     type="submit"
                     variant="contained"
                     disabled={loading}
                     sx={{
-                      bgcolor: userRole === 'CAPTAIN' ? '#0d9488' : '#047857',
+                      bgcolor: '#087F5B',
                       color: '#ffffff',
                       fontWeight: 800,
-                      fontSize: '0.95rem',
-                      py: 1.35,
+                      fontSize: '0.94rem',
+                      py: 1.4,
                       borderRadius: '14px',
                       textTransform: 'none',
-                      boxShadow: userRole === 'CAPTAIN' ? '0 4px 14px rgba(13, 148, 136, 0.25)' : '0 4px 14px rgba(4, 120, 87, 0.25)',
+                      boxShadow: '0 4px 14px rgba(8, 127, 91, 0.25)',
                       mt: 1,
-                      '&:hover': { bgcolor: userRole === 'CAPTAIN' ? '#0f766e' : '#065f46' },
+                      '&:hover': { bgcolor: '#05684D' },
                       '&:active': { transform: 'scale(0.98)' },
                     }}
                   >
@@ -615,17 +630,47 @@ export default function MobileAuthPage() {
                       userRole === 'CAPTAIN' ? 'Sign In as Captain' : 'Sign In as Business'
                     )}
                   </Button>
+
+                  {/* OR Divider */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', my: 1 }}>
+                    <Divider sx={{ flex: 1, borderColor: '#e2e8f0' }} />
+                    <Typography sx={{ px: 1.5, fontSize: '0.74rem', color: '#94a3b8', fontWeight: 700 }}>
+                      OR
+                    </Typography>
+                    <Divider sx={{ flex: 1, borderColor: '#e2e8f0' }} />
+                  </Box>
+
+                  {/* Secondary Toggle Button: Use OTP Instead */}
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={() => { setLoginTab('OTP'); setError(''); }}
+                    startIcon={<ShieldIcon sx={{ fontSize: 18 }} />}
+                    sx={{
+                      borderRadius: '14px',
+                      border: '1.5px solid #cbd5e1',
+                      color: '#102033',
+                      fontWeight: 700,
+                      fontSize: '0.86rem',
+                      py: 1.2,
+                      textTransform: 'none',
+                      bgcolor: '#ffffff',
+                      '&:hover': { bgcolor: '#f8fafc', borderColor: '#94a3b8' },
+                    }}
+                  >
+                    Use OTP Instead
+                  </Button>
                 </Stack>
               </form>
             )}
 
-            {/* ─── OPTION B: OTP LOGIN FORM ─── */}
+            {/* ─── OPTION B: OTP LOGIN FORM (Screen 1) ─── */}
             {loginTab === 'OTP' && (
               <form onSubmit={handleSendOtp}>
-                <Stack spacing={2} sx={{ mb: 3 }}>
+                <Stack spacing={2} sx={{ mb: 2.5 }}>
                   <Box>
-                    <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', mb: 0.75 }}>
-                      Registered Mobile Number
+                    <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#102033', mb: 0.75 }}>
+                      Mobile Number or Merchant ID
                     </Typography>
                     <Box
                       sx={{
@@ -636,96 +681,153 @@ export default function MobileAuthPage() {
                         bgcolor: '#ffffff',
                         px: 1.5,
                         py: 0.6,
+                        transition: 'all 0.15s ease',
                         '&:focus-within': {
-                          borderColor: userRole === 'CAPTAIN' ? '#0d9488' : '#047857',
-                          boxShadow: `0 0 0 3px ${userRole === 'CAPTAIN' ? 'rgba(13, 148, 136, 0.12)' : 'rgba(4, 120, 87, 0.1)'}`
+                          borderColor: '#087F5B',
+                          boxShadow: '0 0 0 3px rgba(8, 127, 91, 0.12)',
                         },
                       }}
                     >
-                      <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem', mr: 1, pr: 1, borderRight: '1.5px solid #e2e8f0' }}>
+                      <PhoneIcon sx={{ color: '#94a3b8', fontSize: 20, mr: 1 }} />
+                      <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem', mr: 1, pr: 1, borderRight: '1.5px solid #e2e8f0' }}>
                         +91
                       </Typography>
                       <TextField
                         fullWidth
                         variant="standard"
-                        placeholder="Enter 10-digit mobile"
+                        placeholder="Enter mobile number or ID"
                         type="tel"
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value.replace(/\D/g, '').slice(0, 10))}
                         InputProps={{
                           disableUnderline: true,
-                          sx: { fontSize: '0.95rem', fontWeight: 600, color: '#0f172a' },
+                          sx: { fontSize: '0.92rem', fontWeight: 600, color: '#0f172a' },
                         }}
                       />
                     </Box>
                   </Box>
 
+                  {/* Primary Submit Button: Send OTP */}
                   <Button
                     fullWidth
                     type="submit"
                     variant="contained"
                     disabled={loading}
+                    endIcon={!loading && <KeyIcon sx={{ fontSize: 18 }} />}
                     sx={{
-                      bgcolor: userRole === 'CAPTAIN' ? '#0d9488' : '#047857',
+                      bgcolor: '#087F5B',
                       color: '#ffffff',
                       fontWeight: 800,
-                      fontSize: '0.95rem',
-                      py: 1.35,
+                      fontSize: '0.94rem',
+                      py: 1.4,
                       borderRadius: '14px',
                       textTransform: 'none',
-                      boxShadow: userRole === 'CAPTAIN' ? '0 4px 14px rgba(13, 148, 136, 0.25)' : '0 4px 14px rgba(4, 120, 87, 0.25)',
-                      '&:hover': { bgcolor: userRole === 'CAPTAIN' ? '#0f766e' : '#065f46' },
+                      boxShadow: '0 4px 14px rgba(8, 127, 91, 0.25)',
+                      mt: 1,
+                      '&:hover': { bgcolor: '#05684D' },
                       '&:active': { transform: 'scale(0.98)' },
                     }}
                   >
                     {loading ? (
                       <CircularProgress size={22} color="inherit" />
                     ) : (
-                      userRole === 'CAPTAIN' ? 'Send Captain OTP' : 'Send Verification OTP'
+                      'Send OTP →'
                     )}
+                  </Button>
+
+                  {/* OR Divider */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', my: 1 }}>
+                    <Divider sx={{ flex: 1, borderColor: '#e2e8f0' }} />
+                    <Typography sx={{ px: 1.5, fontSize: '0.74rem', color: '#94a3b8', fontWeight: 700 }}>
+                      OR
+                    </Typography>
+                    <Divider sx={{ flex: 1, borderColor: '#e2e8f0' }} />
+                  </Box>
+
+                  {/* Secondary Toggle Button: Use Password Instead */}
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={() => { setLoginTab('PASSWORD'); setError(''); }}
+                    startIcon={<KeyIcon sx={{ fontSize: 18 }} />}
+                    sx={{
+                      borderRadius: '14px',
+                      border: '1.5px solid #cbd5e1',
+                      color: '#102033',
+                      fontWeight: 700,
+                      fontSize: '0.86rem',
+                      py: 1.2,
+                      textTransform: 'none',
+                      bgcolor: '#ffffff',
+                      '&:hover': { bgcolor: '#f8fafc', borderColor: '#94a3b8' },
+                    }}
+                  >
+                    Use Password Instead
                   </Button>
                 </Stack>
               </form>
             )}
 
-            {/* Direct Register Link with Online/Offline B2B/B2C Support */}
+            {/* ─── Bottom Card: New to Trikonekt? (Matching Mockup Screen 1 & 2) ─── */}
             <Box
               sx={{
-                p: 2,
-                borderRadius: '16px',
-                border: '1px solid #e2e8f0',
+                p: 2.2,
+                borderRadius: '18px',
+                border: '1.5px solid #e2e8f0',
                 bgcolor: '#ffffff',
-                textAlign: 'center',
+                mb: 2,
               }}
             >
-              <Typography sx={{ fontSize: '0.82rem', color: '#64748b', mb: 1.2 }}>
-                New to Trikonekt? Get started today
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.2 }}>
+                <Box
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '12px',
+                    bgcolor: '#ecfdf5',
+                    display: 'grid',
+                    placeItems: 'center',
+                    color: '#087F5B',
+                    flexShrink: 0,
+                  }}
+                >
+                  <StoreIcon sx={{ fontSize: 22 }} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#102033' }}>
+                    New to Trikonekt?
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.74rem', color: '#64748b', lineHeight: 1.4 }}>
+                    Create your business account and start selling, managing stores and receiving orders.
+                  </Typography>
+                </Box>
+              </Box>
+
               <Button
-                variant="contained"
+                variant="outlined"
                 fullWidth
                 onClick={() => navigate(`/registration?role=${userRole.toLowerCase()}`)}
                 sx={{
-                  bgcolor: userRole === 'CAPTAIN' ? '#0d9488' : '#047857',
-                  color: '#ffffff',
+                  borderColor: '#087F5B',
+                  color: '#087F5B',
                   fontWeight: 800,
-                  fontSize: '0.86rem',
+                  fontSize: '0.84rem',
                   borderRadius: '12px',
-                  py: 1.2,
+                  py: 1.1,
                   textTransform: 'none',
-                  boxShadow: userRole === 'CAPTAIN' ? '0 4px 12px rgba(13, 148, 136, 0.25)' : '0 4px 12px rgba(4, 120, 87, 0.2)',
-                  '&:hover': { bgcolor: userRole === 'CAPTAIN' ? '#0f766e' : '#065f46' },
+                  borderWidth: 1.5,
+                  '&:hover': { bgcolor: '#f0fdf4', borderColor: '#05684D', borderWidth: 1.5 },
                 }}
               >
-                {userRole === 'CAPTAIN' ? 'Register as Captain Partner' : 'Register as Business Merchant'}
+                {userRole === 'CAPTAIN' ? 'Register as Captain Partner →' : 'Register as Business Merchant →'}
               </Button>
             </Box>
 
           </Box>
 
           {/* Footer Terms */}
-          <Typography sx={{ textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8', mt: 4 }}>
-            Secured by Trikonekt Merchant Ecosystem • <strong style={{ color: '#047857' }}>Privacy & Terms</strong>
+          <Typography sx={{ textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8', mt: 2 }}>
+            Secured by Trikonekt • <strong style={{ color: '#087F5B' }}>Privacy & Terms</strong>
           </Typography>
         </Container>
       )}
