@@ -566,26 +566,46 @@ export default function MobileAuthPage() {
                 textAlign: 'center',
               }}
             >
-              <Typography sx={{ fontSize: '0.82rem', color: '#64748b', mb: 1 }}>
-                New merchant or store owner?
+              <Typography sx={{ fontSize: '0.82rem', color: '#64748b', mb: 1.2 }}>
+                New to Trikonekt? Get started today
               </Typography>
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={() => navigate('/registration')}
-                sx={{
-                  borderColor: '#047857',
-                  color: '#047857',
-                  fontWeight: 800,
-                  fontSize: '0.85rem',
-                  borderRadius: '12px',
-                  py: 1,
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#ecfdf5', borderColor: '#065f46' },
-                }}
-              >
-                Register as Merchant / Store
-              </Button>
+              <Stack spacing={1}>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() => navigate('/onboarding')}
+                  sx={{
+                    bgcolor: '#047857',
+                    color: '#ffffff',
+                    fontWeight: 800,
+                    fontSize: '0.84rem',
+                    borderRadius: '12px',
+                    py: 1.1,
+                    textTransform: 'none',
+                    boxShadow: '0 4px 12px rgba(4, 120, 87, 0.2)',
+                    '&:hover': { bgcolor: '#065f46' },
+                  }}
+                >
+                  Join Trikonekt (Choose Business or Captain)
+                </Button>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => navigate('/registration')}
+                  sx={{
+                    borderColor: '#047857',
+                    color: '#047857',
+                    fontWeight: 800,
+                    fontSize: '0.82rem',
+                    borderRadius: '12px',
+                    py: 0.9,
+                    textTransform: 'none',
+                    '&:hover': { bgcolor: '#ecfdf5', borderColor: '#065f46' },
+                  }}
+                >
+                  Register as Merchant / Store Directly
+                </Button>
+              </Stack>
             </Box>
 
           </Box>

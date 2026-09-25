@@ -125,9 +125,29 @@ export default function BusinessRegistration() {
     }
   };
 
-  const handlePincodeChange = (e) => {
+  const handlePincodeChange = async (e) => {
     const pincode = e.target.value.replace(/\D/g, '').slice(0, 6);
     setFormData(prev => ({ ...prev, pincode }));
+    if (formErrors.pincode) setFormErrors(prev => ({ ...prev, pincode: '' }));
+
+    if (pincode.length === 6) {
+      try {
+        const postRes = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+        if (postRes.ok) {
+          const postData = await postRes.json();
+          if (Array.isArray(postData) && postData[0]?.Status === 'Success' && Array.isArray(postData[0]?.PostOffice) && postData[0].PostOffice.length > 0) {
+            const po = postData[0].PostOffice[0];
+            setFormData(prev => ({
+              ...prev,
+              city: prev.city || po.District || po.Block || '',
+              state: prev.state || po.State || 'Karnataka',
+            }));
+          }
+        }
+      } catch (err) {
+        console.warn('Pincode auto-lookup failed:', err);
+      }
+    }
   };
 
   // Real-time Sponsor Verification (Supports Mobile Number or Captain ID)

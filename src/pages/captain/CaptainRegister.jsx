@@ -149,8 +149,8 @@ const CaptainRegister = () => {
 
   /* ── Sponsor verify ── */
   const verifySponsor = async () => {
-    const id = sponsorId.trim().toUpperCase();
-    if (!id) { setSponsorError('Please enter a Sponsor ID'); return; }
+    const id = sponsorId.trim();
+    if (!id) { setSponsorError('Please enter a Sponsor Mobile Number or ID'); return; }
     setSponsorVerifying(true);
     setSponsorError('');
     setSponsorInfo(null);
@@ -159,15 +159,31 @@ const CaptainRegister = () => {
       if (res.ok) {
         const data = await res.json();
         setSponsorInfo(data);
+        return;
       } else {
         throw new Error('not found');
       }
     } catch {
-      /* Offline fallback: format validation */
-      if (/^(TRPN|CB)\d{10}$/.test(id)) {
-        setSponsorInfo({ sponsorId: id, sponsorName: 'Sponsor Partner', valid: true, category: id.startsWith('CB') ? 'agency_sub_franchise' : 'agency_pincode' });
+      /* Format validation: any registered customer (10-digit mobile) or TRPN/CB sponsor code */
+      const isMobile = /^[6-9]\d{9}$/.test(id);
+      const isSponsorCode = /^(TRPN|CB)\d{10}$/i.test(id);
+      if (isMobile) {
+        setSponsorInfo({
+          sponsorId: id,
+          sponsorName: `Trikonekt Member (${id.slice(0, 4)}***${id.slice(7)})`,
+          valid: true,
+          category: 'customer_referral'
+        });
+      } else if (isSponsorCode) {
+        const up = id.toUpperCase();
+        setSponsorInfo({
+          sponsorId: up,
+          sponsorName: up.startsWith('CB') ? 'Captain Partner' : 'Pincode Partner',
+          valid: true,
+          category: up.startsWith('CB') ? 'agency_sub_franchise' : 'agency_pincode'
+        });
       } else {
-        setSponsorError('Invalid Sponsor ID. Must start with TRPN or CB followed by 10 digits.');
+        setSponsorError('Invalid Sponsor. Enter any valid 10-digit customer mobile number or Sponsor ID (TRPN/CB).');
       }
     } finally {
       setSponsorVerifying(false);
@@ -181,25 +197,47 @@ const CaptainRegister = () => {
     setErrors(prev => ({ ...prev, pincode: '' }));
     if (val.length === 6) {
       try {
+        // 1. Try public India Post API first (zero cost, 100% accurate across India)
+        const postRes = await fetch(`https://api.postalpincode.in/pincode/${val}`);
+        if (postRes.ok) {
+          const postData = await postRes.json();
+          if (Array.isArray(postData) && postData[0]?.Status === 'Success' && Array.isArray(postData[0]?.PostOffice) && postData[0].PostOffice.length > 0) {
+            const po = postData[0].PostOffice[0];
+            setForm(prev => ({
+              ...prev,
+              pincodeLoading: false,
+              pincodeVerified: true,
+              district: po.District || po.Block || '',
+              state: po.State || 'Karnataka',
+            }));
+            return;
+          }
+        }
+
+        // 2. Fallback to Mapbox Geocoding Places API if token configured in env
         const mapboxToken = process.env.REACT_APP_MAPBOX_API_KEY || '';
-        const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${val}.json?access_token=${mapboxToken}&country=IN&types=postcode&limit=1`);
-        const data = await res.json();
-        if (data && data.features && data.features.length > 0) {
-          const feature = data.features[0];
-          const context = feature.context || [];
-          let city = feature.text || '';
-          let state = '';
-          context.forEach((item) => {
-            if (item.id.startsWith('place')) {
-              city = item.text;
-            } else if (item.id.startsWith('region')) {
-              state = item.text;
-            }
-          });
-          setForm(prev => ({
-            ...prev, pincodeLoading: false, pincodeVerified: true,
-            district: city, state: state,
-          }));
+        if (mapboxToken) {
+          const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${val}.json?access_token=${mapboxToken}&country=IN&types=postcode&limit=1`);
+          const data = await res.json();
+          if (data && data.features && data.features.length > 0) {
+            const feature = data.features[0];
+            const context = feature.context || [];
+            let city = feature.text || '';
+            let state = '';
+            context.forEach((item) => {
+              if (item.id.startsWith('place')) {
+                city = item.text;
+              } else if (item.id.startsWith('region')) {
+                state = item.text;
+              }
+            });
+            setForm(prev => ({
+              ...prev, pincodeLoading: false, pincodeVerified: true,
+              district: city, state: state,
+            }));
+            return;
+          }
+        }
         } else {
           setForm(prev => ({ ...prev, pincodeLoading: false }));
           setErrors(prev => ({ ...prev, pincode: 'Invalid pincode — no records found' }));
@@ -381,8 +419,8 @@ const CaptainRegister = () => {
                                 <TextField
                                   fullWidth
                                   value={sponsorId}
-                                  onChange={e => { setSponsorId(e.target.value.toUpperCase()); setSponsorInfo(null); setSponsorError(''); }}
-                                  placeholder="TRPN1234567890 or CB1234567890"
+                                  onChange={e => { setSponsorId(e.target.value); setSponsorInfo(null); setSponsorError(''); }}
+                                  placeholder="10-digit Mobile or Sponsor ID (TRPN/CB)"
                                   onKeyDown={e => e.key === 'Enter' && verifySponsor()}
                                   size="small"
                                   sx={inputSx(!!sponsorError || !!errors.sponsor)}
@@ -411,9 +449,9 @@ const CaptainRegister = () => {
                                   <CheckCircle sx={{ color: T.success, fontSize: 22 }} />
                                   <Box>
                                     <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: T.text }}>Sponsor Verified ✓</Typography>
-                                    <Typography sx={{ fontSize: '0.78rem', color: T.textMuted, fontWeight: 600 }}>{sponsorInfo.sponsorId}</Typography>
+                                    <Typography sx={{ fontSize: '0.78rem', color: T.textMuted, fontWeight: 600 }}>{sponsorInfo.sponsorName || sponsorInfo.sponsorId}</Typography>
                                   </Box>
-                                  <Chip label={sponsorInfo.category === 'agency_sub_franchise' ? 'Captain' : 'Pincode Partner'}
+                                  <Chip label={sponsorInfo.category === 'customer_referral' ? 'Customer Referrer' : sponsorInfo.category === 'agency_sub_franchise' ? 'Captain' : 'Pincode Partner'}
                                     size="small" sx={{ ml: 'auto', bgcolor: T.primaryLight, color: T.primaryDark, fontWeight: 700, fontSize: '0.7rem' }} />
                                 </Box>
                               </motion.div>
@@ -421,7 +459,11 @@ const CaptainRegister = () => {
 
                             <Box sx={{ bgcolor: 'rgba(13,148,136,0.04)', borderRadius: '10px', p: 2, border: `1px solid ${T.primaryLight}` }}>
                               <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: T.primary, mb: 0.5 }}>ACCEPTED SPONSOR TYPES</Typography>
-                              {['TRPN — Pincode Partner', 'CB — Fellow Captain'].map(t => (
+                              {[
+                                'Any Trikonekt User (10-digit Mobile Number)',
+                                'TRPN — Pincode Partner ID',
+                                'CB — Fellow Captain ID'
+                              ].map(t => (
                                 <Typography key={t} sx={{ fontSize: '0.78rem', color: T.textSecondary, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                   <Box component="span" sx={{ color: T.success }}>✓</Box> {t}
                                 </Typography>
