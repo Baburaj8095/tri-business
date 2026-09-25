@@ -13,7 +13,7 @@ import java.util.List;
  * These endpoints mirror the Django public shop endpoints
  */
 @RestController
-@RequestMapping("/captain/shops")
+@RequestMapping({"/captain/public-shops", "/captain/public/shops"})
 public class PublicShopController {
 
     private final ShopService shopService;
