@@ -1563,57 +1563,93 @@ export default function BusinessOnlineMarketplacePage() {
         )}
 
         {/* ════════════════════════════════════════════════════════════════════════════════
-            3. FLOATING BOTTOM CART PILL (Matching Screen 3)
+            3. FLOATING BOTTOM CART BAR (World-Class Quick-Commerce Design)
            ════════════════════════════════════════════════════════════════════════════════ */}
         {totalCartCount > 0 && (
           <Box
             sx={{
               position: 'fixed',
-              bottom: { xs: 74, sm: 80 },
+              bottom: { xs: 82, sm: 88 },
               left: 0,
               right: 0,
-              zIndex: 40,
-              px: 2,
+              zIndex: 1200,
+              px: { xs: 2, sm: 3 },
               display: 'flex',
               justifyContent: 'center',
+              pointerEvents: 'none',
             }}
           >
             <Box
               onClick={() => navigate('/business/online-marketplace/cart')}
               sx={{
-                bgcolor: '#15803d',
-                color: '#ffffff',
-                borderRadius: '999px',
-                px: 2,
-                py: 1.15,
-                boxShadow: '0 8px 24px rgba(21, 128, 61, 0.4)',
+                pointerEvents: 'auto',
+                maxWidth: 480,
+                width: '100%',
+                background: 'linear-gradient(135deg, #064e3b 0%, #047857 55%, #059669 100%)',
+                borderRadius: '16px',
+                p: { xs: 1.25, sm: 1.5 },
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1.75,
+                justifyContent: 'space-between',
+                gap: 1.5,
                 cursor: 'pointer',
-                maxWidth: 420,
-                width: '100%',
-                transition: 'transform 0.15s, background-color 0.15s',
-                '&:hover': { bgcolor: '#166534', transform: 'scale(1.02)' },
+                boxShadow: '0 10px 30px rgba(4, 120, 87, 0.42)',
+                border: '1.5px solid rgba(255, 255, 255, 0.22)',
+                transition: 'transform 0.18s ease, box-shadow 0.18s ease',
+                '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 14px 36px rgba(4, 120, 87, 0.5)' },
+                '&:active': { transform: 'scale(0.98)' },
               }}
             >
-              {lastAddedItem?.image && (
+              {/* Left Side: Bag Icon & Total Items */}
+              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
                 <Box
-                  component="img"
-                  src={lastAddedItem.image}
-                  alt="Cart Preview"
-                  sx={{ width: 34, height: 34, borderRadius: '8px', objectFit: 'cover', bgcolor: '#fff' }}
-                />
-              )}
-              <Box sx={{ flexGrow: 1 }}>
-                <Typography sx={{ fontSize: '0.88rem', fontWeight: 900, lineHeight: 1.1 }}>
-                  View cart
-                </Typography>
-                <Typography sx={{ fontSize: '0.72rem', color: '#bbf7d0', fontWeight: 700 }}>
-                  {totalCartCount} items • ₹{totalCartSubtotal.toFixed(2)}
-                </Typography>
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: '12px',
+                    bgcolor: 'rgba(255, 255, 255, 0.18)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    color: '#ffffff',
+                    position: 'relative',
+                    flexShrink: 0,
+                  }}
+                >
+                  <BagIcon sx={{ fontSize: 22 }} />
+                </Box>
+
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography sx={{ fontSize: '0.68rem', fontWeight: 800, color: '#a7f3d0', textTransform: 'uppercase', letterSpacing: '0.5px', lineHeight: 1.1 }}>
+                    {totalCartCount} {totalCartCount === 1 ? 'Item' : 'Items'} in Cart
+                  </Typography>
+                  <Typography sx={{ fontSize: '1.05rem', fontWeight: 900, color: '#ffffff', lineHeight: 1.2 }}>
+                    ₹{totalCartSubtotal.toFixed(2)}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              {/* Right Side: High-Contrast View Cart Pill Button */}
+              <Box
+                sx={{
+                  bgcolor: '#ffffff',
+                  color: '#047857',
+                  px: 1.85,
+                  py: 0.85,
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  fontWeight: 900,
+                  fontSize: '0.82rem',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                  flexShrink: 0,
+                  transition: 'background-color 0.15s',
+                  '&:hover': { bgcolor: '#f0fdf4' },
+                }}
+              >
+                <span>View Cart</span>
+                <ChevronRightIcon sx={{ fontSize: 18, color: '#047857' }} />
               </Box>
-              <ChevronRightIcon sx={{ color: '#ffffff', fontSize: 22 }} />
             </Box>
           </Box>
         )}

@@ -800,62 +800,110 @@ function ShopCard({ shop }) {
     <Card
       onClick={handleViewStore}
       sx={{
-        ...sectionCardStyles(),
-        minWidth: { xs: "72vw", sm: 236 },
-        width: { xs: "72vw", sm: 236 },
-        maxWidth: 236,
+        borderRadius: '18px',
+        border: '1px solid #e2e8f0',
+        bgcolor: '#ffffff',
+        minWidth: { xs: 224, sm: 240 },
+        width: { xs: 224, sm: 240 },
+        maxWidth: 240,
         flexShrink: 0,
         scrollSnapAlign: "start",
         cursor: 'pointer',
-        transition: 'transform 0.2s, box-shadow 0.2s',
-        '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 8px 20px rgba(15, 23, 42, 0.09)' },
+        overflow: 'hidden',
+        boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+        '&:hover': {
+          transform: 'translateY(-3px)',
+          boxShadow: '0 8px 24px rgba(4, 120, 87, 0.12)',
+          borderColor: '#047857'
+        },
       }}
     >
-      <CardContent sx={{ p: 1.25, "&:last-child": { pb: 1.25 } }}>
-        <Stack spacing={1}>
-          <Box
-            component="img"
-            src={imgSrc}
-            alt={shopName}
-            onError={() => setImgSrc(defaultShopImg)}
-            sx={{
-              width: "100%",
-              height: 118,
-              objectFit: "cover",
-              borderRadius: '12px',
-              display: "block",
-              bgcolor: alpha(UI.primary, 0.05),
-            }}
-          />
-          <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: 13, fontWeight: 800, color: UI.text, lineHeight: 1.25 }} noWrap>
-              {shopName}
-            </Typography>
-            <Typography sx={{ fontSize: 11, color: UI.textMuted, mt: 0.25, lineHeight: 1.3 }} noWrap>
-              {shopLoc}
-            </Typography>
-          </Box>
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={(e) => { e.stopPropagation(); handleViewStore(); }}
-            startIcon={<HiOutlineBuildingStorefront style={{ fontSize: 16 }} />}
-            sx={{
-              borderRadius: '12px',
-              textTransform: "none",
-              fontWeight: 800,
-              fontSize: '0.78rem',
-              py: 0.85,
-              bgcolor: UI.primary,
-              color: UI.onPrimary,
-              boxShadow: "none",
-              "&:hover": { bgcolor: UI.secondary, boxShadow: "none" },
-            }}
-          >
-            View Store
-          </Button>
-        </Stack>
-      </CardContent>
+      <Box sx={{ position: 'relative', width: '100%', height: 124, bgcolor: '#f1f5f9', overflow: 'hidden' }}>
+        <Box
+          component="img"
+          src={imgSrc}
+          alt={shopName}
+          onError={() => setImgSrc(defaultShopImg)}
+          sx={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+            transition: 'transform 0.3s ease',
+            '&:hover': { transform: 'scale(1.05)' }
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 8,
+            left: 8,
+            bgcolor: 'rgba(6, 78, 59, 0.92)',
+            backdropFilter: 'blur(4px)',
+            color: '#ffffff',
+            px: 0.8,
+            py: 0.25,
+            borderRadius: '6px',
+            fontSize: '9.5px',
+            fontWeight: 800,
+            letterSpacing: '0.3px',
+          }}
+        >
+          5% CASHBACK
+        </Box>
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 8,
+            right: 8,
+            bgcolor: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(4px)',
+            color: '#ffffff',
+            px: 0.7,
+            py: 0.2,
+            borderRadius: '6px',
+            fontSize: '10px',
+            fontWeight: 800,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.3,
+          }}
+        >
+          ★ 4.5
+        </Box>
+      </Box>
+
+      <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 0.8 }}>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }} noWrap>
+            {shopName}
+          </Typography>
+          <Typography sx={{ fontSize: '0.74rem', color: '#64748b', mt: 0.25, lineHeight: 1.2 }} noWrap>
+            📍 {shopLoc} • 26 mins
+          </Typography>
+        </Box>
+
+        <Button
+          fullWidth
+          variant="contained"
+          onClick={(e) => { e.stopPropagation(); handleViewStore(); }}
+          startIcon={<HiOutlineBuildingStorefront style={{ fontSize: 16 }} />}
+          sx={{
+            borderRadius: '10px',
+            textTransform: "none",
+            fontWeight: 800,
+            fontSize: '0.78rem',
+            height: '34px',
+            bgcolor: '#047857',
+            color: '#ffffff',
+            boxShadow: 'none',
+            '&:hover': { bgcolor: '#065f46', boxShadow: 'none' },
+          }}
+        >
+          View Store
+        </Button>
+      </Box>
     </Card>
   );
 }
@@ -863,59 +911,71 @@ function ShopCard({ shop }) {
 function CategoryCard({ item, onClick }) {
   const Icon = item.icon;
   return (
-    <Card
+    <Box
       onClick={onClick}
       sx={{
-        minWidth: { xs: 84, sm: 100 },
-        width: { xs: 84, sm: 100 },
-        height: { xs: 90, sm: 106 },
-        flexShrink: 0,
-        scrollSnapAlign: "start",
-        border: `1.5px solid #e2e8f0`,
-        borderRadius: '18px',
-        boxShadow: "0 4px 12px rgba(15, 23, 42, 0.02)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        bgcolor: item.bg || "#ffffff",
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        minWidth: { xs: 80, sm: 92 },
+        width: { xs: 80, sm: 92 },
         cursor: 'pointer',
-        p: 1,
-        transition: 'all 0.2s ease',
-        '&:hover': {
-          borderColor: '#10b981',
-          transform: 'translateY(-2px)',
-          boxShadow: "0 8px 20px rgba(16, 185, 129, 0.12)",
-        }
+        flexShrink: 0,
+        scrollSnapAlign: 'start',
+        transition: 'transform 0.18s ease',
+        '&:hover': { transform: 'translateY(-3px)' },
       }}
     >
-      {item.image ? (
-        <Box
-          component="img"
-          src={item.image}
-          alt={item.label}
-          sx={{ width: 44, height: 44, borderRadius: '12px', objectFit: 'cover', mb: 0.6 }}
-        />
-      ) : Icon ? (
-        <Icon style={{ fontSize: 26, color: '#16a34a', marginBottom: 6 }} />
-      ) : (
-        <ShoppingBagOutlinedIcon sx={{ fontSize: 26, color: '#16a34a', mb: 0.6 }} />
-      )}
+      <Box
+        sx={{
+          width: { xs: 68, sm: 76 },
+          height: { xs: 68, sm: 76 },
+          borderRadius: '20px',
+          bgcolor: item.bg || '#f1f5f9',
+          border: '1.5px solid #e2e8f0',
+          display: 'grid',
+          placeItems: 'center',
+          p: 1.2,
+          mb: 0.8,
+          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+          transition: 'all 0.2s ease',
+          '&:hover': {
+            borderColor: '#10b981',
+            boxShadow: '0 6px 16px rgba(16, 185, 129, 0.15)',
+          }
+        }}
+      >
+        {item.image ? (
+          <Box
+            component="img"
+            src={item.image}
+            alt={item.label}
+            sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
+          />
+        ) : Icon ? (
+          <Icon style={{ fontSize: 30, color: '#047857' }} />
+        ) : (
+          <ShoppingBagOutlinedIcon sx={{ fontSize: 30, color: '#047857' }} />
+        )}
+      </Box>
       <Typography
         sx={{
-          fontSize: { xs: '0.68rem', sm: '0.74rem' },
-          fontWeight: 800,
+          fontSize: { xs: '0.72rem', sm: '0.76rem' },
+          fontWeight: 700,
           color: '#0f172a',
-          textAlign: "center",
-          lineHeight: 1.15,
+          textAlign: 'center',
+          lineHeight: 1.2,
           maxHeight: '2.4em',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
         }}
       >
         {item.label}
       </Typography>
-    </Card>
+    </Box>
   );
 }
 
@@ -2626,6 +2686,68 @@ function BusinessDashboard() {
             onCategoryClick={(categoryLabel) => navigate(`/business/online-marketplace?category=${encodeURIComponent(categoryLabel)}`)}
           />
 
+          {/* Quick Wholesale Promo Banner */}
+          <Box
+            onClick={() => navigate('/business/online-marketplace')}
+            sx={{
+              borderRadius: '18px',
+              p: { xs: 2, sm: 2.25 },
+              background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #38bdf8 100%)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 2,
+              cursor: 'pointer',
+              boxShadow: '0 4px 18px rgba(37, 99, 235, 0.22)',
+              transition: 'transform 0.2s ease',
+              '&:hover': { transform: 'scale(1.01)' },
+              my: 0.5,
+            }}
+          >
+            <Stack spacing={0.5}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Chip
+                  label="🔥 BULK WHOLESALE"
+                  size="small"
+                  sx={{
+                    bgcolor: 'rgba(255,255,255,0.25)',
+                    color: '#ffffff',
+                    fontWeight: 900,
+                    fontSize: '9.5px',
+                    height: '20px',
+                  }}
+                />
+                <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#bae6fd' }}>
+                  Verified Direct Factory Sourced
+                </Typography>
+              </Stack>
+              <Typography sx={{ fontWeight: 900, fontSize: { xs: '0.98rem', sm: '1.2rem' }, lineHeight: 1.2 }}>
+                Extra 10% OFF on B2B Orders Over ₹2,000
+              </Typography>
+              <Typography sx={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.85)' }}>
+                Guaranteed fast same-day dispatch & verified local vendors
+              </Typography>
+            </Stack>
+
+            <Box
+              sx={{
+                bgcolor: '#ffffff',
+                color: '#1d4ed8',
+                px: 1.8,
+                py: 0.85,
+                borderRadius: '12px',
+                fontWeight: 900,
+                fontSize: '0.8rem',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+              }}
+            >
+              Order Now →
+            </Box>
+          </Box>
+
           <Box id="business-shops">
             <SectionShell
               title="Nearby Stores"
@@ -2645,47 +2767,98 @@ function BusinessDashboard() {
             </SectionShell>
           </Box>
 
-          <Stack direction="row" spacing={1} sx={{ px: 0.15 }}>
-            <Button
-              fullWidth
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ px: 0.15, my: 1 }}>
+            <Box
               onClick={() => navigate("/business/for-better-society")}
               sx={{
-                borderRadius: 2.5,
-                py: 1.55,
-                textTransform: "none",
-                display: "flex",
-                flexDirection: "column",
-                gap: 0.55,
-                bgcolor: alpha("#8b5cf6", 0.08),
-                color: "#6d28d9",
-                boxShadow: "none",
-                border: `1px solid ${alpha("#8b5cf6", 0.15)}`,
-                "&:hover": { bgcolor: alpha("#8b5cf6", 0.12), boxShadow: "none" }
+                flex: 1,
+                borderRadius: '16px',
+                p: 1.75,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                bgcolor: '#faf5ff',
+                border: '1.5px solid #e9d5ff',
+                boxShadow: '0 2px 8px rgba(139, 92, 246, 0.08)',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  borderColor: '#8b5cf6',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 18px rgba(139, 92, 246, 0.15)'
+                }
               }}
             >
-              <HandshakeOutlinedIcon sx={{ fontSize: 26, color: "#6d28d9" }} />
-              <Typography sx={{ fontWeight: 800, fontSize: 12.2, lineHeight: 1.2, textAlign: "center" }}>For Better Society</Typography>
-            </Button>
-            <Button
-              fullWidth
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '12px',
+                  bgcolor: '#8b5cf6',
+                  color: '#ffffff',
+                  display: 'grid',
+                  placeItems: 'center',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)'
+                }}
+              >
+                <HandshakeOutlinedIcon sx={{ fontSize: 24 }} />
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontWeight: 900, fontSize: '0.88rem', color: '#581c87', lineHeight: 1.2 }}>
+                  For Better Society
+                </Typography>
+                <Typography sx={{ fontSize: '0.72rem', color: '#7e22ce', fontWeight: 600, mt: 0.2 }}>
+                  Community, Charity & CSR Impact
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box
               onClick={() => navigate("/business/inventory")}
               sx={{
-                borderRadius: 2.5,
-                py: 1.55,
-                textTransform: "none",
-                display: "flex",
-                flexDirection: "column",
-                gap: 0.55,
-                bgcolor: alpha("#10b981", 0.08),
-                color: "#047857",
-                boxShadow: "none",
-                border: `1px solid ${alpha("#10b981", 0.15)}`,
-                "&:hover": { bgcolor: alpha("#10b981", 0.12), boxShadow: "none" }
+                flex: 1,
+                borderRadius: '16px',
+                p: 1.75,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                bgcolor: '#f0fdf4',
+                border: '1.5px solid #bbf7d0',
+                boxShadow: '0 2px 8px rgba(4, 120, 87, 0.08)',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  borderColor: '#047857',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 18px rgba(4, 120, 87, 0.15)'
+                }
               }}
             >
-              <LuFileText size={26} color="#047857" />
-              <Typography sx={{ fontWeight: 800, fontSize: 12.2, lineHeight: 1.2, textAlign: "center" }}>Tri Inventory & Billing</Typography>
-            </Button>
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '12px',
+                  bgcolor: '#047857',
+                  color: '#ffffff',
+                  display: 'grid',
+                  placeItems: 'center',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 8px rgba(4, 120, 87, 0.3)'
+                }}
+              >
+                <LuFileText size={24} color="#ffffff" />
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontWeight: 900, fontSize: '0.88rem', color: '#14532d', lineHeight: 1.2 }}>
+                  Tri Inventory & Billing
+                </Typography>
+                <Typography sx={{ fontSize: '0.72rem', color: '#15803d', fontWeight: 600, mt: 0.2 }}>
+                  Smart Barcode POS & Fast Billing
+                </Typography>
+              </Box>
+            </Box>
           </Stack>
 
           {/* Online B2B actions — browsing and own-product management stay separate */}

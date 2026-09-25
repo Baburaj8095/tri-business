@@ -222,9 +222,9 @@ export default function NearbyStoresPage() {
             </Typography>
           </Card>
         ) : (
-          <Grid container spacing={2}>
+          <Grid container spacing={2.5}>
             {filteredStores.map((store) => (
-              <Grid item xs={12} md={6} key={store.id}>
+              <Grid item xs={12} sm={6} lg={4} key={store.id}>
                 <Card
                   elevation={0}
                   onClick={() => navigate(`/business/shop/${store.id}`)}
@@ -232,142 +232,196 @@ export default function NearbyStoresPage() {
                     borderRadius: '18px',
                     border: '1px solid #e2e8f0',
                     bgcolor: '#ffffff',
-                    p: { xs: 1.75, sm: 2 },
+                    overflow: 'hidden',
                     display: 'flex',
-                    flexDirection: 'row',
-                    gap: 1.75,
-                    alignItems: 'center',
+                    flexDirection: 'column',
                     cursor: 'pointer',
-                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+                    transition: 'all 0.22s ease',
+                    boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)',
                     height: '100%',
-                    minHeight: { xs: 136, sm: 140 },
-                    boxSizing: 'border-box',
                     '&:hover': {
                       borderColor: '#047857',
-                      boxShadow: '0 6px 20px rgba(4, 120, 87, 0.1)',
-                      transform: 'translateY(-2px)',
+                      boxShadow: '0 8px 24px rgba(4, 120, 87, 0.12)',
+                      transform: 'translateY(-3px)',
                     },
                   }}
                 >
-                  {/* Store Thumbnail with Discount Floating Badge (Strict 92x92 size) */}
+                  {/* Full-Width Store Cover Image Banner */}
                   <Box
                     sx={{
                       position: 'relative',
-                      width: { xs: 88, sm: 96 },
-                      minWidth: { xs: 88, sm: 96 },
-                      height: { xs: 88, sm: 96 },
-                      minHeight: { xs: 88, sm: 96 },
-                      borderRadius: '14px',
+                      width: '100%',
+                      height: { xs: 154, sm: 168 },
                       overflow: 'hidden',
                       bgcolor: '#f1f5f9',
-                      flexShrink: 0,
                     }}
                   >
                     <Box
                       component="img"
-                      src={store.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80'}
+                      src={store.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80'}
                       alt={store.name}
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80';
+                        e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80';
                       }}
-                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        transition: 'transform 0.3s ease',
+                        '&:hover': { transform: 'scale(1.04)' },
+                      }}
                     />
+
+                    {/* Top Floating Badges */}
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      justifyContent="space-between"
+                      sx={{ position: 'absolute', top: 10, left: 10, right: 10 }}
+                    >
+                      <Box
+                        sx={{
+                          bgcolor: 'rgba(6, 78, 59, 0.92)',
+                          backdropFilter: 'blur(6px)',
+                          color: '#ffffff',
+                          px: 1,
+                          py: 0.35,
+                          borderRadius: '8px',
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          letterSpacing: '0.4px',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                        }}
+                      >
+                        5% CASHBACK
+                      </Box>
+
+                      <IconButton
+                        size="small"
+                        onClick={(e) => e.stopPropagation()}
+                        sx={{
+                          bgcolor: 'rgba(255, 255, 255, 0.92)',
+                          backdropFilter: 'blur(4px)',
+                          p: 0.6,
+                          color: '#64748b',
+                          '&:hover': { bgcolor: '#ffffff', color: '#d97706' },
+                        }}
+                      >
+                        <StarIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </Stack>
+
+                    {/* Bottom Floating Delivery & Distance Tag */}
                     <Box
                       sx={{
                         position: 'absolute',
-                        bottom: 4,
-                        left: 4,
-                        bgcolor: 'rgba(6, 78, 59, 0.92)',
-                        backdropFilter: 'blur(4px)',
+                        bottom: 10,
+                        left: 10,
+                        bgcolor: 'rgba(15, 23, 42, 0.78)',
+                        backdropFilter: 'blur(6px)',
                         color: '#ffffff',
-                        px: 0.75,
-                        py: 0.2,
-                        borderRadius: '6px',
-                        fontSize: '9px',
-                        fontWeight: 800,
-                        letterSpacing: '0.2px',
+                        px: 1.1,
+                        py: 0.35,
+                        borderRadius: '8px',
+                        fontSize: '10.5px',
+                        fontWeight: 700,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        border: '1px solid rgba(255,255,255,0.15)',
                       }}
                     >
-                      5% CASHBACK
+                      📍 {store.location || 'Local Area'} • 26 mins • 8.4 km
                     </Box>
                   </Box>
 
-                  {/* Store Info Container */}
-                  <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: { xs: 88, sm: 96 } }}>
-                    {/* Top Row: Name and Bookmark */}
+                  {/* Card Content & Details */}
+                  <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', flex: 1, gap: 1.5 }}>
+                    {/* Header Row: Title & Rating */}
                     <Box>
-                      <Stack direction="row" alignItems="center" justifyContent="space-between">
-                        <Typography sx={{ fontWeight: 800, fontSize: '0.94rem', color: '#0f172a', letterSpacing: '-0.2px', lineHeight: 1.2 }} noWrap>
+                      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                        <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', color: '#0f172a', letterSpacing: '-0.2px' }} noWrap>
                           {store.name}
                         </Typography>
-                        <IconButton size="small" onClick={(e) => e.stopPropagation()} sx={{ p: 0.2, color: '#94a3b8' }}>
-                          <StarIcon sx={{ fontSize: 17, color: '#cbd5e1' }} />
-                        </IconButton>
-                      </Stack>
-
-                      {/* Rating • Category */}
-                      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.25 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, bgcolor: '#ecfdf5', px: 0.6, py: 0.15, borderRadius: '6px', border: '1px solid #a7f3d0' }}>
-                          <StarIcon sx={{ fontSize: 11, color: '#047857' }} />
-                          <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: '#047857' }}>
-                            {store.rating || '4.3'}
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.4,
+                            bgcolor: '#ecfdf5',
+                            px: 0.85,
+                            py: 0.3,
+                            borderRadius: '8px',
+                            border: '1px solid #a7f3d0',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <StarIcon sx={{ fontSize: 13, color: '#047857' }} />
+                          <Typography sx={{ fontSize: '0.78rem', fontWeight: 900, color: '#047857' }}>
+                            {store.rating || '4.5'}
                           </Typography>
                         </Box>
-                        <Typography sx={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }} noWrap>
-                          {store.category} • 25 Yrs
-                        </Typography>
                       </Stack>
+
+                      <Typography sx={{ fontSize: '0.76rem', color: '#64748b', fontWeight: 600, mt: 0.3 }} noWrap>
+                        {store.category} • 25 Yrs In Business
+                      </Typography>
                     </Box>
 
-                    {/* Location & ETA */}
-                    <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }} noWrap>
-                      📍 {store.location} • 26 mins • 8.4 km
-                    </Typography>
-
-                    {/* Bottom Row: Verified Badge and View Store Button */}
-                    <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    {/* Badges Row */}
+                    <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.5 }}>
                       <Chip
                         size="small"
-                        label="✓ Verified"
+                        label="✓ Verified Merchant"
                         sx={{
                           bgcolor: '#f0fdf4',
                           color: '#15803d',
                           fontWeight: 800,
-                          fontSize: '0.66rem',
+                          fontSize: '0.68rem',
                           height: 22,
                           border: '1px solid #bbf7d0',
                         }}
                       />
-
-                      <Button
+                      <Chip
                         size="small"
-                        variant="contained"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/business/shop/${store.id}`);
-                        }}
+                        label="Instant Billing POS"
                         sx={{
-                          bgcolor: '#047857',
-                          color: '#ffffff',
-                          height: '32px',
-                          px: 2,
-                          minWidth: '88px',
-                          fontSize: '0.76rem',
-                          fontWeight: 800,
-                          borderRadius: '10px',
-                          textTransform: 'none',
-                          boxShadow: '0 2px 6px rgba(4, 120, 87, 0.2)',
-                          whiteSpace: 'nowrap',
-                          flexShrink: 0,
-                          '&:hover': { bgcolor: '#065f46' },
-                          '&:active': { transform: 'scale(0.96)' }
+                          bgcolor: '#f8fafc',
+                          color: '#475569',
+                          fontWeight: 700,
+                          fontSize: '0.68rem',
+                          height: 22,
+                          border: '1px solid #e2e8f0',
                         }}
-                      >
-                        View Store
-                      </Button>
+                      />
                     </Stack>
+
+                    {/* Full-Width Prominent View Store Button */}
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/business/shop/${store.id}`);
+                      }}
+                      startIcon={<StoreIcon sx={{ fontSize: 18 }} />}
+                      sx={{
+                        mt: 'auto',
+                        bgcolor: '#047857',
+                        color: '#ffffff',
+                        height: '42px',
+                        fontSize: '0.86rem',
+                        fontWeight: 800,
+                        borderRadius: '12px',
+                        textTransform: 'none',
+                        boxShadow: '0 2px 8px rgba(4, 120, 87, 0.25)',
+                        '&:hover': { bgcolor: '#065f46', boxShadow: '0 4px 14px rgba(4, 120, 87, 0.35)' },
+                        '&:active': { transform: 'scale(0.98)' },
+                      }}
+                    >
+                      View Store
+                    </Button>
                   </Box>
                 </Card>
               </Grid>
