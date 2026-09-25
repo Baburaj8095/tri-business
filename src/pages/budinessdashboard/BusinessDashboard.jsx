@@ -2328,18 +2328,49 @@ function BusinessDashboard() {
               <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: { xs: '0.82rem', sm: '0.95rem' }, mb: 2, lineHeight: 1.45 }}>
                 Connect with verified wholesale suppliers, order inventory with 15-30m dispatch, and scale your sales pipeline across India.
               </Typography>
-              <Stack direction="row" spacing={1.5}>
+              <Stack direction="row" spacing={1.5} sx={{ mt: 0.5 }}>
                 <Button
                   variant="contained"
                   onClick={() => navigate('/business/online-marketplace')}
-                  sx={{ bgcolor: '#ffffff', color: '#059669', fontWeight: 900, px: 2.5, py: 1, borderRadius: '10px', textTransform: 'none', boxShadow: 'none', '&:hover': { bgcolor: '#f0fdf4' } }}
+                  startIcon={<StorefrontOutlinedIcon sx={{ fontSize: 18 }} />}
+                  sx={{
+                    flex: 1,
+                    height: '42px',
+                    bgcolor: '#ffffff',
+                    color: '#064e3b',
+                    fontWeight: 800,
+                    fontSize: '0.84rem',
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                    whiteSpace: 'nowrap',
+                    px: 2,
+                    '&:hover': { bgcolor: '#f0fdf4' },
+                    '&:active': { transform: 'scale(0.97)' }
+                  }}
                 >
                   Wholesale Marketplace
                 </Button>
                 <Button
                   variant="outlined"
                   onClick={() => navigate('/business/inventory')}
-                  sx={{ borderColor: 'rgba(255,255,255,0.6)', color: '#fff', fontWeight: 800, px: 2.5, py: 1, borderRadius: '10px', textTransform: 'none', '&:hover': { bgcolor: 'rgba(255,255,255,0.15)', borderColor: '#fff' } }}
+                  startIcon={<Inventory2RoundedIcon sx={{ fontSize: 18 }} />}
+                  sx={{
+                    flex: 1,
+                    height: '42px',
+                    bgcolor: 'rgba(255, 255, 255, 0.16)',
+                    borderColor: 'rgba(255, 255, 255, 0.45)',
+                    color: '#ffffff',
+                    fontWeight: 800,
+                    fontSize: '0.84rem',
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    whiteSpace: 'nowrap',
+                    px: 2,
+                    backdropFilter: 'blur(4px)',
+                    '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.25)', borderColor: '#ffffff' },
+                    '&:active': { transform: 'scale(0.97)' }
+                  }}
                 >
                   Manage Inventory
                 </Button>
@@ -2348,63 +2379,108 @@ function BusinessDashboard() {
           </Stack>
         </Box>
 
-        {/* 4 Merchant KPI Metric Cards with Vivid Colors */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1.5, mb: 2.5 }}>
+        {/* 4 Merchant KPI Metric Cards with Modern World-Class Light Design */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1.75, mb: 3 }}>
           <Card
+            elevation={0}
             onClick={() => navigate('/business/shops')}
-            sx={{ p: 2, borderRadius: '16px', border: '1px solid #E2E8F0', bgcolor: '#ffffff', cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { borderColor: '#2563EB', transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(37,99,235,0.1)' } }}
+            sx={{
+              p: 2,
+              borderRadius: '18px',
+              border: '1px solid #e2e8f0',
+              bgcolor: '#ffffff',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
+              '&:hover': { borderColor: '#10b981', transform: 'translateY(-2px)', boxShadow: '0 8px 20px rgba(16, 185, 129, 0.1)' }
+            }}
           >
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-              <Box sx={{ width: 24, height: 24, borderRadius: '6px', bgcolor: '#eff6ff', color: '#2563eb', display: 'grid', placeItems: 'center', fontSize: '13px' }}>🏪</Box>
-              <Typography sx={{ fontSize: '0.72rem', fontWeight: 750, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 1.25 }}>
+              <Box sx={{ width: 34, height: 34, borderRadius: '10px', bgcolor: '#ecfdf5', color: '#047857', display: 'grid', placeItems: 'center', border: '1px solid #a7f3d0' }}>
+                <StorefrontOutlinedIcon sx={{ fontSize: 18 }} />
+              </Box>
+              <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Active Shops
               </Typography>
             </Stack>
-            <Typography sx={{ fontSize: '1.45rem', fontWeight: 900, color: '#2563EB', mt: 0.25 }}>
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.5px' }}>
               {b2bShops.length || shops.length || 1}
             </Typography>
           </Card>
 
           <Card
+            elevation={0}
             onClick={() => navigate('/business/orders')}
-            sx={{ p: 2, borderRadius: '16px', border: '1px solid #E2E8F0', bgcolor: '#ffffff', cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { borderColor: '#8B5CF6', transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(139,92,246,0.1)' } }}
+            sx={{
+              p: 2,
+              borderRadius: '18px',
+              border: '1px solid #e2e8f0',
+              bgcolor: '#ffffff',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
+              '&:hover': { borderColor: '#2563eb', transform: 'translateY(-2px)', boxShadow: '0 8px 20px rgba(37, 99, 235, 0.1)' }
+            }}
           >
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-              <Box sx={{ width: 24, height: 24, borderRadius: '6px', bgcolor: '#f5f3ff', color: '#8b5cf6', display: 'grid', placeItems: 'center', fontSize: '13px' }}>📦</Box>
-              <Typography sx={{ fontSize: '0.72rem', fontWeight: 750, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 1.25 }}>
+              <Box sx={{ width: 34, height: 34, borderRadius: '10px', bgcolor: '#eff6ff', color: '#2563eb', display: 'grid', placeItems: 'center', border: '1px solid #bfdbfe' }}>
+                <ShoppingBagOutlinedIcon sx={{ fontSize: 18 }} />
+              </Box>
+              <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Orders
               </Typography>
             </Stack>
-            <Typography sx={{ fontSize: '1.45rem', fontWeight: 900, color: '#8B5CF6', mt: 0.25 }}>
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.5px' }}>
               {orderCount || 0}
             </Typography>
           </Card>
 
           <Card
+            elevation={0}
             onClick={() => navigate('/business/profile')}
-            sx={{ p: 2, borderRadius: '16px', border: '1px solid #E2E8F0', bgcolor: '#ffffff', cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { borderColor: '#10B981', transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(16,185,129,0.1)' } }}
+            sx={{
+              p: 2,
+              borderRadius: '18px',
+              border: '1px solid #e2e8f0',
+              bgcolor: '#ffffff',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
+              '&:hover': { borderColor: '#059669', transform: 'translateY(-2px)', boxShadow: '0 8px 20px rgba(5, 150, 105, 0.1)' }
+            }}
           >
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-              <Box sx={{ width: 24, height: 24, borderRadius: '6px', bgcolor: '#ecfdf5', color: '#10b981', display: 'grid', placeItems: 'center', fontSize: '13px' }}>💰</Box>
-              <Typography sx={{ fontSize: '0.72rem', fontWeight: 750, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 1.25 }}>
+              <Box sx={{ width: 34, height: 34, borderRadius: '10px', bgcolor: '#f0fdf4', color: '#059669', display: 'grid', placeItems: 'center', border: '1px solid #bbf7d0' }}>
+                <AccountBalanceWalletOutlinedIcon sx={{ fontSize: 18 }} />
+              </Box>
+              <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Wallet Balance
               </Typography>
             </Stack>
-            <Typography sx={{ fontSize: '1.45rem', fontWeight: 900, color: '#10B981', mt: 0.25 }}>
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 900, color: '#047857', letterSpacing: '-0.5px' }}>
               ₹{Number(profile?.wallet_balance || 0).toLocaleString('en-IN')}
             </Typography>
           </Card>
 
           <Card
-            sx={{ p: 2, borderRadius: '16px', border: '1px solid #E2E8F0', bgcolor: '#ffffff' }}
+            elevation={0}
+            sx={{
+              p: 2,
+              borderRadius: '18px',
+              border: '1px solid #e2e8f0',
+              bgcolor: '#ffffff',
+              boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
+            }}
           >
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-              <Box sx={{ width: 24, height: 24, borderRadius: '6px', bgcolor: '#fffbeb', color: '#f59e0b', display: 'grid', placeItems: 'center', fontSize: '13px' }}>⭐</Box>
-              <Typography sx={{ fontSize: '0.72rem', fontWeight: 750, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Merchant Rating
+            <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 1.25 }}>
+              <Box sx={{ width: 34, height: 34, borderRadius: '10px', bgcolor: '#fffbeb', color: '#d97706', display: 'grid', placeItems: 'center', border: '1px solid #fde68a' }}>
+                <WorkspacePremiumOutlinedIcon sx={{ fontSize: 18 }} />
+              </Box>
+              <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Rating
               </Typography>
             </Stack>
-            <Typography sx={{ fontSize: '1.45rem', fontWeight: 900, color: '#F59E0B', mt: 0.25 }}>
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 900, color: '#d97706', letterSpacing: '-0.5px' }}>
               4.8 ★
             </Typography>
           </Card>

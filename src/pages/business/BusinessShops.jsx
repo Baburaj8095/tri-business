@@ -100,19 +100,26 @@ const inputSx = {
 };
 
 function StatusChip({ status }) {
-  const s = String(status || "").toUpperCase();
-  let color = "default";
-  if (s === "ACTIVE") color = "success";
-  if (s === "PENDING") color = "warning";
-  if (s === "REJECTED") color = "error";
+  const normalized = (!status || status === 0 || status === '0' || String(status).toUpperCase() === 'ACTIVE' || status === true)
+    ? 'ACTIVE'
+    : String(status).toUpperCase();
+
+  const isPending = normalized === 'PENDING';
+  const isRejected = normalized === 'REJECTED';
 
   return (
     <Chip
       size="small"
-      label={s}
-      color={color}
-      variant={s === "ACTIVE" ? "filled" : "outlined"}
-      sx={{ fontWeight: 700, fontSize: '0.68rem', borderRadius: '6px' }}
+      label={isPending ? 'PENDING' : isRejected ? 'REJECTED' : 'ACTIVE'}
+      sx={{
+        fontWeight: 800,
+        fontSize: '0.68rem',
+        borderRadius: '8px',
+        bgcolor: isPending ? '#fef3c7' : isRejected ? '#fee2e2' : '#ecfdf5',
+        color: isPending ? '#b45309' : isRejected ? '#dc2626' : '#047857',
+        border: `1px solid ${isPending ? '#fde68a' : isRejected ? '#fecaca' : '#a7f3d0'}`,
+        height: '22px',
+      }}
     />
   );
 }
@@ -469,28 +476,35 @@ export default function BusinessShops() {
     <AppShell activeTab="/business/shops" title="My Shops">
       <Container maxWidth="lg" sx={{ py: 2 }}>
         {/* Top Header */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 900, color: T.text, lineHeight: 1.2 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography variant="h5" sx={{ fontWeight: 900, color: T.text, lineHeight: 1.2, letterSpacing: '-0.3px', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
               Store Management
             </Typography>
-            <Typography variant="body2" sx={{ color: T.textSecondary, fontWeight: 500, mt: 0.25 }}>
+            <Typography variant="body2" sx={{ color: T.textSecondary, fontWeight: 500, mt: 0.25, fontSize: { xs: '0.78rem', sm: '0.85rem' } }}>
               Configure your retail storefronts, timings, and delivery radius
             </Typography>
           </Box>
           <Button
             variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => { resetForm(); setDrawerOpen(true); }}
+            startIcon={<AddIcon sx={{ fontSize: 18 }} />}
+            onClick={() => navigate('/registration-wizard')}
             sx={{
-              background: T.btnGradient,
+              bgcolor: '#047857',
+              color: '#ffffff',
               borderRadius: '12px',
               textTransform: 'none',
               fontWeight: 800,
+              fontSize: '0.84rem',
+              height: '38px',
               px: { xs: 2, sm: 2.5 },
-              py: 1,
-              boxShadow: '0 4px 14px rgba(34, 139, 34, 0.25)',
-              '&:hover': { opacity: 0.95 }
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              boxShadow: '0 2px 8px rgba(4, 120, 87, 0.25)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              '&:hover': { bgcolor: '#065f46' },
+              '&:active': { transform: 'scale(0.97)' }
             }}
           >
             Add Store
@@ -1088,166 +1102,213 @@ export default function BusinessShops() {
               {shops.map((s) => (
                 <Grid item xs={12} sm={6} key={s.id}>
                   <Card
-                    key={s.id}
+                    elevation={0}
                     sx={{
-                      borderRadius: T.radius,
-                      boxShadow: T.cardShadow,
-                      bgcolor: T.surface,
-                      border: `1px solid ${alpha(T.border, 0.6)}`,
-                      overflow: "hidden",
-                      transition: "transform 0.2s, box-shadow 0.2s",
-                      "&:hover": {
-                        transform: "translateY(-4px)",
-                        boxShadow: "0 12px 30px rgba(15, 23, 42, 0.08)",
-                        borderColor: alpha(T.primary, 0.3)
+                      borderRadius: '20px',
+                      boxShadow: '0 2px 12px rgba(15, 23, 42, 0.05)',
+                      bgcolor: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      overflow: 'hidden',
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 10px 24px rgba(15, 23, 42, 0.08)',
+                        borderColor: '#10b981',
                       }
                     }}
                   >
-                    <Grid container>
-                      {/* Left: Image banner inside the card */}
-                      <Grid item xs={12} sm={4}>
-                        <Box sx={{ height: { xs: 150, sm: "100%" }, minHeight: { sm: 180 }, position: 'relative', bgcolor: alpha(T.primary, 0.05) }}>
-                          {s.shop_image ? (
-                            <img
-                              src={s.shop_image}
-                              alt={s.shop_name}
-                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                            />
-                          ) : (
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: T.textMuted }}>
-                              <StoreIcon sx={{ fontSize: 44 }} />
-                            </Box>
-                          )}
-                          <Box sx={{ position: 'absolute', top: 10, left: 10 }}>
-                            <StatusChip status={s.status} />
+                    {/* Store Card Header Banner */}
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        height: s.shop_image ? 140 : 96,
+                        bgcolor: '#064e3b',
+                        background: s.shop_image
+                          ? 'transparent'
+                          : 'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        alignItems: 'center',
+                        px: 2.5,
+                      }}
+                    >
+                      {s.shop_image ? (
+                        <Box
+                          component="img"
+                          src={s.shop_image}
+                          alt={s.shop_name}
+                          sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ zIndex: 1 }}>
+                          <Box
+                            sx={{
+                              width: 44,
+                              height: 44,
+                              borderRadius: '12px',
+                              bgcolor: 'rgba(255, 255, 255, 0.2)',
+                              color: '#ffffff',
+                              display: 'grid',
+                              placeItems: 'center',
+                              border: '1.5px solid rgba(255, 255, 255, 0.4)',
+                            }}
+                          >
+                            <StoreIcon sx={{ fontSize: 24 }} />
                           </Box>
-                        </Box>
-                      </Grid>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography sx={{ color: '#ffffff', fontWeight: 900, fontSize: '1.05rem', lineHeight: 1.2 }} noWrap>
+                              {s.shop_name}
+                            </Typography>
+                            <Typography sx={{ color: '#a7f3d0', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }} noWrap>
+                              {s.category || 'RETAIL STORE'}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                      )}
 
-                      {/* Right: Info */}
-                      <Grid item xs={12} sm={8}>
-                        <CardContent sx={{ p: 2.5, display: "flex", flexDirection: "column", height: "100%" }}>
-                          <Typography sx={{ fontWeight: 900, fontSize: "1.1rem", color: T.text, mb: 0.5 }}>
+                      {/* Floating Status Chip on Top Right */}
+                      <Box sx={{ position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
+                        <StatusChip status={s.status} />
+                      </Box>
+                    </Box>
+
+                    {/* Store Details Body */}
+                    <CardContent sx={{ p: 2.5, display: 'flex', flexDirection: 'column' }}>
+                      {s.shop_image && (
+                        <Box sx={{ mb: 1.5 }}>
+                          <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: '#0f172a', mb: 0.25 }}>
                             {s.shop_name}
                           </Typography>
-
-                          <Typography variant="caption" sx={{ fontWeight: 700, color: T.primary, mb: 1.5, display: 'block' }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: '#047857', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                             {s.category || 'RETAIL STORE'}
                           </Typography>
+                        </Box>
+                      )}
 
-                          <Stack spacing={0.75} sx={{ mb: 2 }}>
-                            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mb: 1 }}>
-                              <Chip
-                                size="small"
-                               label={(s.serviceMode || s.service_mode) === 'ONLINE' ? 'ONLINE STORE' : (s.serviceMode || s.service_mode) === 'BOTH' ? 'ONLINE + NEARBY STORE' : 'B2C NEARBY STORE'}
-                                sx={{ 
-                                  fontWeight: 800, 
-                                  fontSize: '0.68rem', 
-                                  bgcolor: (s.serviceMode || s.service_mode) === 'ONLINE' ? '#eff6ff' : (s.serviceMode || s.service_mode) === 'BOTH' ? '#f5f3ff' : '#ecfdf5',
-                                  color: (s.serviceMode || s.service_mode) === 'ONLINE' ? '#2563eb' : (s.serviceMode || s.service_mode) === 'BOTH' ? '#7c3aed' : '#059669'
-                                }}
-                              />
-                              {Number(s.discountPercent || s.discount_percent) > 0 && (
-                                <Chip
-                                  size="small"
-                                  label={`${s.discountPercent || s.discount_percent}% Storewide Discount`}
-                                  sx={{ fontWeight: 800, fontSize: '0.68rem', bgcolor: '#fef2f2', color: '#dc2626' }}
-                                />
-                              )}
-                              <Chip
-                                size="small"
-                                label={s.home_delivery_enabled ? 'Home Delivery On' : 'No Home Delivery'}
-                                color={s.home_delivery_enabled ? 'success' : 'default'}
-                                sx={{ fontWeight: 800, fontSize: '0.68rem' }}
-                              />
-                              {s.home_delivery_enabled && (
-                                <Chip
-                                  size="small"
-                                  label={`Radius ${Math.min(Number(s.delivery_radius_km) || 5, 25)} km`}
-                                  sx={{ fontWeight: 800, fontSize: '0.68rem', bgcolor: alpha(T.accent, 0.1), color: T.accent }}
-                                />
-                              )}
-                            </Stack>
+                      {/* Tag Badges */}
+                      <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
+                        <Chip
+                          size="small"
+                          label={(s.serviceMode || s.service_mode) === 'ONLINE' ? 'ONLINE STORE' : (s.serviceMode || s.service_mode) === 'BOTH' ? 'ONLINE + NEARBY STORE' : 'B2C NEARBY STORE'}
+                          sx={{ 
+                            fontWeight: 800, 
+                            fontSize: '0.68rem', 
+                            height: 22,
+                            borderRadius: '6px',
+                            bgcolor: (s.serviceMode || s.service_mode) === 'ONLINE' ? '#eff6ff' : (s.serviceMode || s.service_mode) === 'BOTH' ? '#f5f3ff' : '#ecfdf5',
+                            color: (s.serviceMode || s.service_mode) === 'ONLINE' ? '#2563eb' : (s.serviceMode || s.service_mode) === 'BOTH' ? '#7c3aed' : '#059669',
+                            border: '1px solid rgba(0,0,0,0.06)'
+                          }}
+                        />
+                        <Chip
+                          size="small"
+                          label={s.home_delivery_enabled ? 'Home Delivery Active' : 'No Home Delivery'}
+                          sx={{
+                            fontWeight: 800,
+                            fontSize: '0.68rem',
+                            height: 22,
+                            borderRadius: '6px',
+                            bgcolor: s.home_delivery_enabled ? '#ecfdf5' : '#f8fafc',
+                            color: s.home_delivery_enabled ? '#047857' : '#64748b',
+                            border: `1px solid ${s.home_delivery_enabled ? '#a7f3d0' : '#e2e8f0'}`
+                          }}
+                        />
+                        {Number(s.discountPercent || s.discount_percent) > 0 && (
+                          <Chip
+                            size="small"
+                            label={`${s.discountPercent || s.discount_percent}% Storewide Discount`}
+                            sx={{ fontWeight: 800, fontSize: '0.68rem', height: 22, borderRadius: '6px', bgcolor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}
+                          />
+                        )}
+                      </Stack>
 
-                            <Stack direction="row" spacing={1} alignItems="center" sx={{ color: T.textSecondary }}>
-                              <PlaceIcon sx={{ fontSize: 15, color: T.textMuted }} />
-                              <Typography sx={{ fontSize: '0.8rem', fontWeight: 600 }}>
-                                {s.city} (Pincode: {s.pincode || '—'})
-                              </Typography>
-                            </Stack>
+                      {/* Location & Contact Info */}
+                      <Stack spacing={0.75} sx={{ mb: 2 }}>
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ color: '#475569' }}>
+                          <PlaceIcon sx={{ fontSize: 16, color: '#047857', flexShrink: 0 }} />
+                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 600 }}>
+                            {s.city || 'Store Location'} (Pincode: {s.pincode || '—'})
+                          </Typography>
+                        </Stack>
 
-                            <Stack direction="row" spacing={1} alignItems="center" sx={{ color: T.textSecondary }}>
-                              <PhoneIcon sx={{ fontSize: 15, color: T.textMuted }} />
-                              <Typography sx={{ fontSize: '0.8rem', fontWeight: 600 }}>
-                                {s.contact_number}
-                              </Typography>
-                            </Stack>
-                          </Stack>
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ color: '#475569' }}>
+                          <PhoneIcon sx={{ fontSize: 16, color: '#047857', flexShrink: 0 }} />
+                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 600 }}>
+                            {s.contact_number || 'No contact specified'}
+                          </Typography>
+                        </Stack>
+                      </Stack>
 
-                          {s.description && (
-                            <Typography variant="caption" sx={{ color: T.textMuted, mb: 2, display: '-webkit-box', overflow: 'hidden', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, minHeight: 32 }}>
-                              {s.description}
-                            </Typography>
-                          )}
+                      {s.description && (
+                        <Typography sx={{ color: '#64748b', fontSize: '0.78rem', mb: 2, display: '-webkit-box', overflow: 'hidden', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2 }}>
+                          {s.description}
+                        </Typography>
+                      )}
 
-                          <Divider sx={{ my: 1.5, borderColor: T.border }} />
+                      <Divider sx={{ my: 1.5, borderColor: '#f1f5f9' }} />
 
-                          {/* Actions */}
-                          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: "auto" }}>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              startIcon={<ShoppingBagIcon sx={{ fontSize: 14 }} />}
-                              onClick={() => navigate(`/business/shops/${s.id}/products`)}
-                              sx={{
-                                flexGrow: 1,
-                                borderRadius: '8px',
-                                textTransform: 'none',
-                                fontSize: '0.75rem',
-                                fontWeight: 800,
-                                borderColor: T.primary,
-                                color: T.primary,
-                                "&:hover": { bgcolor: alpha(T.primary, 0.05), borderColor: T.primaryDark }
-                              }}
-                            >
-                              {s.home_delivery_enabled ? 'Manage Delivery Products' : 'Manage Products'}
-                            </Button>
+                      {/* Standardized Bottom Action Buttons */}
+                      <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mt: 'auto' }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          startIcon={<ShoppingBagIcon sx={{ fontSize: 16 }} />}
+                          onClick={() => navigate(`/business/shops/${s.id}/products`)}
+                          sx={{
+                            flex: 1,
+                            height: '38px',
+                            borderRadius: '10px',
+                            textTransform: 'none',
+                            fontSize: '0.8rem',
+                            fontWeight: 800,
+                            bgcolor: '#047857',
+                            color: '#ffffff',
+                            boxShadow: '0 2px 6px rgba(4, 120, 87, 0.2)',
+                            whiteSpace: 'nowrap',
+                            '&:hover': { bgcolor: '#065f46' },
+                            '&:active': { transform: 'scale(0.98)' }
+                          }}
+                        >
+                          {s.home_delivery_enabled ? 'Delivery Products' : 'Manage Products'}
+                        </Button>
 
-                            <IconButton
-                              size="small"
-                              onClick={() => startEdit(s)}
-                              sx={{
-                                bgcolor: alpha(T.primary, 0.05),
-                                color: T.primary,
-                                borderRadius: '8px',
-                                width: 32,
-                                height: 32,
-                                "&:hover": { bgcolor: alpha(T.primary, 0.15) }
-                              }}
-                              title="Edit Shop"
-                            >
-                              <EditOutlinedIcon sx={{ fontSize: 16 }} />
-                            </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => startEdit(s)}
+                          sx={{
+                            bgcolor: '#f1f5f9',
+                            color: '#0f172a',
+                            borderRadius: '10px',
+                            width: 38,
+                            height: 38,
+                            flexShrink: 0,
+                            border: '1px solid #e2e8f0',
+                            '&:hover': { bgcolor: '#e2e8f0' }
+                          }}
+                          title="Edit Shop"
+                        >
+                          <EditOutlinedIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
 
-                            <IconButton
-                              size="small"
-                              onClick={() => handleDelete(s.id)}
-                              sx={{
-                                bgcolor: alpha(T.error, 0.05),
-                                color: T.error,
-                                borderRadius: '8px',
-                                width: 32,
-                                height: 32,
-                                "&:hover": { bgcolor: alpha(T.error, 0.15) }
-                              }}
-                              title="Delete Shop"
-                            >
-                              <DeleteOutlineIcon sx={{ fontSize: 16 }} />
-                            </IconButton>
-                          </Stack>
-                        </CardContent>
-                      </Grid>
-                    </Grid>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleDelete(s.id)}
+                          sx={{
+                            bgcolor: '#fee2e2',
+                            color: '#dc2626',
+                            borderRadius: '10px',
+                            width: 38,
+                            height: 38,
+                            flexShrink: 0,
+                            border: '1px solid #fecaca',
+                            '&:hover': { bgcolor: '#fecaca' }
+                          }}
+                          title="Delete Shop"
+                        >
+                          <DeleteOutlineIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Stack>
+                    </CardContent>
                   </Card>
                 </Grid>
               ))}

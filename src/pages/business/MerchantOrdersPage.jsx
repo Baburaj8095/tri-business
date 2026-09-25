@@ -944,64 +944,134 @@ export default function MerchantOrdersPage() {
         {/* VIEW B: ONLINE B2C DELIVERY ORDERS                       */}
         {/* ========================================================= */}
         {channelMode === 'ONLINE' && (
-          <Stack spacing={3}>
+          <Stack spacing={2.5}>
             
-            {/* Store Picker dropdown (Handles corporate/multi-shop merchant profiles) */}
-            <Card sx={{ p: 2.5, borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none' }}>
-              <Typography sx={{ fontWeight: 800, color: TEXT, mb: 1.5, fontSize: '0.9rem' }}>
-                Select Active Business Location
-              </Typography>
+            {/* Store Picker Card (Clean, World-Class Light Design) */}
+            <Card
+              elevation={0}
+              sx={{
+                p: 2.25,
+                borderRadius: '18px',
+                border: '1px solid #e2e8f0',
+                bgcolor: '#ffffff',
+                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)'
+              }}
+            >
+              <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '8px',
+                    bgcolor: '#ecfdf5',
+                    color: '#047857',
+                    display: 'grid',
+                    placeItems: 'center',
+                    border: '1px solid #a7f3d0'
+                  }}
+                >
+                  <LuStore size={18} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem', lineHeight: 1.2 }}>
+                    Select Operating Store Location
+                  </Typography>
+                  <Typography sx={{ color: '#64748b', fontSize: '0.74rem', fontWeight: 500 }}>
+                    Switch storefront to view specific incoming orders
+                  </Typography>
+                </Box>
+              </Stack>
+
               <FormControl fullWidth size="small">
-                <InputLabel id="shop-select-label">Merchant Shop Location</InputLabel>
                 <Select
-                  labelId="shop-select-label"
-                  label="Merchant Shop Location"
                   value={selectedShopId}
                   onChange={(e) => setSelectedShopId(e.target.value)}
-                  sx={{ borderRadius: '10px', fontWeight: 700 }}
+                  sx={{
+                    borderRadius: '12px',
+                    fontWeight: 700,
+                    fontSize: '0.85rem',
+                    bgcolor: '#f8fafc',
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e2e8f0' },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#cbd5e1' },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#047857', borderWidth: 2 },
+                  }}
                 >
                   {shops.map(s => (
-                    <MenuItem key={s.id} value={s.id.toString()} style={{ fontWeight: 600 }}>
-                      🏠 {s.shop_name} ({s.city || 'Standard Area'})
+                    <MenuItem key={s.id} value={s.id.toString()} style={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                      🏪 {s.shop_name} ({s.city || 'Standard Area'})
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Card>
 
-            {/* Main Delivery Tab Group */}
-            <Card sx={{ borderRadius: '16px', border: `1px solid ${BORDER}`, boxShadow: 'none' }}>
-              <Tabs 
-                value={onlineTabValue} 
-                onChange={(e, val) => setOnlineTabValue(val)}
-                variant="fullWidth"
-                sx={{
-                  borderBottom: `1px solid ${BORDER}`,
-                  '& .MuiTab-root': {
-                    fontWeight: 800,
-                    fontSize: '0.8rem',
-                    color: TEXT_MUTED,
-                    textTransform: 'none',
-                    py: 1.5
-                  },
-                  '& .Mui-selected': {
-                    color: PRIMARY,
-                  },
-                  '& .MuiTabs-indicator': {
-                    bgcolor: PRIMARY,
-                    height: 3,
-                  }
-                }}
-              >
-                <Tab label={`New (${incomingOrders.length})`} />
-                <Tab label={`Active (${inProgressOrders.length})`} />
-                <Tab label="Fulfilled" />
-                <Tab label="Cancelled" />
-              </Tabs>
+            {/* Segmented Tab Pill Control (iOS / Blinkit Quick Commerce standard) */}
+            <Box
+              sx={{
+                bgcolor: '#f1f5f9',
+                p: 0.5,
+                borderRadius: '16px',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: 0.5,
+              }}
+            >
+              {[
+                { label: 'New', count: incomingOrders.length, value: 0 },
+                { label: 'Active', count: inProgressOrders.length, value: 1 },
+                { label: 'Fulfilled', count: completedOrders.length, value: 2 },
+                { label: 'Cancelled', count: cancelledOrders.length, value: 3 },
+              ].map((tab) => {
+                const isSelected = onlineTabValue === tab.value;
+                return (
+                  <Button
+                    key={tab.label}
+                    onClick={() => setOnlineTabValue(tab.value)}
+                    sx={{
+                      borderRadius: '12px',
+                      textTransform: 'none',
+                      py: 0.85,
+                      px: 0.5,
+                      fontSize: '0.78rem',
+                      fontWeight: isSelected ? 800 : 600,
+                      bgcolor: isSelected ? '#ffffff' : 'transparent',
+                      color: isSelected ? '#064e3b' : '#64748b',
+                      boxShadow: isSelected ? '0 2px 8px rgba(0, 0, 0, 0.06)' : 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 0.5,
+                      transition: 'all 0.15s ease',
+                      '&:hover': {
+                        bgcolor: isSelected ? '#ffffff' : 'rgba(255,255,255,0.5)',
+                      },
+                    }}
+                  >
+                    <span>{tab.label}</span>
+                    <Box
+                      component="span"
+                      sx={{
+                        fontSize: '0.68rem',
+                        fontWeight: 800,
+                        px: 0.6,
+                        py: 0.1,
+                        borderRadius: '99px',
+                        bgcolor: isSelected ? '#ecfdf5' : '#e2e8f0',
+                        color: isSelected ? '#047857' : '#64748b',
+                      }}
+                    >
+                      {tab.count}
+                    </Box>
+                  </Button>
+                );
+              })}
+            </Box>
 
+            {/* Orders Feed Viewport */}
+            <Box>
               {loadingOnlineOrders ? (
-                <Box sx={{ py: 6, display: 'grid', placeItems: 'center' }}>
-                  <CircularProgress size={32} sx={{ color: PRIMARY }} />
+                <Box sx={{ py: 8, display: 'grid', placeItems: 'center' }}>
+                  <CircularProgress size={32} sx={{ color: '#047857' }} />
                 </Box>
               ) : (
                 (() => {
@@ -1015,33 +1085,80 @@ export default function MerchantOrdersPage() {
 
                   if (filteredList.length === 0) {
                     return (
-                      <CardContent sx={{ p: 4, textAlign: 'center' }}>
-                        <LuClipboard size={40} color="#cbd5e1" style={{ marginBottom: '12px' }} />
-                        <Typography sx={{ color: TEXT_MUTED, fontWeight: 700, fontSize: '0.9rem' }}>
-                          No delivery orders found matching filter.
+                      <Card
+                        elevation={0}
+                        sx={{
+                          p: 5,
+                          borderRadius: '20px',
+                          border: '1px solid #e2e8f0',
+                          bgcolor: '#ffffff',
+                          textAlign: 'center',
+                          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 64,
+                            height: 64,
+                            borderRadius: '50%',
+                            bgcolor: '#ecfdf5',
+                            color: '#047857',
+                            border: '2px solid #a7f3d0',
+                            display: 'grid',
+                            placeItems: 'center',
+                            mx: 'auto',
+                            mb: 2,
+                            boxShadow: '0 4px 12px rgba(4, 120, 87, 0.1)'
+                          }}
+                        >
+                          <LuShoppingBag size={28} />
+                        </Box>
+                        <Typography sx={{ color: '#0f172a', fontWeight: 900, fontSize: '1.1rem', mb: 0.5 }}>
+                          No Orders in this Status
                         </Typography>
-                      </CardContent>
+                        <Typography sx={{ color: '#64748b', fontSize: '0.82rem', fontWeight: 500, maxWidth: 320, mx: 'auto', mb: 2.5 }}>
+                          Live incoming customer orders for this store will appear here in real-time.
+                        </Typography>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => {
+                            if (selectedShopId) fetchOnlineOrders(selectedShopId);
+                          }}
+                          sx={{
+                            borderColor: '#047857',
+                            color: '#047857',
+                            fontWeight: 800,
+                            borderRadius: '10px',
+                            textTransform: 'none',
+                            fontSize: '0.78rem',
+                            height: '34px',
+                            px: 2.5,
+                            '&:hover': { bgcolor: '#ecfdf5', borderColor: '#065f46' }
+                          }}
+                        >
+                          ↻ Refresh Orders
+                        </Button>
+                      </Card>
                     );
                   }
 
                   return (
-                    <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
-                      <Stack spacing={2}>
-                        {filteredList.map((order) => (
-                          <DribbbleOrderCard
-                            key={order.id}
-                            order={order}
-                            onDetails={(ord) => setDetailsOrder(ord)}
-                            onAction={handleOnlineOrderTransition}
-                            actioningId={actioningId}
-                          />
-                        ))}
-                      </Stack>
-                    </CardContent>
+                    <Stack spacing={2}>
+                      {filteredList.map((order) => (
+                        <DribbbleOrderCard
+                          key={order.id}
+                          order={order}
+                          onDetails={(ord) => setDetailsOrder(ord)}
+                          onAction={handleOnlineOrderTransition}
+                          actioningId={actioningId}
+                        />
+                      ))}
+                    </Stack>
                   );
                 })()
               )}
-            </Card>
+            </Box>
 
           </Stack>
         )}

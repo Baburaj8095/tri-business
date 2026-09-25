@@ -229,30 +229,31 @@ export default function NearbyStoresPage() {
                   elevation={0}
                   onClick={() => navigate(`/business/shop/${store.id}`)}
                   sx={{
-                    borderRadius: '18px',
+                    borderRadius: '20px',
                     border: '1px solid #e2e8f0',
                     bgcolor: '#ffffff',
-                    p: { xs: 1.5, sm: 2 },
+                    p: { xs: 1.75, sm: 2 },
                     display: 'flex',
                     flexDirection: 'row',
-                    gap: 1.75,
+                    gap: 2,
                     alignItems: 'center',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
                     '&:hover': {
                       borderColor: '#10b981',
-                      boxShadow: '0 6px 18px rgba(16, 185, 129, 0.1)',
-                      transform: 'translateY(-1px)',
+                      boxShadow: '0 8px 24px rgba(16, 185, 129, 0.12)',
+                      transform: 'translateY(-2px)',
                     },
                   }}
                 >
-                  {/* Store Thumbnail (Square with Rounded Corners) */}
+                  {/* Store Thumbnail with Discount Floating Badge */}
                   <Box
                     sx={{
-                      width: { xs: 84, sm: 104 },
-                      height: { xs: 84, sm: 104 },
-                      borderRadius: '14px',
+                      position: 'relative',
+                      width: { xs: 90, sm: 104 },
+                      height: { xs: 90, sm: 104 },
+                      borderRadius: '16px',
                       overflow: 'hidden',
                       bgcolor: '#f1f5f9',
                       flexShrink: 0,
@@ -268,12 +269,30 @@ export default function NearbyStoresPage() {
                       }}
                       sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        bottom: 4,
+                        left: 4,
+                        bgcolor: 'rgba(6, 78, 59, 0.9)',
+                        backdropFilter: 'blur(4px)',
+                        color: '#ffffff',
+                        px: 0.75,
+                        py: 0.2,
+                        borderRadius: '6px',
+                        fontSize: '9.5px',
+                        fontWeight: 800,
+                        letterSpacing: '0.2px',
+                      }}
+                    >
+                      5% CASHBACK
+                    </Box>
                   </Box>
 
                   {/* Store Info */}
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
                     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.35 }}>
-                      <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: '#0f172a' }} noWrap>
+                      <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: '#0f172a', letterSpacing: '-0.2px' }} noWrap>
                         {store.name}
                       </Typography>
                       <IconButton size="small" onClick={(e) => e.stopPropagation()} sx={{ p: 0.25, color: '#94a3b8' }}>
@@ -282,51 +301,37 @@ export default function NearbyStoresPage() {
                     </Stack>
 
                     {/* Rating • Experience */}
-                    <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.35 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, bgcolor: '#f0fdf4', px: 0.75, py: 0.15, borderRadius: '4px', border: '1px solid #bbf7d0' }}>
-                        <StarIcon sx={{ fontSize: 13, color: '#16a34a' }} />
-                        <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#15803d' }}>
+                    <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.5 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, bgcolor: '#ecfdf5', px: 0.75, py: 0.2, borderRadius: '6px', border: '1px solid #a7f3d0' }}>
+                        <StarIcon sx={{ fontSize: 12, color: '#059669' }} />
+                        <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#047857' }}>
                           {store.rating || '4.3'}
                         </Typography>
                       </Box>
-                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>
-                        {store.category} • 25 Years of Service
+                      <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }} noWrap>
+                        {store.category} • 25 Yrs
                       </Typography>
                     </Stack>
 
                     {/* Location & ETA */}
-                    <Typography sx={{ fontSize: '0.72rem', color: '#64748b', mb: 1 }} noWrap>
-                      {store.location} • 26 mins • 8.4 km
+                    <Typography sx={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 500, mb: 1.25 }} noWrap>
+                      📍 {store.location} • 26 mins • 8.4 km
                     </Typography>
 
                     {/* Badges & View Store Action */}
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 0.5 }}>
-                      <Stack direction="row" spacing={0.6}>
-                        <Chip
-                          size="small"
-                          label="5% Cashback"
-                          sx={{
-                            bgcolor: '#ecfdf5',
-                            color: '#059669',
-                            fontWeight: 800,
-                            fontSize: '0.65rem',
-                            height: 20,
-                            border: '1px solid #a7f3d0',
-                          }}
-                        />
-                        <Chip
-                          size="small"
-                          label="Verified"
-                          sx={{
-                            bgcolor: '#ecfeff',
-                            color: '#0891b2',
-                            fontWeight: 800,
-                            fontSize: '0.65rem',
-                            height: 20,
-                            border: '1px solid #a5f3fc',
-                          }}
-                        />
-                      </Stack>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 'auto' }}>
+                      <Chip
+                        size="small"
+                        label="✓ Verified"
+                        sx={{
+                          bgcolor: '#f0fdf4',
+                          color: '#15803d',
+                          fontWeight: 800,
+                          fontSize: '0.68rem',
+                          height: 22,
+                          border: '1px solid #bbf7d0',
+                        }}
+                      />
 
                       <Button
                         size="small"
@@ -338,14 +343,17 @@ export default function NearbyStoresPage() {
                         sx={{
                           bgcolor: '#047857',
                           color: '#ffffff',
-                          py: 0.35,
-                          px: 1.5,
-                          fontSize: '0.75rem',
+                          height: '32px',
+                          px: 2,
+                          fontSize: '0.78rem',
                           fontWeight: 800,
-                          borderRadius: '16px',
+                          borderRadius: '10px',
                           textTransform: 'none',
-                          boxShadow: 'none',
+                          boxShadow: '0 2px 6px rgba(4, 120, 87, 0.2)',
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0,
                           '&:hover': { bgcolor: '#065f46' },
+                          '&:active': { transform: 'scale(0.96)' }
                         }}
                       >
                         View Store
