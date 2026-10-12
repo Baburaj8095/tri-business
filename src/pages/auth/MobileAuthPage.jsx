@@ -768,60 +768,100 @@ export default function MobileAuthPage() {
               </form>
             )}
 
-            {/* ─── Bottom Card: New to Trikonekt? (Matching Mockup Screen 1 & 2) ─── */}
-            <Box
-              sx={{
-                p: 2.2,
-                borderRadius: '18px',
-                border: '1.5px solid #e2e8f0',
-                bgcolor: '#ffffff',
-                mb: 2,
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.2 }}>
-                <Box
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '12px',
-                    bgcolor: '#ecfdf5',
-                    display: 'grid',
-                    placeItems: 'center',
-                    color: '#087F5B',
-                    flexShrink: 0,
-                  }}
-                >
-                  <StoreIcon sx={{ fontSize: 22 }} />
-                </Box>
-                <Box>
-                  <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#102033' }}>
-                    New to Trikonekt?
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.74rem', color: '#64748b', lineHeight: 1.4 }}>
-                    Create your business account and start selling, managing stores and receiving orders.
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={() => navigate(`/registration?role=${userRole.toLowerCase()}`)}
+            {/* ─── Bottom Card: Captain Info or Merchant Register ─── */}
+            {userRole === 'CAPTAIN' ? (
+              <Box
                 sx={{
-                  borderColor: '#087F5B',
-                  color: '#087F5B',
-                  fontWeight: 800,
-                  fontSize: '0.84rem',
-                  borderRadius: '12px',
-                  py: 1.1,
-                  textTransform: 'none',
-                  borderWidth: 1.5,
-                  '&:hover': { bgcolor: '#f0fdf4', borderColor: '#05684D', borderWidth: 1.5 },
+                  p: 2.2,
+                  borderRadius: '18px',
+                  border: '1.5px solid #ccfbf1',
+                  bgcolor: '#f0fdfa',
+                  mb: 2,
                 }}
               >
-                {userRole === 'CAPTAIN' ? 'Register as Captain Partner →' : 'Register as Business Merchant →'}
-              </Button>
-            </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '12px',
+                      bgcolor: '#ccfbf1',
+                      display: 'grid',
+                      placeItems: 'center',
+                      color: '#0d9488',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <ShieldIcon sx={{ fontSize: 22 }} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f766e' }}>
+                      Company-Issued Access
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.74rem', color: '#115e59', lineHeight: 1.4 }}>
+                      Captain accounts are authorized and created directly by Trikonekt Administration.
+                    </Typography>
+                  </Box>
+                </Box>
+                <Typography sx={{ fontSize: '0.74rem', color: '#64748b', pl: 0.5 }}>
+                  Please sign in with your official Captain credentials (CB ID or Mobile) provided by the company.
+                </Typography>
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  p: 2.2,
+                  borderRadius: '18px',
+                  border: '1.5px solid #e2e8f0',
+                  bgcolor: '#ffffff',
+                  mb: 2,
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.2 }}>
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '12px',
+                      bgcolor: '#ecfdf5',
+                      display: 'grid',
+                      placeItems: 'center',
+                      color: '#087F5B',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <StoreIcon sx={{ fontSize: 22 }} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#102033' }}>
+                      New to Trikonekt?
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.74rem', color: '#64748b', lineHeight: 1.4 }}>
+                      Create your business account and start selling, managing stores and receiving orders.
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => navigate('/registration')}
+                  sx={{
+                    borderColor: '#087F5B',
+                    color: '#087F5B',
+                    fontWeight: 800,
+                    fontSize: '0.84rem',
+                    borderRadius: '12px',
+                    py: 1.1,
+                    textTransform: 'none',
+                    borderWidth: 1.5,
+                    '&:hover': { bgcolor: '#f0fdf4', borderColor: '#05684D', borderWidth: 1.5 },
+                  }}
+                >
+                  Register as Business Merchant →
+                </Button>
+              </Box>
+            )}
 
           </Box>
 

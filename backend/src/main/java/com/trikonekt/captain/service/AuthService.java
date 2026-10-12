@@ -58,7 +58,8 @@ public class AuthService {
         // Verify account is active
         Boolean isActive = (Boolean) user.getOrDefault("is_active", false);
         if (!Boolean.TRUE.equals(isActive)) {
-            throw new RuntimeException("Your Captain account is not yet activated. Please contact support.");
+            String roleName = "agency_sub_franchise".equals(category) ? "Captain" : "Merchant";
+            throw new RuntimeException("Your " + roleName + " account is currently inactive or suspended. Please contact company administration.");
         }
 
         // Verify password

@@ -111,15 +111,8 @@ const UnifiedRegister = ({ initialRole = null }) => {
   const [searchParams] = useSearchParams();
   const location = useLocation();
 
-  const determineInitialRole = () => {
-    if (initialRole) return initialRole.toUpperCase();
-    const queryRole = searchParams.get('role');
-    if (queryRole) return queryRole.toUpperCase() === 'CAPTAIN' ? 'CAPTAIN' : 'BUSINESS';
-    if (location.pathname.includes('/captain')) return 'CAPTAIN';
-    return 'BUSINESS';
-  };
-
-  const [role, setRole] = useState(determineInitialRole);
+  // Merchant-only registration
+  const role = 'BUSINESS';
 
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
@@ -502,53 +495,21 @@ const UnifiedRegister = ({ initialRole = null }) => {
             color: '#0f172a',
             letterSpacing: '-0.02em',
           }}>
-            {role === 'BUSINESS' ? 'Register as Business' : 'Register as Captain'}
+            Merchant Store Registration
           </Typography>
         </Box>
 
-        {/* Compact Role Switcher Pill */}
+        {/* Business Portal Indicator */}
         <Box sx={{
-          bgcolor: '#f1f5f9',
-          borderRadius: '20px',
-          p: 0.3,
-          display: 'flex',
-          gap: 0.3,
+          bgcolor: '#ecfdf5',
+          borderRadius: '16px',
+          px: 1.5,
+          py: 0.4,
+          border: '1px solid #a7f3d0',
         }}>
-          <Button
-            onClick={() => handleRoleChange('BUSINESS')}
-            sx={{
-              borderRadius: '16px',
-              textTransform: 'none',
-              fontSize: '0.74rem',
-              fontWeight: role === 'BUSINESS' ? 800 : 600,
-              py: 0.3,
-              px: 1.2,
-              minHeight: 26,
-              bgcolor: role === 'BUSINESS' ? '#ffffff' : 'transparent',
-              color: role === 'BUSINESS' ? '#047857' : '#64748b',
-              boxShadow: role === 'BUSINESS' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-            }}
-          >
-            Business
-          </Button>
-
-          <Button
-            onClick={() => handleRoleChange('CAPTAIN')}
-            sx={{
-              borderRadius: '16px',
-              textTransform: 'none',
-              fontSize: '0.74rem',
-              fontWeight: role === 'CAPTAIN' ? 800 : 600,
-              py: 0.3,
-              px: 1.2,
-              minHeight: 26,
-              bgcolor: role === 'CAPTAIN' ? '#ffffff' : 'transparent',
-              color: role === 'CAPTAIN' ? '#047857' : '#64748b',
-              boxShadow: role === 'CAPTAIN' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-            }}
-          >
-            Captain
-          </Button>
+          <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#047857' }}>
+            Tri-Business
+          </Typography>
         </Box>
       </Box>
 

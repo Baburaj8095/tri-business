@@ -148,7 +148,7 @@ public class RegisterService {
             req.getFullName(),
             req.getPhone(),
             req.getPincode(),
-            req.getSponsorId().toUpperCase(),
+            sponsor.getSponsorId().toUpperCase(),
             prefixedId,
             prefixCode,
             legacyCategory

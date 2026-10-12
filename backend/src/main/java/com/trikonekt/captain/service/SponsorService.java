@@ -46,8 +46,10 @@ public class SponsorService {
             || isSuperuser || isStaff || category.contains("agency")
             || category.contains("captain") || "user".equalsIgnoreCase(category);
 
+        String officialId = (String) user.getOrDefault("username", normalizedId);
+
         return SponsorInfo.builder()
-            .sponsorId(normalizedId)
+            .sponsorId(officialId)
             .sponsorName((String) user.getOrDefault("full_name", "Partner"))
             .category(category)
             .valid(isValidSponsor)

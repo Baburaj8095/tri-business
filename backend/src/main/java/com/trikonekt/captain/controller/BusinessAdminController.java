@@ -1,12 +1,16 @@
 package com.trikonekt.captain.controller;
 
+import com.trikonekt.captain.model.AdminCreateCaptainRequest;
 import com.trikonekt.captain.model.AdminLoginRequest;
 import com.trikonekt.captain.model.AdminLoginResponse;
 import com.trikonekt.captain.model.CaptainProfileResponse;
+import com.trikonekt.captain.model.TrizoneCommissionSettings;
+import com.trikonekt.captain.repository.CommissionRepository;
 import com.trikonekt.captain.service.AdminService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -15,9 +19,11 @@ import java.util.Map;
 public class BusinessAdminController {
 
     private final AdminService adminService;
+    private final CommissionRepository commissionRepository;
 
-    public BusinessAdminController(AdminService adminService) {
+    public BusinessAdminController(AdminService adminService, CommissionRepository commissionRepository) {
         this.adminService = adminService;
+        this.commissionRepository = commissionRepository;
     }
 
     /**
@@ -51,6 +57,18 @@ public class BusinessAdminController {
             @RequestParam(defaultValue = "10") int size) {
         Map<String, Object> res = adminService.getCaptains(authHeader, search, kycStatus, isActive, page, size);
         return ResponseEntity.ok(res);
+    }
+
+    /**
+     * POST /api/admin/captains
+     * Admin-controlled creation of official Captain accounts.
+     */
+    @PostMapping("/captains")
+    public ResponseEntity<Map<String, Object>> createCaptain(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody AdminCreateCaptainRequest req) {
+        Map<String, Object> res = adminService.createCaptain(authHeader, req);
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(res);
     }
 
     /**
@@ -277,5 +295,80 @@ public class BusinessAdminController {
             @RequestHeader("Authorization") String authHeader,
             @PathVariable long shopId) {
         return ResponseEntity.ok(adminService.getShopProducts(authHeader, shopId));
+    }
+
+    /**
+     * GET /api/admin/commission-settings
+     * Returns the current active TriZone commission split configuration.
+     */
+    @GetMapping("/commission-settings")
+    public ResponseEntity<?> getCommissionSettings(@RequestHeader("Authorization") String authHeader) {
+        adminService.verifyAdmin(authHeader);
+        TrizoneCommissionSettings settings = commissionRepository.loadActiveSettings();
+        return ResponseEntity.ok(settings);
+    }
+
+    /**
+     * PUT /api/admin/commission-settings
+     * Updates the TriZone commission split. Validates that shares sum to 100.0%.
+     */
+    @PutMapping("/commission-settings")
+    public ResponseEntity<?> updateCommissionSettings(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody TrizoneCommissionSettings req) {
+        String adminUser = adminService.verifyAdmin(authHeader);
+
+        BigDecimal captain = req.getCaptainSharePercent() != null ? req.getCaptainSharePercent() : BigDecimal.ZERO;
+        BigDecimal pincode = req.getPincodePartnerSharePercent() != null ? req.getPincodePartnerSharePercent() : BigDecimal.ZERO;
+        BigDecimal district = req.getDistrictFranchiseSharePercent() != null ? req.getDistrictFranchiseSharePercent() : BigDecimal.ZERO;
+        BigDecimal platform = req.getPlatformReserveSharePercent() != null ? req.getPlatformReserveSharePercent() : BigDecimal.ZERO;
+        BigDecimal total = captain.add(pincode).add(district).add(platform);
+
+        if (total.compareTo(new BigDecimal("100.00")) != 0) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Commission shares must sum to exactly 100.00%. Current sum: " + total
+            ));
+        }
+        if (req.getDefaultShopCommissionPercent() != null &&
+            (req.getDefaultShopCommissionPercent().compareTo(BigDecimal.ZERO) < 0 ||
+             req.getDefaultShopCommissionPercent().compareTo(new BigDecimal("50")) > 0)) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Default shop commission must be between 0% and 50%"
+            ));
+        }
+
+        req.setCaptainSharePercent(captain);
+        req.setPincodePartnerSharePercent(pincode);
+        req.setDistrictFranchiseSharePercent(district);
+        req.setPlatformReserveSharePercent(platform);
+        commissionRepository.saveSettings(req, adminUser != null ? adminUser : "ADMIN");
+
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Commission settings updated successfully",
+            "settings", commissionRepository.loadActiveSettings()
+        ));
+    }
+
+    /**
+     * GET /api/admin/commission-records
+     * Paginated commission audit log.
+     */
+    @GetMapping("/commission-records")
+    public ResponseEntity<?> getCommissionRecords(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Long shopId,
+            @RequestParam(required = false) String status) {
+        adminService.verifyAdmin(authHeader);
+        List<Map<String, Object>> records = commissionRepository.getCommissionRecords(page, size, shopId, status);
+        long total = commissionRepository.countCommissionRecords(shopId, status);
+        return ResponseEntity.ok(Map.of(
+            "records", records,
+            "total", total,
+            "page", page,
+            "size", size
+        ));
     }
 }

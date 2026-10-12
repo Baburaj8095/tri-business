@@ -422,16 +422,19 @@ const UnifiedLogin = () => {
 
             <Divider sx={{ my: 3, borderColor: 'rgba(255,255,255,0.1)' }} />
 
-            {/* Register link */}
+            {/* Captain Accounts Notice & Merchant Link */}
             <Box sx={{ textAlign: 'center' }}>
-              <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', fontWeight: 500 }}>
-                Don&apos;t have an account?{' '}
+              <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.82rem', fontWeight: 500, mb: 1.5, lineHeight: 1.5 }}>
+                Captain accounts are company-created and provisioned by Trikonekt Administration.
+              </Typography>
+              <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', fontWeight: 500 }}>
+                Are you a business merchant?{' '}
                 <Box
                   component="span"
-                  onClick={() => navigate('/registration?role=captain')}
+                  onClick={() => navigate('/registration')}
                   sx={{ color: T.accent, fontWeight: 800, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
                 >
-                  Register Now
+                  Register Store Here →
                 </Box>
               </Typography>
             </Box>

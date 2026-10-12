@@ -62,7 +62,8 @@ import {
   Storefront as StoreIcon,
   ShoppingBag as ProductIcon,
   Category as CategoryIcon,
-  SubdirectoryArrowRight as SubcategoryIcon
+  SubdirectoryArrowRight as SubcategoryIcon,
+  AccountBalanceWallet as CommissionIcon
 } from '@mui/icons-material';
 
 import {
@@ -154,6 +155,107 @@ export default function AdminDashboard() {
 
   const [toast, setToast] = useState({ open: false, type: 'success', message: '' });
 
+  // Tab 9: TriZone Commission
+  const [commissionSettings, setCommissionSettings] = useState({
+    captainSharePercent: 40,
+    pincodePartnerSharePercent: 30,
+    districtFranchiseSharePercent: 10,
+    platformReserveSharePercent: 20,
+    defaultShopCommissionPercent: 2,
+  });
+  const [commissionRecords, setCommissionRecords] = useState([]);
+  const [commissionTotal, setCommissionTotal] = useState(0);
+  const [commissionPage, setCommissionPage] = useState(1);
+  const [commissionSaving, setCommissionSaving] = useState(false);
+  const [commissionShareError, setCommissionShareError] = useState('');
+
+  // Captain Creation Dialog State
+  const [createCaptainModalOpen, setCreateCaptainModalOpen] = useState(false);
+  const [createCaptainLoading, setCreateCaptainLoading] = useState(false);
+  const [createCaptainForm, setCreateCaptainForm] = useState({
+    fullName: '',
+    phone: '',
+    email: '',
+    pincode: '',
+    district: '',
+    state: '',
+    sponsorId: 'TRPN8095809500',
+    password: '',
+    isActive: true,
+  });
+  const [createdCaptainOutcome, setCreatedCaptainOutcome] = useState(null);
+  const [outcomeModalOpen, setOutcomeModalOpen] = useState(false);
+
+  const handleOpenCreateCaptain = () => {
+    setCreateCaptainForm({
+      fullName: '',
+      phone: '',
+      email: '',
+      pincode: '',
+      district: '',
+      state: '',
+      sponsorId: 'TRPN8095809500',
+      password: '',
+      isActive: true,
+    });
+    setCreateCaptainModalOpen(true);
+  };
+
+  const handleCreateCaptainSubmit = async () => {
+    if (!createCaptainForm.fullName.trim()) {
+      setToast({ open: true, type: 'error', message: 'Full Name is required.' });
+      return;
+    }
+    if (!createCaptainForm.phone || !/^\d{10}$/.test(createCaptainForm.phone.trim())) {
+      setToast({ open: true, type: 'error', message: 'Phone must be exactly 10 digits.' });
+      return;
+    }
+    if (!createCaptainForm.pincode || !/^\d{6}$/.test(createCaptainForm.pincode.trim())) {
+      setToast({ open: true, type: 'error', message: 'Pincode must be exactly 6 digits.' });
+      return;
+    }
+    if (!createCaptainForm.district.trim()) {
+      setToast({ open: true, type: 'error', message: 'District is required.' });
+      return;
+    }
+    if (!createCaptainForm.state.trim()) {
+      setToast({ open: true, type: 'error', message: 'State is required.' });
+      return;
+    }
+    if (!createCaptainForm.sponsorId.trim()) {
+      setToast({ open: true, type: 'error', message: 'Sponsor ID is required.' });
+      return;
+    }
+
+    setCreateCaptainLoading(true);
+    try {
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`${API_URL}/admin/captains`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(createCaptainForm)
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setCreateCaptainModalOpen(false);
+        setCreatedCaptainOutcome(data);
+        setOutcomeModalOpen(true);
+        setToast({ open: true, type: 'success', message: 'Captain account created successfully!' });
+        fetchData();
+      } else {
+        throw new Error(data.message || data.error || 'Failed to create Captain.');
+      }
+    } catch (err) {
+      setToast({ open: true, type: 'error', message: err.message || 'Error creating Captain.' });
+    } finally {
+      setCreateCaptainLoading(false);
+    }
+  };
+
   const handleTabChange = (tabIndex) => {
     setActiveTab(tabIndex);
     setPage(1);
@@ -161,6 +263,37 @@ export default function AdminDashboard() {
     setKycFilter('');
     setActiveFilter('');
     setMobileOpen(false);
+  };
+
+  const handleSaveCommission = async () => {
+    const total = Number(commissionSettings.captainSharePercent) +
+      Number(commissionSettings.pincodePartnerSharePercent) +
+      Number(commissionSettings.districtFranchiseSharePercent) +
+      Number(commissionSettings.platformReserveSharePercent);
+    if (Math.abs(total - 100) > 0.01) {
+      setCommissionShareError(`Shares must sum to 100%. Current total: ${total.toFixed(2)}%`);
+      return;
+    }
+    setCommissionShareError('');
+    setCommissionSaving(true);
+    try {
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`${API_URL}/admin/commission-settings`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(commissionSettings)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setToast({ open: true, type: 'success', message: 'Commission settings saved successfully!' });
+      } else {
+        setToast({ open: true, type: 'error', message: data.error || 'Failed to save settings' });
+      }
+    } catch (err) {
+      setToast({ open: true, type: 'error', message: 'Network error while saving settings' });
+    } finally {
+      setCommissionSaving(false);
+    }
   };
 
   const API_URL = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
@@ -304,6 +437,35 @@ export default function AdminDashboard() {
           }
         } finally {
           setAdminShopsLoading(false);
+        }
+      }
+
+      // 9. Fetch TriZone Commission (tab 9)
+      if (activeTab === 9) {
+        try {
+          const csRes = await fetch(`${API_URL}/admin/commission-settings`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (csRes.ok) {
+            const cs = await csRes.json();
+            setCommissionSettings({
+              captainSharePercent: Number(cs.captainSharePercent ?? 40),
+              pincodePartnerSharePercent: Number(cs.pincodePartnerSharePercent ?? 30),
+              districtFranchiseSharePercent: Number(cs.districtFranchiseSharePercent ?? 10),
+              platformReserveSharePercent: Number(cs.platformReserveSharePercent ?? 20),
+              defaultShopCommissionPercent: Number(cs.defaultShopCommissionPercent ?? 2),
+            });
+          }
+          const crRes = await fetch(`${API_URL}/admin/commission-records?page=${commissionPage}&size=20`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (crRes.ok) {
+            const cr = await crRes.json();
+            setCommissionRecords(cr.records || []);
+            setCommissionTotal(cr.total || 0);
+          }
+        } catch (commErr) {
+          console.error("Failed to fetch commission data:", commErr);
         }
       }
     } catch (err) {
@@ -1092,6 +1254,24 @@ export default function AdminDashboard() {
             <ListItemText primary="Offline Shops" primaryTypographyProps={{ fontWeight: activeTab === 8 ? '800' : '500', fontSize: '0.85rem' }} />
           </ListItemButton>
         </ListItem>
+
+        {/* View 9: TriZone Commission */}
+        <ListItem disablePadding sx={{ mb: 0.5 }}>
+          <ListItemButton
+            selected={activeTab === 9}
+            onClick={() => handleTabChange(9)}
+            sx={{
+              borderRadius: '8px',
+              color: activeTab === 9 ? 'white' : '#94a3b8',
+              bgcolor: activeTab === 9 ? 'rgba(245,158,11,0.15) !important' : 'transparent',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' },
+              '& .MuiListItemIcon-root': { color: activeTab === 9 ? 'white' : '#64748b' }
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}><CommissionIcon /></ListItemIcon>
+            <ListItemText primary="TriZone Commission" primaryTypographyProps={{ fontWeight: activeTab === 9 ? '800' : '500', fontSize: '0.85rem' }} />
+          </ListItemButton>
+        </ListItem>
       </List>
 
       <Divider sx={{ borderColor: 'rgba(255,255,255,0.05)' }} />
@@ -1198,7 +1378,7 @@ export default function AdminDashboard() {
               <MenuIcon />
             </IconButton>
             <Typography variant="subtitle1" sx={{ fontWeight: '800', color: T.text, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
-              {activeTab === 0 ? 'Dashboard Overview' : activeTab === 1 ? 'Captain Registrations' : activeTab === 2 ? 'B2B Merchants' : activeTab === 3 ? 'B2C Merchants' : activeTab === 4 ? 'Sub-Admin User Management' : activeTab === 5 ? 'Niches, Categories & Subcategories' : activeTab === 6 ? 'Online Categories' : activeTab === 7 ? 'Online Products Catalog' : 'Offline Shop Registrations'}
+              {activeTab === 0 ? 'Dashboard Overview' : activeTab === 1 ? 'Captain Registrations' : activeTab === 2 ? 'B2B Merchants' : activeTab === 3 ? 'B2C Merchants' : activeTab === 4 ? 'Sub-Admin User Management' : activeTab === 5 ? 'Niches, Categories & Subcategories' : activeTab === 6 ? 'Online Categories' : activeTab === 7 ? 'Online Products Catalog' : activeTab === 8 ? 'Offline Shop Registrations' : 'TriZone Commission Management'}
             </Typography>
           </Box>
 
@@ -1414,6 +1594,29 @@ export default function AdminDashboard() {
                     <MenuItem value="true">Active Only</MenuItem>
                     <MenuItem value="false">Inactive Only</MenuItem>
                   </TextField>
+                </Grid>
+                <Grid item xs={12} sm={12} md={2} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={handleOpenCreateCaptain}
+                    sx={{
+                      bgcolor: '#047857',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      borderRadius: '10px',
+                      textTransform: 'none',
+                      fontSize: '0.82rem',
+                      py: 0.9,
+                      px: 2,
+                      boxShadow: '0 2px 8px rgba(4,120,87,0.25)',
+                      '&:hover': { bgcolor: '#065f46' },
+                      whiteSpace: 'nowrap',
+                      width: { xs: '100%', md: 'auto' },
+                    }}
+                  >
+                    Create Captain
+                  </Button>
                 </Grid>
               </Grid>
 
@@ -2272,8 +2475,434 @@ export default function AdminDashboard() {
               </Box>
             </Paper>
           )}
+
+          {/* VIEW 9: TriZone Commission Management */}
+          {activeTab === 9 && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {/* Commission Split Configuration Card */}
+              <Card sx={{ borderRadius: '16px', border: `1px solid ${T.border}`, boxShadow: 'none' }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 800, mb: 0.5, color: T.text }}>
+                    TriZone Network Commission Split
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
+                    Configure how network commission from verified Scan & Pay transactions is distributed across beneficiary roles. The 4 network shares must sum to exactly 100.00%.
+                  </Typography>
+
+                  {commissionShareError && (
+                    <Alert severity="error" sx={{ mb: 2.5, borderRadius: '10px' }}>
+                      {commissionShareError}
+                    </Alert>
+                  )}
+
+                  <Grid container spacing={2.5}>
+                    {[
+                      { key: 'captainSharePercent', label: 'Onboarding Captain (%)', helper: 'Direct referrer / shop onboarder' },
+                      { key: 'pincodePartnerSharePercent', label: 'Pincode Partner (%)', helper: 'Territory partner for shop pincode' },
+                      { key: 'districtFranchiseSharePercent', label: 'District Franchise (%)', helper: 'District franchise beneficiary' },
+                      { key: 'platformReserveSharePercent', label: 'Platform Reserve (%)', helper: 'Platform operations & fallback pool' },
+                    ].map(({ key, label, helper }) => (
+                      <Grid item xs={12} sm={6} md={3} key={key}>
+                        <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5, color: T.textSecondary }}>
+                          {label}
+                        </Typography>
+                        <TextField
+                          type="number"
+                          size="small"
+                          fullWidth
+                          value={commissionSettings[key]}
+                          onChange={e => setCommissionSettings(p => ({ ...p, [key]: e.target.value }))}
+                          inputProps={{ min: 0, max: 100, step: 0.5 }}
+                          helperText={helper}
+                          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                        />
+                      </Grid>
+                    ))}
+                    <Grid item xs={12} sm={6} md={3}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5, color: T.textSecondary }}>
+                        Default Shop Commission (%)
+                      </Typography>
+                      <TextField
+                        type="number"
+                        size="small"
+                        fullWidth
+                        value={commissionSettings.defaultShopCommissionPercent}
+                        onChange={e => setCommissionSettings(p => ({ ...p, defaultShopCommissionPercent: e.target.value }))}
+                        inputProps={{ min: 0.5, max: 50, step: 0.1 }}
+                        helperText="Fallback fee rate when merchant sets none"
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                      />
+                    </Grid>
+                  </Grid>
+
+                  <Box sx={{ mt: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                    <Button
+                      variant="contained"
+                      onClick={handleSaveCommission}
+                      disabled={commissionSaving}
+                      sx={{ borderRadius: '10px', fontWeight: 800, bgcolor: '#1e3a8a', '&:hover': { bgcolor: '#1e40af' }, textTransform: 'none' }}
+                    >
+                      {commissionSaving ? <CircularProgress size={18} sx={{ color: 'white' }} /> : 'Save Commission Settings'}
+                    </Button>
+                    <Box sx={{ fontSize: '0.85rem', color: T.textSecondary }}>
+                      Current Total: <strong style={{ color: (
+                        Math.abs(
+                          Number(commissionSettings.captainSharePercent) +
+                          Number(commissionSettings.pincodePartnerSharePercent) +
+                          Number(commissionSettings.districtFranchiseSharePercent) +
+                          Number(commissionSettings.platformReserveSharePercent) - 100
+                        ) < 0.01 ? '#10b981' : '#ef4444'
+                      ) }}>{
+                        (Number(commissionSettings.captainSharePercent) +
+                         Number(commissionSettings.pincodePartnerSharePercent) +
+                         Number(commissionSettings.districtFranchiseSharePercent) +
+                         Number(commissionSettings.platformReserveSharePercent)).toFixed(2)
+                      }%</strong>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+
+              {/* Commission Disbursement Records Audit Table */}
+              <Card sx={{ borderRadius: '16px', border: `1px solid ${T.border}`, boxShadow: 'none' }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 800, color: T.text }}>
+                      Commission Disbursement Records
+                    </Typography>
+                    <Chip label={`Total: ${commissionTotal}`} size="small" sx={{ fontWeight: 700 }} />
+                  </Box>
+                  <TableContainer component={Paper} sx={{ boxShadow: 'none', border: `1px solid ${T.border}`, borderRadius: '12px', overflowX: 'auto' }}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                          {['Payment ID', 'Shop Name', 'Pincode', 'Net Online', 'Shop Fee %', 'Pool', 'Beneficiary', 'Role', 'Payout', 'Status', 'Date'].map(h => (
+                            <TableCell key={h} sx={{ fontWeight: 800, fontSize: '0.75rem', color: T.textSecondary }}>{h}</TableCell>
+                          ))}
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {commissionRecords.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={11} align="center" sx={{ py: 4, color: T.textSecondary }}>
+                              No commission disbursements recorded yet.
+                            </TableCell>
+                          </TableRow>
+                        ) : commissionRecords.map(cr => (
+                          <TableRow key={cr.id} hover>
+                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 600 }}>#{cr.offline_payment_id}</TableCell>
+                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700 }}>{cr.shop_name}</TableCell>
+                            <TableCell sx={{ fontSize: '0.75rem' }}>{cr.pincode}</TableCell>
+                            <TableCell sx={{ fontSize: '0.75rem' }}>₹{Number(cr.net_online_amount || 0).toFixed(2)}</TableCell>
+                            <TableCell sx={{ fontSize: '0.75rem' }}>{Number(cr.shop_commission_percent || 0).toFixed(1)}%</TableCell>
+                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700 }}>₹{Number(cr.total_commission_pool || 0).toFixed(2)}</TableCell>
+                            <TableCell sx={{ fontSize: '0.75rem' }}>{cr.beneficiary_name || `User #${cr.beneficiary_user_id}`}</TableCell>
+                            <TableCell>
+                              <Chip
+                                label={cr.beneficiary_role?.replace(/_/g, ' ')}
+                                size="small"
+                                sx={{ fontSize: '0.65rem', fontWeight: 700, bgcolor: '#f0f9ff', color: '#0369a1' }}
+                              />
+                            </TableCell>
+                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#10b981' }}>
+                              ₹{Number(cr.commission_amount || 0).toFixed(2)}
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                label={cr.status}
+                                size="small"
+                                color={cr.status === 'CREDITED' ? 'success' : 'default'}
+                                sx={{ fontWeight: 700, fontSize: '0.65rem' }}
+                              />
+                            </TableCell>
+                            <TableCell sx={{ fontSize: '0.75rem' }}>
+                              {cr.created_at ? new Date(cr.created_at).toLocaleDateString('en-IN') : '-'}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+
+                  <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="caption" color="textSecondary">
+                      Showing page {commissionPage} of {Math.max(1, Math.ceil(commissionTotal / 20))}
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button
+                        size="small"
+                        disabled={commissionPage <= 1}
+                        onClick={() => { setCommissionPage(p => p - 1); fetchData(); }}
+                        sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700 }}
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        size="small"
+                        disabled={commissionPage * 20 >= commissionTotal}
+                        onClick={() => { setCommissionPage(p => p + 1); fetchData(); }}
+                        sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700 }}
+                      >
+                        Next
+                      </Button>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Box>
+          )}
         </Box>
       </Box>
+
+      {/* ─── CREATE CAPTAIN MODAL (Admin-Controlled Creation) ─── */}
+      <Dialog
+        open={createCaptainModalOpen}
+        onClose={() => !createCaptainLoading && setCreateCaptainModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '20px', p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 900, fontSize: '1.25rem', color: T.text, pb: 0.5 }}>
+          Create New Captain Account
+        </DialogTitle>
+        <Typography variant="body2" sx={{ px: 3, color: T.textSecondary, mb: 1 }}>
+          Provision an official Trikonekt Captain partner with assigned territory and initial credentials.
+        </Typography>
+        <Divider sx={{ my: 1 }} />
+        <DialogContent sx={{ pt: 1.5 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: T.text, mb: 0.5, display: 'block' }}>
+                Full Name *
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="e.g. Ramesh Kumar"
+                value={createCaptainForm.fullName}
+                onChange={(e) => setCreateCaptainForm(p => ({ ...p, fullName: e.target.value }))}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: T.text, mb: 0.5, display: 'block' }}>
+                Mobile Number (10 Digits) *
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="e.g. 9876543210"
+                value={createCaptainForm.phone}
+                onChange={(e) => setCreateCaptainForm(p => ({ ...p, phone: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
+                helperText={createCaptainForm.phone ? `Captain ID: CB${createCaptainForm.phone}` : ''}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: T.text, mb: 0.5, display: 'block' }}>
+                Email Address
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                type="email"
+                placeholder="captain@example.com"
+                value={createCaptainForm.email}
+                onChange={(e) => setCreateCaptainForm(p => ({ ...p, email: e.target.value }))}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: T.text, mb: 0.5, display: 'block' }}>
+                Sponsoring Partner / Admin ID *
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="e.g. TRPN8095809500 or CB..."
+                value={createCaptainForm.sponsorId}
+                onChange={(e) => setCreateCaptainForm(p => ({ ...p, sponsorId: e.target.value.toUpperCase() }))}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: T.text, mb: 0.5, display: 'block' }}>
+                Assigned Pincode *
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="e.g. 600001"
+                value={createCaptainForm.pincode}
+                onChange={(e) => setCreateCaptainForm(p => ({ ...p, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: T.text, mb: 0.5, display: 'block' }}>
+                District / City *
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="e.g. Bengaluru"
+                value={createCaptainForm.district}
+                onChange={(e) => setCreateCaptainForm(p => ({ ...p, district: e.target.value }))}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: T.text, mb: 0.5, display: 'block' }}>
+                State *
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="e.g. Karnataka"
+                value={createCaptainForm.state}
+                onChange={(e) => setCreateCaptainForm(p => ({ ...p, state: e.target.value }))}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={8}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: T.text, mb: 0.5, display: 'block' }}>
+                Initial Password (leave blank for auto-generated password)
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                type="text"
+                placeholder="e.g. Tri@1234!"
+                value={createCaptainForm.password}
+                onChange={(e) => setCreateCaptainForm(p => ({ ...p, password: e.target.value }))}
+                helperText="Auto-generates as Tri@<last4>! if empty"
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={4} sx={{ display: 'flex', alignItems: 'center', pt: { sm: 3 } }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={createCaptainForm.isActive}
+                    onChange={(e) => setCreateCaptainForm(p => ({ ...p, isActive: e.target.checked }))}
+                    color="primary"
+                  />
+                }
+                label={<Typography sx={{ fontSize: '0.85rem', fontWeight: 700 }}>Account Active</Typography>}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <Divider sx={{ my: 1 }} />
+        <DialogActions sx={{ px: 3, py: 1.5 }}>
+          <Button
+            onClick={() => setCreateCaptainModalOpen(false)}
+            disabled={createCaptainLoading}
+            sx={{ textTransform: 'none', fontWeight: 700, color: '#64748b' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleCreateCaptainSubmit}
+            disabled={createCaptainLoading}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 800,
+              bgcolor: '#047857',
+              '&:hover': { bgcolor: '#065f46' },
+              px: 3,
+            }}
+          >
+            {createCaptainLoading ? <CircularProgress size={20} color="inherit" /> : 'Create Captain Account'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ─── CREATED CAPTAIN OUTCOME DIALOG ─── */}
+      <Dialog
+        open={outcomeModalOpen}
+        onClose={() => setOutcomeModalOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '20px', p: 1 } }}
+      >
+        <DialogTitle sx={{ textAlign: 'center', pt: 2, pb: 1 }}>
+          <Box sx={{
+            width: 56, height: 56, borderRadius: '50%', bgcolor: '#ecfdf5',
+            display: 'grid', placeItems: 'center', mx: 'auto', mb: 1.5,
+            border: '2px solid #a7f3d0'
+          }}>
+            <ActiveIcon sx={{ color: '#047857', fontSize: 32 }} />
+          </Box>
+          <Typography sx={{ fontWeight: 900, fontSize: '1.25rem', color: T.text }}>
+            Captain Account Created!
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ px: 3 }}>
+          {createdCaptainOutcome && (
+            <Box sx={{ bgcolor: '#f8fafc', p: 2, borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+              <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 0.2 }}>Official Captain ID</Typography>
+              <Typography sx={{ fontWeight: 900, fontSize: '1.2rem', color: '#047857', fontFamily: 'monospace', mb: 1.5 }}>
+                {createdCaptainOutcome.captainId}
+              </Typography>
+
+              <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 0.2 }}>Captain Name</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: T.text, mb: 1.5 }}>
+                {createdCaptainOutcome.fullName}
+              </Typography>
+
+              <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 0.2 }}>Assigned Territory</Typography>
+              <Typography sx={{ fontWeight: 600, fontSize: '0.88rem', color: T.text, mb: 1.5 }}>
+                {createdCaptainOutcome.district}, {createdCaptainOutcome.state} - {createdCaptainOutcome.pincode}
+              </Typography>
+
+              <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 0.2 }}>Initial Password</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: '#ffffff', p: 1, borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <Typography sx={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a', fontFamily: 'monospace' }}>
+                  {createdCaptainOutcome.initialPassword}
+                </Typography>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`Trikonekt Captain Credentials:\nID: ${createdCaptainOutcome.captainId}\nPassword: ${createdCaptainOutcome.initialPassword}\nPortal: https://business.trikonekt.com/captain/login`);
+                    setToast({ open: true, type: 'success', message: 'Credentials copied to clipboard!' });
+                  }}
+                  sx={{ textTransform: 'none', fontWeight: 800, fontSize: '0.72rem' }}
+                >
+                  Copy
+                </Button>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5, justifyContent: 'center' }}>
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={() => setOutcomeModalOpen(false)}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 800,
+              bgcolor: '#047857',
+              '&:hover': { bgcolor: '#065f46' },
+              py: 1.2,
+            }}
+          >
+            Done
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Sub-Admin Form Modal */}
       <Dialog open={subAdminModalOpen} onClose={() => setSubAdminModalOpen(false)} maxWidth="xs" fullWidth>

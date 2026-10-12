@@ -96,6 +96,7 @@ public class UserRepository {
             "LEFT JOIN accounts_agencyregionassignment ara ON u.id = ara.user_id " +
             "WHERE (u.phone = ? OR UPPER(u.username) = UPPER(?) OR UPPER(u.prefixed_id) = UPPER(?) OR UPPER(u.username) = UPPER(?)) " +
             "AND (u.category IN ('agency_pincode', 'agency_sub_franchise', 'captain') OR u.is_superuser = true OR u.is_staff = true OR u.role = 'captain') " +
+            "AND u.is_active = true " +
             "LIMIT 1",
             clean, clean, clean, "CB" + clean
         );
@@ -125,6 +126,12 @@ public class UserRepository {
     public long insertCaptainUser(String username, String hashedPassword, String email,
                                    String fullName, String phone, String pincode,
                                    String sponsorId, String prefixedId) {
+        return insertCaptainUser(username, hashedPassword, email, fullName, phone, pincode, sponsorId, prefixedId, true);
+    }
+
+    public long insertCaptainUser(String username, String hashedPassword, String email,
+                                   String fullName, String phone, String pincode,
+                                   String sponsorId, String prefixedId, boolean isActive) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(con -> {
             PreparedStatement ps = con.prepareStatement(
@@ -138,10 +145,10 @@ public class UserRepository {
                 "  address, depth, identity_type" +
                 ") VALUES (" +
                 "  ?, ?, ?, '', '', " +
-                "  true, false, false, NOW(), " +
+                "  ?, false, false, NOW(), " +
                 "  'agency', 'agency_sub_franchise', ?, ?, ?, " +
                 "  ?, 'CB', ?, " +
-                "  false, false, false, false, false, " +
+                "  ?, false, false, false, false, " +
                 "  '', 0, 'END_USER'" +
                 ") RETURNING id",
                 Statement.RETURN_GENERATED_KEYS
@@ -149,11 +156,13 @@ public class UserRepository {
             ps.setString(1, username);
             ps.setString(2, hashedPassword);
             ps.setString(3, email != null ? email : "");
-            ps.setString(4, fullName);
-            ps.setString(5, phone);
-            ps.setString(6, pincode);
-            ps.setString(7, sponsorId);
-            ps.setString(8, prefixedId);
+            ps.setBoolean(4, isActive);
+            ps.setString(5, fullName);
+            ps.setString(6, phone);
+            ps.setString(7, pincode);
+            ps.setString(8, sponsorId);
+            ps.setString(9, prefixedId);
+            ps.setBoolean(10, isActive);
             return ps;
         }, keyHolder);
 

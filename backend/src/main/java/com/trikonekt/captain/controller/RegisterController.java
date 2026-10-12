@@ -1,8 +1,8 @@
 package com.trikonekt.captain.controller;
 
 import com.trikonekt.captain.model.LoginResponse;
-import com.trikonekt.captain.model.RegisterRequest;
 import com.trikonekt.captain.model.MerchantRegisterRequest;
+import com.trikonekt.captain.model.RegisterRequest;
 import com.trikonekt.captain.model.SponsorInfo;
 import com.trikonekt.captain.service.RegisterService;
 import com.trikonekt.captain.service.SponsorService;
@@ -10,6 +10,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/captain")
@@ -25,12 +27,14 @@ public class RegisterController {
 
     /**
      * POST /api/captain/register
-     * Registers a new Captain (agency_sub_franchise) and returns JWT tokens.
+     * Public Captain registration is disabled. Captain accounts must be provisioned through Company Administration.
      */
     @PostMapping("/register")
-    public ResponseEntity<LoginResponse> register(@Valid @RequestBody RegisterRequest req) {
-        LoginResponse response = registerService.register(req);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<?> register(@RequestBody(required = false) RegisterRequest req) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+            "error", "Public Captain self-registration is disabled. Captain accounts must be provisioned and authorized through Company Administration.",
+            "success", false
+        ));
     }
 
     /**

@@ -1,13 +1,18 @@
 package com.trikonekt.captain.service;
 
+import com.trikonekt.captain.model.AdminCreateCaptainRequest;
 import com.trikonekt.captain.model.AdminLoginRequest;
 import com.trikonekt.captain.model.AdminLoginResponse;
 import com.trikonekt.captain.model.CaptainProfileResponse;
+import com.trikonekt.captain.model.SponsorInfo;
 import com.trikonekt.captain.repository.AdminRepository;
 import com.trikonekt.captain.repository.KycRepository;
+import com.trikonekt.captain.repository.RegionRepository;
+import com.trikonekt.captain.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,12 +25,23 @@ public class AdminService {
     private final AdminRepository adminRepository;
     private final KycRepository kycRepository;
     private final JwtService jwtService;
+    private final UserRepository userRepository;
+    private final RegionRepository regionRepository;
+    private final SponsorService sponsorService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public AdminService(AdminRepository adminRepository, KycRepository kycRepository, JwtService jwtService) {
+    public AdminService(AdminRepository adminRepository,
+                        KycRepository kycRepository,
+                        JwtService jwtService,
+                        UserRepository userRepository,
+                        RegionRepository regionRepository,
+                        SponsorService sponsorService) {
         this.adminRepository = adminRepository;
         this.kycRepository = kycRepository;
         this.jwtService = jwtService;
+        this.userRepository = userRepository;
+        this.regionRepository = regionRepository;
+        this.sponsorService = sponsorService;
     }
 
     public AdminLoginResponse login(AdminLoginRequest req) {
@@ -222,5 +238,99 @@ public class AdminService {
             }
         }
         return claims;
+    }
+
+    /**
+     * Public helper for controllers that need admin identity.
+     * Validates the Bearer token and returns the admin's username.
+     */
+    public String verifyAdmin(String authHeader) {
+        Claims claims = verifyAdminToken(authHeader, null);
+        return claims.getSubject();
+    }
+
+    /**
+     * Creates an official Captain account under Company Admin authorization.
+     */
+    @Transactional
+    public Map<String, Object> createCaptain(String authHeader, AdminCreateCaptainRequest req) {
+        verifyAdminToken(authHeader, "captains");
+
+        if (req.getPhone() == null || !req.getPhone().matches("^\\d{10}$")) {
+            throw new RuntimeException("Phone number must be exactly 10 digits.");
+        }
+        if (req.getFullName() == null || req.getFullName().isBlank()) {
+            throw new RuntimeException("Full name is required.");
+        }
+        if (req.getPincode() == null || !req.getPincode().matches("^\\d{6}$")) {
+            throw new RuntimeException("Pincode must be exactly 6 digits.");
+        }
+
+        String username = "CB" + req.getPhone();
+        String prefixedId = "CB-" + req.getPhone();
+
+        if (userRepository.existsByUsername(username)) {
+            throw new RuntimeException("Captain account with ID " + username + " (phone " + req.getPhone() + ") already exists.");
+        }
+
+        // Validate sponsor
+        SponsorInfo sponsor = sponsorService.verifySponsor(req.getSponsorId());
+        if (!sponsor.isValid()) {
+            throw new RuntimeException("Invalid or inactive sponsor ID: " + req.getSponsorId() +
+                ". Sponsor must be an active Pincode Partner (TRPN) or existing Captain (CB).");
+        }
+
+        // Determine initial password
+        String initialPassword = (req.getPassword() != null && !req.getPassword().isBlank())
+            ? req.getPassword().trim()
+            : ("Tri@" + req.getPhone().substring(req.getPhone().length() - 4) + "!");
+
+        String rawBcrypt = passwordEncoder.encode(initialPassword);
+        String djangoCompatibleHash = "bcrypt$" + rawBcrypt;
+
+        boolean active = req.getIsActive() != null ? req.getIsActive() : true;
+
+        // Insert into accounts_customuser
+        long userId = userRepository.insertCaptainUser(
+            username,
+            djangoCompatibleHash,
+            req.getEmail(),
+            req.getFullName().trim(),
+            req.getPhone(),
+            req.getPincode(),
+            sponsor.getSponsorId().toUpperCase(),
+            prefixedId,
+            active
+        );
+
+        // Region assignment (accounts_agencyregionassignment)
+        regionRepository.insertRegionAssignment(userId, req.getPincode(), req.getDistrict(), req.getState());
+
+        // Wallet (accounts_wallet)
+        regionRepository.insertWallet(userId);
+
+        // Audit log
+        userRepository.insertCaptainAudit(
+            username, req.getPhone(), req.getFullName().trim(), req.getEmail(),
+            req.getPincode(), req.getDistrict(), req.getState(),
+            sponsor.getSponsorId().toUpperCase(), userId
+        );
+
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("success", true);
+        resp.put("userId", userId);
+        resp.put("captainId", username);
+        resp.put("username", username);
+        resp.put("fullName", req.getFullName().trim());
+        resp.put("phone", req.getPhone());
+        resp.put("email", req.getEmail());
+        resp.put("pincode", req.getPincode());
+        resp.put("district", req.getDistrict());
+        resp.put("state", req.getState());
+        resp.put("sponsorId", sponsor.getSponsorId());
+        resp.put("isActive", active);
+        resp.put("initialPassword", initialPassword);
+        resp.put("message", "Captain account created successfully with official ID " + username);
+        return resp;
     }
 }
