@@ -142,13 +142,17 @@ const UnifiedRegister = ({ initialRole = null }) => {
   /* Form Data */
   const [form, setForm] = useState({
     businessName: '',
-    serviceMode: 'ONLINE', // 'ONLINE' | 'OFFLINE' | 'BOTH'
-    businessModel: 'B2B',  // 'B2B' | 'B2C'
-    category: 'Grocery & Daily Needs',
-    gstin: '',
+    storeName: '',
+    operatingModel: 'ONLINE', // 'ONLINE' | 'OFFLINE' | 'TRIZONE'
+    salesType: 'B2C',         // 'B2B' | 'B2C' | 'BOTH'
+    serviceMode: 'ONLINE',    // 'ONLINE' | 'OFFLINE' | 'BOTH'
+    businessModel: 'B2C',     // 'B2B' | 'B2C'
+    category: 'General Store / Others',
+    storeAddress: '',
     address: '',
     fullName: '',
     phone: '',
+    storeContactNumber: '',
     email: '',
     pincode: '',
     district: '',
@@ -228,47 +232,22 @@ const UnifiedRegister = ({ initialRole = null }) => {
       if (data && data.valid === true) {
         setSponsorInfo({
           sponsorId: data.sponsorId || id,
-          sponsorName: data.sponsorName || (role === 'BUSINESS' ? 'Captain Partner' : 'Trikonekt Member'),
-          category: data.category || (role === 'BUSINESS' ? 'agency_sub_franchise' : 'customer_referral'),
+          sponsorName: data.sponsorName || 'Captain Partner',
+          category: data.category || 'agency_sub_franchise',
           pincode: data.pincode || '',
+          district: data.district || '',
+          state: data.state || '',
           valid: true,
         });
         setSponsorVerifying(false);
         return;
-      }
-    } catch (_) {}
-
-    // Clean 10-digit mobile fallback (Never rejects valid phone)
-    if (is10DigitMobile) {
-      if (role === 'BUSINESS') {
-        setSponsorInfo({
-          sponsorId: cleanDigits,
-          sponsorName: `Captain Partner (${cleanDigits.slice(0, 4)}***${cleanDigits.slice(7)})`,
-          valid: true,
-          category: 'agency_sub_franchise',
-        });
       } else {
-        setSponsorInfo({
-          sponsorId: cleanDigits,
-          sponsorName: `Trikonekt Member (${cleanDigits.slice(0, 4)}***${cleanDigits.slice(7)})`,
-          valid: true,
-          category: 'customer_referral',
-        });
+        setSponsorError(role === 'BUSINESS'
+          ? "Captain not found or inactive. Please enter a registered 10-digit Captain mobile or official Captain ID (CB/TRPN)."
+          : "Sponsor not found or inactive. Please enter a valid registered Sponsor ID or mobile number.");
       }
-    } else if (isSponsorCode) {
-      const up = id.toUpperCase();
-      setSponsorInfo({
-        sponsorId: up,
-        sponsorName: up.startsWith('CB') ? 'Captain Partner' : 'Pincode Partner',
-        valid: true,
-        category: up.startsWith('CB') ? 'agency_sub_franchise' : 'agency_pincode',
-      });
-    } else {
-      if (role === 'BUSINESS') {
-        setSponsorError("Enter your Captain's 10-digit mobile number or Captain ID (CB/TRPN).");
-      } else {
-        setSponsorError("Enter any valid 10-digit mobile number or Sponsor ID (TRPN/CB).");
-      }
+    } catch (netErr) {
+      setSponsorError("Unable to verify sponsor right now. Please check your network connection.");
     }
     setSponsorVerifying(false);
   };
@@ -754,56 +733,33 @@ const UnifiedRegister = ({ initialRole = null }) => {
                         bgcolor: '#f0fdf4',
                         border: '1.5px solid #a7f3d0',
                         borderRadius: '16px',
-                        p: 1.8,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 1.5,
+                        p: 2,
                       }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-                          <Box sx={{
-                            width: 38,
-                            height: 38,
-                            borderRadius: '50%',
-                            bgcolor: '#16a34a',
-                            color: '#ffffff',
-                            display: 'grid',
-                            placeItems: 'center',
-                            flexShrink: 0,
-                          }}>
-                            <Check sx={{ fontSize: 22 }} />
-                          </Box>
-                          <Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                              <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>
-                                Sponsor Verified
-                              </Typography>
-                              <Chip
-                                label="Active"
-                                size="small"
-                                sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 800, fontSize: '0.66rem', height: 20 }}
-                              />
-                            </Box>
-                            <Typography sx={{ fontSize: '0.84rem', color: '#0f172a', fontWeight: 700, mt: 0.2 }}>
-                              {sponsorInfo.sponsorName || 'Captain Rajesh'}
-                            </Typography>
-                            <Typography sx={{ fontSize: '0.72rem', color: '#64748b' }}>
-                              {sponsorInfo.sponsorId} • {sponsorInfo.location || 'MG Road, Bengaluru'}
-                            </Typography>
-                          </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.2 }}>
+                          <CheckCircle sx={{ color: '#16a34a', fontSize: 20 }} />
+                          <Typography sx={{ fontWeight: 800, fontSize: '0.92rem', color: '#15803d' }}>
+                            Captain Verified
+                          </Typography>
                         </Box>
 
-                        <Typography
-                          sx={{
-                            color: '#087F5B',
-                            fontWeight: 800,
-                            fontSize: '0.78rem',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          View Profile &gt;
-                        </Typography>
+                        <Stack spacing={0.6}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography sx={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>Name</Typography>
+                            <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>{sponsorInfo.sponsorName}</Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography sx={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>Captain ID</Typography>
+                            <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>{sponsorInfo.sponsorId}</Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography sx={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>Territory</Typography>
+                            <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f172a' }}>{sponsorInfo.district || 'Bengaluru Urban'}</Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography sx={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>Pincode Zone</Typography>
+                            <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f172a' }}>{sponsorInfo.pincode || '5600XX'}</Typography>
+                          </Box>
+                        </Stack>
                       </Box>
                     )}
 
@@ -919,26 +875,25 @@ const UnifiedRegister = ({ initialRole = null }) => {
                             fullWidth
                             value={form.businessName}
                             onChange={e => setForm(p => ({ ...p, businessName: e.target.value }))}
-                            placeholder="e.g. Online B2C"
+                            placeholder="Online 1"
                             sx={inputSx(!!errors.businessName)}
                           />
                           {errors.businessName && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.businessName}</Typography>}
                         </Box>
 
                         <Box>
-                          <FieldLabel label="Business Type" required />
+                          <FieldLabel label="Business Category" required />
                           <FormControl fullWidth>
                             <Select
                               value={form.category}
                               onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
                               sx={{
                                 borderRadius: '12px', bgcolor: '#ffffff', fontSize: '0.92rem', fontWeight: 600,
-                                '& fieldset': { borderColor: '#e2e8f0', borderWidth: 1.5 },
+                                '& fieldset': { borderColor: '#cbd5e1', borderWidth: 1.5 },
                                 '&:hover fieldset': { borderColor: '#087F5B' },
                                 '&.Mui-focused fieldset': { borderColor: '#087F5B', borderWidth: 2 },
                               }}
                             >
-                              <MenuItem value="Select Business Type" disabled sx={{ fontSize: '0.86rem' }}>Select Business Type</MenuItem>
                               {CATEGORIES.map(c => (
                                 <MenuItem key={c} value={c} sx={{ fontSize: '0.86rem', fontWeight: 600, py: 1 }}>
                                   {c}
@@ -948,42 +903,83 @@ const UnifiedRegister = ({ initialRole = null }) => {
                           </FormControl>
                         </Box>
 
+                        {/* Business Operating Model (Exact Match to 3 Cards in Mockup) */}
                         <Box>
-                          <FieldLabel label="GSTIN" badge="(Optional)" />
-                          <TextField
-                            fullWidth
-                            value={form.gstin}
-                            onChange={e => setForm(p => ({ ...p, gstin: e.target.value.toUpperCase() }))}
-                            placeholder="Enter GSTIN"
-                            sx={inputSx(false)}
-                          />
-                          <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8', mt: 0.4 }}>
-                            Required for GST registered businesses
-                          </Typography>
+                          <FieldLabel label="Business Operating Model" required />
+                          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.2 }}>
+                            {[
+                              { id: 'ONLINE', icon: '🌐', title: 'Online', desc: 'Sell on Trikonekt Online' },
+                              { id: 'OFFLINE', icon: '🏬', title: 'Offline', desc: 'Physical Store (Scan & Pay)' },
+                              { id: 'TRIZONE', icon: '⚖️', title: 'TriZone', desc: 'Territory based business model' },
+                            ].map(m => {
+                              const isSelected = form.operatingModel === m.id;
+                              return (
+                                <Box
+                                  key={m.id}
+                                  onClick={() => setForm(p => ({ ...p, operatingModel: m.id, serviceMode: m.id === 'TRIZONE' ? 'BOTH' : m.id }))}
+                                  sx={{
+                                    p: 1.6,
+                                    borderRadius: '14px',
+                                    border: `1.5px solid ${isSelected ? '#087F5B' : '#e2e8f0'}`,
+                                    bgcolor: isSelected ? '#f0fdf4' : '#ffffff',
+                                    cursor: 'pointer',
+                                    textAlign: 'center',
+                                    transition: 'all 0.15s ease',
+                                    '&:hover': { borderColor: '#087F5B' },
+                                  }}
+                                >
+                                  <Typography sx={{ fontSize: 24, mb: 0.5 }}>{m.icon}</Typography>
+                                  <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: isSelected ? '#087F5B' : '#0f172a', mb: 0.3 }}>
+                                    {m.title}
+                                  </Typography>
+                                  <Typography sx={{ fontSize: '0.66rem', color: '#64748b', lineHeight: 1.3 }}>
+                                    {m.desc}
+                                  </Typography>
+                                </Box>
+                              );
+                            })}
+                          </Box>
                         </Box>
 
+                        {/* Sales Type (Exact Match to 3 Cards in Mockup) */}
                         <Box>
-                          <FieldLabel label="PAN Number" required error={errors.panNumber} />
-                          <TextField
-                            fullWidth
-                            value={form.panNumber || ''}
-                            onChange={e => setForm(p => ({ ...p, panNumber: e.target.value.toUpperCase() }))}
-                            placeholder="Enter PAN number"
-                            sx={inputSx(!!errors.panNumber)}
-                          />
-                        </Box>
-
-                        <Box>
-                          <FieldLabel label="Official Email" required error={errors.email} />
-                          <TextField
-                            fullWidth
-                            value={form.email}
-                            onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                            placeholder="business@trikonekt.com"
-                            type="email"
-                            sx={inputSx(!!errors.email)}
-                          />
-                          {errors.email && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.email}</Typography>}
+                          <FieldLabel label="Sales Type" required />
+                          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.2 }}>
+                            {[
+                              { id: 'B2B', title: 'B2B', desc: 'Business' },
+                              { id: 'B2C', title: 'B2C', desc: 'Consumer' },
+                              { id: 'BOTH', title: 'Both', desc: 'B2B & B2C' },
+                            ].map(s => {
+                              const isSelected = form.salesType === s.id;
+                              return (
+                                <Box
+                                  key={s.id}
+                                  onClick={() => setForm(p => ({ ...p, salesType: s.id, businessModel: s.id === 'BOTH' ? 'B2C' : s.id }))}
+                                  sx={{
+                                    p: 1.4,
+                                    borderRadius: '14px',
+                                    border: `1.5px solid ${isSelected ? '#087F5B' : '#e2e8f0'}`,
+                                    bgcolor: isSelected ? '#f0fdf4' : '#ffffff',
+                                    cursor: 'pointer',
+                                    textAlign: 'center',
+                                    transition: 'all 0.15s ease',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    '&:hover': { borderColor: '#087F5B' },
+                                  }}
+                                >
+                                  <Typography sx={{ fontWeight: 800, fontSize: '0.86rem', color: isSelected ? '#087F5B' : '#0f172a' }}>
+                                    {s.title}
+                                  </Typography>
+                                  <Typography sx={{ fontSize: '0.68rem', color: '#64748b' }}>
+                                    {s.desc}
+                                  </Typography>
+                                </Box>
+                              );
+                            })}
+                          </Box>
                         </Box>
                       </>
                     ) : (
@@ -1054,82 +1050,119 @@ const UnifiedRegister = ({ initialRole = null }) => {
 
                   <Stack spacing={2} sx={{ mb: 3 }}>
                     <Box>
-                      <FieldLabel label={role === 'BUSINESS' ? "Store Name" : "Franchise Store Name"} required error={errors.businessName} />
+                      <FieldLabel label="Store Name" required error={errors.storeName} />
                       <TextField
                         fullWidth
-                        value={form.storeName || form.businessName}
-                        onChange={e => setForm(p => ({ ...p, storeName: e.target.value, businessName: p.businessName || e.target.value }))}
-                        placeholder="e.g. Main Market Store"
-                        sx={inputSx(!!errors.businessName)}
+                        value={form.storeName || ''}
+                        onChange={e => setForm(p => ({ ...p, storeName: e.target.value }))}
+                        placeholder="Online 1 Store"
+                        sx={inputSx(!!errors.storeName)}
                       />
+                      {errors.storeName && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.storeName}</Typography>}
                     </Box>
 
                     <Box>
-                      <FieldLabel label="Address Line 1" required error={errors.address} />
+                      <FieldLabel label="Store Address" required error={errors.address} />
                       <TextField
                         fullWidth
-                        value={form.addressLine1 || form.address}
-                        onChange={e => setForm(p => ({ ...p, addressLine1: e.target.value, address: e.target.value }))}
-                        placeholder="Enter address"
+                        value={form.address || ''}
+                        onChange={e => setForm(p => ({ ...p, address: e.target.value, storeAddress: e.target.value }))}
+                        placeholder="#12, 1st Main Road, Rajajinagar"
                         sx={inputSx(!!errors.address)}
                       />
                       {errors.address && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.address}</Typography>}
                     </Box>
 
-                    <Box>
-                      <FieldLabel label="Address Line 2" badge="(Optional)" />
-                      <TextField
-                        fullWidth
-                        value={form.addressLine2 || ''}
-                        onChange={e => setForm(p => ({ ...p, addressLine2: e.target.value }))}
-                        placeholder="Apartment, Landmark, etc."
-                        sx={inputSx(false)}
-                      />
-                    </Box>
-
-                    <Box>
-                      <FieldLabel label="Pincode" required error={errors.pincode} />
-                      <TextField
-                        fullWidth
-                        value={form.pincode}
-                        onChange={e => handlePincodeChange(e.target.value)}
-                        placeholder="560102"
-                        inputMode="numeric"
-                        sx={inputSx(!!errors.pincode)}
-                        InputProps={{
-                          endAdornment: form.pincodeLoading ? (
-                            <InputAdornment position="end"><CircularProgress size={16} sx={{ color: '#087F5B' }} /></InputAdornment>
-                          ) : (
-                            <InputAdornment position="end">
-                              <LocationOn sx={{ color: '#087F5B', fontSize: 20 }} />
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                      {errors.pincode && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.pincode}</Typography>}
-                    </Box>
-
                     <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.2 }}>
-                      <Box>
-                        <FieldLabel label="City" required />
-                        <TextField
-                          fullWidth
-                          value={form.district}
-                          onChange={e => setForm(p => ({ ...p, district: e.target.value }))}
-                          placeholder="Bengaluru"
-                          sx={inputSx(false)}
-                        />
-                      </Box>
                       <Box>
                         <FieldLabel label="State" required />
                         <TextField
                           fullWidth
-                          value={form.state}
+                          value={form.state || ''}
                           onChange={e => setForm(p => ({ ...p, state: e.target.value }))}
                           placeholder="Karnataka"
                           sx={inputSx(false)}
                         />
                       </Box>
+                      <Box>
+                        <FieldLabel label="City" required />
+                        <TextField
+                          fullWidth
+                          value={form.district || ''}
+                          onChange={e => setForm(p => ({ ...p, district: e.target.value }))}
+                          placeholder="Bengaluru"
+                          sx={inputSx(false)}
+                        />
+                      </Box>
+                    </Box>
+
+                    <Box>
+                      <FieldLabel label="Pincode" required error={errors.pincode} />
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        <TextField
+                          fullWidth
+                          value={form.pincode || ''}
+                          onChange={e => handlePincodeChange(e.target.value)}
+                          placeholder="560010"
+                          inputMode="numeric"
+                          sx={inputSx(!!errors.pincode)}
+                          InputProps={{
+                            endAdornment: form.pincodeLoading ? (
+                              <InputAdornment position="end"><CircularProgress size={16} sx={{ color: '#087F5B' }} /></InputAdornment>
+                            ) : null,
+                          }}
+                        />
+                        <Button
+                          variant="outlined"
+                          onClick={() => {
+                            if (navigator.geolocation) {
+                              navigator.geolocation.getCurrentPosition((pos) => {
+                                setForm(p => ({
+                                  ...p,
+                                  latitude: pos.coords.latitude,
+                                  longitude: pos.coords.longitude
+                                }));
+                              });
+                            }
+                          }}
+                          sx={{
+                            whiteSpace: 'nowrap',
+                            minWidth: 150,
+                            borderRadius: '12px',
+                            borderColor: '#cbd5e1',
+                            color: '#087F5B',
+                            fontWeight: 700,
+                            fontSize: '0.75rem',
+                            textTransform: 'none',
+                            py: 1.2,
+                            '&:hover': { borderColor: '#087F5B', bgcolor: '#f0fdf4' }
+                          }}
+                          startIcon={<LocationOn sx={{ fontSize: 18 }} />}
+                        >
+                          Use Current Location
+                        </Button>
+                      </Box>
+                      {errors.pincode && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.pincode}</Typography>}
+                    </Box>
+
+                    <Box>
+                      <FieldLabel label="Store Contact Number" required error={errors.storeContactNumber} />
+                      <TextField
+                        fullWidth
+                        value={form.storeContactNumber || form.phone}
+                        onChange={e => setForm(p => ({ ...p, storeContactNumber: e.target.value.replace(/\D/g, '').slice(0, 10), phone: p.phone || e.target.value.replace(/\D/g, '').slice(0, 10) }))}
+                        placeholder="9876543210"
+                        inputMode="numeric"
+                        sx={inputSx(!!errors.storeContactNumber)}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Typography sx={{ fontWeight: 700, color: '#64748b', fontSize: '0.88rem', mr: 0.5 }}>+91</Typography>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                      {errors.storeContactNumber && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.storeContactNumber}</Typography>}
                     </Box>
                   </Stack>
                 </Box>
@@ -1141,17 +1174,17 @@ const UnifiedRegister = ({ initialRole = null }) => {
               {step === 4 && (
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ mb: 2.5 }}>
-                    <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#102033', letterSpacing: '-0.02em', mb: 0.4 }}>
-                      Security Credentials
+                    <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', letterSpacing: '-0.02em', mb: 0.4 }}>
+                      Account Security
                     </Typography>
                     <Typography sx={{ color: '#64748b', fontSize: '0.82rem', fontWeight: 500 }}>
-                      Set up login credentials for your store owner account.
+                      Set up your login credentials.
                     </Typography>
                   </Box>
 
                   <Stack spacing={2} sx={{ mb: 3 }}>
                     <Box>
-                      <FieldLabel label="Owner Mobile Number" required error={errors.phone} />
+                      <FieldLabel label="Mobile Number" required error={errors.phone} />
                       <TextField
                         fullWidth
                         value={form.phone}
@@ -1165,19 +1198,27 @@ const UnifiedRegister = ({ initialRole = null }) => {
                               <Typography sx={{ fontWeight: 700, color: '#64748b', fontSize: '0.88rem', mr: 0.5 }}>+91</Typography>
                             </InputAdornment>
                           ),
+                          endAdornment: form.phone.length === 10 ? (
+                            <InputAdornment position="end">
+                              <CheckCircle sx={{ color: '#10b981', fontSize: 20 }} />
+                            </InputAdornment>
+                          ) : null,
                         }}
                       />
+                      <Typography sx={{ fontSize: '0.72rem', color: '#64748b', mt: 0.4 }}>
+                        This number will be used for login.
+                      </Typography>
                       {errors.phone && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.phone}</Typography>}
                     </Box>
 
                     <Box>
-                      <FieldLabel label="Create Password" required error={errors.password} />
+                      <FieldLabel label="Set Password" required error={errors.password} />
                       <TextField
                         fullWidth
                         type={showPwd ? 'text' : 'password'}
                         value={form.password}
                         onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-                        placeholder="Minimum 8 characters"
+                        placeholder="••••••••"
                         sx={inputSx(!!errors.password)}
                         InputProps={{
                           endAdornment: (
@@ -1192,25 +1233,9 @@ const UnifiedRegister = ({ initialRole = null }) => {
                       {errors.password && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.password}</Typography>}
 
                       {form.password && (
-                        <Box sx={{ mt: 1 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.4 }}>
-                            <Typography sx={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700 }}>Strength</Typography>
-                            <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: strength.color }}>{strength.label}</Typography>
-                          </Box>
-                          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0.6 }}>
-                            {[20, 40, 60, 80, 100].map((th) => (
-                              <Box
-                                key={th}
-                                sx={{
-                                  height: 3,
-                                  borderRadius: 2,
-                                  bgcolor: strength.score >= th ? strength.color : '#e2e8f0',
-                                  transition: 'all 0.2s',
-                                }}
-                              />
-                            ))}
-                          </Box>
-                        </Box>
+                        <Typography sx={{ fontSize: '0.74rem', fontWeight: 700, color: strength.color, mt: 0.6 }}>
+                          {strength.label} password
+                        </Typography>
                       )}
                     </Box>
 
@@ -1221,7 +1246,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                         type={showConfirm ? 'text' : 'password'}
                         value={form.confirmPassword}
                         onChange={e => setForm(p => ({ ...p, confirmPassword: e.target.value }))}
-                        placeholder="Re-enter password"
+                        placeholder="••••••••"
                         sx={inputSx(!!errors.confirmPassword)}
                         InputProps={{
                           endAdornment: (
@@ -1235,6 +1260,32 @@ const UnifiedRegister = ({ initialRole = null }) => {
                       />
                       {errors.confirmPassword && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.confirmPassword}</Typography>}
                     </Box>
+
+                    {/* 4 Password Rules Checklist (Exact Match to Mockup) */}
+                    <Box sx={{ mt: 1 }}>
+                      <Stack spacing={0.6}>
+                        {[
+                          { text: 'At least 8 characters', met: form.password.length >= 8 },
+                          { text: 'One uppercase letter', met: /[A-Z]/.test(form.password) },
+                          { text: 'One lowercase letter', met: /[a-z]/.test(form.password) },
+                          { text: 'One number or special character', met: /[0-9^A-Za-z0-9]/.test(form.password) },
+                        ].map((rule, idx) => (
+                          <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Box sx={{
+                              width: 16, height: 16, borderRadius: '50%',
+                              bgcolor: rule.met ? '#10b981' : '#e2e8f0',
+                              color: '#fff', display: 'grid', placeItems: 'center',
+                              fontSize: '0.65rem',
+                            }}>
+                              {rule.met ? '✓' : ''}
+                            </Box>
+                            <Typography sx={{ fontSize: '0.74rem', color: rule.met ? '#0f172a' : '#64748b', fontWeight: rule.met ? 700 : 500 }}>
+                              {rule.text}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Stack>
+                    </Box>
                   </Stack>
                 </Box>
               )}
@@ -1246,84 +1297,124 @@ const UnifiedRegister = ({ initialRole = null }) => {
               {step === 5 && (
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ mb: 2 }}>
-                    <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#102033', letterSpacing: '-0.02em', mb: 0.3 }}>
-                      Review & Submit
+                    <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', letterSpacing: '-0.02em', mb: 0.3 }}>
+                      Review & Register
                     </Typography>
                     <Typography sx={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>
-                      Please review your details before submitting.
+                      Please review your information before creating your business account.
                     </Typography>
                   </Box>
 
                   <Stack spacing={1.5} sx={{ mb: 3 }}>
-                    {/* Sponsor Details Card */}
+                    {/* Card 1: Sponsor Information */}
                     <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <Person sx={{ fontSize: 18, color: '#087F5B' }} />
-                        <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#102033' }}>
-                          Sponsor Details
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Person sx={{ fontSize: 18, color: '#087F5B' }} />
+                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
+                            Sponsor Information
+                          </Typography>
+                        </Box>
+                        <Typography
+                          onClick={() => setStep(1)}
+                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#087F5B', cursor: 'pointer' }}
+                        >
+                          Edit
                         </Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.3 }}>
-                        <Typography sx={{ fontSize: '0.76rem', color: '#64748b' }}>Captain Name</Typography>
-                        <Typography sx={{ fontSize: '0.78rem', color: '#102033', fontWeight: 700 }}>{sponsorInfo?.sponsorName || 'Captain Rajesh'}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.3 }}>
-                        <Typography sx={{ fontSize: '0.76rem', color: '#64748b' }}>Sponsor ID</Typography>
-                        <Typography sx={{ fontSize: '0.78rem', color: '#102033', fontWeight: 700 }}>{sponsorInfo?.sponsorId || sponsorId}</Typography>
-                      </Box>
-                    </Box>
-
-                    {/* Business Details Card */}
-                    <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <Store sx={{ fontSize: 18, color: '#087F5B' }} />
-                        <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#102033' }}>
-                          Business Details
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.3 }}>
-                        <Typography sx={{ fontSize: '0.76rem', color: '#64748b' }}>Business Name</Typography>
-                        <Typography sx={{ fontSize: '0.78rem', color: '#102033', fontWeight: 700 }}>{form.businessName || 'Online B2C'}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.3 }}>
-                        <Typography sx={{ fontSize: '0.76rem', color: '#64748b' }}>Category / Type</Typography>
-                        <Typography sx={{ fontSize: '0.78rem', color: '#102033', fontWeight: 700 }}>{form.category}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.3 }}>
-                        <Typography sx={{ fontSize: '0.76rem', color: '#64748b' }}>PAN Number</Typography>
-                        <Typography sx={{ fontSize: '0.78rem', color: '#102033', fontWeight: 700 }}>{form.panNumber || 'ABCDE1234F'}</Typography>
-                      </Box>
-                    </Box>
-
-                    {/* Store Details Card */}
-                    <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <Storefront sx={{ fontSize: 18, color: '#087F5B' }} />
-                        <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#102033' }}>
-                          Store Details
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.3 }}>
-                        <Typography sx={{ fontSize: '0.76rem', color: '#64748b' }}>Store Name</Typography>
-                        <Typography sx={{ fontSize: '0.78rem', color: '#102033', fontWeight: 700 }}>{form.storeName || 'Main Market Store'}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.3 }}>
-                        <Typography sx={{ fontSize: '0.76rem', color: '#64748b' }}>Location</Typography>
-                        <Typography sx={{ fontSize: '0.78rem', color: '#102033', fontWeight: 700 }}>{form.district || 'Bengaluru'} - {form.pincode}</Typography>
-                      </Box>
-                    </Box>
-
-                    {/* Bank & Payout Card */}
-                    <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
-                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#102033', mb: 0.5 }}>
-                        Bank & Payout Details
+                      <Typography sx={{ fontSize: '0.82rem', color: '#0f172a', fontWeight: 700 }}>
+                        {sponsorInfo?.sponsorName || 'Captain Ramesh Kumar'}
                       </Typography>
-                      <Typography sx={{ fontSize: '0.76rem', color: '#64748b' }}>
-                        HDFC Bank •••••• 4892 (Default Settlement Account)
+                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        {sponsorInfo?.sponsorId || sponsorId}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        {sponsorInfo?.district || 'Bengaluru Urban'}
                       </Typography>
                     </Box>
 
-                    {/* Checkbox confirmation */}
+                    {/* Card 2: Business Information */}
+                    <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Store sx={{ fontSize: 18, color: '#087F5B' }} />
+                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
+                            Business Information
+                          </Typography>
+                        </Box>
+                        <Typography
+                          onClick={() => setStep(2)}
+                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#087F5B', cursor: 'pointer' }}
+                        >
+                          Edit
+                        </Typography>
+                      </Box>
+                      <Typography sx={{ fontSize: '0.82rem', color: '#0f172a', fontWeight: 700 }}>
+                        {form.businessName || 'Online 1'}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        {form.category}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        Operating Model: <strong>{form.operatingModel || 'Online'}</strong>
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        Sales Type: <strong>{form.salesType || 'B2C'}</strong>
+                      </Typography>
+                    </Box>
+
+                    {/* Card 3: Store Information */}
+                    <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Storefront sx={{ fontSize: 18, color: '#087F5B' }} />
+                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
+                            Store Information
+                          </Typography>
+                        </Box>
+                        <Typography
+                          onClick={() => setStep(3)}
+                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#087F5B', cursor: 'pointer' }}
+                        >
+                          Edit
+                        </Typography>
+                      </Box>
+                      <Typography sx={{ fontSize: '0.82rem', color: '#0f172a', fontWeight: 700 }}>
+                        {form.storeName || form.businessName || 'Online 1 Store'}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        {form.address || '#12, 1st Main Road, Rajajinagar'}, {form.district || 'Bengaluru'}, {form.state || 'Karnataka'} - {form.pincode}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        +91 {form.storeContactNumber || form.phone}
+                      </Typography>
+                    </Box>
+
+                    {/* Card 4: Login Information */}
+                    <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Lock sx={{ fontSize: 18, color: '#087F5B' }} />
+                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
+                            Login Information
+                          </Typography>
+                        </Box>
+                        <Typography
+                          onClick={() => setStep(4)}
+                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#087F5B', cursor: 'pointer' }}
+                        >
+                          Edit
+                        </Typography>
+                      </Box>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        Mobile: +91 {form.phone}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        Password: ••••••••••
+                      </Typography>
+                    </Box>
+
+                    {/* Terms & Conditions confirmation */}
                     <FormControlLabel
                       control={
                         <Checkbox
@@ -1334,8 +1425,8 @@ const UnifiedRegister = ({ initialRole = null }) => {
                         />
                       }
                       label={
-                        <Typography sx={{ fontSize: '0.76rem', color: '#334155', fontWeight: 600 }}>
-                          I confirm that all the above information is correct and can be verified.
+                        <Typography sx={{ fontSize: '0.74rem', color: '#334155', fontWeight: 600 }}>
+                          I agree to the <Box component="span" sx={{ color: '#087F5B', textDecoration: 'underline' }}>Terms & Conditions</Box> and <Box component="span" sx={{ color: '#087F5B', textDecoration: 'underline' }}>Privacy Policy</Box>
                         </Typography>
                       }
                     />
@@ -1343,7 +1434,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                 </Box>
               )}
 
-              {/* ── Bottom Full-Width Continue Button (Exact Match to Mockup) ── */}
+              {/* ── Bottom Full-Width Continue / Create Account Button ── */}
               <Box sx={{ mt: 'auto', pt: 1, pb: 2 }}>
                 {step < TOTAL_STEPS ? (
                   <Button
@@ -1385,7 +1476,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                     {loading ? (
                       <CircularProgress size={20} color="inherit" />
                     ) : (
-                      'Submit Registration →'
+                      'Create Account →'
                     )}
                   </Button>
                 )}

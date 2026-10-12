@@ -90,10 +90,12 @@ public class UserRepository {
         }
         String clean = sponsorId.trim();
         List<Map<String, Object>> rows = jdbc.queryForList(
-            "SELECT id, username, full_name, category, role, pincode, sponsor_id, prefixed_id, phone, is_superuser, is_staff " +
-            "FROM accounts_customuser " +
-            "WHERE (phone = ? OR UPPER(username) = UPPER(?) OR UPPER(prefixed_id) = UPPER(?) OR UPPER(username) = UPPER(?)) " +
-            "AND (category IN ('agency_pincode', 'agency_sub_franchise', 'captain') OR is_superuser = true OR is_staff = true OR role = 'captain') " +
+            "SELECT u.id, u.username, u.full_name, u.category, u.role, u.pincode, u.sponsor_id, u.prefixed_id, u.phone, u.is_superuser, u.is_staff, " +
+            "       COALESCE(ara.district, '') as district, COALESCE(ara.state_id, '') as state " +
+            "FROM accounts_customuser u " +
+            "LEFT JOIN accounts_agencyregionassignment ara ON u.id = ara.user_id " +
+            "WHERE (u.phone = ? OR UPPER(u.username) = UPPER(?) OR UPPER(u.prefixed_id) = UPPER(?) OR UPPER(u.username) = UPPER(?)) " +
+            "AND (u.category IN ('agency_pincode', 'agency_sub_franchise', 'captain') OR u.is_superuser = true OR u.is_staff = true OR u.role = 'captain') " +
             "LIMIT 1",
             clean, clean, clean, "CB" + clean
         );

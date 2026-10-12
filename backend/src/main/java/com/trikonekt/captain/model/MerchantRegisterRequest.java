@@ -59,4 +59,18 @@ public class MerchantRegisterRequest {
     private Double discountPercent;
     private Integer categoryId;
     private Integer subcategoryId;
+
+    /**
+     * Store and Business metadata matching the mobile registration mockup:
+     * - storeName (defaults to businessName if not provided)
+     * - businessCategory (e.g. 'General Store / Others')
+     * - salesType ('B2B', 'B2C', 'BOTH')
+     * - state (e.g. 'Karnataka')
+     * - storeContactNumber (defaults to phone if not provided)
+     */
+    private String storeName;
+    private String businessCategory;
+    private String salesType;
+    private String state;
+    private String storeContactNumber;
 }

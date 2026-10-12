@@ -1,0 +1,67 @@
+databaseChangeLog:
+  - changeSet:
+      id: 021-merchant-kyc-details
+      author: trikonekt
+      validCheckSum: ANY
+      changes:
+        - createTable:
+            tableName: merchant_kyc_details
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: pan_number
+                  type: VARCHAR(20)
+              - column:
+                  name: pan_card_url
+                  type: VARCHAR(500)
+              - column:
+                  name: is_gst_registered
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+              - column:
+                  name: gstin
+                  type: VARCHAR(20)
+              - column:
+                  name: gst_legal_name
+                  type: VARCHAR(255)
+              - column:
+                  name: gst_certificate_url
+                  type: VARCHAR(500)
+              - column:
+                  name: business_proof_type
+                  type: VARCHAR(50)
+              - column:
+                  name: business_proof_url
+                  type: VARCHAR(500)
+              - column:
+                  name: kyc_status
+                  type: VARCHAR(30)
+                  defaultValue: NOT_STARTED
+              - column:
+                  name: kyc_rejection_reason
+                  type: VARCHAR(500)
+              - column:
+                  name: verified_at
+                  type: TIMESTAMPTZ
+              - column:
+                  name: verified_by
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: NOW()
+              - column:
+                  name: updated_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: NOW()

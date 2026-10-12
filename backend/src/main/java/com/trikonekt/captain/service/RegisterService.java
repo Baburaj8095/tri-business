@@ -8,6 +8,7 @@ import com.trikonekt.captain.repository.RegionRepository;
 import com.trikonekt.captain.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RegisterService {
@@ -26,6 +27,7 @@ public class RegisterService {
         this.sponsorService = sponsorService;
     }
 
+    @Transactional
     public LoginResponse register(RegisterRequest req) {
         // Build Captain username and prefixed ID
         String username = "CB" + req.getPhone();        // e.g., CB9876543210
@@ -87,6 +89,7 @@ public class RegisterService {
             .build();
     }
 
+    @Transactional
     public LoginResponse registerMerchant(MerchantRegisterRequest req) {
         // Determine category, username, prefix code and prefixed ID
         String requestedCategory = req.getCategory(); // New: consumer_business/merchant_business; Legacy: business/merchant
@@ -155,25 +158,36 @@ public class RegisterService {
         regionRepository.insertWallet(userId);
 
         // Insert profile in market_merchantprofile
+        String effectiveBusinessCategory = (req.getBusinessCategory() != null && !req.getBusinessCategory().isBlank())
+            ? req.getBusinessCategory().trim()
+            : legacyCategory;
+
         userRepository.insertMerchantProfile(
             userId,
             req.getBusinessName(),
             req.getPhone(),
             req.getAddress(),
-            legacyCategory,
+            effectiveBusinessCategory,
             resolvedServiceMode
         );
 
         // Insert baseline shop in market_shop
+        String effectiveStoreName = (req.getStoreName() != null && !req.getStoreName().isBlank())
+            ? req.getStoreName().trim()
+            : req.getBusinessName();
+        String effectiveContact = (req.getStoreContactNumber() != null && !req.getStoreContactNumber().isBlank())
+            ? req.getStoreContactNumber().trim()
+            : req.getPhone();
+
         userRepository.insertShop(
             userId,
-            req.getBusinessName(),
+            effectiveStoreName,
             req.getAddress(),
             req.getCity(),
             req.getPincode(),
             req.getLatitude(),
             req.getLongitude(),
-            req.getPhone(),
+            effectiveContact,
             req.getDiscountPercent() != null ? req.getDiscountPercent() : 0.00,
             req.getCategoryId(),
             req.getSubcategoryId(),

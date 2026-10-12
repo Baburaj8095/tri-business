@@ -46,17 +46,29 @@ export default function BusinessDashboard() {
   const [shops, setShops] = useState([]);
   const [hasPrime750, setHasPrime750] = useState(false);
   const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
+  const [kycStatus, setKycStatus] = useState("NOT_STARTED"); // 'NOT_STARTED', 'PENDING', 'VERIFIED', 'REJECTED'
 
   useEffect(() => {
     const token = localStorage.getItem('token_business');
     if (token) {
-      axios.get(`${process.env.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api'}/captain/offline-payments/merchant`, {
+      const apiBase = process.env.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
+      axios.get(`${apiBase}/captain/offline-payments/merchant`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => {
           setPendingPaymentsCount(res.data ? res.data.length : 0);
         })
         .catch(err => console.error('Failed to fetch offline payments count:', err));
+
+      axios.get(`${apiBase}/captain/merchant/kyc/status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => {
+          if (res.data?.kycStatus) {
+            setKycStatus(res.data.kycStatus);
+          }
+        })
+        .catch(err => console.error('Failed to fetch KYC status:', err));
     }
   }, []);
 
@@ -191,6 +203,70 @@ export default function BusinessDashboard() {
                 </Box>
               </Grid>
             </Grid>
+          </CardContent>
+        </Card>
+
+        {/* KYC STATUS CARD (Matching Mockup Dashboard Card) */}
+        <Card
+          onClick={() => navigate('/business/kyc')}
+          sx={{
+            mb: 3,
+            borderRadius: '20px',
+            border: `1.5px solid ${
+              kycStatus === 'VERIFIED' ? '#a7f3d0' :
+              kycStatus === 'PENDING' ? '#fde68a' :
+              kycStatus === 'REJECTED' ? '#fecaca' : '#fed7aa'
+            }`,
+            bgcolor: kycStatus === 'VERIFIED' ? '#f0fdf4' :
+                     kycStatus === 'PENDING' ? '#fffbeb' :
+                     kycStatus === 'REJECTED' ? '#fef2f2' : '#fff7ed',
+            boxShadow: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            '&:hover': {
+              boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+              transform: 'translateY(-1px)',
+            }
+          }}
+        >
+          <CardContent sx={{ p: 2.5 }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Box sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  bgcolor: kycStatus === 'VERIFIED' ? '#10b981' :
+                           kycStatus === 'PENDING' ? '#f59e0b' :
+                           kycStatus === 'REJECTED' ? '#ef4444' : '#f97316',
+                  color: '#ffffff',
+                  display: 'grid',
+                  placeItems: 'center',
+                  flexShrink: 0,
+                }}>
+                  {kycStatus === 'VERIFIED' ? '✓' :
+                   kycStatus === 'PENDING' ? '⏳' :
+                   kycStatus === 'REJECTED' ? '✕' : '📄'}
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 900, fontSize: '1.02rem', color: TEXT, mb: 0.2 }}>
+                    {kycStatus === 'NOT_STARTED' && "KYC Not Started"}
+                    {kycStatus === 'PENDING' && "KYC Verification Pending"}
+                    {kycStatus === 'VERIFIED' && "KYC Verified"}
+                    {kycStatus === 'REJECTED' && "KYC Rejected"}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.82rem', color: TEXT_SECONDARY }}>
+                    {kycStatus === 'NOT_STARTED' && "Complete your KYC to unlock all features and start selling."}
+                    {kycStatus === 'PENDING' && "Documents submitted. Review is currently in progress."}
+                    {kycStatus === 'VERIFIED' && "All features unlocked: shops, orders, and settlements active."}
+                    {kycStatus === 'REJECTED' && "Some documents were invalid. Click to re-submit."}
+                  </Typography>
+                </Box>
+              </Stack>
+              <Typography sx={{ fontSize: '1.3rem', color: TEXT_MUTED, fontWeight: 700, ml: 1 }}>
+                &gt;
+              </Typography>
+            </Stack>
           </CardContent>
         </Card>
 
