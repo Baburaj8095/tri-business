@@ -52,6 +52,8 @@ public class SponsorService {
             .category(category)
             .valid(isValidSponsor)
             .pincode((String) user.get("pincode"))
+            .district((String) user.getOrDefault("district", ""))
+            .state((String) user.getOrDefault("state", ""))
             .build();
     }
 }
