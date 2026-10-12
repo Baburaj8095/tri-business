@@ -1,0 +1,184 @@
+databaseChangeLog:
+  - changeSet:
+      id: 020-trizone-commission-and-shop-percent
+      author: antigravity
+      validCheckSum: ANY
+      changes:
+        # 1. Add scan_pay_commission_percent to market_shop
+        - addColumn:
+            tableName: market_shop
+            columns:
+              - column:
+                  name: scan_pay_commission_percent
+                  type: numeric(5, 2)
+                  defaultValue: 2.00
+
+        # 2. Create trizone_commission_settings table
+        - createTable:
+            tableName: trizone_commission_settings
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: captain_share_percent
+                  type: numeric(5, 2)
+                  defaultValue: 40.00
+                  constraints:
+                    nullable: false
+              - column:
+                  name: pincode_partner_share_percent
+                  type: numeric(5, 2)
+                  defaultValue: 30.00
+                  constraints:
+                    nullable: false
+              - column:
+                  name: district_franchise_share_percent
+                  type: numeric(5, 2)
+                  defaultValue: 10.00
+                  constraints:
+                    nullable: false
+              - column:
+                  name: platform_reserve_share_percent
+                  type: numeric(5, 2)
+                  defaultValue: 20.00
+                  constraints:
+                    nullable: false
+              - column:
+                  name: default_shop_commission_percent
+                  type: numeric(5, 2)
+                  defaultValue: 2.00
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_by
+                  type: VARCHAR(100)
+                  defaultValue: SYSTEM
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # Seed default settings row
+        - insert:
+            tableName: trizone_commission_settings
+            columns:
+              - column:
+                  name: captain_share_percent
+                  valueNumeric: 40.00
+              - column:
+                  name: pincode_partner_share_percent
+                  valueNumeric: 30.00
+              - column:
+                  name: district_franchise_share_percent
+                  valueNumeric: 10.00
+              - column:
+                  name: platform_reserve_share_percent
+                  valueNumeric: 20.00
+              - column:
+                  name: default_shop_commission_percent
+                  valueNumeric: 2.00
+              - column:
+                  name: is_active
+                  valueBoolean: true
+              - column:
+                  name: updated_by
+                  value: INITIAL_MIGRATION
+
+        # 3. Create trizone_commission_records table
+        - createTable:
+            tableName: trizone_commission_records
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: offline_payment_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: beneficiary_user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: beneficiary_role
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: shop_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: pincode
+                  type: VARCHAR(10)
+              - column:
+                  name: net_online_amount
+                  type: numeric(12, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: shop_commission_percent
+                  type: numeric(5, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_commission_pool
+                  type: numeric(12, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role_share_percent
+                  type: numeric(5, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: commission_amount
+                  type: numeric(12, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  defaultValue: CREDITED
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+        # 4. Constraints and Indexes
+        - addUniqueConstraint:
+            tableName: trizone_commission_records
+            columnNames: offline_payment_id, beneficiary_user_id, beneficiary_role
+            constraintName: uq_comm_payment_beneficiary_role
+
+        - createIndex:
+            tableName: trizone_commission_records
+            indexName: idx_comm_offline_payment
+            columns:
+              - column:
+                  name: offline_payment_id
+
+        - createIndex:
+            tableName: trizone_commission_records
+            indexName: idx_comm_beneficiary_user
+            columns:
+              - column:
+                  name: beneficiary_user_id

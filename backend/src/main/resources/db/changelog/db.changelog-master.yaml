@@ -51,5 +51,14 @@ databaseChangeLog:
       file: db/changelog/changes/017-add-shop-banner.yaml
       relativeToChangelogFile: false
   - include:
+      file: db/changelog/changes/018-offline-payments-gateway-fields.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/019-offline-payments-unique-gateway-id.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/020-trizone-commission-and-shop-percent.yaml
+      relativeToChangelogFile: false
+  - include:
       file: db/changelog/changes/021-merchant-kyc-details.yaml
       relativeToChangelogFile: false

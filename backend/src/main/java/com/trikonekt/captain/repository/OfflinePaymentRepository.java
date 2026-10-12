@@ -1,5 +1,6 @@
 package com.trikonekt.captain.repository;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -54,6 +55,101 @@ public class OfflinePaymentRepository {
         throw new RuntimeException("Failed to get generated payment ID");
     }
 
+    public long createGatewaySettledPayment(String refId, long consumerId, long shopId, BigDecimal amount,
+                                            String paymentMethod, String status, String gatewayPaymentId,
+                                            String gatewayOrderId, String paymentIntentId,
+                                            BigDecimal netOnlineAmount, BigDecimal walletDiscount) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        try {
+            jdbc.update(con -> {
+                PreparedStatement ps = con.prepareStatement(
+                    "INSERT INTO offline_payments (" +
+                    "  ref_id, consumer_id, shop_id, amount, payment_method, status, " +
+                    "  gateway_payment_id, gateway_order_id, payment_intent_id, net_online_amount, wallet_discount, " +
+                    "  created_at, updated_at" +
+                    ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW()) RETURNING id",
+                    Statement.RETURN_GENERATED_KEYS
+                );
+                ps.setString(1, refId);
+                ps.setLong(2, consumerId);
+                ps.setLong(3, shopId);
+                ps.setBigDecimal(4, amount);
+                ps.setString(5, paymentMethod);
+                ps.setString(6, status);
+                ps.setString(7, gatewayPaymentId);
+                ps.setString(8, gatewayOrderId);
+                ps.setString(9, paymentIntentId);
+                ps.setBigDecimal(10, netOnlineAmount != null ? netOnlineAmount : amount);
+                ps.setBigDecimal(11, walletDiscount != null ? walletDiscount : BigDecimal.ZERO);
+                return ps;
+            }, keyHolder);
+
+            if (keyHolder.getKeys() != null && keyHolder.getKeys().containsKey("id")) {
+                return ((Number) keyHolder.getKeys().get("id")).longValue();
+            }
+            throw new RuntimeException("Failed to get generated gateway payment ID");
+        } catch (DuplicateKeyException e) {
+            if (gatewayPaymentId != null && !gatewayPaymentId.isBlank()) {
+                Optional<Map<String, Object>> existing = getPaymentByGatewayPaymentId(gatewayPaymentId);
+                if (existing.isPresent()) {
+                    return ((Number) existing.get().get("id")).longValue();
+                }
+            }
+            if (paymentIntentId != null && !paymentIntentId.isBlank()) {
+                Optional<Map<String, Object>> existing = getPaymentByPaymentIntentId(paymentIntentId);
+                if (existing.isPresent()) {
+                    return ((Number) existing.get().get("id")).longValue();
+                }
+            }
+            throw e;
+        }
+    }
+
+    public Optional<Map<String, Object>> getPaymentByGatewayPaymentId(String gatewayPaymentId) {
+        if (gatewayPaymentId == null || gatewayPaymentId.isBlank()) return Optional.empty();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+            "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.online_order_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
+            "       p.gateway_payment_id, p.gateway_order_id, p.payment_intent_id, p.net_online_amount, p.wallet_discount, " +
+            "       u.full_name as consumer_name, u.phone as consumer_phone, s.shop_name, s.discount_percent " +
+            "FROM offline_payments p " +
+            "JOIN accounts_customuser u ON p.consumer_id = u.id " +
+            "JOIN market_shop s ON p.shop_id = s.id " +
+            "WHERE p.gateway_payment_id = ? LIMIT 1",
+            gatewayPaymentId
+        );
+        return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
+    }
+
+    public Optional<Map<String, Object>> getPaymentByPaymentIntentId(String paymentIntentId) {
+        if (paymentIntentId == null || paymentIntentId.isBlank()) return Optional.empty();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+            "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.online_order_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
+            "       p.gateway_payment_id, p.gateway_order_id, p.payment_intent_id, p.net_online_amount, p.wallet_discount, " +
+            "       u.full_name as consumer_name, u.phone as consumer_phone, s.shop_name, s.discount_percent " +
+            "FROM offline_payments p " +
+            "JOIN accounts_customuser u ON p.consumer_id = u.id " +
+            "JOIN market_shop s ON p.shop_id = s.id " +
+            "WHERE p.payment_intent_id = ? LIMIT 1",
+            paymentIntentId
+        );
+        return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
+    }
+
+    public Optional<Map<String, Object>> getPaymentByRefId(String refId) {
+        if (refId == null || refId.isBlank()) return Optional.empty();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+            "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.online_order_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
+            "       p.gateway_payment_id, p.gateway_order_id, p.payment_intent_id, p.net_online_amount, p.wallet_discount, " +
+            "       u.full_name as consumer_name, u.phone as consumer_phone, s.shop_name, s.discount_percent " +
+            "FROM offline_payments p " +
+            "JOIN accounts_customuser u ON p.consumer_id = u.id " +
+            "JOIN market_shop s ON p.shop_id = s.id " +
+            "WHERE p.ref_id = ? LIMIT 1",
+            refId
+        );
+        return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
+    }
+
     public boolean existsActiveShopById(long shopId) {
         Integer count = jdbc.queryForObject(
             "SELECT COUNT(*) FROM market_shop WHERE id = ? AND status = 'ACTIVE'",
@@ -76,6 +172,7 @@ public class OfflinePaymentRepository {
     public Optional<Map<String, Object>> getPaymentById(long id) {
         List<Map<String, Object>> rows = jdbc.queryForList(
             "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.online_order_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
+            "       p.gateway_payment_id, p.gateway_order_id, p.payment_intent_id, p.net_online_amount, p.wallet_discount, " +
             "       u.full_name as consumer_name, u.phone as consumer_phone, s.shop_name, s.discount_percent " +
             "FROM offline_payments p " +
             "JOIN accounts_customuser u ON p.consumer_id = u.id " +
@@ -89,6 +186,7 @@ public class OfflinePaymentRepository {
     public List<Map<String, Object>> getPaymentsByConsumerId(long consumerId) {
         return jdbc.queryForList(
             "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.online_order_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
+            "       p.gateway_payment_id, p.gateway_order_id, p.payment_intent_id, p.net_online_amount, p.wallet_discount, " +
             "       u.full_name as consumer_name, u.phone as consumer_phone, s.shop_name " +
             "FROM offline_payments p " +
             "JOIN accounts_customuser u ON p.consumer_id = u.id " +
@@ -102,6 +200,7 @@ public class OfflinePaymentRepository {
     public List<Map<String, Object>> getPendingPaymentsForMerchant(long merchantId) {
         return jdbc.queryForList(
             "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.online_order_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
+            "       p.gateway_payment_id, p.gateway_order_id, p.payment_intent_id, p.net_online_amount, p.wallet_discount, " +
             "       u.full_name as consumer_name, u.phone as consumer_phone, s.shop_name " +
             "FROM offline_payments p " +
             "JOIN accounts_customuser u ON p.consumer_id = u.id " +
@@ -115,6 +214,7 @@ public class OfflinePaymentRepository {
     public List<Map<String, Object>> getAllPaymentsForMerchant(long merchantId) {
         return jdbc.queryForList(
             "SELECT p.id, p.ref_id, p.consumer_id, p.shop_id, p.online_order_id, p.amount, p.payment_method, p.status, p.created_at, p.updated_at, " +
+            "       p.gateway_payment_id, p.gateway_order_id, p.payment_intent_id, p.net_online_amount, p.wallet_discount, " +
             "       u.full_name as consumer_name, u.phone as consumer_phone, s.shop_name " +
             "FROM offline_payments p " +
             "JOIN accounts_customuser u ON p.consumer_id = u.id " +

@@ -174,6 +174,7 @@ export default function BusinessShops() {
       min_order_value: "0",
       base_delivery_fee: "0",
       discount_percent: "",
+      scan_pay_commission_percent: "",
       business_documents: [],
     }),
     []
@@ -375,6 +376,7 @@ export default function BusinessShops() {
       min_order_value: String(shop.min_order_value ?? 0),
       base_delivery_fee: String(shop.base_delivery_fee ?? 0),
       discount_percent: String(shop.discountPercent ?? shop.discount_percent ?? 0),
+      scan_pay_commission_percent: String(shop.scanPayCommissionPercent ?? shop.scan_pay_commission_percent ?? 2),
       business_documents: [],
     });
     setDrawerOpen(true);
@@ -439,6 +441,7 @@ export default function BusinessShops() {
       min_order_value: Math.max(Number(form.min_order_value) || 0, 0),
       base_delivery_fee: Math.max(Number(form.base_delivery_fee) || 0, 0),
       discount_percent: Math.max(0, Math.min(100, Number(form.discount_percent) || 0)),
+      scan_pay_commission_percent: Math.max(0.5, Math.min(15, Number(form.scan_pay_commission_percent) || 2)),
       business_documents: form.business_documents,
     };
 
@@ -909,6 +912,25 @@ export default function BusinessShops() {
                       />
                     </Box>
 
+                    <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(59, 130, 246, 0.04)', borderRadius: '12px', border: '1px solid rgba(59, 130, 246, 0.15)' }}>
+                      <Typography sx={{ fontWeight: 850, fontSize: '0.92rem', color: '#1d4ed8', mb: 2 }}>
+                        💳 Scan &amp; Pay Network Commission
+                      </Typography>
+                      <Box>
+                        <Box component="span" sx={labelSx}>Scan &amp; Pay Network Commission (%)</Box>
+                        <TextField
+                          type="number"
+                          fullWidth
+                          value={form.scan_pay_commission_percent}
+                          onChange={(e) => setForm(p => ({ ...p, scan_pay_commission_percent: e.target.value }))}
+                          inputProps={{ min: 0.5, max: 15, step: 0.1 }}
+                          placeholder="e.g. 2.0%"
+                          helperText="Fee on net Razorpay captured amount, distributed to local Captains & Territory Partners"
+                          sx={inputSx}
+                        />
+                      </Box>
+                    </Box>
+
                     <Divider sx={{ my: 2, borderColor: T.border }} />
 
                     {/* Business Verification Details (Moved from Onboarding) */}
@@ -1218,6 +1240,13 @@ export default function BusinessShops() {
                             size="small"
                             label={`${s.discountPercent || s.discount_percent}% Storewide Discount`}
                             sx={{ fontWeight: 800, fontSize: '0.68rem', height: 22, borderRadius: '6px', bgcolor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}
+                          />
+                        )}
+                        {Number(s.scanPayCommissionPercent || s.scan_pay_commission_percent || 0) > 0 && (
+                          <Chip
+                            size="small"
+                            label={`${s.scanPayCommissionPercent || s.scan_pay_commission_percent || 0}% S&P Network Fee`}
+                            sx={{ fontWeight: 800, fontSize: '0.68rem', height: 22, borderRadius: '6px', bgcolor: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}
                           />
                         )}
                       </Stack>

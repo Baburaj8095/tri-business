@@ -3,12 +3,15 @@ package com.trikonekt.captain.controller;
 import com.trikonekt.captain.model.OfflinePaymentRequest;
 import com.trikonekt.captain.model.OfflinePaymentActionRequest;
 import com.trikonekt.captain.model.OfflinePaymentResponse;
+import com.trikonekt.captain.model.InternalPaymentSettlementRequest;
 import com.trikonekt.captain.model.OnlineOrder;
 import com.trikonekt.captain.repository.OfflinePaymentRepository;
 import com.trikonekt.captain.repository.OrderRepository;
 import com.trikonekt.captain.repository.UserRepository;
+import com.trikonekt.captain.service.CommissionService;
 import com.trikonekt.captain.service.JwtService;
 import io.jsonwebtoken.Claims;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,18 +30,31 @@ import java.util.Random;
 @RequestMapping("/captain")
 public class OfflinePaymentController {
 
+    @Value("${internal.service.secret:}")
+    private String internalServiceSecret;
+
+    @jakarta.annotation.PostConstruct
+    public void validateInternalServiceConfig() {
+        if (internalServiceSecret == null || internalServiceSecret.trim().isEmpty()) {
+            System.err.println("[SECURITY ALERT] INTERNAL_SERVICE_SECRET is not set. S2S endpoints will reject requests.");
+        }
+    }
+
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final OfflinePaymentRepository offlinePaymentRepository;
     private final OrderRepository orderRepository;
+    private final CommissionService commissionService;
 
     public OfflinePaymentController(JwtService jwtService, UserRepository userRepository,
                                     OfflinePaymentRepository offlinePaymentRepository,
-                                    OrderRepository orderRepository) {
+                                    OrderRepository orderRepository,
+                                    CommissionService commissionService) {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.offlinePaymentRepository = offlinePaymentRepository;
         this.orderRepository = orderRepository;
+        this.commissionService = commissionService;
     }
 
     private String getUsernameFromToken(String authHeader) {
@@ -80,9 +96,141 @@ public class OfflinePaymentController {
             .amount(asBigDecimal(row.get("amount")))
             .paymentMethod((String) row.get("payment_method"))
             .status((String) row.get("status"))
+            .gatewayPaymentId((String) row.get("gateway_payment_id"))
+            .gatewayOrderId((String) row.get("gateway_order_id"))
+            .paymentIntentId((String) row.get("payment_intent_id"))
+            .netOnlineAmount(asBigDecimal(row.get("net_online_amount")))
+            .walletDiscount(asBigDecimal(row.get("wallet_discount")))
             .createdAt(createdAt)
             .updatedAt(updatedAt)
             .build();
+    }
+
+    /**
+     * POST /api/captain/internal/payments/settle
+     * Internal server-to-server endpoint called exclusively by Tri Shopping after authoritative gateway verification.
+     * Persists transaction directly with status APPROVED and skips manual cashback.
+     */
+    @PostMapping("/internal/payments/settle")
+    @Transactional
+    public ResponseEntity<?> settleGatewayPayment(
+            @RequestHeader(value = "X-Internal-Secret", required = false) String internalSecret,
+            @RequestBody InternalPaymentSettlementRequest req) {
+
+        if (internalServiceSecret == null || internalServiceSecret.trim().isEmpty()) {
+            return ResponseEntity.status(503).body(Map.of("error", "Internal settlement service is unconfigured or disabled"));
+        }
+
+        if (internalSecret == null || !internalSecret.trim().equals(internalServiceSecret.trim())) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized internal service request"));
+        }
+
+        if (req.getRefId() == null || req.getRefId().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Ref ID is required"));
+        }
+        if (req.getGatewayPaymentId() == null || req.getGatewayPaymentId().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Gateway Payment ID is required"));
+        }
+        if (req.getShopId() == null || req.getShopId() <= 0) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Valid Shop ID is required"));
+        }
+        if (req.getGrossAmount() == null || req.getGrossAmount().compareTo(BigDecimal.TEN) < 0) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Gross amount must be at least ₹10"));
+        }
+
+        // Idempotency check 1: Gateway Payment ID
+        Optional<Map<String, Object>> existingByGateway = offlinePaymentRepository.getPaymentByGatewayPaymentId(req.getGatewayPaymentId());
+        if (existingByGateway.isPresent()) {
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "idempotent", true,
+                "payment", mapToResponse(existingByGateway.get())
+            ));
+        }
+
+        // Idempotency check 2: Canonical Ref ID
+        Optional<Map<String, Object>> existingByRef = offlinePaymentRepository.getPaymentByRefId(req.getRefId());
+        if (existingByRef.isPresent()) {
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "idempotent", true,
+                "payment", mapToResponse(existingByRef.get())
+            ));
+        }
+
+        // Idempotency check 3: Payment Intent ID
+        if (req.getPaymentIntentId() != null && !req.getPaymentIntentId().isBlank()) {
+            Optional<Map<String, Object>> existingByIntent = offlinePaymentRepository.getPaymentByPaymentIntentId(req.getPaymentIntentId());
+            if (existingByIntent.isPresent()) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "idempotent", true,
+                    "payment", mapToResponse(existingByIntent.get())
+                ));
+            }
+        }
+
+        // Validate Shop
+        if (!offlinePaymentRepository.existsActiveShopById(req.getShopId())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Shop not found or inactive"));
+        }
+
+        // Consumer Resolution from authenticated intent (Mandatory Correction 4)
+        String rawPhone = req.getConsumerPhone() != null ? req.getConsumerPhone().trim() : "";
+        String cleanPhone = rawPhone.replaceAll("\\D", "");
+        if (cleanPhone.length() > 10) {
+            cleanPhone = cleanPhone.substring(cleanPhone.length() - 10);
+        }
+
+        Optional<Map<String, Object>> consumerOpt = Optional.empty();
+        if (!cleanPhone.isBlank()) {
+            consumerOpt = userRepository.findByPhone(cleanPhone);
+            if (consumerOpt.isEmpty()) {
+                consumerOpt = userRepository.findByUsername(cleanPhone);
+            }
+        }
+
+        if (consumerOpt.isEmpty()) {
+            // Quarantine unresolved identity rather than using arbitrary default fallback
+            return ResponseEntity.status(422).body(Map.of(
+                "error", "QUARANTINED_UNRESOLVED_IDENTITY",
+                "message", "Consumer phone '" + rawPhone + "' cannot be resolved to a registered account."
+            ));
+        }
+
+        long consumerId = ((Number) consumerOpt.get().get("id")).longValue();
+
+        // Persist directly as APPROVED with authoritative gateway fields
+        long paymentId = offlinePaymentRepository.createGatewaySettledPayment(
+            req.getRefId(),
+            consumerId,
+            req.getShopId(),
+            req.getGrossAmount(),
+            req.getPaymentMethod() != null ? req.getPaymentMethod().trim().toUpperCase() : "RAZORPAY",
+            "APPROVED",
+            req.getGatewayPaymentId(),
+            req.getGatewayOrderId(),
+            req.getPaymentIntentId(),
+            req.getNetOnlineAmount() != null ? req.getNetOnlineAmount() : req.getGrossAmount(),
+            req.getWalletDiscount() != null ? req.getWalletDiscount() : BigDecimal.ZERO
+        );
+
+        Map<String, Object> paymentRow = offlinePaymentRepository.getPaymentById(paymentId)
+            .orElseThrow(() -> new RuntimeException("Failed to retrieve payment after insertion"));
+
+        // Trigger TriZone commission distribution (non-fatal — settlement is already persisted)
+        BigDecimal netOnlineAmount = req.getNetOnlineAmount() != null ? req.getNetOnlineAmount() : req.getGrossAmount();
+        try {
+            commissionService.distributeCommission(paymentId, req.getShopId(), netOnlineAmount, null);
+        } catch (Exception commEx) {
+            System.err.println("[Commission] Distribution failed for paymentId=" + paymentId + ": " + commEx.getMessage());
+        }
+
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "status", "APPROVED",
+            "payment", mapToResponse(paymentRow)
+        ));
     }
 
     /**

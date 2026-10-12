@@ -1029,12 +1029,27 @@ export default function MerchantOrdersPage() {
                             <Typography sx={{ fontSize: '1.25rem', fontWeight: 900, color: PRIMARY }}>
                               ₹{Number(pm.amount || 0).toFixed(2)}
                             </Typography>
-                            <Chip 
-                              label={pm.status} 
-                              size="small" 
-                              color={pm.status === 'APPROVED' ? 'success' : pm.status === 'REJECTED' ? 'error' : 'default'}
-                              sx={{ fontWeight: 700, mt: 0.5, fontSize: '0.7rem' }}
-                            />
+                            <Stack direction="row" spacing={0.5} justifyContent="flex-end" sx={{ mt: 0.5 }}>
+                              {String(pm.paymentMethod || pm.payment_method).toUpperCase() === 'RAZORPAY' && (
+                                <Chip 
+                                  label="RAZORPAY" 
+                                  size="small" 
+                                  color="info"
+                                  sx={{ fontWeight: 800, fontSize: '0.65rem', height: 20 }}
+                                />
+                              )}
+                              <Chip 
+                                label={pm.status} 
+                                size="small" 
+                                color={pm.status === 'APPROVED' ? 'success' : pm.status === 'REJECTED' ? 'error' : 'default'}
+                                sx={{ fontWeight: 700, fontSize: '0.65rem', height: 20 }}
+                              />
+                            </Stack>
+                            {(pm.netOnlineAmount || pm.net_online_amount) && Number(pm.walletDiscount || pm.wallet_discount || 0) > 0 && (
+                              <Typography variant="caption" sx={{ color: TEXT_MUTED, fontSize: '0.68rem', display: 'block', mt: 0.5 }}>
+                                Paid: ₹{Number(pm.netOnlineAmount || pm.net_online_amount).toFixed(2)} + Coins: ₹{Number(pm.walletDiscount || pm.wallet_discount).toFixed(2)}
+                              </Typography>
+                            )}
                           </Box>
                         </Stack>
 
@@ -1045,6 +1060,11 @@ export default function MerchantOrdersPage() {
                             <Typography variant="caption" sx={{ color: TEXT_MUTED, fontWeight: 700 }}>
                               REF: {pm.refId}
                             </Typography>
+                            {(pm.gatewayPaymentId || pm.gateway_payment_id) && (
+                              <Typography variant="caption" sx={{ color: '#0284c7', fontWeight: 700 }}>
+                                GATEWAY ID: {pm.gatewayPaymentId || pm.gateway_payment_id}
+                              </Typography>
+                            )}
                             {(pm.onlineOrderId || pm.online_order_id) && (
                               <Typography variant="caption" sx={{ color: '#ea580c', fontWeight: 800 }}>
                                 DELIVERY ORDER: #{pm.onlineOrderId || pm.online_order_id}

@@ -1,0 +1,41 @@
+databaseChangeLog:
+  - changeSet:
+      id: 018-offline-payments-gateway-fields
+      author: antigravity
+      validCheckSum: ANY
+      changes:
+        - addColumn:
+            tableName: offline_payments
+            columns:
+              - column:
+                  name: gateway_payment_id
+                  type: VARCHAR(64)
+                  remarks: Authoritative payment gateway reference (e.g. Razorpay payment ID)
+              - column:
+                  name: gateway_order_id
+                  type: VARCHAR(64)
+                  remarks: Authoritative payment gateway order reference
+              - column:
+                  name: payment_intent_id
+                  type: VARCHAR(64)
+                  remarks: Original client/server payment intent identifier
+              - column:
+                  name: net_online_amount
+                  type: NUMERIC(12, 2)
+                  remarks: Actual amount paid online via payment gateway
+              - column:
+                  name: wallet_discount
+                  type: NUMERIC(12, 2)
+                  remarks: Authoritative TRI coins or wallet deduction applied
+        - createIndex:
+            tableName: offline_payments
+            indexName: idx_offline_payments_gateway_payment_id
+            columns:
+              - column:
+                  name: gateway_payment_id
+        - createIndex:
+            tableName: offline_payments
+            indexName: idx_offline_payments_payment_intent_id
+            columns:
+              - column:
+                  name: payment_intent_id

@@ -78,6 +78,7 @@ public class ShopService {
                 normalizeMoney(request.getMin_order_value()),
                 normalizeMoney(request.getBase_delivery_fee()),
                 normalizeMoney(request.getDiscount_percent()),
+                normalizeMoney(request.getScan_pay_commission_percent()),
                 now,
                 shopImageUrl,
                 bannerUrl
@@ -263,6 +264,9 @@ public class ShopService {
             Double discountPercent = request.getDiscount_percent() != null
                 ? normalizeMoney(request.getDiscount_percent())
                 : normalizeMoney(existing.getDiscountPercent());
+            Double scanPayCommissionPercent = request.getScan_pay_commission_percent() != null
+                ? normalizeMoney(request.getScan_pay_commission_percent())
+                : normalizeMoney(existing.getScanPayCommissionPercent());
 
             String finalShopImage = shopImageUrl != null ? shopImageUrl : stripMediaBaseUrl(existing.getShop_image());
             String finalBanner = bannerUrl != null ? bannerUrl : stripMediaBaseUrl(existing.getBanner());
@@ -285,6 +289,7 @@ public class ShopService {
                 minOrderValue,
                 baseDeliveryFee,
                 discountPercent,
+                scanPayCommissionPercent,
                 finalShopImage,
                 finalBanner
             );

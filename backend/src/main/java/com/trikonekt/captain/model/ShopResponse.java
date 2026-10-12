@@ -50,6 +50,9 @@ public class ShopResponse {
     @JsonProperty("discount_percent")
     private Double discountPercent;
 
+    @JsonProperty("scan_pay_commission_percent")
+    private Double scanPayCommissionPercent;
+
     @JsonProperty("distance_km")
     private Double distanceKm;
 

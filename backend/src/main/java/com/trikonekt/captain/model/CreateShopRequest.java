@@ -30,4 +30,5 @@ public class CreateShopRequest {
     private Double min_order_value;
     private Double base_delivery_fee;
     private Double discount_percent;
+    private Double scan_pay_commission_percent;
 }

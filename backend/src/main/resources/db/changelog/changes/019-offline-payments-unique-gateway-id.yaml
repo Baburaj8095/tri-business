@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 019-offline-payments-unique-gateway-id
+      author: antigravity
+      validCheckSum: ANY
+      changes:
+        - addUniqueConstraint:
+            tableName: offline_payments
+            columnNames: gateway_payment_id
+            constraintName: uq_offline_payments_gateway_payment_id
+        - addUniqueConstraint:
+            tableName: offline_payments
+            columnNames: payment_intent_id
+            constraintName: uq_offline_payments_payment_intent_id
