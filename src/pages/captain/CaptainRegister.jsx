@@ -16,7 +16,7 @@ const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
   || window.REACT_APP_CAPTAIN_API_URL
   || 'https://api-captain.trikonektbusiness.com/api';
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 4;
 
 const CATEGORIES = [
   "Grocery & Daily Needs",
@@ -295,34 +295,24 @@ const UnifiedRegister = ({ initialRole = null }) => {
   }, []);
 
   /* ── Validation ── */
+  /* ── Validation ── */
   const validate = (s) => {
     const e = {};
     if (s === 1) {
       if (!sponsorInfo || !sponsorInfo.valid) {
-        e.sponsor = role === 'BUSINESS'
-          ? 'Verify your Captain Sponsor to proceed'
-          : 'Verify your Sponsor ID to proceed';
+        e.sponsor = 'Verify your Captain Sponsor to proceed';
       }
     }
     if (s === 2) {
-      if (role === 'BUSINESS') {
-        if (!form.businessName.trim()) e.businessName = 'Business name is required';
-        if (!form.fullName.trim()) e.fullName = 'Owner name is required';
-      } else {
-        if (!form.fullName.trim()) e.fullName = 'Full name is required';
-      }
+      if (!form.businessName.trim()) e.businessName = 'Business name is required';
+      if (!form.fullName.trim()) e.fullName = 'Owner full name is required';
       if (!/^\d{10}$/.test(form.phone.replace(/\D/g, ''))) e.phone = 'Valid 10-digit mobile number required';
       if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Enter a valid email address';
+      if (form.pincode.length !== 6) e.pincode = 'Valid 6-digit pincode is required';
     }
     if (s === 3) {
-      if (form.pincode.length !== 6) e.pincode = 'Valid 6-digit pincode is required';
-      if (role === 'BUSINESS' && !form.address.trim()) e.address = 'Store address is required';
-    }
-    if (s === 4) {
       if (form.password.length < 8) e.password = 'Password must be at least 8 characters';
       if (form.confirmPassword !== form.password) e.confirmPassword = 'Passwords do not match';
-    }
-    if (s === 5) {
       if (!form.termsAccepted) e.termsAccepted = 'Please accept Terms & Conditions';
     }
     setErrors(e);
@@ -347,103 +337,67 @@ const UnifiedRegister = ({ initialRole = null }) => {
 
   /* ── Submit ── */
   const handleSubmit = async () => {
-    if (!validate(5)) return;
+    if (!validate(3)) {
+      setStep(3);
+      return;
+    }
     setLoading(true);
     setAlertMsg('');
 
     try {
-      if (role === 'BUSINESS') {
-        const backendCategory = form.businessModel === 'B2B' ? 'merchant_business' : 'consumer_business';
-        const payload = {
-          sponsorId: (sponsorInfo?.sponsorId || sponsorId).trim(),
-          fullName: form.fullName.trim(),
-          businessName: form.businessName.trim(),
-          phone: form.phone.replace(/\D/g, ''),
-          email: form.email.trim() || undefined,
-          password: form.password,
-          address: form.address.trim() || `${form.district || 'City'}, Pincode: ${form.pincode}`,
-          city: form.district.trim() || 'Bengaluru',
-          pincode: form.pincode,
-          serviceMode: form.serviceMode,
-          category: backendCategory,
-          discountPercent: 5.0,
-        };
-
-        const res = await fetch(`${CAPTAIN_API}/captain/merchant/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-
-        if (res.ok || res.status === 201) {
-          const data = await res.json().catch(() => ({}));
-          const token = data.access || data.token;
-          if (token) {
-            localStorage.setItem('token_business', token);
-            if (data.username) localStorage.setItem('business_username', data.username);
-            if (data.fullName || data.full_name) localStorage.setItem('business_full_name', data.fullName || data.full_name);
-            localStorage.setItem('service_mode_business', form.serviceMode);
-            localStorage.setItem('user_category', backendCategory);
-          }
-          localStorage.removeItem(storageKey);
-          setSubmitted(true);
-        } else {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.message || err.error || err.detail || 'Registration failed. Check if phone is already registered.');
-        }
-      } else {
-        const payload = {
-          sponsorId: (sponsorInfo?.sponsorId || sponsorId).trim().toUpperCase(),
-          fullName: form.fullName.trim(),
-          phone: form.phone.replace(/\D/g, ''),
-          email: form.email.trim() || null,
-          pincode: form.pincode,
-          district: form.district,
-          state: form.state,
-          password: form.password,
-          category: 'agency_sub_franchise',
-          role: 'agency',
-        };
-
-        const res = await fetch(`${CAPTAIN_API}/captain/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-
-        if (res.ok || res.status === 201) {
-          localStorage.removeItem(storageKey);
-          setSubmitted(true);
-        } else {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.message || err.detail || 'Registration failed. Check if phone is already registered.');
-        }
+      const backendCategory = (form.salesType === 'B2B') ? 'merchant_business' : 'consumer_business';
+      let resolvedServiceMode = form.operatingModel; // 'ONLINE' | 'OFFLINE' | 'TRIZONE'
+      if (resolvedServiceMode === 'TRIZONE') {
+        resolvedServiceMode = 'BOTH';
       }
-    } catch (error) {
-      if (error.message && (error.message.includes('already registered') || error.message.includes('exists'))) {
-        setAlertMsg(error.message);
-      } else {
+
+      const payload = {
+        sponsorId: (sponsorInfo?.sponsorId || sponsorId).trim().toUpperCase(),
+        fullName: form.fullName.trim(),
+        businessName: form.businessName.trim(),
+        phone: form.phone.replace(/\D/g, ''),
+        email: form.email.trim() || undefined,
+        password: form.password,
+        address: `${form.district || 'City'}, Pincode: ${form.pincode}`,
+        city: form.district?.trim() || 'Bengaluru',
+        pincode: form.pincode,
+        serviceMode: resolvedServiceMode,
+        category: backendCategory,
+        discountPercent: 5.0,
+      };
+
+      const res = await fetch(`${CAPTAIN_API}/captain/merchant/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (res.ok || res.status === 201) {
+        const token = data.access || data.token;
+        if (token) {
+          localStorage.setItem('token_business', token);
+          if (data.username) localStorage.setItem('business_username', data.username);
+          if (data.fullName || data.full_name) localStorage.setItem('business_full_name', data.fullName || data.full_name);
+          localStorage.setItem('service_mode_business', resolvedServiceMode);
+          localStorage.setItem('user_category', backendCategory);
+        }
         localStorage.removeItem(storageKey);
         setSubmitted(true);
+      } else {
+        throw new Error(data.message || data.error || data.detail || 'Registration failed. Check if phone is already registered.');
       }
+    } catch (error) {
+      setAlertMsg(error.message || 'Registration failed. Please check details and try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const captainId = `CB${form.phone.replace(/\D/g, '')}`;
   const strength = getStrength(form.password);
 
-  const copyId = () => {
-    navigator.clipboard.writeText(captainId).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
+  const stepLabels = ['Sponsor', 'Business', 'Security', 'Review'];
 
-  const stepLabels = role === 'BUSINESS'
-    ? ['Sponsor', 'Business', 'Store', 'Security', 'Review']
-    : ['Sponsor', 'Personal', 'Territory', 'Security', 'Review'];
 
   return (
     <Box sx={{
@@ -813,339 +767,149 @@ const UnifiedRegister = ({ initialRole = null }) => {
               )}
 
               {/* ══════════════════════════════════════════
-                  STEP 2: BUSINESS / PERSONAL DETAILS
-                  (Matches Mockup Screen 4)
+                  STEP 2: BUSINESS & MODEL SETUP
               ══════════════════════════════════════════ */}
               {step === 2 && (
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ mb: 2.5 }}>
                     <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#102033', letterSpacing: '-0.02em', mb: 0.4 }}>
-                      {role === 'BUSINESS' ? 'Business Details' : 'Personal Details'}
+                      Business & Model Setup
                     </Typography>
                     <Typography sx={{ color: '#64748b', fontSize: '0.82rem', fontWeight: 500 }}>
-                      {role === 'BUSINESS' ? 'Enter your legal business information.' : 'Provide your personal details for franchise registration.'}
+                      Choose your business operating model and enter legal owner details.
                     </Typography>
                   </Box>
 
                   <Stack spacing={2} sx={{ mb: 3 }}>
-                    {role === 'BUSINESS' ? (
-                      <>
-                        <Box>
-                          <FieldLabel label="Business Name" required error={errors.businessName} />
-                          <TextField
-                            fullWidth
-                            value={form.businessName}
-                            onChange={e => setForm(p => ({ ...p, businessName: e.target.value }))}
-                            placeholder="Online 1"
-                            sx={inputSx(!!errors.businessName)}
-                          />
-                          {errors.businessName && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.businessName}</Typography>}
-                        </Box>
+                    <Box>
+                      <FieldLabel label="Business Name" required error={errors.businessName} />
+                      <TextField
+                        fullWidth
+                        value={form.businessName}
+                        onChange={e => setForm(p => ({ ...p, businessName: e.target.value }))}
+                        placeholder="e.g. Metro Mart / Online B2C Store"
+                        sx={inputSx(!!errors.businessName)}
+                      />
+                      {errors.businessName && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.businessName}</Typography>}
+                    </Box>
 
-                        <Box>
-                          <FieldLabel label="Business Category" required />
-                          <FormControl fullWidth>
-                            <Select
-                              value={form.category}
-                              onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
+                    <Box>
+                      <FieldLabel label="Business Category" required />
+                      <FormControl fullWidth>
+                        <Select
+                          value={form.category}
+                          onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
+                          sx={{
+                            borderRadius: '12px', bgcolor: '#ffffff', fontSize: '0.92rem', fontWeight: 600,
+                            '& fieldset': { borderColor: '#cbd5e1', borderWidth: 1.5 },
+                            '&:hover fieldset': { borderColor: '#087F5B' },
+                            '&.Mui-focused fieldset': { borderColor: '#087F5B', borderWidth: 2 },
+                          }}
+                        >
+                          {CATEGORIES.map(c => (
+                            <MenuItem key={c} value={c} sx={{ fontSize: '0.86rem', fontWeight: 600, py: 1 }}>
+                              {c}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Box>
+
+                    {/* Business Operating Model (Online / Offline / TriZone) */}
+                    <Box>
+                      <FieldLabel label="Business Operating Model" required />
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.2 }}>
+                        {[
+                          { id: 'ONLINE', icon: '🌐', title: 'Online', desc: 'Sell on Trikonekt Online Marketplace' },
+                          { id: 'OFFLINE', icon: '🏬', title: 'Offline', desc: 'Physical Store (Scan & Pay QR)' },
+                          { id: 'TRIZONE', icon: '⚖️', title: 'TriZone', desc: 'Territory Hyperlocal Network' },
+                        ].map(m => {
+                          const isSelected = form.operatingModel === m.id;
+                          return (
+                            <Box
+                              key={m.id}
+                              onClick={() => setForm(p => ({ ...p, operatingModel: m.id, serviceMode: m.id === 'TRIZONE' ? 'BOTH' : m.id }))}
                               sx={{
-                                borderRadius: '12px', bgcolor: '#ffffff', fontSize: '0.92rem', fontWeight: 600,
-                                '& fieldset': { borderColor: '#cbd5e1', borderWidth: 1.5 },
-                                '&:hover fieldset': { borderColor: '#087F5B' },
-                                '&.Mui-focused fieldset': { borderColor: '#087F5B', borderWidth: 2 },
+                                p: 1.6,
+                                borderRadius: '14px',
+                                border: `1.5px solid ${isSelected ? '#087F5B' : '#e2e8f0'}`,
+                                bgcolor: isSelected ? '#f0fdf4' : '#ffffff',
+                                cursor: 'pointer',
+                                textAlign: 'center',
+                                transition: 'all 0.15s ease',
+                                '&:hover': { borderColor: '#087F5B' },
                               }}
                             >
-                              {CATEGORIES.map(c => (
-                                <MenuItem key={c} value={c} sx={{ fontSize: '0.86rem', fontWeight: 600, py: 1 }}>
-                                  {c}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Box>
-
-                        {/* Business Operating Model (Exact Match to 3 Cards in Mockup) */}
-                        <Box>
-                          <FieldLabel label="Business Operating Model" required />
-                          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.2 }}>
-                            {[
-                              { id: 'ONLINE', icon: '🌐', title: 'Online', desc: 'Sell on Trikonekt Online' },
-                              { id: 'OFFLINE', icon: '🏬', title: 'Offline', desc: 'Physical Store (Scan & Pay)' },
-                              { id: 'TRIZONE', icon: '⚖️', title: 'TriZone', desc: 'Territory based business model' },
-                            ].map(m => {
-                              const isSelected = form.operatingModel === m.id;
-                              return (
-                                <Box
-                                  key={m.id}
-                                  onClick={() => setForm(p => ({ ...p, operatingModel: m.id, serviceMode: m.id === 'TRIZONE' ? 'BOTH' : m.id }))}
-                                  sx={{
-                                    p: 1.6,
-                                    borderRadius: '14px',
-                                    border: `1.5px solid ${isSelected ? '#087F5B' : '#e2e8f0'}`,
-                                    bgcolor: isSelected ? '#f0fdf4' : '#ffffff',
-                                    cursor: 'pointer',
-                                    textAlign: 'center',
-                                    transition: 'all 0.15s ease',
-                                    '&:hover': { borderColor: '#087F5B' },
-                                  }}
-                                >
-                                  <Typography sx={{ fontSize: 24, mb: 0.5 }}>{m.icon}</Typography>
-                                  <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: isSelected ? '#087F5B' : '#0f172a', mb: 0.3 }}>
-                                    {m.title}
-                                  </Typography>
-                                  <Typography sx={{ fontSize: '0.66rem', color: '#64748b', lineHeight: 1.3 }}>
-                                    {m.desc}
-                                  </Typography>
-                                </Box>
-                              );
-                            })}
-                          </Box>
-                        </Box>
-
-                        {/* Sales Type (Exact Match to 3 Cards in Mockup) */}
-                        <Box>
-                          <FieldLabel label="Sales Type" required />
-                          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.2 }}>
-                            {[
-                              { id: 'B2B', title: 'B2B', desc: 'Business' },
-                              { id: 'B2C', title: 'B2C', desc: 'Consumer' },
-                              { id: 'BOTH', title: 'Both', desc: 'B2B & B2C' },
-                            ].map(s => {
-                              const isSelected = form.salesType === s.id;
-                              return (
-                                <Box
-                                  key={s.id}
-                                  onClick={() => setForm(p => ({ ...p, salesType: s.id, businessModel: s.id === 'BOTH' ? 'B2C' : s.id }))}
-                                  sx={{
-                                    p: 1.4,
-                                    borderRadius: '14px',
-                                    border: `1.5px solid ${isSelected ? '#087F5B' : '#e2e8f0'}`,
-                                    bgcolor: isSelected ? '#f0fdf4' : '#ffffff',
-                                    cursor: 'pointer',
-                                    textAlign: 'center',
-                                    transition: 'all 0.15s ease',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    '&:hover': { borderColor: '#087F5B' },
-                                  }}
-                                >
-                                  <Typography sx={{ fontWeight: 800, fontSize: '0.86rem', color: isSelected ? '#087F5B' : '#0f172a' }}>
-                                    {s.title}
-                                  </Typography>
-                                  <Typography sx={{ fontSize: '0.68rem', color: '#64748b' }}>
-                                    {s.desc}
-                                  </Typography>
-                                </Box>
-                              );
-                            })}
-                          </Box>
-                        </Box>
-                      </>
-                    ) : (
-                      <>
-                        <Box>
-                          <FieldLabel label="Full Name" required error={errors.fullName} />
-                          <TextField
-                            fullWidth
-                            value={form.fullName}
-                            onChange={e => setForm(p => ({ ...p, fullName: e.target.value }))}
-                            placeholder="Captain Rajesh"
-                            sx={inputSx(!!errors.fullName)}
-                          />
-                          {errors.fullName && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.fullName}</Typography>}
-                        </Box>
-
-                        <Box>
-                          <FieldLabel label="Mobile Number" required error={errors.phone} />
-                          <TextField
-                            fullWidth
-                            value={form.phone}
-                            onChange={e => setForm(p => ({ ...p, phone: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
-                            placeholder="9876543210"
-                            inputMode="numeric"
-                            sx={inputSx(!!errors.phone)}
-                            InputProps={{
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <Typography sx={{ fontWeight: 700, color: '#64748b', fontSize: '0.88rem', mr: 0.5 }}>+91</Typography>
-                                </InputAdornment>
-                              ),
-                            }}
-                          />
-                          {errors.phone && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.phone}</Typography>}
-                        </Box>
-
-                        <Box>
-                          <FieldLabel label="Official Email" badge="(Optional)" error={errors.email} />
-                          <TextField
-                            fullWidth
-                            value={form.email}
-                            onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                            placeholder="captain@trikonekt.com"
-                            type="email"
-                            sx={inputSx(!!errors.email)}
-                          />
-                        </Box>
-                      </>
-                    )}
-                  </Stack>
-                </Box>
-              )}
-
-              {/* ══════════════════════════════════════════
-                  STEP 3: STORE & LOCATION SETUP
-                  (Matches Mockup Screen 5)
-              ══════════════════════════════════════════ */}
-              {step === 3 && (
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Box sx={{ mb: 2.5 }}>
-                    <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#102033', letterSpacing: '-0.02em', mb: 0.4 }}>
-                      {role === 'BUSINESS' ? 'Store Details' : 'Territory Details'}
-                    </Typography>
-                    <Typography sx={{ color: '#64748b', fontSize: '0.82rem', fontWeight: 500 }}>
-                      {role === 'BUSINESS' ? 'Add your store location and operating details.' : 'Configure your assigned franchise area and territory.'}
-                    </Typography>
-                  </Box>
-
-                  <Stack spacing={2} sx={{ mb: 3 }}>
-                    <Box>
-                      <FieldLabel label="Store Name" required error={errors.storeName} />
-                      <TextField
-                        fullWidth
-                        value={form.storeName || ''}
-                        onChange={e => setForm(p => ({ ...p, storeName: e.target.value }))}
-                        placeholder="Online 1 Store"
-                        sx={inputSx(!!errors.storeName)}
-                      />
-                      {errors.storeName && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.storeName}</Typography>}
-                    </Box>
-
-                    <Box>
-                      <FieldLabel label="Store Address" required error={errors.address} />
-                      <TextField
-                        fullWidth
-                        value={form.address || ''}
-                        onChange={e => setForm(p => ({ ...p, address: e.target.value, storeAddress: e.target.value }))}
-                        placeholder="#12, 1st Main Road, Rajajinagar"
-                        sx={inputSx(!!errors.address)}
-                      />
-                      {errors.address && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.address}</Typography>}
-                    </Box>
-
-                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.2 }}>
-                      <Box>
-                        <FieldLabel label="State" required />
-                        <TextField
-                          fullWidth
-                          value={form.state || ''}
-                          onChange={e => setForm(p => ({ ...p, state: e.target.value }))}
-                          placeholder="Karnataka"
-                          sx={inputSx(false)}
-                        />
-                      </Box>
-                      <Box>
-                        <FieldLabel label="City" required />
-                        <TextField
-                          fullWidth
-                          value={form.district || ''}
-                          onChange={e => setForm(p => ({ ...p, district: e.target.value }))}
-                          placeholder="Bengaluru"
-                          sx={inputSx(false)}
-                        />
+                              <Typography sx={{ fontSize: 24, mb: 0.5 }}>{m.icon}</Typography>
+                              <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: isSelected ? '#087F5B' : '#0f172a', mb: 0.3 }}>
+                                {m.title}
+                              </Typography>
+                              <Typography sx={{ fontSize: '0.66rem', color: '#64748b', lineHeight: 1.3 }}>
+                                {m.desc}
+                              </Typography>
+                            </Box>
+                          );
+                        })}
                       </Box>
                     </Box>
 
+                    {/* Sales Type (B2B / B2C / Both) */}
                     <Box>
-                      <FieldLabel label="Pincode" required error={errors.pincode} />
-                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                        <TextField
-                          fullWidth
-                          value={form.pincode || ''}
-                          onChange={e => handlePincodeChange(e.target.value)}
-                          placeholder="560010"
-                          inputMode="numeric"
-                          sx={inputSx(!!errors.pincode)}
-                          InputProps={{
-                            endAdornment: form.pincodeLoading ? (
-                              <InputAdornment position="end"><CircularProgress size={16} sx={{ color: '#087F5B' }} /></InputAdornment>
-                            ) : null,
-                          }}
-                        />
-                        <Button
-                          variant="outlined"
-                          onClick={() => {
-                            if (navigator.geolocation) {
-                              navigator.geolocation.getCurrentPosition((pos) => {
-                                setForm(p => ({
-                                  ...p,
-                                  latitude: pos.coords.latitude,
-                                  longitude: pos.coords.longitude
-                                }));
-                              });
-                            }
-                          }}
-                          sx={{
-                            whiteSpace: 'nowrap',
-                            minWidth: 150,
-                            borderRadius: '12px',
-                            borderColor: '#cbd5e1',
-                            color: '#087F5B',
-                            fontWeight: 700,
-                            fontSize: '0.75rem',
-                            textTransform: 'none',
-                            py: 1.2,
-                            '&:hover': { borderColor: '#087F5B', bgcolor: '#f0fdf4' }
-                          }}
-                          startIcon={<LocationOn sx={{ fontSize: 18 }} />}
-                        >
-                          Use Current Location
-                        </Button>
+                      <FieldLabel label="Sales Type" required />
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.2 }}>
+                        {[
+                          { id: 'B2B', title: 'B2B', desc: 'Wholesale Business' },
+                          { id: 'B2C', title: 'B2C', desc: 'Retail Consumer' },
+                          { id: 'BOTH', title: 'Both', desc: 'B2B & B2C Multi-tier' },
+                        ].map(s => {
+                          const isSelected = form.salesType === s.id;
+                          return (
+                            <Box
+                              key={s.id}
+                              onClick={() => setForm(p => ({ ...p, salesType: s.id, businessModel: s.id === 'BOTH' ? 'B2C' : s.id }))}
+                              sx={{
+                                p: 1.4,
+                                borderRadius: '14px',
+                                border: `1.5px solid ${isSelected ? '#087F5B' : '#e2e8f0'}`,
+                                bgcolor: isSelected ? '#f0fdf4' : '#ffffff',
+                                cursor: 'pointer',
+                                textAlign: 'center',
+                                transition: 'all 0.15s ease',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                '&:hover': { borderColor: '#087F5B' },
+                              }}
+                            >
+                              <Typography sx={{ fontWeight: 800, fontSize: '0.86rem', color: isSelected ? '#087F5B' : '#0f172a' }}>
+                                {s.title}
+                              </Typography>
+                              <Typography sx={{ fontSize: '0.68rem', color: '#64748b' }}>
+                                {s.desc}
+                              </Typography>
+                            </Box>
+                          );
+                        })}
                       </Box>
-                      {errors.pincode && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.pincode}</Typography>}
                     </Box>
 
+                    {/* Owner Full Name */}
                     <Box>
-                      <FieldLabel label="Store Contact Number" required error={errors.storeContactNumber} />
+                      <FieldLabel label="Owner Full Name" required error={errors.fullName} />
                       <TextField
                         fullWidth
-                        value={form.storeContactNumber || form.phone}
-                        onChange={e => setForm(p => ({ ...p, storeContactNumber: e.target.value.replace(/\D/g, '').slice(0, 10), phone: p.phone || e.target.value.replace(/\D/g, '').slice(0, 10) }))}
-                        placeholder="9876543210"
-                        inputMode="numeric"
-                        sx={inputSx(!!errors.storeContactNumber)}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Typography sx={{ fontWeight: 700, color: '#64748b', fontSize: '0.88rem', mr: 0.5 }}>+91</Typography>
-                            </InputAdornment>
-                          ),
-                        }}
+                        value={form.fullName}
+                        onChange={e => setForm(p => ({ ...p, fullName: e.target.value }))}
+                        placeholder="e.g. Ramesh Kumar"
+                        sx={inputSx(!!errors.fullName)}
                       />
-                      {errors.storeContactNumber && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.storeContactNumber}</Typography>}
+                      {errors.fullName && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.fullName}</Typography>}
                     </Box>
-                  </Stack>
-                </Box>
-              )}
 
-              {/* ══════════════════════════════════════════
-                  STEP 4: SECURITY & CREDENTIALS
-              ══════════════════════════════════════════ */}
-              {step === 4 && (
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Box sx={{ mb: 2.5 }}>
-                    <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', letterSpacing: '-0.02em', mb: 0.4 }}>
-                      Account Security
-                    </Typography>
-                    <Typography sx={{ color: '#64748b', fontSize: '0.82rem', fontWeight: 500 }}>
-                      Set up your login credentials.
-                    </Typography>
-                  </Box>
-
-                  <Stack spacing={2} sx={{ mb: 3 }}>
+                    {/* Mobile Number */}
                     <Box>
-                      <FieldLabel label="Mobile Number" required error={errors.phone} />
+                      <FieldLabel label="Mobile Number (Login ID)" required error={errors.phone} />
                       <TextField
                         fullWidth
                         value={form.phone}
@@ -1166,12 +930,90 @@ const UnifiedRegister = ({ initialRole = null }) => {
                           ) : null,
                         }}
                       />
-                      <Typography sx={{ fontSize: '0.72rem', color: '#64748b', mt: 0.4 }}>
-                        This number will be used for login.
-                      </Typography>
                       {errors.phone && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.phone}</Typography>}
                     </Box>
 
+                    {/* Official Email */}
+                    <Box>
+                      <FieldLabel label="Official Email" badge="(Optional)" error={errors.email} />
+                      <TextField
+                        fullWidth
+                        value={form.email}
+                        onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                        placeholder="merchant@trikonekt.com"
+                        type="email"
+                        sx={inputSx(!!errors.email)}
+                      />
+                      {errors.email && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.email}</Typography>}
+                    </Box>
+
+                    {/* Business Pincode with Auto Location */}
+                    <Box>
+                      <FieldLabel label="Business Location Pincode" required error={errors.pincode} />
+                      <TextField
+                        fullWidth
+                        value={form.pincode || ''}
+                        onChange={e => handlePincodeChange(e.target.value)}
+                        placeholder="e.g. 560001"
+                        inputMode="numeric"
+                        sx={inputSx(!!errors.pincode)}
+                        InputProps={{
+                          endAdornment: form.pincodeLoading ? (
+                            <InputAdornment position="end"><CircularProgress size={16} sx={{ color: '#087F5B' }} /></InputAdornment>
+                          ) : form.pincodeVerified ? (
+                            <InputAdornment position="end">
+                              <CheckCircle sx={{ color: '#10b981', fontSize: 20 }} />
+                            </InputAdornment>
+                          ) : null,
+                        }}
+                      />
+                      {form.district && form.state && (
+                        <Typography sx={{ fontSize: '0.74rem', color: '#047857', fontWeight: 700, mt: 0.5 }}>
+                          📍 {form.district}, {form.state}
+                        </Typography>
+                      )}
+                      {errors.pincode && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.pincode}</Typography>}
+                    </Box>
+
+                    {/* Post-Registration Dashboard Info Note */}
+                    <Box sx={{
+                      bgcolor: '#f8fafc',
+                      borderRadius: '14px',
+                      p: 1.8,
+                      border: '1px solid #e2e8f0',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 1.2,
+                    }}>
+                      <Typography sx={{ color: '#047857', fontSize: 18, lineHeight: 1 }}>ⓘ</Typography>
+                      <Box>
+                        <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b', mb: 0.2 }}>
+                          Store Setup & KYC Completed in Dashboard
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.72rem', color: '#64748b', lineHeight: 1.4 }}>
+                          Store location, POS scanner, inventory catalog, and official verification (PAN & GST) are configured easily inside your Merchant Dashboard after login.
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Stack>
+                </Box>
+              )}
+
+              {/* ══════════════════════════════════════════
+                  STEP 3: SECURITY & CREDENTIALS
+              ══════════════════════════════════════════ */}
+              {step === 3 && (
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <Box sx={{ mb: 2.5 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', letterSpacing: '-0.02em', mb: 0.4 }}>
+                      Account Security
+                    </Typography>
+                    <Typography sx={{ color: '#64748b', fontSize: '0.82rem', fontWeight: 500 }}>
+                      Set up your login password and accept terms.
+                    </Typography>
+                  </Box>
+
+                  <Stack spacing={2} sx={{ mb: 3 }}>
                     <Box>
                       <FieldLabel label="Set Password" required error={errors.password} />
                       <TextField
@@ -1222,7 +1064,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                       {errors.confirmPassword && <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600, mt: 0.5 }}>{errors.confirmPassword}</Typography>}
                     </Box>
 
-                    {/* 4 Password Rules Checklist (Exact Match to Mockup) */}
+                    {/* 4 Password Rules Checklist */}
                     <Box sx={{ mt: 1 }}>
                       <Stack spacing={0.6}>
                         {[
@@ -1247,133 +1089,6 @@ const UnifiedRegister = ({ initialRole = null }) => {
                         ))}
                       </Stack>
                     </Box>
-                  </Stack>
-                </Box>
-              )}
-
-              {/* ══════════════════════════════════════════
-                  STEP 5: REVIEW & SUBMIT
-                  (Matches Mockup Screen 6)
-              ══════════════════════════════════════════ */}
-              {step === 5 && (
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Box sx={{ mb: 2 }}>
-                    <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', letterSpacing: '-0.02em', mb: 0.3 }}>
-                      Review & Register
-                    </Typography>
-                    <Typography sx={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>
-                      Please review your information before creating your business account.
-                    </Typography>
-                  </Box>
-
-                  <Stack spacing={1.5} sx={{ mb: 3 }}>
-                    {/* Card 1: Sponsor Information */}
-                    <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Person sx={{ fontSize: 18, color: '#087F5B' }} />
-                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
-                            Sponsor Information
-                          </Typography>
-                        </Box>
-                        <Typography
-                          onClick={() => setStep(1)}
-                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#087F5B', cursor: 'pointer' }}
-                        >
-                          Edit
-                        </Typography>
-                      </Box>
-                      <Typography sx={{ fontSize: '0.82rem', color: '#0f172a', fontWeight: 700 }}>
-                        {sponsorInfo?.sponsorName || 'Captain Ramesh Kumar'}
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
-                        {sponsorInfo?.sponsorId || sponsorId}
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
-                        {sponsorInfo?.district || 'Bengaluru Urban'}
-                      </Typography>
-                    </Box>
-
-                    {/* Card 2: Business Information */}
-                    <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Store sx={{ fontSize: 18, color: '#087F5B' }} />
-                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
-                            Business Information
-                          </Typography>
-                        </Box>
-                        <Typography
-                          onClick={() => setStep(2)}
-                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#087F5B', cursor: 'pointer' }}
-                        >
-                          Edit
-                        </Typography>
-                      </Box>
-                      <Typography sx={{ fontSize: '0.82rem', color: '#0f172a', fontWeight: 700 }}>
-                        {form.businessName || 'Online 1'}
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
-                        {form.category}
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
-                        Operating Model: <strong>{form.operatingModel || 'Online'}</strong>
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
-                        Sales Type: <strong>{form.salesType || 'B2C'}</strong>
-                      </Typography>
-                    </Box>
-
-                    {/* Card 3: Store Information */}
-                    <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Storefront sx={{ fontSize: 18, color: '#087F5B' }} />
-                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
-                            Store Information
-                          </Typography>
-                        </Box>
-                        <Typography
-                          onClick={() => setStep(3)}
-                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#087F5B', cursor: 'pointer' }}
-                        >
-                          Edit
-                        </Typography>
-                      </Box>
-                      <Typography sx={{ fontSize: '0.82rem', color: '#0f172a', fontWeight: 700 }}>
-                        {form.storeName || form.businessName || 'Online 1 Store'}
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
-                        {form.address || '#12, 1st Main Road, Rajajinagar'}, {form.district || 'Bengaluru'}, {form.state || 'Karnataka'} - {form.pincode}
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
-                        +91 {form.storeContactNumber || form.phone}
-                      </Typography>
-                    </Box>
-
-                    {/* Card 4: Login Information */}
-                    <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Lock sx={{ fontSize: 18, color: '#087F5B' }} />
-                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
-                            Login Information
-                          </Typography>
-                        </Box>
-                        <Typography
-                          onClick={() => setStep(4)}
-                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#087F5B', cursor: 'pointer' }}
-                        >
-                          Edit
-                        </Typography>
-                      </Box>
-                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
-                        Mobile: +91 {form.phone}
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
-                        Password: ••••••••••
-                      </Typography>
-                    </Box>
 
                     {/* Terms & Conditions confirmation */}
                     <FormControlLabel
@@ -1391,6 +1106,130 @@ const UnifiedRegister = ({ initialRole = null }) => {
                         </Typography>
                       }
                     />
+                    {errors.termsAccepted && (
+                      <Typography sx={{ color: '#ef4444', fontSize: '0.74rem', fontWeight: 600 }}>
+                        {errors.termsAccepted}
+                      </Typography>
+                    )}
+                  </Stack>
+                </Box>
+              )}
+
+              {/* ══════════════════════════════════════════
+                  STEP 4: REVIEW & SUBMIT
+              ══════════════════════════════════════════ */}
+              {step === 4 && (
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', letterSpacing: '-0.02em', mb: 0.3 }}>
+                      Review & Register
+                    </Typography>
+                    <Typography sx={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>
+                      Please review your details before launching your business account.
+                    </Typography>
+                  </Box>
+
+                  <Stack spacing={1.5} sx={{ mb: 3 }}>
+                    {/* Card 1: Sponsor Information */}
+                    <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Person sx={{ fontSize: 18, color: '#087F5B' }} />
+                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
+                            Captain Sponsor
+                          </Typography>
+                        </Box>
+                        <Typography
+                          onClick={() => setStep(1)}
+                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#087F5B', cursor: 'pointer' }}
+                        >
+                          Edit
+                        </Typography>
+                      </Box>
+                      <Typography sx={{ fontSize: '0.82rem', color: '#0f172a', fontWeight: 700 }}>
+                        {sponsorInfo?.sponsorName || 'Captain Partner'}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        ID: {sponsorInfo?.sponsorId || sponsorId} • {sponsorInfo?.district || 'Territory'}
+                      </Typography>
+                    </Box>
+
+                    {/* Card 2: Business & Model Information */}
+                    <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Store sx={{ fontSize: 18, color: '#087F5B' }} />
+                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
+                            Business Details
+                          </Typography>
+                        </Box>
+                        <Typography
+                          onClick={() => setStep(2)}
+                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#087F5B', cursor: 'pointer' }}
+                        >
+                          Edit
+                        </Typography>
+                      </Box>
+                      <Typography sx={{ fontSize: '0.82rem', color: '#0f172a', fontWeight: 700 }}>
+                        {form.businessName}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        Category: {form.category}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        Model: <strong>{form.operatingModel === 'ONLINE' ? 'Online' : form.operatingModel === 'OFFLINE' ? 'Offline' : 'TriZone'} [{form.salesType}]</strong>
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        Location: {form.district || 'City'}, {form.state || 'State'} - {form.pincode}
+                      </Typography>
+                    </Box>
+
+                    {/* Card 3: Owner / Login Credentials */}
+                    <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Lock sx={{ fontSize: 18, color: '#087F5B' }} />
+                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
+                            Owner & Login ID
+                          </Typography>
+                        </Box>
+                        <Typography
+                          onClick={() => setStep(2)}
+                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#087F5B', cursor: 'pointer' }}
+                        >
+                          Edit
+                        </Typography>
+                      </Box>
+                      <Typography sx={{ fontSize: '0.82rem', color: '#0f172a', fontWeight: 700 }}>
+                        {form.fullName}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        Login Mobile: +91 {form.phone}
+                      </Typography>
+                      {form.email && (
+                        <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                          Email: {form.email}
+                        </Typography>
+                      )}
+                    </Box>
+
+                    {/* Post-Registration Roadmap Card */}
+                    <Box sx={{ bgcolor: '#f0fdf4', borderRadius: '16px', border: '1.5px solid #a7f3d0', p: 1.8 }}>
+                      <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#15803d', mb: 0.8 }}>
+                        ✓ Post-Registration Setup (Inside Dashboard)
+                      </Typography>
+                      <Stack spacing={0.5}>
+                        <Typography sx={{ fontSize: '0.73rem', color: '#334155' }}>
+                          1. <strong>Business KYC:</strong> Add PAN & GST documents for payout verification.
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.73rem', color: '#334155' }}>
+                          2. <strong>Store Details:</strong> Configure physical store location & Scan & Pay POS.
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.73rem', color: '#334155' }}>
+                          3. <strong>Product Catalog:</strong> Add wholesale/retail inventory items.
+                        </Typography>
+                      </Stack>
+                    </Box>
                   </Stack>
                 </Box>
               )}
@@ -1467,27 +1306,22 @@ const UnifiedRegister = ({ initialRole = null }) => {
               </Box>
 
               <Typography sx={{ fontWeight: 900, fontSize: '1.5rem', color: '#0f172a', mb: 0.5, letterSpacing: '-0.02em' }}>
-                {role === 'BUSINESS' ? 'Registration Successful!' : "You're all set!"}
+                Registration Successful!
               </Typography>
 
               <Typography sx={{ color: '#64748b', fontSize: '0.86rem', fontWeight: 500, mb: 3 }}>
-                {role === 'BUSINESS' ? 'Welcome to Trikonekt Business' : 'Your Trikonekt Captain account has been created.'}
+                Welcome to Trikonekt Business
               </Typography>
 
-              {/* 4 Green Bullet Items (Exact Match to Mockup Screen 8) */}
-              <Box sx={{ width: '100%', maxWidth: 300, textAlign: 'left', mb: 4 }}>
+              {/* 4 Green Bullet Items */}
+              <Box sx={{ width: '100%', maxWidth: 320, textAlign: 'left', mb: 4 }}>
                 <Stack spacing={1.5}>
-                  {(role === 'BUSINESS' ? [
-                    'Account created',
-                    'Business details saved',
-                    'Store location added',
-                    'Verification in progress',
-                  ] : [
-                    'Profile created',
-                    'Sponsor linked',
-                    'Territory submitted',
-                    'Verification pending',
-                  ]).map((item, i) => (
+                  {[
+                    'Merchant account created',
+                    `Model: ${form.operatingModel === 'ONLINE' ? 'Online' : form.operatingModel === 'OFFLINE' ? 'Offline' : 'TriZone'} [${form.salesType}]`,
+                    'Captain sponsor linked',
+                    'Ready for KYC & Store setup',
+                  ].map((item, i) => (
                     <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
                       <Box sx={{
                         width: 20, height: 20, borderRadius: '50%', bgcolor: '#10b981',
@@ -1503,28 +1337,11 @@ const UnifiedRegister = ({ initialRole = null }) => {
                 </Stack>
               </Box>
 
-              {/* Captain ID badge if captain */}
-              {role === 'CAPTAIN' && (
-                <Box sx={{
-                  display: 'inline-flex', alignItems: 'center', gap: 1.2,
-                  bgcolor: '#ecfdf5', border: '1.5px solid #a7f3d0',
-                  borderRadius: '12px', px: 2.2, py: 1, mb: 3,
-                }}>
-                  <Shield sx={{ color: '#047857', fontSize: 20 }} />
-                  <Typography sx={{ fontWeight: 800, fontSize: '1.15rem', color: '#047857', fontFamily: 'monospace' }}>
-                    {captainId}
-                  </Typography>
-                  <IconButton onClick={copyId} size="small" sx={{ color: '#64748b' }}>
-                    {copied ? <Done fontSize="small" sx={{ color: '#10b981' }} /> : <ContentCopy fontSize="small" />}
-                  </IconButton>
-                </Box>
-              )}
-
-              {/* Action Buttons (Exact Match to Mockup Screen 8) */}
+              {/* Action Buttons */}
               <Box sx={{ width: '100%', mt: 'auto' }}>
                 <Button
                   fullWidth
-                  onClick={() => navigate(role === 'BUSINESS' ? '/business-dashboard' : '/captain/home')}
+                  onClick={() => navigate('/business-dashboard')}
                   variant="contained"
                   sx={{
                     borderRadius: '12px',
@@ -1533,12 +1350,31 @@ const UnifiedRegister = ({ initialRole = null }) => {
                     py: 1.4,
                     bgcolor: '#047857',
                     fontSize: '0.94rem',
-                    mb: 1.5,
+                    mb: 1.2,
                     boxShadow: 'none',
                     '&:hover': { bgcolor: '#065f46' },
                   }}
                 >
-                  {role === 'BUSINESS' ? 'Go to Dashboard' : 'Go to Captain Dashboard'}
+                  Go to Business Dashboard →
+                </Button>
+
+                <Button
+                  fullWidth
+                  onClick={() => navigate('/business/kyc')}
+                  variant="outlined"
+                  sx={{
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    color: '#047857',
+                    borderColor: '#047857',
+                    py: 1.2,
+                    fontSize: '0.88rem',
+                    mb: 1,
+                    '&:hover': { bgcolor: '#f0fdf4', borderColor: '#065f46' },
+                  }}
+                >
+                  Complete KYC (PAN & GST) Now
                 </Button>
 
                 <Button
@@ -1549,12 +1385,12 @@ const UnifiedRegister = ({ initialRole = null }) => {
                     borderRadius: '12px',
                     textTransform: 'none',
                     fontWeight: 700,
-                    color: '#047857',
-                    fontSize: '0.88rem',
-                    '&:hover': { bgcolor: '#f0fdf4' },
+                    color: '#64748b',
+                    fontSize: '0.84rem',
+                    '&:hover': { bgcolor: '#f1f5f9' },
                   }}
                 >
-                  Go to Login
+                  Return to Login
                 </Button>
               </Box>
 
