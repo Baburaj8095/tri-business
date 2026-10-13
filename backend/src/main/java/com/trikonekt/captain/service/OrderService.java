@@ -350,6 +350,19 @@ public class OrderService {
                     product.getImage(),
                     product.getIs_active()
             );
+
+            productRepository.recordStockMovement(
+                    product.getId(),
+                    order.getShopId(),
+                    order.getUserId(),
+                    "CONSUMER",
+                    "ORDER_CONFIRMATION",
+                    -item.getQuantity(),
+                    currentStock,
+                    newStock,
+                    "Order confirmed: " + order.getOrderNumber(),
+                    order.getOrderNumber()
+            );
         }
     }
 
@@ -376,6 +389,19 @@ public class OrderService {
                         newStock,
                         product.getImage(),
                         product.getIs_active()
+                );
+
+                productRepository.recordStockMovement(
+                        product.getId(),
+                        order.getShopId(),
+                        order.getUserId(),
+                        "SYSTEM",
+                        "ORDER_CANCELLATION",
+                        item.getQuantity(),
+                        currentStock,
+                        newStock,
+                        "Order cancelled: " + order.getOrderNumber(),
+                        order.getOrderNumber()
                 );
             }
         }

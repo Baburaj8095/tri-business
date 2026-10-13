@@ -1635,6 +1635,11 @@ export async function createMyShopProduct(shopId, {
   is_active = true,
   image = null,
   category = "",
+  sku = "",
+  barcode = "",
+  low_stock_threshold = 5,
+  wholesale_price = null,
+  moq = 1,
 } = {}) {
   const fd = new FormData();
   if (title != null) fd.append("title", String(title));
@@ -1642,13 +1647,17 @@ export async function createMyShopProduct(shopId, {
   if (mrp != null) fd.append("mrp", String(mrp));
   if (discount_percent != null) fd.append("discount_percent", String(discount_percent));
   if (price != null) fd.append("price", String(price));
-  // booleans as strings so DRF parses truthy/falsy
   fd.append("online_delivery", String(Boolean(online_delivery)));
   fd.append("offline_delivery", String(Boolean(offline_delivery)));
   if (stock_qty != null) fd.append("stock_qty", String(stock_qty));
   if (is_active != null) fd.append("is_active", String(Boolean(is_active)));
   if (image) fd.append("image", image);
   if (category) fd.append("category", String(category));
+  if (sku) fd.append("sku", String(sku));
+  if (barcode) fd.append("barcode", String(barcode));
+  if (low_stock_threshold != null) fd.append("low_stock_threshold", String(low_stock_threshold));
+  if (wholesale_price != null) fd.append("wholesale_price", String(wholesale_price));
+  if (moq != null) fd.append("moq", String(moq));
 
   const res = await API.post(
     `/captain/merchant/shops/${encodeURIComponent(shopId)}/products`,
@@ -1663,7 +1672,6 @@ export async function updateMyShopProduct(productId, patch = {}) {
   const fd = new FormData();
   const append = (k, v) => {
     if (v === undefined) return;
-    // Pass File/Blob as-is
     if (typeof Blob !== "undefined" && v instanceof Blob) return fd.append(k, v);
     fd.append(k, String(v));
   };
@@ -1678,6 +1686,11 @@ export async function updateMyShopProduct(productId, patch = {}) {
   if ("is_active" in patch) append("is_active", Boolean(patch.is_active));
   if ("image" in patch && patch.image != null) append("image", patch.image);
   if (patch.category !== undefined) append("category", patch.category);
+  if (patch.sku !== undefined) append("sku", patch.sku);
+  if (patch.barcode !== undefined) append("barcode", patch.barcode);
+  if (patch.low_stock_threshold !== undefined) append("low_stock_threshold", patch.low_stock_threshold);
+  if (patch.wholesale_price !== undefined) append("wholesale_price", patch.wholesale_price);
+  if (patch.moq !== undefined) append("moq", patch.moq);
 
   const res = await API.put(
     `/captain/merchant/products/${encodeURIComponent(productId)}`,
@@ -1690,6 +1703,33 @@ export async function updateMyShopProduct(productId, patch = {}) {
 // Owner: delete a product
 export async function deleteMyShopProduct(productId) {
   const res = await API.delete(`/captain/merchant/products/${encodeURIComponent(productId)}`);
+  return res?.data || res;
+}
+
+// Owner: adjust product stock atomically (ADD, REDUCE, CORRECTION)
+export async function adjustProductStock(productId, adjustment = {}) {
+  const res = await API.post(
+    `/captain/merchant/products/${encodeURIComponent(productId)}/stock-adjustment`,
+    adjustment
+  );
+  return res?.data || res;
+}
+
+// Owner: get stock movement audit history for a product
+export async function getProductStockMovements(productId, limit = 20) {
+  const res = await API.get(
+    `/captain/merchant/products/${encodeURIComponent(productId)}/stock-movements`,
+    { params: { limit } }
+  );
+  return res?.data || res;
+}
+
+// Owner: find product by barcode or SKU
+export async function findProductByBarcode(shopId, barcode) {
+  const res = await API.get(
+    `/captain/merchant/shops/${encodeURIComponent(shopId)}/products/by-barcode`,
+    { params: { barcode } }
+  );
   return res?.data || res;
 }
 

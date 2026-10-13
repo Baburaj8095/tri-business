@@ -47,6 +47,17 @@ public class ShopProductResponse {
 
     private Boolean is_active;
 
+    private String sku;
+    private String barcode;
+
+    @JsonProperty("low_stock_threshold")
+    private Integer lowStockThreshold;
+
+    @JsonProperty("wholesale_price")
+    private Double wholesalePrice;
+
+    private Integer moq;
+
     @JsonProperty("created_at")
     private String createdAt;
 }

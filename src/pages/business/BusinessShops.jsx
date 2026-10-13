@@ -43,6 +43,8 @@ import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import MapIcon from "@mui/icons-material/Map";
 import GpsFixedIcon from "@mui/icons-material/GpsFixed";
 import DescriptionIcon from "@mui/icons-material/Description";
+import QrCode2Icon from "@mui/icons-material/QrCode2";
+import PrintIcon from "@mui/icons-material/Print";
 import { LuX } from "react-icons/lu";
 import PrimeMembershipModal from "../../components/business/PrimeMembershipModal";
 import { isMerchantPrime } from "../../utils/membershipHelper";
@@ -185,6 +187,7 @@ export default function BusinessShops() {
 
   // Toggle state to display/hide map picker
   const [showMapPicker, setShowMapPicker] = useState(false);
+  const [qrModalShop, setQrModalShop] = useState(null);
 
   async function fetchShops() {
     setLoading(true);
@@ -400,7 +403,8 @@ export default function BusinessShops() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.id && !isMerchantPrime()) {
+    // Primary shop is included with merchant onboarding; additional branch shops require Prime membership
+    if (!form.id && shops.length > 0 && !isMerchantPrime()) {
       setPrimeModalOpen(true);
       return;
     }
@@ -1303,6 +1307,24 @@ export default function BusinessShops() {
 
                         <IconButton
                           size="small"
+                          onClick={() => setQrModalShop(s)}
+                          sx={{
+                            bgcolor: '#eff6ff',
+                            color: '#1d4ed8',
+                            borderRadius: '10px',
+                            width: 38,
+                            height: 38,
+                            flexShrink: 0,
+                            border: '1px solid #bfdbfe',
+                            '&:hover': { bgcolor: '#dbeafe' }
+                          }}
+                          title="Scan & Pay QR Standee"
+                        >
+                          <QrCode2Icon sx={{ fontSize: 20 }} />
+                        </IconButton>
+
+                        <IconButton
+                          size="small"
                           onClick={() => startEdit(s)}
                           sx={{
                             bgcolor: '#f1f5f9',
@@ -1419,6 +1441,124 @@ export default function BusinessShops() {
           </Stack>
         </Stack>
       </Drawer>
+
+      {/* ── Official Merchant QR Standee Modal ── */}
+      <Dialog
+        open={Boolean(qrModalShop)}
+        onClose={() => setQrModalShop(null)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '24px', p: 1 } }}
+      >
+        {qrModalShop && (
+          <Box sx={{ p: 2 }}>
+            {/* Printable Standee Card */}
+            <Box 
+              id="printable-merchant-qr-standee"
+              sx={{
+                p: 3,
+                borderRadius: '20px',
+                bgcolor: '#ffffff',
+                border: '2px solid #00B6E3',
+                boxShadow: '0 8px 30px rgba(0, 182, 227, 0.12)',
+                textAlign: 'center',
+                position: 'relative',
+              }}
+            >
+              {/* Brand Banner */}
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ 
+                  display: 'inline-block',
+                  bgcolor: '#00B6E3', 
+                  color: 'white', 
+                  px: 2, 
+                  py: 0.5, 
+                  borderRadius: '999px',
+                  fontSize: '0.75rem',
+                  fontWeight: 900,
+                  letterSpacing: 1,
+                  textTransform: 'uppercase',
+                  mb: 1
+                }}>
+                  TRIKONEKT • SCAN &amp; PAY
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>
+                  {qrModalShop.shop_name}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, display: 'block' }}>
+                  {qrModalShop.address || qrModalShop.city} • PIN: {qrModalShop.pincode || '—'}
+                </Typography>
+              </Box>
+
+              {/* QR Code Container */}
+              <Box sx={{ 
+                p: 2, 
+                bgcolor: '#f8fafc', 
+                borderRadius: '16px', 
+                border: '1px solid #e2e8f0',
+                display: 'inline-block',
+                my: 1
+              }}>
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(`https://trikonekt.com/near-store/${qrModalShop.id}/pay`)}`}
+                  alt={`${qrModalShop.shop_name} Official QR`}
+                  style={{ width: 220, height: 220, display: 'block', borderRadius: 8 }}
+                />
+              </Box>
+
+              {/* Verification & Perks Badge */}
+              <Box sx={{ mt: 2, p: 1.5, bgcolor: '#ecfdf5', borderRadius: '12px', border: '1px solid #a7f3d0' }}>
+                <Typography sx={{ color: '#047857', fontWeight: 800, fontSize: '0.78rem' }}>
+                  ✓ Verified Trikonekt Merchant Standee
+                </Typography>
+                <Typography sx={{ color: '#065f46', fontSize: '0.7rem', fontWeight: 600, mt: 0.25 }}>
+                  Accepts UPI, Cards, Net Banking &amp; TRI Coins Cashback
+                </Typography>
+              </Box>
+
+              <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.68rem', display: 'block', mt: 2 }}>
+                Official Store ID: #{qrModalShop.id} • Scan with Tri Shopping or any UPI app
+              </Typography>
+            </Box>
+
+            {/* Action Buttons */}
+            <Stack direction="row" spacing={1.5} sx={{ mt: 2.5 }}>
+              <Button
+                fullWidth
+                variant="contained"
+                startIcon={<PrintIcon />}
+                onClick={() => window.print()}
+                sx={{
+                  borderRadius: '12px',
+                  bgcolor: '#0f172a',
+                  fontWeight: 800,
+                  py: 1,
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#1e293b' }
+                }}
+              >
+                Print Standee
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => setQrModalShop(null)}
+                sx={{
+                  borderRadius: '12px',
+                  borderColor: '#e2e8f0',
+                  color: '#64748b',
+                  fontWeight: 800,
+                  py: 1,
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#f8fafc' }
+                }}
+              >
+                Close
+              </Button>
+            </Stack>
+          </Box>
+        )}
+      </Dialog>
 
       <PrimeMembershipModal
         open={primeModalOpen}

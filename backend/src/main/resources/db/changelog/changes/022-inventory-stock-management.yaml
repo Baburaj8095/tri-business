@@ -1,0 +1,119 @@
+databaseChangeLog:
+  - changeSet:
+      id: 022-inventory-stock-management
+      author: trikonekt
+      validCheckSum: ANY
+      changes:
+        # ─── market_shopproduct: add barcode, threshold, wholesale & moq ───────
+        - addColumn:
+            tableName: market_shopproduct
+            columns:
+              - column:
+                  name: barcode
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: low_stock_threshold
+                  type: INT
+                  defaultValueNumeric: 5
+                  constraints:
+                    nullable: false
+              - column:
+                  name: wholesale_price
+                  type: NUMERIC(12, 2)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: moq
+                  type: INT
+                  defaultValueNumeric: 1
+                  constraints:
+                    nullable: false
+
+        # ─── Index for barcode lookups per shop ───────────────────────────────
+        - createIndex:
+            indexName: idx_shopproduct_shop_barcode
+            tableName: market_shopproduct
+            columns:
+              - column:
+                  name: shop_id
+              - column:
+                  name: barcode
+
+        # ─── product_stock_movements: durable stock audit ledger ─────────────
+        - createTable:
+            tableName: product_stock_movements
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: product_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: shop_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actor_user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actor_role
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: movement_type
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity_change
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: previous_stock
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: resulting_stock
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reason
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: reference_id
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+
+        # ─── Index for stock movements lookup per product ─────────────────────
+        - createIndex:
+            indexName: idx_stock_movements_prod
+            tableName: product_stock_movements
+            columns:
+              - column:
+                  name: product_id
+              - column:
+                  name: created_at

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Box,
   Typography,
@@ -27,6 +27,8 @@ import {
   Menu,
   Fab,
   Divider,
+  Switch,
+  FormControlLabel,
   alpha,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
@@ -51,10 +53,15 @@ import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RemoveIcon from "@mui/icons-material/Remove";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import HistoryIcon from "@mui/icons-material/History";
+import SwapVertIcon from "@mui/icons-material/SwapVert";
+import CameraAltIcon from "@mui/icons-material/CameraAlt";
+import FlashOnIcon from "@mui/icons-material/FlashOn";
+import BarcodeReaderIcon from "@mui/icons-material/DocumentScanner";
 
 import PrimeMembershipModal from "../../components/business/PrimeMembershipModal";
 import { isMerchantPrime } from "../../utils/membershipHelper";
@@ -68,6 +75,9 @@ import {
   listMyShopProducts,
   updateMyShopProduct,
   deleteMyShopProduct,
+  adjustProductStock,
+  getProductStockMovements,
+  findProductByBarcode,
 } from "../../api/api";
 
 const resolveImageUrl = (img) => {
@@ -152,7 +162,7 @@ export default function InventoryPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  // State
+  // Main State
   const [profile, setProfile] = useState(null);
   const [shops, setShops] = useState([]);
   const [selectedShop, setSelectedShop] = useState(null);
@@ -172,7 +182,26 @@ export default function InventoryPage() {
   const [stockDrawerOpen, setStockDrawerOpen] = useState(false);
   const [primeModalOpen, setPrimeModalOpen] = useState(false);
 
-  // Form State
+  // Barcode Scanner Modal State
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [manualBarcode, setManualBarcode] = useState("");
+  const [scannerError, setScannerError] = useState("");
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
+  // Stock Adjustment Drawer State
+  const [adjustDrawerOpen, setAdjustDrawerOpen] = useState(false);
+  const [adjustProduct, setAdjustProduct] = useState(null);
+  const [adjustType, setAdjustType] = useState("ADD"); // 'ADD' | 'REDUCE' | 'CORRECTION'
+  const [adjustQty, setAdjustQty] = useState("5");
+  const [adjustReason, setAdjustReason] = useState("Received supplier shipment");
+  const [adjustRef, setAdjustRef] = useState("");
+  const [adjustSubmitting, setAdjustSubmitting] = useState(false);
+  const [movementsTabOpen, setMovementsTabOpen] = useState(false);
+  const [movementsList, setMovementsList] = useState([]);
+  const [movementsLoading, setMovementsLoading] = useState(false);
+
+  // Product Form State
   const [editingProduct, setEditingProduct] = useState(null);
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
@@ -181,6 +210,13 @@ export default function InventoryPage() {
   const [formPrice, setFormPrice] = useState(""); // Selling price
   const [formCost, setFormCost] = useState(""); // Cost per item / MRP
   const [formQuantity, setFormQuantity] = useState("10");
+  const [formSku, setFormSku] = useState("");
+  const [formBarcode, setFormBarcode] = useState("");
+  const [formLowStockThreshold, setFormLowStockThreshold] = useState("5");
+  const [formWholesalePrice, setFormWholesalePrice] = useState("");
+  const [formMoq, setFormMoq] = useState("1");
+  const [formOnlineDelivery, setFormOnlineDelivery] = useState(true);
+  const [formOfflineDelivery, setFormOfflineDelivery] = useState(true);
   const [formImage, setFormImage] = useState(null);
   const [formImagePreview, setFormImagePreview] = useState(null);
 
@@ -188,10 +224,12 @@ export default function InventoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterCategory, setFilterCategory] = useState("All");
+  const [filterChannel, setFilterChannel] = useState("All"); // 'All' | 'Online' | 'Offline'
 
   // Dropdown Anchors
   const [statusMenuAnchor, setStatusMenuAnchor] = useState(null);
   const [categoryMenuAnchor, setCategoryMenuAnchor] = useState(null);
+  const [channelMenuAnchor, setChannelMenuAnchor] = useState(null);
   const [actionMenuAnchor, setActionMenuAnchor] = useState(null);
   const [actionMenuProduct, setActionMenuProduct] = useState(null);
 
@@ -201,25 +239,46 @@ export default function InventoryPage() {
   const calculatedProfit = priceNum > costNum ? (priceNum - costNum) : 0;
   const calculatedMargin = priceNum > 0 ? Math.round(((priceNum - costNum) / priceNum) * 100) : 0;
 
-  // Filter products
+  // Authoritative Stock Metrics Counts
+  const totalCount = products.length;
+  const activeCount = products.filter(p => p.is_active !== false).length;
+  const inStockCount = products.filter(p => {
+    const q = p.stock_qty ?? p.stockQty ?? 0;
+    const t = p.low_stock_threshold ?? p.lowStockThreshold ?? 5;
+    return q > t;
+  }).length;
+  const lowStockCount = products.filter(p => {
+    const q = p.stock_qty ?? p.stockQty ?? 0;
+    const t = p.low_stock_threshold ?? p.lowStockThreshold ?? 5;
+    return q > 0 && q <= t;
+  }).length;
+  const outOfStockCount = products.filter(p => (p.stock_qty ?? p.stockQty ?? 0) <= 0).length;
+
+  // Filter products by search, status, category, and sales channel
   const filteredProducts = products.filter(p => {
     const pCategory = typeof p.category === 'string' ? p.category : (p.category?.name || "");
-    const titleMatch = (p.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-                       pCategory.toLowerCase().includes(searchQuery.toLowerCase());
+    const qLower = searchQuery.toLowerCase().trim();
+    const titleMatch = (p.title || "").toLowerCase().includes(qLower) ||
+                       pCategory.toLowerCase().includes(qLower) ||
+                       (p.sku || "").toLowerCase().includes(qLower) ||
+                       (p.barcode || "").toLowerCase().includes(qLower);
     if (!titleMatch) return false;
+
+    const stock = Number(p.stock_qty ?? p.stockQty ?? 0);
+    const threshold = Number(p.low_stock_threshold ?? p.lowStockThreshold ?? 5);
 
     if (filterStatus === "Active" && p.is_active === false) return false;
     if (filterStatus === "Inactive" && p.is_active !== false) return false;
-    if (filterStatus === "In Stock" && (p.stock_qty || p.stockQty || 0) <= 0) return false;
-    if (filterStatus === "Low Stock") {
-      const q = p.stock_qty || p.stockQty || 0;
-      if (q <= 0 || q > 10) return false;
-    }
-    if (filterStatus === "Out of Stock" && (p.stock_qty || p.stockQty || 0) > 0) return false;
+    if (filterStatus === "In Stock" && stock <= threshold) return false;
+    if (filterStatus === "Low Stock" && (stock <= 0 || stock > threshold)) return false;
+    if (filterStatus === "Out of Stock" && stock > 0) return false;
 
     if (filterCategory !== "All" && pCategory.toLowerCase() !== filterCategory.toLowerCase()) {
       return false;
     }
+
+    if (filterChannel === "Online" && !(p.online_delivery ?? p.onlineDelivery ?? true)) return false;
+    if (filterChannel === "Offline" && !(p.offline_delivery ?? p.offlineDelivery ?? true)) return false;
 
     return true;
   });
@@ -322,14 +381,15 @@ export default function InventoryPage() {
   };
 
   const openCreateFlow = () => {
-    if (!isMerchantPrime()) {
+    // Primary store product ingestion is unlocked; Prime gates multi-branch enterprise scale
+    if (products.length > 50 && !isMerchantPrime()) {
       setPrimeModalOpen(true);
       return;
     }
     setCreateMenuOpen(true);
   };
 
-  const handleOpenNewProductDrawer = () => {
+  const handleOpenNewProductDrawer = (prefillBarcode = "") => {
     setCreateMenuOpen(false);
     setEditingProduct(null);
     setFormTitle("");
@@ -342,6 +402,13 @@ export default function InventoryPage() {
     setFormPrice("");
     setFormCost("");
     setFormQuantity("10");
+    setFormSku(prefillBarcode ? `SKU-${prefillBarcode}` : "");
+    setFormBarcode(prefillBarcode || "");
+    setFormLowStockThreshold("5");
+    setFormWholesalePrice("");
+    setFormMoq("1");
+    setFormOnlineDelivery(true);
+    setFormOfflineDelivery(true);
     setFormImage(null);
     setFormImagePreview(null);
     setCreateProductDrawerOpen(true);
@@ -359,7 +426,14 @@ export default function InventoryPage() {
     setFormCategory(prodCategory);
     setFormPrice(String(prod.price || ""));
     setFormCost(String(prod.mrp || prod.price || ""));
-    setFormQuantity(String(prod.stock_qty || prod.stockQty || "0"));
+    setFormQuantity(String(prod.stock_qty ?? prod.stockQty ?? "0"));
+    setFormSku(prod.sku || "");
+    setFormBarcode(prod.barcode || "");
+    setFormLowStockThreshold(String(prod.low_stock_threshold ?? prod.lowStockThreshold ?? "5"));
+    setFormWholesalePrice(prod.wholesale_price || prod.wholesalePrice ? String(prod.wholesale_price || prod.wholesalePrice) : "");
+    setFormMoq(String(prod.moq || "1"));
+    setFormOnlineDelivery(prod.online_delivery !== false && prod.onlineDelivery !== false);
+    setFormOfflineDelivery(prod.offline_delivery !== false && prod.offlineDelivery !== false);
     setFormImage(null);
     const existingImg = prod.image || prod.image_url || prod.product_image;
     setFormImagePreview(existingImg ? resolveImageUrl(existingImg) : null);
@@ -385,6 +459,10 @@ export default function InventoryPage() {
       setPricingDrawerOpen(true);
       return;
     }
+    if (parseFloat(formCost) > 0 && parseFloat(formPrice) > parseFloat(formCost)) {
+      alert("Selling price cannot exceed MRP / Cost.");
+      return;
+    }
 
     if (!selectedShop?.id) {
       setErrorMessage("No active shop found. Please check your shop registration or refresh.");
@@ -395,42 +473,52 @@ export default function InventoryPage() {
     setErrorMessage("");
 
     try {
-      const isOnline = String(profile?.service_mode || localStorage.getItem('service_mode_business') || "").toUpperCase() === 'ONLINE';
       const sellingPrice = parseFloat(formPrice) || 0;
       const mrpVal = parseFloat(formCost) || sellingPrice;
       const discountPct = mrpVal > sellingPrice ? Math.round(((mrpVal - sellingPrice) / mrpVal) * 100) : 0;
 
       if (editingProduct) {
-        // Update product
+        // Update product details (separates details update from stock adjustment)
         const patch = {
           title: formTitle.trim(),
           description: formDescription.trim(),
           mrp: mrpVal,
           price: sellingPrice,
           discount_percent: discountPct,
-          stock_qty: parseInt(formQuantity, 10) || 0,
           is_active: formStatus === "Active",
           category: formCategory || "General",
+          sku: formSku.trim() || "",
+          barcode: formBarcode.trim() || "",
+          low_stock_threshold: parseInt(formLowStockThreshold, 10) || 5,
+          wholesale_price: formWholesalePrice ? parseFloat(formWholesalePrice) : null,
+          moq: parseInt(formMoq, 10) || 1,
+          online_delivery: formOnlineDelivery,
+          offline_delivery: formOfflineDelivery,
         };
         if (formImage) {
           patch.image = formImage;
         }
         await updateMyShopProduct(editingProduct.id, patch);
-        setSuccessMessage("Product updated successfully!");
+        setSuccessMessage("Product details updated successfully!");
       } else {
-        // Create new product
+        // Create new product with initial inventory
         const payload = {
           title: formTitle.trim(),
           description: formDescription.trim(),
           mrp: mrpVal,
           price: sellingPrice,
           discount_percent: discountPct,
-          online_delivery: isOnline,
-          offline_delivery: !isOnline,
+          online_delivery: formOnlineDelivery,
+          offline_delivery: formOfflineDelivery,
           stock_qty: parseInt(formQuantity, 10) || 0,
           image: formImage,
           category: formCategory || "General",
           is_active: formStatus === "Active",
+          sku: formSku.trim() || "",
+          barcode: formBarcode.trim() || "",
+          low_stock_threshold: parseInt(formLowStockThreshold, 10) || 5,
+          wholesale_price: formWholesalePrice ? parseFloat(formWholesalePrice) : undefined,
+          moq: parseInt(formMoq, 10) || 1,
         };
         await createMyShopProduct(selectedShop.id, payload);
         setSuccessMessage("Product created successfully!");
@@ -473,13 +561,156 @@ export default function InventoryPage() {
     }
   };
 
+  // ─── Stock Adjustment Flow ────────────────────────────────────────────────
+  const openStockAdjustment = (prod) => {
+    setActionMenuAnchor(null);
+    setAdjustProduct(prod);
+    setAdjustType("ADD");
+    setAdjustQty("5");
+    setAdjustReason("Received supplier delivery");
+    setAdjustRef("");
+    setMovementsTabOpen(false);
+    setMovementsList([]);
+    setAdjustDrawerOpen(true);
+  };
+
+  const handleSaveStockAdjustment = async () => {
+    if (!adjustProduct?.id) return;
+    const qty = parseInt(adjustQty, 10);
+    if (isNaN(qty) || qty < 0) {
+      alert("Please enter a valid stock quantity.");
+      return;
+    }
+    const current = Number(adjustProduct.stock_qty ?? adjustProduct.stockQty ?? 0);
+    if (adjustType === "REDUCE" && qty > current) {
+      alert(`Cannot reduce by ${qty}. Current stock is only ${current}.`);
+      return;
+    }
+
+    setAdjustSubmitting(true);
+    try {
+      await adjustProductStock(adjustProduct.id, {
+        movement_type: adjustType,
+        quantity: qty,
+        reason: adjustReason.trim(),
+        reference_id: adjustRef.trim() || undefined,
+      });
+      setSuccessMessage(`Stock updated for "${adjustProduct.title}".`);
+      setAdjustDrawerOpen(false);
+      await fetchInventory(selectedShop.id);
+      setTimeout(() => setSuccessMessage(""), 4000);
+    } catch (err) {
+      alert(err?.response?.data?.message || err?.message || "Failed to adjust stock.");
+    } finally {
+      setAdjustSubmitting(false);
+    }
+  };
+
+  const loadMovementsAudit = async () => {
+    if (!adjustProduct?.id) return;
+    setMovementsLoading(true);
+    try {
+      const data = await getProductStockMovements(adjustProduct.id, 20);
+      setMovementsList(Array.isArray(data) ? data : []);
+      setMovementsTabOpen(true);
+    } catch (err) {
+      console.error("Failed to load movements:", err);
+    } finally {
+      setMovementsLoading(false);
+    }
+  };
+
+  // ─── Barcode Camera Scanner Management ────────────────────────────────────
+  useEffect(() => {
+    if (!scannerOpen) {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
+      }
+      return;
+    }
+
+    let active = true;
+    setScannerError("");
+
+    navigator.mediaDevices?.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(stream => {
+        if (!active) {
+          stream.getTracks().forEach(t => t.stop());
+          return;
+        }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(() => {});
+        }
+
+        // Use modern BarcodeDetector if supported
+        if ('BarcodeDetector' in window) {
+          const detector = new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code'] });
+          const scanInterval = setInterval(async () => {
+            if (!active || !videoRef.current || videoRef.current.readyState < 2) return;
+            try {
+              const barcodes = await detector.detect(videoRef.current);
+              if (barcodes.length > 0 && barcodes[0].rawValue) {
+                clearInterval(scanInterval);
+                handleBarcodeDetected(barcodes[0].rawValue);
+              }
+            } catch (_) {}
+          }, 400);
+        }
+      })
+      .catch(() => {
+        setScannerError("Camera permission denied or camera unavailable. Please enter barcode manually below.");
+      });
+
+    return () => {
+      active = false;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [scannerOpen]);
+
+  const handleBarcodeDetected = async (code) => {
+    if (!code) return;
+    const cleanCode = String(code).trim();
+    setScannerOpen(false);
+
+    // 1. Search in currently loaded products
+    const existing = products.find(p => (p.barcode || "").toLowerCase() === cleanCode.toLowerCase() ||
+                                         (p.sku || "").toLowerCase() === cleanCode.toLowerCase());
+    if (existing) {
+      setSuccessMessage(`Product found: "${existing.title}". Ready for stock adjustment.`);
+      openStockAdjustment(existing);
+      return;
+    }
+
+    // 2. Query backend for barcode in shop
+    if (selectedShop?.id) {
+      try {
+        const found = await findProductByBarcode(selectedShop.id, cleanCode);
+        if (found && found.id) {
+          setSuccessMessage(`Product found: "${found.title}".`);
+          openStockAdjustment(found);
+          return;
+        }
+      } catch (_) {}
+    }
+
+    // 3. New barcode — open Create Product drawer with prefilled barcode
+    setSuccessMessage(`New barcode scanned (${cleanCode}). Enter product details to save.`);
+    handleOpenNewProductDrawer(cleanCode);
+  };
+
   const defaultImg = "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80";
 
   return (
     <AppShell activeTab="/business/inventory" title="Products & Inventory">
       <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', pb: 12 }}>
         
-        {/* Top Header matching Dribbble 'Products' header */}
+        {/* Sticky Header matching Dribbble 'Products' header */}
         <Box
           sx={{
             bgcolor: '#ffffff',
@@ -496,10 +727,10 @@ export default function InventoryPage() {
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Box>
                 <Typography sx={{ fontSize: { xs: '1.35rem', sm: '1.5rem' }, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>
-                  Products
+                  Products & Inventory
                 </Typography>
                 <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.1 }}>
-                  {selectedShop?.shop_name || "Active Store"} • {products.length} Items
+                  {selectedShop?.shop_name || "Active Store"} • {products.length} Items Listed
                 </Typography>
               </Box>
 
@@ -533,9 +764,10 @@ export default function InventoryPage() {
                     color: '#334155',
                     '&:hover': { bgcolor: '#f1f5f9' },
                   }}
-                  aria-label="Notifications"
+                  aria-label="Barcode Scanner"
+                  onClick={() => setScannerOpen(true)}
                 >
-                  <NotificationsNoneIcon sx={{ fontSize: 20 }} />
+                  <QrCodeScannerIcon sx={{ fontSize: 20, color: '#f97316' }} />
                 </IconButton>
 
                 <Avatar
@@ -562,7 +794,40 @@ export default function InventoryPage() {
             </Alert>
           )}
 
-          {/* Search Bar matching Dribbble screenshot */}
+          {/* Metric Summary Cards */}
+          <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
+            {[
+              { label: "Total", count: totalCount, filter: "All", color: "#0f172a", bg: "#f8fafc" },
+              { label: "In Stock", count: inStockCount, filter: "In Stock", color: "#16a34a", bg: "#f0fdf4" },
+              { label: "Low Stock", count: lowStockCount, filter: "Low Stock", color: "#d97706", bg: "#fffbeb" },
+              { label: "Out of Stock", count: outOfStockCount, filter: "Out of Stock", color: "#dc2626", bg: "#fef2f2" },
+            ].map((m) => (
+              <Grid item xs={6} sm={3} key={m.label}>
+                <Card
+                  onClick={() => setFilterStatus(m.filter)}
+                  elevation={0}
+                  sx={{
+                    borderRadius: '16px',
+                    border: filterStatus === m.filter ? `2px solid ${m.color}` : '1.5px solid #e2e8f0',
+                    bgcolor: m.bg,
+                    p: 1.5,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    '&:hover': { transform: 'translateY(-2px)' },
+                  }}
+                >
+                  <Typography sx={{ fontSize: '0.68rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>
+                    {m.label}
+                  </Typography>
+                  <Typography sx={{ fontSize: '1.35rem', fontWeight: 900, color: m.color, mt: 0.2 }}>
+                    {m.count}
+                  </Typography>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+
+          {/* Search Bar matching Dribbble mockup with scanner trigger */}
           <Box
             sx={{
               display: 'flex',
@@ -580,7 +845,7 @@ export default function InventoryPage() {
             <TextField
               fullWidth
               variant="standard"
-              placeholder="Search products..."
+              placeholder="Search by title, SKU, or barcode..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               InputProps={{
@@ -589,18 +854,15 @@ export default function InventoryPage() {
               }}
             />
             <Stack direction="row" spacing={0.5} alignItems="center">
-              <IconButton size="small" sx={{ color: '#64748b' }}>
-                <TuneIcon sx={{ fontSize: 20 }} />
-              </IconButton>
-              <IconButton size="small" sx={{ color: '#64748b' }}>
-                <QrCodeScannerIcon sx={{ fontSize: 20 }} />
+              <IconButton size="small" onClick={() => setScannerOpen(true)} sx={{ color: '#f97316' }} title="Scan Barcode">
+                <QrCodeScannerIcon sx={{ fontSize: 22 }} />
               </IconButton>
             </Stack>
           </Box>
 
           {/* Filter Dropdown Chips */}
           <Stack direction="row" spacing={1.25} sx={{ mb: 2.5, overflowX: 'auto', pb: 0.5 }}>
-            {/* Status Filter Chip */}
+            {/* Status Filter */}
             <Chip
               label={`Status: ${filterStatus}`}
               deleteIcon={<KeyboardArrowDownIcon />}
@@ -637,7 +899,7 @@ export default function InventoryPage() {
               ))}
             </Menu>
 
-            {/* Category Filter Chip */}
+            {/* Category Filter */}
             <Chip
               label={`Category: ${filterCategory}`}
               deleteIcon={<KeyboardArrowDownIcon />}
@@ -683,9 +945,46 @@ export default function InventoryPage() {
                 );
               })}
             </Menu>
+
+            {/* Channel Filter */}
+            <Chip
+              label={`Channel: ${filterChannel}`}
+              deleteIcon={<KeyboardArrowDownIcon />}
+              onDelete={(e) => setChannelMenuAnchor(e.currentTarget)}
+              onClick={(e) => setChannelMenuAnchor(e.currentTarget)}
+              sx={{
+                bgcolor: filterChannel !== "All" ? '#0f172a' : '#ffffff',
+                color: filterChannel !== "All" ? '#ffffff' : '#334155',
+                border: '1.5px solid #e2e8f0',
+                fontWeight: 800,
+                fontSize: '0.78rem',
+                height: 36,
+                px: 0.5,
+                '& .MuiChip-deleteIcon': {
+                  color: filterChannel !== "All" ? '#ffffff' : '#64748b',
+                },
+              }}
+            />
+            <Menu
+              anchorEl={channelMenuAnchor}
+              open={Boolean(channelMenuAnchor)}
+              onClose={() => setChannelMenuAnchor(null)}
+              PaperProps={{ sx: { borderRadius: '14px', minWidth: 160, p: 0.5 } }}
+            >
+              {["All", "Online", "Offline"].map((ch) => (
+                <MenuItem
+                  key={ch}
+                  selected={filterChannel === ch}
+                  onClick={() => { setFilterChannel(ch); setChannelMenuAnchor(null); }}
+                  sx={{ fontSize: '0.82rem', fontWeight: 700, borderRadius: '8px' }}
+                >
+                  {ch === "All" ? "All Channels" : `${ch} Only`}
+                </MenuItem>
+              ))}
+            </Menu>
           </Stack>
 
-          {/* Product Items List matching Dribbble screenshot */}
+          {/* Product Items List matching Dribbble mockup */}
           {loading ? (
             <Box sx={{ py: 10, textAlign: 'center' }}>
               <CircularProgress size={36} sx={{ color: '#228B22' }} />
@@ -753,8 +1052,11 @@ export default function InventoryPage() {
                 const rawImg = p.image || p.image_url || p.product_image;
                 const imgSrc = rawImg ? resolveImageUrl(rawImg) : defaultImg;
                 const price = Number(p.price || 0);
-                const stockQty = Number(p.stock_qty || p.stockQty || 0);
+                const stockQty = Number(p.stock_qty ?? p.stockQty ?? 0);
+                const threshold = Number(p.low_stock_threshold ?? p.lowStockThreshold ?? 5);
                 const isActive = p.is_active !== false;
+                const isLow = stockQty > 0 && stockQty <= threshold;
+                const isOut = stockQty <= 0;
 
                 return (
                   <Card
@@ -791,28 +1093,42 @@ export default function InventoryPage() {
                         }}
                       />
 
-                      {/* Details matching Dribbble item row */}
+                      {/* Details row */}
                       <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                        {/* Status Dot + Label */}
-                        <Stack direction="row" spacing={0.6} alignItems="center" sx={{ mb: 0.3 }}>
-                          <Box
-                            sx={{
-                              width: 6,
-                              height: 6,
-                              borderRadius: '50%',
-                              bgcolor: isActive ? '#10b981' : '#94a3b8',
-                            }}
-                          />
-                          <Typography
-                            sx={{
-                              fontSize: '0.68rem',
-                              fontWeight: 800,
-                              color: isActive ? '#10b981' : '#64748b',
-                              textTransform: 'capitalize',
-                            }}
-                          >
-                            {isActive ? 'Active' : 'Inactive'}
-                          </Typography>
+                        {/* Status Dots & Badges */}
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.3 }}>
+                          <Stack direction="row" spacing={0.6} alignItems="center">
+                            <Box
+                              sx={{
+                                width: 6,
+                                height: 6,
+                                borderRadius: '50%',
+                                bgcolor: isActive ? '#10b981' : '#94a3b8',
+                              }}
+                            />
+                            <Typography
+                              sx={{
+                                fontSize: '0.68rem',
+                                fontWeight: 800,
+                                color: isActive ? '#10b981' : '#64748b',
+                                textTransform: 'capitalize',
+                              }}
+                            >
+                              {isActive ? 'Active' : 'Inactive'}
+                            </Typography>
+                          </Stack>
+
+                          {isOut ? (
+                            <Chip label="Out of Stock" size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#fef2f2', color: '#dc2626' }} />
+                          ) : isLow ? (
+                            <Chip label="Low Stock" size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#fffbeb', color: '#d97706' }} />
+                          ) : null}
+
+                          {p.sku && (
+                            <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 700 }}>
+                              SKU: {p.sku}
+                            </Typography>
+                          )}
                         </Stack>
 
                         {/* Title */}
@@ -832,21 +1148,40 @@ export default function InventoryPage() {
 
                         {/* Price • Category • Stock */}
                         <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.3 }}>
-                          ₹{price.toFixed(2)} • {p.category || 'General'} • {stockQty} in stock
+                          ₹{price.toFixed(2)} • {p.category || 'General'} • <strong>{stockQty} in stock</strong>
                         </Typography>
                       </Box>
 
-                      {/* Three-dots Action Button */}
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          setActionMenuAnchor(e.currentTarget);
-                          setActionMenuProduct(p);
-                        }}
-                        sx={{ color: '#94a3b8', '&:hover': { color: '#0f172a' } }}
-                      >
-                        <MoreVertIcon sx={{ fontSize: 20 }} />
-                      </IconButton>
+                      {/* Quick Adjust Button & Three-dots Menu */}
+                      <Stack direction="row" spacing={0.5} alignItems="center">
+                        <Button
+                          size="small"
+                          onClick={() => openStockAdjustment(p)}
+                          sx={{
+                            borderRadius: '10px',
+                            fontWeight: 800,
+                            fontSize: '0.72rem',
+                            bgcolor: '#f1f5f9',
+                            color: '#0f172a',
+                            textTransform: 'none',
+                            px: 1.2,
+                            py: 0.6,
+                            '&:hover': { bgcolor: '#e2e8f0' },
+                          }}
+                        >
+                          Adjust
+                        </Button>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            setActionMenuAnchor(e.currentTarget);
+                            setActionMenuProduct(p);
+                          }}
+                          sx={{ color: '#94a3b8', '&:hover': { color: '#0f172a' } }}
+                        >
+                          <MoreVertIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
+                      </Stack>
                     </Stack>
                   </Card>
                 );
@@ -855,7 +1190,7 @@ export default function InventoryPage() {
           )}
         </Container>
 
-        {/* Product Row Action Menu */}
+        {/* Product Action Menu */}
         <Menu
           anchorEl={actionMenuAnchor}
           open={Boolean(actionMenuAnchor)}
@@ -867,7 +1202,14 @@ export default function InventoryPage() {
             sx={{ fontSize: '0.82rem', fontWeight: 700, borderRadius: '8px', py: 1 }}
           >
             <EditOutlinedIcon sx={{ fontSize: 17, mr: 1.25, color: '#0284c7' }} />
-            Edit Product
+            Edit Details
+          </MenuItem>
+          <MenuItem
+            onClick={() => openStockAdjustment(actionMenuProduct)}
+            sx={{ fontSize: '0.82rem', fontWeight: 700, borderRadius: '8px', py: 1 }}
+          >
+            <SwapVertIcon sx={{ fontSize: 17, mr: 1.25, color: '#f59e0b' }} />
+            Adjust Stock
           </MenuItem>
           <MenuItem
             onClick={() => handleToggleProductStatus(actionMenuProduct)}
@@ -886,7 +1228,7 @@ export default function InventoryPage() {
           </MenuItem>
         </Menu>
 
-        {/* Floating Action Button (FAB) triggering the Dribbble Create Bottom Drawer */}
+        {/* Floating Action Button (FAB) */}
         <Box
           sx={{
             position: 'fixed',
@@ -912,7 +1254,7 @@ export default function InventoryPage() {
         </Box>
 
         {/* ════════════════════════════════════════════════════════════════════════════════
-            1. CREATE MENU BOTTOM DRAWER (Matching media_1790311807969.png)
+            1. CREATE MENU BOTTOM DRAWER
            ════════════════════════════════════════════════════════════════════════════════ */}
         <Drawer
           anchor="bottom"
@@ -930,28 +1272,19 @@ export default function InventoryPage() {
             },
           }}
         >
-          {/* Top Grab Handle */}
           <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
-
-          {/* Header */}
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
             <Typography sx={{ fontSize: '1.3rem', fontWeight: 900, color: '#0f172a' }}>
-              Create
+              Create In Store
             </Typography>
-            <IconButton
-              size="small"
-              onClick={() => setCreateMenuOpen(false)}
-              sx={{ bgcolor: '#f1f5f9', color: '#64748b' }}
-            >
+            <IconButton size="small" onClick={() => setCreateMenuOpen(false)} sx={{ bgcolor: '#f1f5f9', color: '#64748b' }}>
               <CloseIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Stack>
 
-          {/* List Options */}
-          <Stack spacing={1}>
-            {/* Create Product Option */}
+          <Stack spacing={1.5}>
             <Box
-              onClick={handleOpenNewProductDrawer}
+              onClick={() => handleOpenNewProductDrawer()}
               sx={{
                 p: 2,
                 borderRadius: '18px',
@@ -960,31 +1293,48 @@ export default function InventoryPage() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 cursor: 'pointer',
-                transition: 'background-color 0.15s, border-color 0.15s',
                 '&:hover': { bgcolor: '#fff7ed', borderColor: '#fdba74' },
               }}
             >
               <Stack direction="row" spacing={2} alignItems="center">
-                <Box
-                  sx={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: '14px',
-                    bgcolor: '#fff7ed',
-                    color: '#f97316',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
+                <Box sx={{ width: 44, height: 44, borderRadius: '14px', bgcolor: '#fff7ed', color: '#f97316', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Inventory2OutlinedIcon sx={{ fontSize: 24 }} />
                 </Box>
                 <Box>
                   <Typography sx={{ fontSize: '0.95rem', fontWeight: 900, color: '#0f172a' }}>
-                    Product
+                    New Product
                   </Typography>
                   <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
-                    Create product now
+                    Enter details, pricing, and initial stock
+                  </Typography>
+                </Box>
+              </Stack>
+              <ChevronRightIcon sx={{ color: '#94a3b8' }} />
+            </Box>
+
+            <Box
+              onClick={() => { setCreateMenuOpen(false); setScannerOpen(true); }}
+              sx={{
+                p: 2,
+                borderRadius: '18px',
+                border: '1.5px solid #f1f5f9',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                cursor: 'pointer',
+                '&:hover': { bgcolor: '#eff6ff', borderColor: '#93c5fd' },
+              }}
+            >
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Box sx={{ width: 44, height: 44, borderRadius: '14px', bgcolor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <QrCodeScannerIcon sx={{ fontSize: 24 }} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontSize: '0.95rem', fontWeight: 900, color: '#0f172a' }}>
+                    Scan Barcode
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                    Point camera at packaging or enter code
                   </Typography>
                 </Box>
               </Stack>
@@ -994,7 +1344,7 @@ export default function InventoryPage() {
         </Drawer>
 
         {/* ════════════════════════════════════════════════════════════════════════════════
-            2. CREATE / EDIT PRODUCT BOTTOM DRAWER (Matching media_1790311878896.png)
+            2. CREATE / EDIT PRODUCT BOTTOM DRAWER
            ════════════════════════════════════════════════════════════════════════════════ */}
         <Drawer
           anchor="bottom"
@@ -1014,31 +1364,24 @@ export default function InventoryPage() {
             },
           }}
         >
-          {/* Top Grab Bar */}
           <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mt: 1.5, mb: 0.5 }} />
 
-          {/* Header */}
           <Box sx={{ px: 3, py: 1.75, borderBottom: '1px solid #f1f5f9' }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between">
-              <IconButton
-                size="small"
-                onClick={() => setCreateProductDrawerOpen(false)}
-                sx={{ color: '#0f172a', bgcolor: '#f8fafc' }}
-              >
+              <IconButton size="small" onClick={() => setCreateProductDrawerOpen(false)} sx={{ color: '#0f172a', bgcolor: '#f8fafc' }}>
                 <ArrowBackIcon sx={{ fontSize: 20 }} />
               </IconButton>
               <Typography sx={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a' }}>
-                {editingProduct ? 'Edit Product' : 'Create Product'}
+                {editingProduct ? 'Edit Product Details' : 'Create Product'}
               </Typography>
               <Box sx={{ width: 34 }} />
             </Stack>
           </Box>
 
-          {/* Scrollable Form Body */}
           <Box sx={{ px: 3, py: 2.5, overflowY: 'auto', flexGrow: 1 }}>
-            {/* Section: Media */}
+            {/* Media */}
             <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', mb: 1 }}>
-              Media
+              Product Image
             </Typography>
 
             <input
@@ -1063,28 +1406,18 @@ export default function InventoryPage() {
                 }}
               >
                 <Stack direction="row" spacing={1.75} alignItems="center">
-                  <Box
-                    component="img"
-                    src={formImagePreview}
-                    alt="Preview"
-                    sx={{ width: 56, height: 56, borderRadius: '12px', objectFit: 'cover' }}
-                  />
+                  <Box component="img" src={formImagePreview} alt="Preview" sx={{ width: 56, height: 56, borderRadius: '12px', objectFit: 'cover' }} />
                   <Box>
                     <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
                       {formImage?.name || "Product Image"}
                     </Typography>
                     <Typography sx={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 700 }}>
-                      Ready for upload
+                      Image ready
                     </Typography>
                   </Box>
                 </Stack>
                 <label htmlFor="product-drawer-img-input">
-                  <Button
-                    component="span"
-                    size="small"
-                    variant="outlined"
-                    sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 800, fontSize: '0.72rem' }}
-                  >
+                  <Button component="span" size="small" variant="outlined" sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 800, fontSize: '0.72rem' }}>
                     Change
                   </Button>
                 </label>
@@ -1106,27 +1439,15 @@ export default function InventoryPage() {
                   }}
                 >
                   <Stack direction="row" spacing={1.75} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: '12px',
-                        bgcolor: '#ffffff',
-                        border: '1px solid #e2e8f0',
-                        color: '#64748b',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
+                    <Box sx={{ width: 44, height: 44, borderRadius: '12px', bgcolor: '#ffffff', border: '1px solid #e2e8f0', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <ImageOutlinedIcon sx={{ fontSize: 24 }} />
                     </Box>
                     <Box>
                       <Typography sx={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>
-                        Add Media
+                        Upload Photo
                       </Typography>
                       <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
-                        Add media for this product
+                        PNG or JPG (under 2MB)
                       </Typography>
                     </Box>
                   </Stack>
@@ -1135,30 +1456,56 @@ export default function InventoryPage() {
               </label>
             )}
 
-            {/* Section: Product Title */}
+            {/* Product Title */}
             <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', mb: 1 }}>
-              Product Title
+              Product Title *
             </Typography>
             <TextField
               fullWidth
-              placeholder="Enter product title"
+              placeholder="e.g. Aashirvaad Atta 5kg"
               value={formTitle}
               onChange={(e) => setFormTitle(e.target.value)}
-              sx={{
-                mb: 2.5,
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '14px',
-                  bgcolor: '#f8fafc',
-                  fontSize: '0.9rem',
-                  fontWeight: 600,
-                  '& fieldset': { borderColor: '#e2e8f0' },
-                },
-              }}
+              sx={{ mb: 2.5, '& .MuiOutlinedInput-root': { borderRadius: '14px', bgcolor: '#f8fafc', fontWeight: 600 } }}
             />
 
-            {/* Section: Status Segmented Radio Pills (Matching media_1790311878896.png) */}
+            {/* SKU and Barcode Fields */}
+            <Grid container spacing={2} sx={{ mb: 2.5 }}>
+              <Grid item xs={6}>
+                <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 0.75 }}>
+                  SKU (Stock Keeping Unit)
+                </Typography>
+                <TextField
+                  fullWidth
+                  placeholder="e.g. ATT-5KG-01"
+                  value={formSku}
+                  onChange={(e) => setFormSku(e.target.value)}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#f8fafc', fontSize: '0.85rem', fontWeight: 600 } }}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 0.75 }}>
+                  Barcode (UPC/EAN)
+                </Typography>
+                <TextField
+                  fullWidth
+                  placeholder="e.g. 8901030352545"
+                  value={formBarcode}
+                  onChange={(e) => setFormBarcode(e.target.value)}
+                  InputProps={{
+                    endAdornment: (
+                      <IconButton size="small" onClick={() => setScannerOpen(true)} sx={{ color: '#f97316' }}>
+                        <QrCodeScannerIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    ),
+                  }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#f8fafc', fontSize: '0.85rem', fontWeight: 600 } }}
+                />
+              </Grid>
+            </Grid>
+
+            {/* Status Segmented Radio */}
             <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', mb: 1 }}>
-              Status
+              Catalog Status
             </Typography>
             <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
               <Grid item xs={6}>
@@ -1176,21 +1523,12 @@ export default function InventoryPage() {
                     gap: 1.25,
                   }}
                 >
-                  <Box
-                    sx={{
-                      width: 16,
-                      height: 16,
-                      borderRadius: '50%',
-                      border: formStatus === "Active" ? '5px solid #0f172a' : '2px solid #cbd5e1',
-                      bgcolor: '#ffffff',
-                    }}
-                  />
+                  <Box sx={{ width: 16, height: 16, borderRadius: '50%', border: formStatus === "Active" ? '5px solid #0f172a' : '2px solid #cbd5e1', bgcolor: '#ffffff' }} />
                   <Typography sx={{ fontSize: '0.85rem', fontWeight: formStatus === "Active" ? 900 : 700, color: '#0f172a' }}>
-                    Active
+                    Active (Public)
                   </Typography>
                 </Box>
               </Grid>
-
               <Grid item xs={6}>
                 <Box
                   onClick={() => setFormStatus("Inactive")}
@@ -1206,46 +1544,67 @@ export default function InventoryPage() {
                     gap: 1.25,
                   }}
                 >
-                  <Box
-                    sx={{
-                      width: 16,
-                      height: 16,
-                      borderRadius: '50%',
-                      border: formStatus === "Inactive" ? '5px solid #0f172a' : '2px solid #cbd5e1',
-                      bgcolor: '#ffffff',
-                    }}
-                  />
+                  <Box sx={{ width: 16, height: 16, borderRadius: '50%', border: formStatus === "Inactive" ? '5px solid #0f172a' : '2px solid #cbd5e1', bgcolor: '#ffffff' }} />
                   <Typography sx={{ fontSize: '0.85rem', fontWeight: formStatus === "Inactive" ? 900 : 700, color: '#0f172a' }}>
-                    Inactive
+                    Inactive (Draft)
                   </Typography>
                 </Box>
               </Grid>
             </Grid>
 
-            {/* Section: Descriptions */}
+            {/* Sales Channels Available */}
             <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', mb: 1 }}>
-              Descriptions
+              Sales Channel Availability
+            </Typography>
+            <Paper elevation={0} sx={{ p: 1.5, borderRadius: '14px', border: '1.5px solid #e2e8f0', bgcolor: '#f8fafc', mb: 2.5 }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Box>
+                  <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>
+                    Online Delivery
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.72rem', color: '#64748b' }}>
+                    Visible in Online Shopping App & Marketplace
+                  </Typography>
+                </Box>
+                <Switch
+                  checked={formOnlineDelivery}
+                  onChange={(e) => setFormOnlineDelivery(e.target.checked)}
+                  color="success"
+                />
+              </Stack>
+              <Divider sx={{ my: 1 }} />
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Box>
+                  <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>
+                    Physical In-Store / Nearby
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.72rem', color: '#64748b' }}>
+                    Available for in-person POS counter sales
+                  </Typography>
+                </Box>
+                <Switch
+                  checked={formOfflineDelivery}
+                  onChange={(e) => setFormOfflineDelivery(e.target.checked)}
+                  color="success"
+                />
+              </Stack>
+            </Paper>
+
+            {/* Description */}
+            <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', mb: 1 }}>
+              Description
             </Typography>
             <TextField
               fullWidth
               multiline
-              rows={4}
-              placeholder="Product description"
+              rows={3}
+              placeholder="Product features, pack size, manufacturer..."
               value={formDescription}
               onChange={(e) => setFormDescription(e.target.value)}
-              sx={{
-                mb: 3,
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '14px',
-                  bgcolor: '#f8fafc',
-                  fontSize: '0.88rem',
-                  fontWeight: 600,
-                  '& fieldset': { borderColor: '#e2e8f0' },
-                },
-              }}
+              sx={{ mb: 2.5, '& .MuiOutlinedInput-root': { borderRadius: '14px', bgcolor: '#f8fafc', fontSize: '0.88rem' } }}
             />
 
-            {/* Section Cards: Category, Price, Inventory */}
+            {/* Sub-drawers trigger cards */}
             <Stack spacing={1.5} sx={{ mb: 2 }}>
               {/* Category Card */}
               <Box
@@ -1260,18 +1619,7 @@ export default function InventoryPage() {
                 }}
               >
                 <Stack direction="row" spacing={1.75} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: '12px',
-                      bgcolor: '#f1f5f9',
-                      color: '#475569',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
+                  <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: '#f1f5f9', color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <CategoryOutlinedIcon sx={{ fontSize: 22 }} />
                   </Box>
                   <Box>
@@ -1283,19 +1631,7 @@ export default function InventoryPage() {
                     </Typography>
                   </Box>
                 </Stack>
-                <Button
-                  size="small"
-                  onClick={() => setCategoryPickerOpen(true)}
-                  sx={{
-                    color: '#0f172a',
-                    fontWeight: 900,
-                    fontSize: '0.78rem',
-                    textTransform: 'none',
-                    bgcolor: '#f1f5f9',
-                    borderRadius: '10px',
-                    px: 1.5,
-                  }}
-                >
+                <Button size="small" onClick={() => setCategoryPickerOpen(true)} sx={{ color: '#0f172a', fontWeight: 900, fontSize: '0.78rem', textTransform: 'none', bgcolor: '#f1f5f9', borderRadius: '10px', px: 1.5 }}>
                   {formCategory ? "Edit" : "+ Add"}
                 </Button>
               </Box>
@@ -1313,47 +1649,24 @@ export default function InventoryPage() {
                 }}
               >
                 <Stack direction="row" spacing={1.75} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: '12px',
-                      bgcolor: '#ecfdf5',
-                      color: '#10b981',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
+                  <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <LocalOfferOutlinedIcon sx={{ fontSize: 22 }} />
                   </Box>
                   <Box>
                     <Typography sx={{ fontSize: '0.88rem', fontWeight: 900, color: '#0f172a' }}>
-                      Price
+                      Price & MRP
                     </Typography>
                     <Typography sx={{ fontSize: '0.72rem', color: formPrice ? '#10b981' : '#64748b', fontWeight: 700 }}>
-                      {formPrice ? `Selling ₹${formPrice} • Cost ₹${formCost || formPrice}` : "Add Price"}
+                      {formPrice ? `Selling ₹${formPrice} • MRP ₹${formCost || formPrice}` : "Set Price"}
                     </Typography>
                   </Box>
                 </Stack>
-                <Button
-                  size="small"
-                  onClick={() => setPricingDrawerOpen(true)}
-                  sx={{
-                    color: '#0f172a',
-                    fontWeight: 900,
-                    fontSize: '0.78rem',
-                    textTransform: 'none',
-                    bgcolor: '#f1f5f9',
-                    borderRadius: '10px',
-                    px: 1.5,
-                  }}
-                >
-                  {formPrice ? "Edit" : "+ Add"}
+                <Button size="small" onClick={() => setPricingDrawerOpen(true)} sx={{ color: '#0f172a', fontWeight: 900, fontSize: '0.78rem', textTransform: 'none', bgcolor: '#f1f5f9', borderRadius: '10px', px: 1.5 }}>
+                  {formPrice ? "Edit" : "+ Set"}
                 </Button>
               </Box>
 
-              {/* Inventory Card */}
+              {/* Inventory Stock Threshold Card */}
               <Box
                 sx={{
                   p: 2,
@@ -1366,56 +1679,29 @@ export default function InventoryPage() {
                 }}
               >
                 <Stack direction="row" spacing={1.75} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: '12px',
-                      bgcolor: '#e0f2fe',
-                      color: '#0284c7',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
+                  <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: '#e0f2fe', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Inventory2OutlinedIcon sx={{ fontSize: 22 }} />
                   </Box>
                   <Box>
                     <Typography sx={{ fontSize: '0.88rem', fontWeight: 900, color: '#0f172a' }}>
-                      Inventory
+                      {editingProduct ? 'Low Stock Threshold' : 'Initial Inventory'}
                     </Typography>
-                    <Typography sx={{ fontSize: '0.72rem', color: formQuantity ? '#0284c7' : '#64748b', fontWeight: 700 }}>
-                      {formQuantity ? `${formQuantity} in stock` : "Add Inventory"}
+                    <Typography sx={{ fontSize: '0.72rem', color: '#0284c7', fontWeight: 700 }}>
+                      {editingProduct
+                        ? `Alert when stock ≤ ${formLowStockThreshold}`
+                        : `${formQuantity} in stock (Alert at ≤ ${formLowStockThreshold})`}
                     </Typography>
                   </Box>
                 </Stack>
-                <Button
-                  size="small"
-                  onClick={() => setStockDrawerOpen(true)}
-                  sx={{
-                    color: '#0f172a',
-                    fontWeight: 900,
-                    fontSize: '0.78rem',
-                    textTransform: 'none',
-                    bgcolor: '#f1f5f9',
-                    borderRadius: '10px',
-                    px: 1.5,
-                  }}
-                >
-                  {formQuantity ? "Edit" : "+ Add"}
+                <Button size="small" onClick={() => setStockDrawerOpen(true)} sx={{ color: '#0f172a', fontWeight: 900, fontSize: '0.78rem', textTransform: 'none', bgcolor: '#f1f5f9', borderRadius: '10px', px: 1.5 }}>
+                  Configure
                 </Button>
               </Box>
             </Stack>
           </Box>
 
-          {/* Sticky Bottom Actions Bar matching Dribbble screenshot */}
-          <Box
-            sx={{
-              p: 2.25,
-              borderTop: '1px solid #f1f5f9',
-              bgcolor: '#ffffff',
-            }}
-          >
+          {/* Sticky Bottom Actions Bar */}
+          <Box sx={{ p: 2.25, borderTop: '1px solid #f1f5f9', bgcolor: '#ffffff' }}>
             <Stack direction="row" spacing={2}>
               <Button
                 variant="outlined"
@@ -1429,7 +1715,6 @@ export default function InventoryPage() {
                   fontWeight: 800,
                   fontSize: '0.88rem',
                   textTransform: 'none',
-                  '&:hover': { bgcolor: '#f8fafc', borderColor: '#94a3b8' },
                 }}
               >
                 Cancel
@@ -1461,7 +1746,7 @@ export default function InventoryPage() {
         </Drawer>
 
         {/* ════════════════════════════════════════════════════════════════════════════════
-            3. PRICING SUB-DRAWER (Matching media_1790311772460.png)
+            3. PRICING SUB-DRAWER
            ════════════════════════════════════════════════════════════════════════════════ */}
         <Drawer
           anchor="bottom"
@@ -1479,29 +1764,21 @@ export default function InventoryPage() {
             },
           }}
         >
-          {/* Top Grab Bar */}
           <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
-
-          {/* Header */}
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
             <Typography sx={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a' }}>
-              Pricing
+              Pricing & Bulk Tiers
             </Typography>
-            <IconButton
-              size="small"
-              onClick={() => setPricingDrawerOpen(false)}
-              sx={{ bgcolor: '#f1f5f9', color: '#64748b' }}
-            >
+            <IconButton size="small" onClick={() => setPricingDrawerOpen(false)} sx={{ bgcolor: '#f1f5f9', color: '#64748b' }}>
               <CloseIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Stack>
 
-          {/* Form Fields */}
-          <Stack spacing={2.5}>
-            {/* Price (Selling Price) */}
+          <Stack spacing={2}>
+            {/* Selling Price */}
             <Box>
               <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 0.75 }}>
-                Price (Selling Price)
+                Selling Price (Retail ₹) *
               </Typography>
               <TextField
                 fullWidth
@@ -1512,21 +1789,14 @@ export default function InventoryPage() {
                 InputProps={{
                   startAdornment: <InputAdornment position="start" sx={{ fontWeight: 800, color: '#0f172a' }}>₹</InputAdornment>,
                 }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '14px',
-                    bgcolor: '#f8fafc',
-                    fontSize: '1rem',
-                    fontWeight: 800,
-                  },
-                }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px', bgcolor: '#f8fafc', fontSize: '1rem', fontWeight: 800 } }}
               />
             </Box>
 
-            {/* Cost per item */}
+            {/* MRP */}
             <Box>
               <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 0.75 }}>
-                Cost per item
+                MRP (Printed Maximum Retail Price ₹) *
               </Typography>
               <TextField
                 fullWidth
@@ -1537,98 +1807,77 @@ export default function InventoryPage() {
                 InputProps={{
                   startAdornment: <InputAdornment position="start" sx={{ fontWeight: 800, color: '#0f172a' }}>₹</InputAdornment>,
                 }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '14px',
-                    bgcolor: '#f8fafc',
-                    fontSize: '1rem',
-                    fontWeight: 800,
-                  },
-                }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px', bgcolor: '#f8fafc', fontSize: '1rem', fontWeight: 800 } }}
               />
-              <Typography sx={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600, mt: 0.5 }}>
-                Customers won't see this
-              </Typography>
             </Box>
 
-            {/* Calculated Chips: Margin & Profit */}
-            <Stack direction="row" spacing={1.5} sx={{ py: 1 }}>
-              <Box
-                sx={{
-                  flex: 1,
-                  p: 1.5,
-                  borderRadius: '14px',
-                  bgcolor: '#f0fdf4',
-                  border: '1.5px solid #bbf7d0',
-                }}
-              >
+            {/* Wholesale Price (B2B) & MOQ */}
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 0.75 }}>
+                  Wholesale Price (B2B ₹)
+                </Typography>
+                <TextField
+                  fullWidth
+                  type="number"
+                  placeholder="e.g. 85.00"
+                  value={formWholesalePrice}
+                  onChange={(e) => setFormWholesalePrice(e.target.value)}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start" sx={{ fontWeight: 800 }}>₹</InputAdornment>,
+                  }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#f8fafc', fontWeight: 700 } }}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 0.75 }}>
+                  Min Order Qty (MOQ)
+                </Typography>
+                <TextField
+                  fullWidth
+                  type="number"
+                  placeholder="1"
+                  value={formMoq}
+                  onChange={(e) => setFormMoq(e.target.value)}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#f8fafc', fontWeight: 700 } }}
+                />
+              </Grid>
+            </Grid>
+
+            {/* Calculated Margin & Profit */}
+            <Stack direction="row" spacing={1.5} sx={{ py: 0.5 }}>
+              <Box sx={{ flex: 1, p: 1.5, borderRadius: '14px', bgcolor: '#f0fdf4', border: '1.5px solid #bbf7d0' }}>
                 <Typography sx={{ fontSize: '0.68rem', fontWeight: 800, color: '#16a34a', textTransform: 'uppercase' }}>
-                  Margin
+                  Customer Discount
                 </Typography>
                 <Typography sx={{ fontSize: '1.15rem', fontWeight: 900, color: '#15803d', mt: 0.2 }}>
-                  {calculatedMargin}%
+                  {costNum > priceNum && costNum > 0 ? `${Math.round(((costNum - priceNum) / costNum) * 100)}% OFF` : '0%'}
                 </Typography>
               </Box>
 
-              <Box
-                sx={{
-                  flex: 1,
-                  p: 1.5,
-                  borderRadius: '14px',
-                  bgcolor: '#f8fafc',
-                  border: '1.5px solid #e2e8f0',
-                }}
-              >
+              <Box sx={{ flex: 1, p: 1.5, borderRadius: '14px', bgcolor: '#f8fafc', border: '1.5px solid #e2e8f0' }}>
                 <Typography sx={{ fontSize: '0.68rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>
-                  Profit
+                  Savings Amount
                 </Typography>
                 <Typography sx={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', mt: 0.2 }}>
-                  ₹{calculatedProfit.toFixed(2)}
+                  ₹{Math.max(0, costNum - priceNum).toFixed(2)}
                 </Typography>
               </Box>
             </Stack>
 
-            {/* Footer Buttons */}
-            <Stack direction="row" spacing={2} sx={{ pt: 1 }}>
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={() => setPricingDrawerOpen(false)}
-                sx={{
-                  py: 1.4,
-                  borderRadius: '14px',
-                  borderColor: '#cbd5e1',
-                  color: '#334155',
-                  fontWeight: 800,
-                  fontSize: '0.85rem',
-                  textTransform: 'none',
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={() => setPricingDrawerOpen(false)}
-                sx={{
-                  py: 1.4,
-                  borderRadius: '14px',
-                  bgcolor: '#0f172a',
-                  color: '#ffffff',
-                  fontWeight: 900,
-                  fontSize: '0.85rem',
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#1e293b' },
-                }}
-              >
-                Save
-              </Button>
-            </Stack>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={() => setPricingDrawerOpen(false)}
+              sx={{ py: 1.4, borderRadius: '14px', bgcolor: '#0f172a', color: '#ffffff', fontWeight: 900, textTransform: 'none' }}
+            >
+              Confirm Pricing
+            </Button>
           </Stack>
         </Drawer>
 
         {/* ════════════════════════════════════════════════════════════════════════════════
-            4. INVENTORY STOCK SUB-DRAWER
+            4. INVENTORY STOCK SUB-DRAWER (For Product Creation)
            ════════════════════════════════════════════════════════════════════════════════ */}
         <Drawer
           anchor="bottom"
@@ -1646,118 +1895,63 @@ export default function InventoryPage() {
             },
           }}
         >
-          {/* Top Grab Bar */}
           <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
-
-          {/* Header */}
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
             <Typography sx={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a' }}>
-              Inventory Stock
+              Inventory & Thresholds
             </Typography>
-            <IconButton
-              size="small"
-              onClick={() => setStockDrawerOpen(false)}
-              sx={{ bgcolor: '#f1f5f9', color: '#64748b' }}
-            >
+            <IconButton size="small" onClick={() => setStockDrawerOpen(false)} sx={{ bgcolor: '#f1f5f9', color: '#64748b' }}>
               <CloseIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Stack>
 
-          {/* Stepper Input */}
           <Stack spacing={2.5}>
+            {!editingProduct && (
+              <Box>
+                <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 1 }}>
+                  Initial Stock Quantity
+                </Typography>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <IconButton onClick={() => setFormQuantity(String(Math.max(0, (parseInt(formQuantity, 10) || 0) - 1)))} sx={{ bgcolor: '#f1f5f9', width: 48, height: 48, borderRadius: '14px' }}>
+                    <RemoveIcon />
+                  </IconButton>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    value={formQuantity}
+                    onChange={(e) => setFormQuantity(e.target.value)}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px', bgcolor: '#f8fafc', fontSize: '1.2rem', fontWeight: 900 }, '& input': { textAlign: 'center' } }}
+                  />
+                  <IconButton onClick={() => setFormQuantity(String((parseInt(formQuantity, 10) || 0) + 1))} sx={{ bgcolor: '#f1f5f9', width: 48, height: 48, borderRadius: '14px' }}>
+                    <AddIcon />
+                  </IconButton>
+                </Stack>
+              </Box>
+            )}
+
             <Box>
               <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 1 }}>
-                Available Quantity
+                Low Stock Alert Threshold
               </Typography>
-              <Stack direction="row" spacing={1.5} alignItems="center">
-                <IconButton
-                  onClick={() => setFormQuantity(String(Math.max(0, (parseInt(formQuantity, 10) || 0) - 1)))}
-                  sx={{ bgcolor: '#f1f5f9', width: 48, height: 48, borderRadius: '14px' }}
-                >
-                  <RemoveIcon />
-                </IconButton>
-                <TextField
-                  fullWidth
-                  type="number"
-                  value={formQuantity}
-                  onChange={(e) => setFormQuantity(e.target.value)}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '14px',
-                      bgcolor: '#f8fafc',
-                      textAlign: 'center',
-                      fontSize: '1.2rem',
-                      fontWeight: 900,
-                    },
-                    '& input': { textAlign: 'center' },
-                  }}
-                />
-                <IconButton
-                  onClick={() => setFormQuantity(String((parseInt(formQuantity, 10) || 0) + 1))}
-                  sx={{ bgcolor: '#f1f5f9', width: 48, height: 48, borderRadius: '14px' }}
-                >
-                  <AddIcon />
-                </IconButton>
-              </Stack>
+              <TextField
+                fullWidth
+                type="number"
+                placeholder="5"
+                value={formLowStockThreshold}
+                onChange={(e) => setFormLowStockThreshold(e.target.value)}
+                helperText="Triggers an amber alert badge when available units fall to or below this count."
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px', bgcolor: '#f8fafc', fontWeight: 800 } }}
+              />
             </Box>
 
-            {/* Quick Presets */}
-            <Stack direction="row" spacing={1}>
-              {["+10", "+50", "+100"].map((preset) => (
-                <Chip
-                  key={preset}
-                  label={preset}
-                  onClick={() => {
-                    const add = parseInt(preset, 10);
-                    setFormQuantity(String((parseInt(formQuantity, 10) || 0) + add));
-                  }}
-                  sx={{
-                    fontWeight: 800,
-                    fontSize: '0.78rem',
-                    bgcolor: '#f1f5f9',
-                    cursor: 'pointer',
-                    '&:hover': { bgcolor: '#e2e8f0' },
-                  }}
-                />
-              ))}
-            </Stack>
-
-            {/* Footer Buttons */}
-            <Stack direction="row" spacing={2} sx={{ pt: 1 }}>
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={() => setStockDrawerOpen(false)}
-                sx={{
-                  py: 1.4,
-                  borderRadius: '14px',
-                  borderColor: '#cbd5e1',
-                  color: '#334155',
-                  fontWeight: 800,
-                  fontSize: '0.85rem',
-                  textTransform: 'none',
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={() => setStockDrawerOpen(false)}
-                sx={{
-                  py: 1.4,
-                  borderRadius: '14px',
-                  bgcolor: '#0f172a',
-                  color: '#ffffff',
-                  fontWeight: 900,
-                  fontSize: '0.85rem',
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#1e293b' },
-                }}
-              >
-                Save
-              </Button>
-            </Stack>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={() => setStockDrawerOpen(false)}
+              sx={{ py: 1.4, borderRadius: '14px', bgcolor: '#0f172a', color: '#ffffff', fontWeight: 900, textTransform: 'none' }}
+            >
+              Save Configuration
+            </Button>
           </Stack>
         </Drawer>
 
@@ -1781,24 +1975,16 @@ export default function InventoryPage() {
             },
           }}
         >
-          {/* Top Grab Bar */}
           <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
-
-          {/* Header */}
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
             <Typography sx={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a' }}>
               Select Category
             </Typography>
-            <IconButton
-              size="small"
-              onClick={() => setCategoryPickerOpen(false)}
-              sx={{ bgcolor: '#f1f5f9', color: '#64748b' }}
-            >
+            <IconButton size="small" onClick={() => setCategoryPickerOpen(false)} sx={{ bgcolor: '#f1f5f9', color: '#64748b' }}>
               <CloseIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Stack>
 
-          {/* Categories Grid */}
           <Box sx={{ overflowY: 'auto', maxHeight: '50vh', py: 1 }}>
             <Grid container spacing={1.25}>
               {categories.map((cat) => {
@@ -1821,7 +2007,6 @@ export default function InventoryPage() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        transition: 'border-color 0.15s, background-color 0.15s',
                         '&:hover': { borderColor: '#94a3b8' },
                       }}
                     >
@@ -1836,6 +2021,295 @@ export default function InventoryPage() {
             </Grid>
           </Box>
         </Drawer>
+
+        {/* ════════════════════════════════════════════════════════════════════════════════
+            6. DEDICATED ATOMIC STOCK ADJUSTMENT DRAWER
+           ════════════════════════════════════════════════════════════════════════════════ */}
+        <Drawer
+          anchor="bottom"
+          open={adjustDrawerOpen}
+          onClose={() => setAdjustDrawerOpen(false)}
+          PaperProps={{
+            sx: {
+              borderTopLeftRadius: '28px',
+              borderTopRightRadius: '28px',
+              bgcolor: '#ffffff',
+              p: 2.5,
+              pb: 4,
+              maxWidth: 540,
+              mx: 'auto',
+            },
+          }}
+        >
+          <Box sx={{ width: 44, height: 5, borderRadius: 3, bgcolor: '#cbd5e1', mx: 'auto', mb: 2 }} />
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+            <Box>
+              <Typography sx={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a' }}>
+                Stock Adjustment
+              </Typography>
+              <Typography sx={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>
+                {adjustProduct?.title}
+              </Typography>
+            </Box>
+            <IconButton size="small" onClick={() => setAdjustDrawerOpen(false)} sx={{ bgcolor: '#f1f5f9', color: '#64748b' }}>
+              <CloseIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </Stack>
+
+          {/* Current Stock Banner */}
+          <Paper elevation={0} sx={{ p: 2, borderRadius: '16px', bgcolor: '#f8fafc', border: '1.5px solid #e2e8f0', mb: 2.5 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Box>
+                <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>
+                  Current On-Hand Stock
+                </Typography>
+                <Typography sx={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a' }}>
+                  {Number(adjustProduct?.stock_qty ?? adjustProduct?.stockQty ?? 0)} units
+                </Typography>
+              </Box>
+              <Button
+                size="small"
+                onClick={loadMovementsAudit}
+                startIcon={<HistoryIcon />}
+                sx={{ textTransform: 'none', fontWeight: 800, fontSize: '0.75rem', borderRadius: '10px' }}
+              >
+                Audit Log
+              </Button>
+            </Stack>
+          </Paper>
+
+          {movementsTabOpen ? (
+            /* Audit Log View */
+            <Box sx={{ mb: 2 }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 900 }}>Recent Stock Movements</Typography>
+                <Button size="small" onClick={() => setMovementsTabOpen(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>
+                  Back to Adjust
+                </Button>
+              </Stack>
+              {movementsLoading ? (
+                <Box sx={{ py: 3, textAlign: 'center' }}><CircularProgress size={24} /></Box>
+              ) : movementsList.length === 0 ? (
+                <Typography sx={{ fontSize: '0.78rem', color: '#64748b', py: 2, textAlign: 'center' }}>No stock movements recorded yet</Typography>
+              ) : (
+                <Stack spacing={1} sx={{ maxHeight: 240, overflowY: 'auto' }}>
+                  {movementsList.map((m) => (
+                    <Box key={m.id} sx={{ p: 1.25, borderRadius: '10px', bgcolor: '#f8fafc', border: '1px solid #e2e8f0', fontSize: '0.75rem' }}>
+                      <Stack direction="row" justifyContent="space-between">
+                        <strong>{m.movement_type} ({m.quantity_change > 0 ? `+${m.quantity_change}` : m.quantity_change})</strong>
+                        <span>Result: {m.resulting_stock}</span>
+                      </Stack>
+                      <Typography sx={{ fontSize: '0.7rem', color: '#64748b', mt: 0.2 }}>
+                        {m.reason || 'No reason'} • {m.actor_role} • {m.created_at ? new Date(m.created_at).toLocaleDateString('en-IN') : ''}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Stack>
+              )}
+            </Box>
+          ) : (
+            /* Adjustment Form */
+            <Stack spacing={2}>
+              {/* Operation Segmented Controls */}
+              <Grid container spacing={1}>
+                {[
+                  { id: "ADD", label: "+ Add Stock" },
+                  { id: "REDUCE", label: "- Reduce Stock" },
+                  { id: "CORRECTION", label: "= Set Count" },
+                ].map((op) => (
+                  <Grid item xs={4} key={op.id}>
+                    <Button
+                      fullWidth
+                      variant={adjustType === op.id ? "contained" : "outlined"}
+                      onClick={() => setAdjustType(op.id)}
+                      sx={{
+                        py: 1,
+                        borderRadius: '12px',
+                        fontWeight: 800,
+                        fontSize: '0.75rem',
+                        textTransform: 'none',
+                        bgcolor: adjustType === op.id ? '#0f172a' : '#ffffff',
+                        borderColor: '#cbd5e1',
+                        color: adjustType === op.id ? '#ffffff' : '#334155',
+                      }}
+                    >
+                      {op.label}
+                    </Button>
+                  </Grid>
+                ))}
+              </Grid>
+
+              {/* Quantity */}
+              <Box>
+                <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 0.75 }}>
+                  Quantity
+                </Typography>
+                <TextField
+                  fullWidth
+                  type="number"
+                  value={adjustQty}
+                  onChange={(e) => setAdjustQty(e.target.value)}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#f8fafc', fontSize: '1.2rem', fontWeight: 900 } }}
+                />
+              </Box>
+
+              {/* Calculated Resulting Stock */}
+              {(() => {
+                const cur = Number(adjustProduct?.stock_qty ?? adjustProduct?.stockQty ?? 0);
+                const val = parseInt(adjustQty, 10) || 0;
+                let res = cur;
+                if (adjustType === "ADD") res = cur + val;
+                else if (adjustType === "REDUCE") res = Math.max(0, cur - val);
+                else if (adjustType === "CORRECTION") res = val;
+                return (
+                  <Box sx={{ p: 1.25, borderRadius: '12px', bgcolor: '#f0fdf4', border: '1px solid #bbf7d0', textAlign: 'center' }}>
+                    <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#15803d' }}>
+                      Resulting Stock: {res} units ({res > cur ? `+${res - cur}` : `${res - cur}`})
+                    </Typography>
+                  </Box>
+                );
+              })()}
+
+              {/* Reason */}
+              <Box>
+                <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 0.75 }}>
+                  Reason / Notes *
+                </Typography>
+                <TextField
+                  fullWidth
+                  placeholder="e.g. Received shipment, Damaged item, Physical count audit..."
+                  value={adjustReason}
+                  onChange={(e) => setAdjustReason(e.target.value)}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#f8fafc', fontSize: '0.85rem' } }}
+                />
+              </Box>
+
+              {/* Reference ID */}
+              <Box>
+                <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 0.75 }}>
+                  Reference ID (Optional PO # / Invoice #)
+                </Typography>
+                <TextField
+                  fullWidth
+                  placeholder="e.g. PO-89214"
+                  value={adjustRef}
+                  onChange={(e) => setAdjustRef(e.target.value)}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#f8fafc', fontSize: '0.85rem' } }}
+                />
+              </Box>
+
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={handleSaveStockAdjustment}
+                disabled={adjustSubmitting}
+                startIcon={adjustSubmitting && <CircularProgress size={16} color="inherit" />}
+                sx={{
+                  py: 1.4,
+                  borderRadius: '14px',
+                  bgcolor: '#f97316',
+                  color: '#ffffff',
+                  fontWeight: 900,
+                  fontSize: '0.88rem',
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#ea580c' },
+                }}
+              >
+                {adjustSubmitting ? "Updating Ledger..." : "Confirm Stock Adjustment"}
+              </Button>
+            </Stack>
+          )}
+        </Drawer>
+
+        {/* ════════════════════════════════════════════════════════════════════════════════
+            7. CAMERA & BARCODE SCANNER MODAL
+           ════════════════════════════════════════════════════════════════════════════════ */}
+        <Dialog
+          open={scannerOpen}
+          onClose={() => setScannerOpen(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: '24px',
+              maxWidth: 420,
+              width: '94%',
+              p: 2,
+              textAlign: 'center',
+            },
+          }}
+        >
+          <DialogTitle sx={{ p: 1, fontWeight: 900, fontSize: '1.2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Scan Product Barcode</span>
+            <IconButton size="small" onClick={() => setScannerOpen(false)}>
+              <CloseIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </DialogTitle>
+
+          <DialogContent sx={{ p: 1 }}>
+            {/* Live Camera Viewport */}
+            <Box
+              sx={{
+                width: '100%',
+                height: 220,
+                borderRadius: '16px',
+                bgcolor: '#0f172a',
+                overflow: 'hidden',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mb: 2,
+              }}
+            >
+              <video
+                ref={videoRef}
+                playsInline
+                muted
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+              {/* Viewport scan targeting overlay */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  width: '75%',
+                  height: '60%',
+                  border: '2px solid #f97316',
+                  borderRadius: '12px',
+                  boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.45)',
+                  pointerEvents: 'none',
+                }}
+              />
+            </Box>
+
+            {scannerError && (
+              <Alert severity="warning" sx={{ mb: 2, borderRadius: '12px', fontSize: '0.75rem' }}>
+                {scannerError}
+              </Alert>
+            )}
+
+            {/* Manual Barcode Input Fallback */}
+            <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b', mb: 1, textAlign: 'left' }}>
+              Or enter barcode / SKU manually:
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="e.g. 8901030352545"
+                value={manualBarcode}
+                onChange={(e) => setManualBarcode(e.target.value)}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+              />
+              <Button
+                variant="contained"
+                onClick={() => handleBarcodeDetected(manualBarcode)}
+                disabled={!manualBarcode.trim()}
+                sx={{ borderRadius: '12px', fontWeight: 800, bgcolor: '#0f172a', textTransform: 'none', px: 2 }}
+              >
+                Look Up
+              </Button>
+            </Stack>
+          </DialogContent>
+        </Dialog>
 
         {/* Prime Membership Modal */}
         <PrimeMembershipModal
