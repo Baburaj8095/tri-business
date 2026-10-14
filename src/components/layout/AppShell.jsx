@@ -59,11 +59,11 @@ import { getMerchantProfile, listMyShops } from '../../api/api';
 
 const NAV_ITEMS = [
   { label: 'Home', path: '/business-dashboard', icon: <HomeIcon /> },
-  { label: 'Online Marketplace', path: '/business/online-marketplace', icon: <MarketplaceIcon /> },
+  { label: 'Online Market', path: '/business/online-marketplace', icon: <MarketplaceIcon /> },
   { label: 'Nearby Stores', path: '/business/nearby-stores', icon: <NearbyIcon /> },
   { label: 'Orders', path: '/business/orders', icon: <OrdersIcon /> },
   { label: 'Inventory', path: '/business/inventory', icon: <InventoryIcon /> },
-  { label: 'Manage Online Products', path: '/business/online-products', icon: <InventoryIcon /> },
+  { label: 'Online Products', path: '/business/online-products', icon: <DeliveryIcon /> },
   { label: 'Ads Manager', path: '/business/ads', icon: <AdsIcon /> },
   { label: 'My Shops', path: '/business/shops', icon: <ShopsIcon /> },
   { label: 'Profile & KYC', path: '/business/profile', icon: <ProfileIcon /> },
@@ -248,12 +248,13 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                       justifyContent: 'flex-start',
                       px: 2,
                       py: 1.15,
-                      borderRadius: T.radiusSm,
+                      borderRadius: T.radiusMd,
                       textTransform: 'none',
                       fontSize: '0.88rem',
                       fontWeight: active ? 800 : 600,
                       color: active ? T.primary : T.textSecondary,
                       bgcolor: active ? T.primaryLight : 'transparent',
+                      borderLeft: active ? `3px solid ${T.primary}` : '3px solid transparent',
                       transition: 'all 0.15s ease',
                       '&:hover': {
                         bgcolor: active ? T.primaryLight : T.surfaceAlt,
@@ -344,7 +345,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                 '&:focus-within': {
                   bgcolor: T.surface,
                   borderColor: T.primary,
-                  boxShadow: '0 0 0 3px rgba(34, 139, 34, 0.1)',
+                  boxShadow: '0 0 0 3px rgba(234, 88, 12, 0.12)',
                 }
               }}
             >
@@ -417,7 +418,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                   onClick={() => navigate('/business/online-marketplace/cart')}
                   sx={{ color: T.textSecondary, '&:hover': { bgcolor: T.surfaceAlt, color: T.text } }}
                 >
-                  <Badge badgeContent={cartCount} color="success" max={99}>
+                  <Badge badgeContent={cartCount} sx={{ '& .MuiBadge-badge': { bgcolor: '#EA580C', color: '#fff', fontWeight: 800 } }} max={99}>
                     <CartIcon sx={{ fontSize: 22 }} />
                   </Badge>
                 </IconButton>
@@ -428,11 +429,11 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                   sx={{
                     width: 36,
                     height: 36,
-                    bgcolor: T.primaryDark,
+                    bgcolor: T.primary,
                     color: '#fff',
                     fontWeight: 800,
                     fontSize: '0.85rem',
-                    border: `2px solid ${T.primaryAccent}`,
+                    border: `2px solid ${T.primaryLight}`,
                   }}
                 >
                   {initials}

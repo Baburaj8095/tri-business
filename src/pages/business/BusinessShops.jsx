@@ -59,12 +59,12 @@ import {
   getMerchantProfile,
 } from "../../api/api";
 
-/* ── Design Tokens ── */
+/* ── Design Tokens (TriShopping Orange Theme) ── */
 const T = {
-  primary: '#228B22',       // Forest Green
-  primaryDark: '#1B4D3E',   // Dark Forest Green
-  primaryLight: '#e9f5e9',
-  accent: '#f97316',        // Orange accent
+  primary: '#EA580C',       // Signature TriShopping Orange
+  primaryDark: '#C2410C',   // Deep Orange
+  primaryLight: '#FFF7ED',  // Warm Orange Tint (orange-50)
+  accent: '#F59E0B',        // Amber Highlight
   bg: '#f8fafc',
   surface: '#ffffff',
   text: '#0f172a',
@@ -75,10 +75,10 @@ const T = {
   error: '#ef4444',
   success: '#10b981',
   warning: '#f59e0b',
-  gradient: 'linear-gradient(135deg, #228B22 0%, #1B4D3E 100%)',
-  btnGradient: 'linear-gradient(135deg, #228B22 0%, #0d9488 100%)',
-  cardShadow: '0 10px 25px rgba(15, 23, 42, 0.05)',
-  radius: '16px',
+  gradient: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
+  btnGradient: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
+  cardShadow: '0 4px 20px rgba(15, 23, 42, 0.05)',
+  radius: '20px',
 };
 
 const labelSx = {
@@ -497,24 +497,25 @@ export default function BusinessShops() {
             startIcon={<AddIcon sx={{ fontSize: 18 }} />}
             onClick={() => navigate('/registration-wizard')}
             sx={{
-              bgcolor: '#047857',
+              bgcolor: '#EA580C',
+              background: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
               color: '#ffffff',
               borderRadius: '12px',
               textTransform: 'none',
               fontWeight: 800,
               fontSize: '0.84rem',
-              height: '38px',
-              px: { xs: 2, sm: 2.5 },
+              height: '40px',
+              px: { xs: 2, sm: 3 },
               whiteSpace: 'nowrap',
               flexShrink: 0,
-              boxShadow: '0 2px 8px rgba(4, 120, 87, 0.25)',
+              boxShadow: '0 4px 14px rgba(234, 88, 12, 0.28)',
               display: 'inline-flex',
               alignItems: 'center',
-              '&:hover': { bgcolor: '#065f46' },
+              '&:hover': { background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)', boxShadow: '0 6px 18px rgba(234, 88, 12, 0.35)' },
               '&:active': { transform: 'scale(0.97)' }
             }}
           >
-            Add Store
+            + Add Store
           </Button>
         </Stack>
 
@@ -1126,32 +1127,31 @@ export default function BusinessShops() {
           ) : (
             <Grid container spacing={3}>
               {shops.map((s) => (
-                <Grid item xs={12} sm={6} key={s.id}>
+                <Grid item xs={12} sm={shops.length === 1 ? 8 : 6} md={shops.length === 1 ? 6 : 4} key={s.id}>
                   <Card
                     elevation={0}
                     sx={{
                       borderRadius: '20px',
-                      boxShadow: '0 2px 12px rgba(15, 23, 42, 0.05)',
+                      boxShadow: '0 2px 14px rgba(15, 23, 42, 0.05)',
                       bgcolor: '#ffffff',
                       border: '1px solid #e2e8f0',
                       overflow: 'hidden',
                       transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                       '&:hover': {
                         transform: 'translateY(-2px)',
-                        boxShadow: '0 10px 24px rgba(15, 23, 42, 0.08)',
-                        borderColor: '#10b981',
+                        boxShadow: '0 10px 24px rgba(234, 88, 12, 0.1)',
+                        borderColor: '#fed7aa',
                       }
                     }}
                   >
-                    {/* Store Card Header Banner */}
+                    {/* Store Card Header Banner (TriShopping Orange Theme) */}
                     <Box
                       sx={{
                         position: 'relative',
                         height: s.shop_image ? 140 : 96,
-                        bgcolor: '#064e3b',
                         background: s.shop_image
                           ? 'transparent'
-                          : 'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
+                          : 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
                         overflow: 'hidden',
                         display: 'flex',
                         alignItems: 'center',
@@ -1172,11 +1172,11 @@ export default function BusinessShops() {
                               width: 44,
                               height: 44,
                               borderRadius: '12px',
-                              bgcolor: 'rgba(255, 255, 255, 0.2)',
+                              bgcolor: 'rgba(255, 255, 255, 0.22)',
                               color: '#ffffff',
                               display: 'grid',
                               placeItems: 'center',
-                              border: '1.5px solid rgba(255, 255, 255, 0.4)',
+                              border: '1.5px solid rgba(255, 255, 255, 0.45)',
                             }}
                           >
                             <StoreIcon sx={{ fontSize: 24 }} />
@@ -1185,7 +1185,7 @@ export default function BusinessShops() {
                             <Typography sx={{ color: '#ffffff', fontWeight: 900, fontSize: '1.05rem', lineHeight: 1.2 }} noWrap>
                               {s.shop_name}
                             </Typography>
-                            <Typography sx={{ color: '#a7f3d0', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }} noWrap>
+                            <Typography sx={{ color: '#fed7aa', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }} noWrap>
                               {s.category || 'RETAIL STORE'}
                             </Typography>
                           </Box>
@@ -1205,7 +1205,7 @@ export default function BusinessShops() {
                           <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: '#0f172a', mb: 0.25 }}>
                             {s.shop_name}
                           </Typography>
-                          <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: '#047857', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: '#EA580C', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                             {s.category || 'RETAIL STORE'}
                           </Typography>
                         </Box>
@@ -1258,14 +1258,14 @@ export default function BusinessShops() {
                       {/* Location & Contact Info */}
                       <Stack spacing={0.75} sx={{ mb: 2 }}>
                         <Stack direction="row" spacing={1} alignItems="center" sx={{ color: '#475569' }}>
-                          <PlaceIcon sx={{ fontSize: 16, color: '#047857', flexShrink: 0 }} />
+                          <PlaceIcon sx={{ fontSize: 16, color: '#EA580C', flexShrink: 0 }} />
                           <Typography sx={{ fontSize: '0.82rem', fontWeight: 600 }}>
                             {s.city || 'Store Location'} (Pincode: {s.pincode || '—'})
                           </Typography>
                         </Stack>
 
                         <Stack direction="row" spacing={1} alignItems="center" sx={{ color: '#475569' }}>
-                          <PhoneIcon sx={{ fontSize: 16, color: '#047857', flexShrink: 0 }} />
+                          <PhoneIcon sx={{ fontSize: 16, color: '#EA580C', flexShrink: 0 }} />
                           <Typography sx={{ fontSize: '0.82rem', fontWeight: 600 }}>
                             {s.contact_number || 'No contact specified'}
                           </Typography>
@@ -1280,7 +1280,7 @@ export default function BusinessShops() {
 
                       <Divider sx={{ my: 1.5, borderColor: '#f1f5f9' }} />
 
-                      {/* Standardized Bottom Action Buttons */}
+                      {/* Standardized Bottom Action Buttons (TriShopping Theme) */}
                       <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mt: 'auto' }}>
                         <Button
                           variant="contained"
@@ -1294,11 +1294,12 @@ export default function BusinessShops() {
                             textTransform: 'none',
                             fontSize: '0.8rem',
                             fontWeight: 800,
-                            bgcolor: '#047857',
+                            bgcolor: '#EA580C',
+                            background: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
                             color: '#ffffff',
-                            boxShadow: '0 2px 6px rgba(4, 120, 87, 0.2)',
+                            boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)',
                             whiteSpace: 'nowrap',
-                            '&:hover': { bgcolor: '#065f46' },
+                            '&:hover': { background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)', boxShadow: '0 4px 12px rgba(234, 88, 12, 0.35)' },
                             '&:active': { transform: 'scale(0.98)' }
                           }}
                         >

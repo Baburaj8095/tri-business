@@ -4,14 +4,14 @@
  */
 
 export const T = {
-  // Brand Green Scale
-  primaryDark: '#1B4D3E',    // Deep pine / header
-  primary: '#228B22',        // Forest green / primary CTA
-  primaryHover: '#166534',   // Darker green hover
-  primaryLight: '#F0FDF4',   // Soft mint tint for active states
-  primaryAccent: '#10B981',  // Vibrant emerald highlight
-  primaryGradient: 'linear-gradient(135deg, #1B4D3E 0%, #228B22 100%)',
-  primaryGradientSubtle: 'linear-gradient(135deg, rgba(27,77,62,0.06) 0%, rgba(34,139,34,0.06) 100%)',
+  // Brand Scale (TriShopping Orange & Slate Palette)
+  primaryDark: '#C2410C',    // Deep orange (orange-700)
+  primary: '#EA580C',        // TriShopping signature orange (orange-600)
+  primaryHover: '#9A3412',   // Rich burnt orange (orange-800)
+  primaryLight: '#FFF7ED',   // Soft warm tint for active states (orange-50)
+  primaryAccent: '#F59E0B',  // Amber highlight
+  primaryGradient: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
+  primaryGradientSubtle: 'linear-gradient(135deg, rgba(234,88,12,0.08) 0%, rgba(249,115,22,0.03) 100%)',
 
   // Neutrals Canvas
   bg: '#F8FAFC',             // Slate 50 background
@@ -20,7 +20,7 @@ export const T = {
   surfaceHover: '#F8FAFC',
   border: '#E2E8F0',         // 1px subtle card/table border
   borderHover: '#CBD5E1',
-  borderFocus: '#228B22',
+  borderFocus: '#EA580C',
 
   // Typography
   text: '#0F172A',           // Slate 900 primary high contrast
@@ -33,21 +33,6 @@ export const T = {
   successBg: '#ECFDF5',
   successBorder: '#A7F3D0',
   successText: '#065F46',
-
-  warning: '#F59E0B',
-  warningBg: '#FEF3C7',
-  warningBorder: '#FDE68A',
-  warningText: '#92400E',
-
-  error: '#EF4444',
-  errorBg: '#FEF2F2',
-  errorBorder: '#FECACA',
-  errorText: '#991B1B',
-
-  info: '#3B82F6',
-  infoBg: '#EFF6FF',
-  infoBorder: '#BFDBFE',
-  infoText: '#1E40AF',
 
   // Channel Tags (Online vs Offline, B2B vs B2C)
   b2b: '#EA580C',
@@ -64,14 +49,14 @@ export const T = {
   radiusXl: '20px',
   radiusFull: '9999px',
 
-  // Elevation Shadows (Restrained SaaS Style)
+  // Elevation Shadows (TriShopping Clean SaaS Style)
   shadowSm: '0 1px 3px rgba(15, 23, 42, 0.04)',
-  shadowMd: '0 4px 14px rgba(15, 23, 42, 0.04)',
-  shadowLg: '0 10px 28px rgba(15, 23, 42, 0.07)',
+  shadowMd: '0 4px 16px rgba(15, 23, 42, 0.06)',
+  shadowLg: '0 10px 28px rgba(15, 23, 42, 0.08)',
   shadowModal: '0 20px 48px rgba(15, 23, 42, 0.16)',
 
   // Spacing & Layout
-  sidebarWidth: 240,
+  sidebarWidth: 256,
   topBarHeight: 68,
   mobileNavHeight: 64,
   maxContentWidth: 1400,
@@ -120,7 +105,7 @@ export const primaryBtnSx = {
   boxShadow: 'none',
   '&:hover': {
     bgcolor: T.primaryHover,
-    boxShadow: '0 2px 8px rgba(34, 139, 34, 0.25)',
+    boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)',
   },
 };
 
