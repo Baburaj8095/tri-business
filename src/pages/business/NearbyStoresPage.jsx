@@ -27,8 +27,10 @@ import {
   FavoriteBorderRounded as FavoriteBorderIcon,
   PhotoLibraryOutlined as GalleryIcon,
   TuneRounded as FilterIcon,
+  QrCodeScanner as QrIcon,
 } from '@mui/icons-material';
 import AppShell from '../../components/layout/AppShell';
+import { T, cardHoverSx } from '../../theme/tokens';
 import { getPublicB2bMerchants, getMerchantCategories } from '../../api/api';
 
 const resolveCategoryName = (shop) => {
@@ -186,11 +188,11 @@ export default function NearbyStoresPage() {
                 fontSize: '0.78rem',
                 fontWeight: viewMode === 'map' ? 800 : 600,
                 textTransform: 'none',
-                bgcolor: viewMode === 'map' ? '#ea580c' : 'transparent',
+                bgcolor: viewMode === 'map' ? T.primary : 'transparent',
                 color: viewMode === 'map' ? '#ffffff' : '#64748b',
                 minWidth: 0,
-                boxShadow: viewMode === 'map' ? '0 2px 6px rgba(21,128,61,0.25)' : 'none',
-                '&:hover': { bgcolor: viewMode === 'map' ? '#c2410c' : '#f8fafc' },
+                boxShadow: viewMode === 'map' ? '0 2px 6px rgba(255,101,8,0.25)' : 'none',
+                '&:hover': { bgcolor: viewMode === 'map' ? T.primaryDark : '#f8fafc' },
               }}
             >
               Map
@@ -207,11 +209,11 @@ export default function NearbyStoresPage() {
                 fontSize: '0.78rem',
                 fontWeight: viewMode === 'list' ? 800 : 600,
                 textTransform: 'none',
-                bgcolor: viewMode === 'list' ? '#ea580c' : 'transparent',
+                bgcolor: viewMode === 'list' ? T.primary : 'transparent',
                 color: viewMode === 'list' ? '#ffffff' : '#64748b',
                 minWidth: 0,
-                boxShadow: viewMode === 'list' ? '0 2px 6px rgba(21,128,61,0.25)' : 'none',
-                '&:hover': { bgcolor: viewMode === 'list' ? '#c2410c' : '#f8fafc' },
+                boxShadow: viewMode === 'list' ? '0 2px 6px rgba(255,101,8,0.25)' : 'none',
+                '&:hover': { bgcolor: viewMode === 'list' ? T.primaryDark : '#f8fafc' },
               }}
             >
               List
@@ -220,7 +222,7 @@ export default function NearbyStoresPage() {
         </Stack>
 
         {/* ══════════════════════════════════════════════════════════════════════════
-            2. SEARCH BAR WITH FILTER BUTTON
+            2. SEARCH BAR WITH QR SCANNER & FILTER BUTTON
            ══════════════════════════════════════════════════════════════════════════ */}
         <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
           <TextField
@@ -235,6 +237,13 @@ export default function NearbyStoresPage() {
                   <SearchIcon sx={{ color: '#94a3b8', fontSize: 20 }} />
                 </InputAdornment>
               ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton size="small" onClick={() => navigate('/scanner')} sx={{ color: T.primary }}>
+                    <QrIcon sx={{ fontSize: 20 }} />
+                  </IconButton>
+                </InputAdornment>
+              ),
             }}
             sx={{
               bgcolor: '#ffffff',
@@ -243,7 +252,7 @@ export default function NearbyStoresPage() {
                 height: '44px',
                 '& fieldset': { borderColor: '#e2e8f0' },
                 '&:hover fieldset': { borderColor: '#cbd5e1' },
-                '&.Mui-focused fieldset': { borderColor: '#ea580c' }
+                '&.Mui-focused fieldset': { borderColor: T.primary }
               },
               '& .MuiInputBase-input': { fontSize: '0.86rem', color: '#0f172a' }
             }}
@@ -260,7 +269,7 @@ export default function NearbyStoresPage() {
               color: '#0f172a',
               flexShrink: 0,
               boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-              '&:hover': { bgcolor: '#f8fafc', borderColor: '#ea580c' }
+              '&:hover': { bgcolor: '#f8fafc', borderColor: T.primary }
             }}
           >
             <FilterIcon sx={{ fontSize: 20 }} />
@@ -296,13 +305,13 @@ export default function NearbyStoresPage() {
                   fontSize: '0.82rem',
                   fontWeight: isSelected ? 800 : 600,
                   textTransform: 'none',
-                  bgcolor: isSelected ? '#ea580c' : '#ffffff',
+                  bgcolor: isSelected ? T.primary : '#ffffff',
                   color: isSelected ? '#FFFFFF' : '#475569',
-                  border: `1px solid ${isSelected ? '#ea580c' : '#e2e8f0'}`,
-                  boxShadow: isSelected ? '0 2px 8px rgba(21,128,61,0.25)' : 'none',
+                  border: `1px solid ${isSelected ? T.primary : '#e2e8f0'}`,
+                  boxShadow: isSelected ? '0 2px 8px rgba(255,101,8,0.25)' : 'none',
                   '&:hover': {
-                    bgcolor: isSelected ? '#c2410c' : '#f8fafc',
-                    borderColor: isSelected ? '#c2410c' : '#cbd5e1',
+                    bgcolor: isSelected ? T.primaryDark : '#f8fafc',
+                    borderColor: isSelected ? T.primaryDark : '#cbd5e1',
                   }
                 }}
               >
@@ -317,14 +326,14 @@ export default function NearbyStoresPage() {
            ══════════════════════════════════════════════════════════════════════════ */}
         {loading ? (
           <Box sx={{ textAlign: 'center', py: 10 }}>
-            <CircularProgress sx={{ color: '#ea580c' }} />
+            <CircularProgress sx={{ color: T.primary }} />
             <Typography sx={{ mt: 2, color: '#64748b', fontWeight: 600, fontSize: '0.88rem' }}>
               Finding stores near you...
             </Typography>
           </Box>
         ) : filteredStores.length === 0 ? (
           <Card elevation={0} sx={{ p: 5, textAlign: 'center', borderRadius: '20px', border: '1px solid #e2e8f0', bgcolor: '#ffffff' }}>
-            <StorefrontIcon sx={{ fontSize: 48, color: '#ea580c', mb: 1, opacity: 0.85 }} />
+            <StorefrontIcon sx={{ fontSize: 48, color: T.primary, mb: 1, opacity: 0.85 }} />
             <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.05rem', mb: 0.5 }}>
               No B2B Wholesale Stores Found Nearby
             </Typography>
@@ -333,10 +342,10 @@ export default function NearbyStoresPage() {
             </Typography>
             <Button
               variant="contained"
-              onClick={() => navigate('/business/online')}
+              onClick={() => navigate('/business/online-marketplace')}
               sx={{
-                bgcolor: '#ea580c',
-                '&:hover': { bgcolor: '#c2410c' },
+                bgcolor: T.primary,
+                '&:hover': { bgcolor: T.primaryDark },
                 borderRadius: '10px',
                 px: 2.5,
                 py: 1,

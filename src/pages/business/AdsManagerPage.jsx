@@ -26,16 +26,17 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { getMerchantProfile } from '../../api/api';
 import AppShell from '../../components/layout/AppShell';
+import { T, cardHoverSx } from '../../theme/tokens';
 
-/* ─── Design tokens (match BusinessDashboard) ─────────────────────────────── */
-const P  = '#228B22';
-const PD = '#1B4D3E';
-const BG = '#f1f5f9';
+/* ─── Design tokens (exact brand palette) ─────────────────────────────────── */
+const P   = '#FF6508';
+const PD  = '#E9570A';
+const BG  = '#F4F7FB';
 const SUR = '#ffffff';
-const TXT = '#0f172a';
-const MUT = '#94a3b8';
-const BOR = '#e2e8f0';
-const ERR = '#ef4444';
+const TXT = '#17233D';
+const MUT = '#64748B';
+const BOR = '#E4EAF2';
+const ERR = '#E5484D';
 
 const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
   || window.REACT_APP_CAPTAIN_API_URL
@@ -504,39 +505,103 @@ export default function AdsManagerPage() {
   const counts = {};
   ads.forEach(a => { counts[a.display_target] = (counts[a.display_target] || 0) + 1; });
 
+  const [viewTab, setViewTab] = useState('OVERVIEW'); // 'OVERVIEW' | 'MY_ADS' | 'PACKAGES'
+
   /* ── Render ──────────────────────────────────────────────────────────── */
   return (
     <AppShell activeTab="/business/ads" title="Ads Manager">
-      <Container maxWidth="xl" sx={{ py: { xs: 2.5, md: 4 } }}>
-        {/* Header Bar */}
-        <Box sx={{ mb: 3.5, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', gap: 2 }}>
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 900, color: TXT, letterSpacing: '-0.02em', mb: 0.5 }}>
-              Campaigns & Ads Manager
-            </Typography>
-            <Typography sx={{ fontSize: '0.9rem', color: MUT, fontWeight: 500 }}>
-              Promote your business across B2C Online, Nearby Stores, TriZone, and B2B wholesale channels.
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={openCreate}
-            sx={{
-              bgcolor: P,
-              color: '#ffffff',
-              fontWeight: 800,
-              textTransform: 'none',
-              borderRadius: '12px',
-              px: 3,
-              py: 1.2,
-              boxShadow: '0 4px 14px rgba(34, 139, 34, 0.25)',
-              '&:hover': { bgcolor: PD },
-            }}
-          >
-            Create New Campaign
-          </Button>
-        </Box>
+      <Container maxWidth="xl" sx={{ py: { xs: 2, md: 3 } }}>
+        {/* 1. SCREEN 4 HERO BANNER */}
+        <Card
+          sx={{
+            mb: 2.5,
+            borderRadius: '18px',
+            background: 'linear-gradient(135deg, #FF6508 0%, #E9570A 100%)',
+            color: '#ffffff',
+            p: { xs: 2.25, sm: 3 },
+            boxShadow: '0 6px 20px rgba(255, 101, 8, 0.22)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <Box sx={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.1)', pointerEvents: 'none' }} />
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Box sx={{ pr: 1.5, zIndex: 1 }}>
+              <Chip
+                label="STORE ADVERTISING"
+                size="small"
+                sx={{ bgcolor: 'rgba(255,255,255,0.22)', color: '#ffffff', fontWeight: 800, fontSize: '0.62rem', height: 20, mb: 0.75 }}
+              />
+              <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.05rem', sm: '1.25rem' }, lineHeight: 1.25, mb: 0.5 }}>
+                Advertise Your Store, Reach More Customers
+              </Typography>
+              <Typography sx={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.9)', mb: 1.5 }}>
+                Run high-impact banners across online consumer ordering and B2B wholesale portals.
+              </Typography>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={openCreate}
+                startIcon={<AddIcon />}
+                sx={{
+                  bgcolor: '#ffffff',
+                  color: '#E9570A',
+                  fontWeight: 800,
+                  fontSize: '0.75rem',
+                  borderRadius: '20px',
+                  textTransform: 'none',
+                  px: 2,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                  '&:hover': { bgcolor: '#f8fafc' },
+                }}
+              >
+                Create Campaign →
+              </Button>
+            </Box>
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                bgcolor: 'rgba(255,255,255,0.2)',
+                display: 'grid',
+                placeItems: 'center',
+                flexShrink: 0,
+                zIndex: 1,
+              }}
+            >
+              <CampaignIcon sx={{ fontSize: 36, color: '#ffffff' }} />
+            </Box>
+          </Stack>
+        </Card>
+
+        {/* 2. SCREEN 4 SEGMENTED TABS (Overview, My Ads, Campaign Packages) */}
+        <Stack direction="row" spacing={1} sx={{ mb: 2.5, overflowX: 'auto', pb: 0.5 }}>
+          {[
+            { id: 'OVERVIEW', label: 'Overview' },
+            { id: 'MY_ADS', label: `My Ads (${ads.length})` },
+            { id: 'PACKAGES', label: 'Campaign Packages' },
+          ].map(tab => {
+            const active = viewTab === tab.id;
+            return (
+              <Chip
+                key={tab.id}
+                label={tab.label}
+                clickable
+                onClick={() => setViewTab(tab.id)}
+                sx={{
+                  fontWeight: 800,
+                  fontSize: '0.74rem',
+                  borderRadius: '20px',
+                  bgcolor: active ? P : '#ffffff',
+                  color: active ? '#ffffff' : '#64748B',
+                  border: `1.5px solid ${active ? P : '#E4EAF2'}`,
+                  '&:hover': { bgcolor: active ? PD : '#F1F5F9' },
+                }}
+              />
+            );
+          })}
+        </Stack>
 
         {/* Top KPI Metrics Cards */}
         <Grid container spacing={2.5} sx={{ mb: 3.5 }}>

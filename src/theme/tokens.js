@@ -4,42 +4,57 @@
  */
 
 export const T = {
-  // Brand Scale (TriShopping Orange & Slate Palette)
-  primaryDark: '#C2410C',    // Deep orange (orange-700)
-  primary: '#EA580C',        // TriShopping signature orange (orange-600)
-  primaryHover: '#9A3412',   // Rich burnt orange (orange-800)
-  primaryLight: '#FFF7ED',   // Soft warm tint for active states (orange-50)
-  primaryAccent: '#F59E0B',  // Amber highlight
-  primaryGradient: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
-  primaryGradientSubtle: 'linear-gradient(135deg, rgba(234,88,12,0.08) 0%, rgba(249,115,22,0.03) 100%)',
+  // Brand Palette (Exact Specifications)
+  primary: '#FF6508',        // Primary orange
+  primaryDark: '#E9570A',    // Deep orange
+  primaryHover: '#E9570A',
+  primaryLight: '#FFF3E8',   // Soft orange surface
+  primaryAccent: '#F2A900',  // Warning amber highlight
+  primaryGradient: 'linear-gradient(135deg, #FF6508 0%, #E9570A 100%)',
+  primaryGradientSubtle: 'linear-gradient(135deg, rgba(255,101,8,0.08) 0%, rgba(233,87,10,0.03) 100%)',
 
   // Neutrals Canvas
-  bg: '#F8FAFC',             // Slate 50 background
-  surface: '#FFFFFF',        // Pure white card surfaces
-  surfaceAlt: '#F1F5F9',     // Slate 100 for secondary containers
+  bg: '#F4F7FB',             // Main background
+  surface: '#FFFFFF',        // Card background
+  surfaceAlt: '#F1F5F9',     // Secondary surface
   surfaceHover: '#F8FAFC',
-  border: '#E2E8F0',         // 1px subtle card/table border
+  border: '#E4EAF2',         // Subtle card/table border
   borderHover: '#CBD5E1',
-  borderFocus: '#EA580C',
+  borderFocus: '#FF6508',
 
   // Typography
-  text: '#0F172A',           // Slate 900 primary high contrast
-  textSecondary: '#475569',  // Slate 600 secondary body & descriptions
-  textMuted: '#94A3B8',      // Slate 400 captions & metadata
+  text: '#17233D',           // Dark navy primary text
+  textSecondary: '#64748B',  // Secondary text
+  textMuted: '#94A3B8',      // Muted slate captions
   textInverse: '#FFFFFF',
 
   // Semantic Status Colors
-  success: '#10B981',
+  success: '#159A65',        // Success green
   successBg: '#ECFDF5',
   successBorder: '#A7F3D0',
   successText: '#065F46',
 
+  warning: '#F2A900',        // Warning amber
+  warningBg: '#FEFCE8',
+  warningBorder: '#FEF08A',
+  warningText: '#854D0E',
+
+  error: '#E5484D',          // Error red
+  errorBg: '#FEF2F2',
+  errorBorder: '#FECACA',
+  errorText: '#991B1B',
+
+  blue: '#3678E5',           // Supporting blue
+  blueBg: '#EFF6FF',
+  purple: '#8758E8',         // Supporting purple
+  purpleBg: '#F5F3FF',
+
   // Channel Tags (Online vs Offline, B2B vs B2C)
-  b2b: '#EA580C',
-  b2bBg: '#FFF7ED',
-  b2c: '#2563EB',
+  b2b: '#FF6508',
+  b2bBg: '#FFF3E8',
+  b2c: '#3678E5',
   b2cBg: '#EFF6FF',
-  both: '#059669',
+  both: '#159A65',
   bothBg: '#ECFDF5',
 
   // Radius Scale

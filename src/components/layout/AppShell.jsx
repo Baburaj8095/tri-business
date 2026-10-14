@@ -518,9 +518,9 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                   right: 0,
                   height: '108px',
                   zIndex: 1100,
-                  background: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
+                  background: 'linear-gradient(135deg, #FF6508 0%, #E9570A 100%)',
                   color: '#ffffff',
-                  boxShadow: '0 4px 20px rgba(234, 88, 12, 0.28)',
+                  boxShadow: '0 4px 20px rgba(255, 101, 8, 0.28)',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -536,7 +536,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                       sx={{
                         width: 38,
                         height: 38,
-                        bgcolor: '#C2410C',
+                        bgcolor: '#E9570A',
                         color: '#ffffff',
                         fontWeight: 900,
                         fontSize: '0.85rem',
@@ -590,7 +590,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                       onClick={() => navigate('/business/online-marketplace/cart')}
                       sx={{ color: '#ffffff', p: 0.75, '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}
                     >
-                      <Badge badgeContent={cartCount || 2} color="warning" max={99}>
+                      <Badge badgeContent={cartCount} color="warning" max={99}>
                         <CartIcon sx={{ fontSize: 21 }} />
                       </Badge>
                     </IconButton>
@@ -706,12 +706,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business-dashboard') ? '#EA580C' : '#64748B',
+              color: isCurrentActive('/business-dashboard') ? '#FF6508' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <HomeIcon sx={{ fontSize: 22, color: isCurrentActive('/business-dashboard') ? '#EA580C' : '#64748B', mb: 0.25 }} />
+            <HomeIcon sx={{ fontSize: 22, color: isCurrentActive('/business-dashboard') ? '#FF6508' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business-dashboard') ? 800 : 600 }}>
               Home
             </Typography>
@@ -728,18 +728,18 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business/online-marketplace') ? '#EA580C' : '#64748B',
+              color: isCurrentActive('/business/online-marketplace') ? '#FF6508' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <MarketplaceIcon sx={{ fontSize: 22, color: isCurrentActive('/business/online-marketplace') ? '#EA580C' : '#64748B', mb: 0.25 }} />
+            <MarketplaceIcon sx={{ fontSize: 22, color: isCurrentActive('/business/online-marketplace') ? '#FF6508' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business/online-marketplace') ? 800 : 600 }}>
               Online
             </Typography>
           </Button>
 
-          {/* Tab 3: Raised Emerald Center Scanner Button */}
+          {/* Tab 3: Raised Center Scanner Button */}
           <Box
             onClick={() => navigate('/scanner')}
             sx={{
@@ -757,11 +757,11 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                 width: 52,
                 height: 52,
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
+                background: 'linear-gradient(135deg, #FF6508 0%, #E9570A 100%)',
                 color: '#ffffff',
                 display: 'grid',
                 placeItems: 'center',
-                boxShadow: '0 4px 14px rgba(234, 88, 12, 0.45)',
+                boxShadow: '0 4px 14px rgba(255, 101, 8, 0.45)',
                 border: '3px solid #ffffff',
                 transition: 'transform 0.15s ease',
                 '&:active': { transform: 'scale(0.92)' }
@@ -769,7 +769,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
             >
               <ScanIcon sx={{ fontSize: 26 }} />
             </Box>
-            <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/scanner') ? 800 : 600, color: isCurrentActive('/scanner') ? '#EA580C' : '#64748B', mt: 0.25 }}>
+            <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/scanner') ? 800 : 600, color: isCurrentActive('/scanner') ? '#FF6508' : '#64748B', mt: 0.25 }}>
               Scanner
             </Typography>
           </Box>
@@ -785,12 +785,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business/nearby-stores') ? '#EA580C' : '#64748B',
+              color: isCurrentActive('/business/nearby-stores') ? '#FF6508' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <NearbyIcon sx={{ fontSize: 22, color: isCurrentActive('/business/nearby-stores') ? '#EA580C' : '#64748B', mb: 0.25 }} />
+            <NearbyIcon sx={{ fontSize: 22, color: isCurrentActive('/business/nearby-stores') ? '#FF6508' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business/nearby-stores') ? 800 : 600 }}>
               Nearby
             </Typography>
@@ -807,12 +807,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business/orders') ? '#EA580C' : '#64748B',
+              color: isCurrentActive('/business/orders') ? '#FF6508' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <OrdersIcon sx={{ fontSize: 22, color: isCurrentActive('/business/orders') ? '#EA580C' : '#64748B', mb: 0.25 }} />
+            <OrdersIcon sx={{ fontSize: 22, color: isCurrentActive('/business/orders') ? '#FF6508' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business/orders') ? 800 : 600 }}>
               Orders
             </Typography>
@@ -1056,21 +1056,16 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               </Stack>
             </Box>
 
-            {/* 2. Business Modules Section Header */}
-            <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.6px', mb: 1.25, px: 0.5 }}>
-              Business Modules
+            {/* Group 1: Store Management */}
+            <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.6px', mb: 1, px: 0.5 }}>
+              Store Management
             </Typography>
-
-            {/* 3. 7 Business Module Cards */}
-            <Stack spacing={1.1} sx={{ pb: 2 }}>
+            <Stack spacing={1} sx={{ mb: 2.5 }}>
               {[
-                { label: 'My Shops', subtitle: 'Add new branch or update details', path: '/business/shops', icon: <ShopsIcon />, color: '#EA580C', bg: '#FFF7ED' },
-                { label: 'Tri Inventory & Billing', subtitle: 'Stock counts, barcodes, and billing', path: '/business/inventory', icon: <InventoryIcon />, color: '#2563eb', bg: '#eff6ff' },
-                { label: 'Online Products', subtitle: 'Add, edit and manage your listings', path: '/business/online-products', icon: <StoreIcon />, color: '#9333ea', bg: '#faf5ff' },
-                { label: 'Ads & Campaigns', subtitle: 'Run banners & sponsored listings', path: '/business/ads', icon: <AdsIcon />, color: '#ea580c', bg: '#fff7ed' },
-                { label: 'Delivery (Tri Sarathi)', subtitle: 'Manage delivery partners and orders', path: '/business/delivery', icon: <DeliveryIcon />, color: '#0284c7', bg: '#f0f9ff' },
-                { label: 'Business Profile', subtitle: 'View and update your business details', path: '/business/profile', icon: <ProfileIcon />, color: '#db2777', bg: '#fdf2f8' },
-                { label: 'KYC Verification', subtitle: 'Business documents & PAN status', path: '/business/kyc', icon: <KycIcon />, color: '#0d9488', bg: '#f0fdfa' },
+                { label: 'My Shops', subtitle: 'Add new branch or update details', path: '/business/shops', icon: <ShopsIcon />, color: '#FF6508', bg: '#FFF3E8' },
+                { label: 'Tri Inventory & Billing', subtitle: 'Stock counts, barcodes, and billing', path: '/business/inventory', icon: <InventoryIcon />, color: '#3678E5', bg: '#EFF6FF' },
+                { label: 'Online Products', subtitle: 'Add, edit and manage your listings', path: '/business/online-products', icon: <StoreIcon />, color: '#8758E8', bg: '#F5F3FF' },
+                { label: 'Ads & Campaigns', subtitle: 'Run banners & sponsored listings', path: '/business/ads', icon: <AdsIcon />, color: '#FF6508', bg: '#FFF3E8' },
               ].map((item) => (
                 <Box
                   key={item.label}
@@ -1079,9 +1074,9 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                     navigate(item.path);
                   }}
                   sx={{
-                    p: 1.4,
-                    borderRadius: '16px',
-                    border: '1.5px solid #f1f5f9',
+                    p: 1.25,
+                    borderRadius: '14px',
+                    border: '1.5px solid #F1F5F9',
                     bgcolor: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
@@ -1090,8 +1085,8 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                     transition: 'all 0.15s ease',
                     boxShadow: '0 1px 3px rgba(15, 23, 42, 0.03)',
                     '&:hover': {
-                      borderColor: '#cbd5e1',
-                      bgcolor: '#f8fafc',
+                      borderColor: '#CBD5E1',
+                      bgcolor: '#F8FAFC',
                       transform: 'translateX(3px)'
                     },
                     '&:active': { transform: 'scale(0.99)' }
@@ -1100,9 +1095,9 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                   <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
                     <Box
                       sx={{
-                        width: 42,
-                        height: 42,
-                        borderRadius: '12px',
+                        width: 38,
+                        height: 38,
+                        borderRadius: '10px',
                         bgcolor: item.bg,
                         color: item.color,
                         display: 'grid',
@@ -1110,18 +1105,145 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                         flexShrink: 0
                       }}
                     >
-                      {React.cloneElement(item.icon, { sx: { fontSize: 22 } })}
+                      {React.cloneElement(item.icon, { sx: { fontSize: 20 } })}
                     </Box>
                     <Box sx={{ minWidth: 0, flex: 1 }}>
-                      <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f172a', lineHeight: 1.25 }} noWrap>
+                      <Typography sx={{ fontWeight: 800, fontSize: '0.86rem', color: '#17233D', lineHeight: 1.25 }} noWrap>
                         {item.label}
                       </Typography>
-                      <Typography sx={{ fontSize: '0.72rem', color: '#64748b', mt: 0.2 }} noWrap>
+                      <Typography sx={{ fontSize: '0.7rem', color: '#64748B', mt: 0.15 }} noWrap>
                         {item.subtitle}
                       </Typography>
                     </Box>
                   </Stack>
-                  <ChevronRightIcon sx={{ fontSize: 18, color: '#94a3b8', ml: 1, flexShrink: 0 }} />
+                  <ChevronRightIcon sx={{ fontSize: 18, color: '#94A3B8', ml: 1, flexShrink: 0 }} />
+                </Box>
+              ))}
+            </Stack>
+
+            {/* Group 2: Finance */}
+            <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.6px', mb: 1, px: 0.5 }}>
+              Finance
+            </Typography>
+            <Stack spacing={1} sx={{ mb: 2.5 }}>
+              {[
+                { label: 'Wallet & Transactions', subtitle: 'View balance, earnings and history', path: '/business/profile', icon: <WalletIcon />, color: '#159A65', bg: '#ECFDF5' },
+                { label: 'Withdraw', subtitle: 'Instant settlement to linked bank account', path: '/business/profile', icon: <ArrowOutwardIcon />, color: '#FF6508', bg: '#FFF3E8' },
+              ].map((item) => (
+                <Box
+                  key={item.label}
+                  onClick={() => {
+                    setMobileDrawerOpen(false);
+                    navigate(item.path);
+                  }}
+                  sx={{
+                    p: 1.25,
+                    borderRadius: '14px',
+                    border: '1.5px solid #F1F5F9',
+                    bgcolor: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: '0 1px 3px rgba(15, 23, 42, 0.03)',
+                    '&:hover': {
+                      borderColor: '#CBD5E1',
+                      bgcolor: '#F8FAFC',
+                      transform: 'translateX(3px)'
+                    },
+                    '&:active': { transform: 'scale(0.99)' }
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
+                    <Box
+                      sx={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: '10px',
+                        bgcolor: item.bg,
+                        color: item.color,
+                        display: 'grid',
+                        placeItems: 'center',
+                        flexShrink: 0
+                      }}
+                    >
+                      {React.cloneElement(item.icon, { sx: { fontSize: 20 } })}
+                    </Box>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: '0.86rem', color: '#17233D', lineHeight: 1.25 }} noWrap>
+                        {item.label}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.7rem', color: '#64748B', mt: 0.15 }} noWrap>
+                        {item.subtitle}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <ChevronRightIcon sx={{ fontSize: 18, color: '#94A3B8', ml: 1, flexShrink: 0 }} />
+                </Box>
+              ))}
+            </Stack>
+
+            {/* Group 3: Business Growth */}
+            <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.6px', mb: 1, px: 0.5 }}>
+              Business Growth
+            </Typography>
+            <Stack spacing={1} sx={{ mb: 2 }}>
+              {[
+                { label: 'Buy B2B Wholesale', subtitle: 'Direct factory prices & bulk savings', path: '/business/online-marketplace', icon: <MarketplaceIcon />, color: '#FF6508', bg: '#FFF3E8' },
+                { label: 'Membership Plan', subtitle: 'Upgrade to Prime, boost search ranking', path: '/business/packages', icon: <KycIcon />, color: '#F2A900', bg: '#FEFCE8' },
+                { label: 'Business Profile & KYC', subtitle: 'GSTIN, business registration & documents', path: '/business/kyc', icon: <VerifiedIcon />, color: '#159A65', bg: '#ECFDF5' },
+              ].map((item) => (
+                <Box
+                  key={item.label}
+                  onClick={() => {
+                    setMobileDrawerOpen(false);
+                    navigate(item.path);
+                  }}
+                  sx={{
+                    p: 1.25,
+                    borderRadius: '14px',
+                    border: '1.5px solid #F1F5F9',
+                    bgcolor: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: '0 1px 3px rgba(15, 23, 42, 0.03)',
+                    '&:hover': {
+                      borderColor: '#CBD5E1',
+                      bgcolor: '#F8FAFC',
+                      transform: 'translateX(3px)'
+                    },
+                    '&:active': { transform: 'scale(0.99)' }
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
+                    <Box
+                      sx={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: '10px',
+                        bgcolor: item.bg,
+                        color: item.color,
+                        display: 'grid',
+                        placeItems: 'center',
+                        flexShrink: 0
+                      }}
+                    >
+                      {React.cloneElement(item.icon, { sx: { fontSize: 20 } })}
+                    </Box>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: '0.86rem', color: '#17233D', lineHeight: 1.25 }} noWrap>
+                        {item.label}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.7rem', color: '#64748B', mt: 0.15 }} noWrap>
+                        {item.subtitle}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <ChevronRightIcon sx={{ fontSize: 18, color: '#94A3B8', ml: 1, flexShrink: 0 }} />
                 </Box>
               ))}
             </Stack>

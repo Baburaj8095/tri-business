@@ -4,7 +4,7 @@ import {
   Stack, Chip, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, IconButton, Avatar, Divider, Switch,
   FormControlLabel, Alert, CircularProgress, Snackbar,
-  Grid, Tooltip, InputAdornment
+  Grid, Tooltip, InputAdornment, InputBase
 } from '@mui/material';
 import {
   ArrowBack as BackIcon,
@@ -19,19 +19,13 @@ import {
   CheckCircle as ActiveIcon,
   Cancel as InactiveIcon,
   Refresh as RefreshIcon,
+  QrCodeScanner as ScanIcon,
+  ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 
-/* ─── Design tokens ────────────────────────────────────────────────────────── */
-const P   = '#228B22';
-const PD  = '#1B4D3E';
-const BG  = '#f1f5f9';
-const SUR = '#ffffff';
-const TXT = '#0f172a';
-const MUT = '#94a3b8';
-const BOR = '#e2e8f0';
-const ERR = '#ef4444';
+import { T, cardHoverSx } from '../../theme/tokens';
 
 const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
   || window.REACT_APP_CAPTAIN_API_URL
@@ -56,113 +50,100 @@ function fmtCurrency(val) {
   return `₹${Number(val || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-/* ─── Sub-components ────────────────────────────────────────────────────────── */
-function SectionShell({ title, subtitle, actions, children }) {
-  return (
-    <Box sx={{ mb: 3 }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
-        <Box>
-          <Typography variant="subtitle1" fontWeight={700} color={TXT}>{title}</Typography>
-          {subtitle && <Typography variant="caption" color={MUT}>{subtitle}</Typography>}
-        </Box>
-        {actions && <Box>{actions}</Box>}
-      </Stack>
-      {children}
-    </Box>
-  );
-}
+/* ─── Screen 2 Modern Product Card ─────────────────────────────────────────── */
+function ModernProductCard({ product, onToggleOnline, onEdit, onDelete }) {
+  const isOnline = !!product.online_delivery;
+  const isOutOfStock = (product.stock_qty ?? 0) <= 0;
 
-function StatCard({ icon, label, value, color = P, active = false, onClick }) {
   return (
-    <Card 
-      elevation={0} 
-      onClick={onClick}
-      sx={{ 
-        border: `1.5px solid ${active ? color : BOR}`, 
-        borderRadius: '16px', 
-        bgcolor: active ? `${color}0c` : '#ffffff',
-        cursor: onClick ? 'pointer' : 'default',
-        transition: 'all 0.15s ease',
-        '&:hover': onClick ? { borderColor: color, transform: 'translateY(-2px)' } : {},
-        height: '100%',
-        boxShadow: active ? `0 4px 12px ${color}20` : '0 2px 8px rgba(15,23,42,0.02)'
+    <Card
+      elevation={0}
+      sx={{
+        ...cardHoverSx,
+        border: `1.5px solid ${T.border}`,
+        borderRadius: '16px',
+        bgcolor: T.surface,
+        overflow: 'hidden',
+        p: 1.5,
       }}
     >
-      <CardContent sx={{ p: { xs: 1.25, sm: 2 }, '&:last-child': { pb: { xs: 1.25, sm: 2 } }, textAlign: 'center' }}>
-        <Avatar sx={{ bgcolor: `${color}18`, color, width: { xs: 32, sm: 38 }, height: { xs: 32, sm: 38 }, borderRadius: '10px', mx: 'auto', mb: 0.75 }}>
-          {React.cloneElement(icon, { sx: { fontSize: { xs: 18, sm: 22 } } })}
-        </Avatar>
-        <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.25rem', sm: '1.5rem' }, color: TXT, lineHeight: 1 }}>
-          {value}
-        </Typography>
-        <Typography sx={{ fontSize: { xs: '0.68rem', sm: '0.78rem' }, color: '#64748b', fontWeight: 700, mt: 0.5 }} noWrap>
-          {label}
-        </Typography>
-      </CardContent>
-    </Card>
-  );
-}
-
-function ProductCard({ product, onToggleOnline, onEdit, onDelete }) {
-  return (
-    <Card elevation={0} sx={{ border: `1px solid ${BOR}`, borderRadius: 2, overflow: 'hidden', transition: 'box-shadow .15s', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,.08)' } }}>
-      {/* Image */}
-      <Box sx={{ position: 'relative', bgcolor: '#f8fafc', height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        {product.image_url ? (
-          <Box component="img" src={product.image_url} alt={product.name}
-            sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        ) : (
-          <ProductIcon sx={{ fontSize: 48, color: BOR }} />
-        )}
-        <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
-          <Chip
-            label={product.online_delivery ? 'Online' : 'Offline only'}
-            size="small"
-            icon={product.online_delivery ? <ActiveIcon /> : <InactiveIcon />}
-            sx={{
-              bgcolor: product.online_delivery ? '#ecfdf5' : '#fff7ed',
-              color:   product.online_delivery ? '#059669' : '#ea580c',
-              fontWeight: 600, fontSize: '0.7rem',
-              '& .MuiChip-icon': { fontSize: '0.85rem' }
-            }}
-          />
+      <Stack direction="row" spacing={1.5} alignItems="center">
+        {/* Product Thumbnail */}
+        <Box
+          sx={{
+            width: 80,
+            height: 80,
+            borderRadius: '12px',
+            bgcolor: T.surfaceAlt,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            flexShrink: 0,
+            border: `1px solid ${T.border}`,
+          }}
+        >
+          {product.image_url ? (
+            <Box component="img" src={product.image_url} alt={product.name} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <ProductIcon sx={{ fontSize: 36, color: T.textMuted }} />
+          )}
         </Box>
-      </Box>
-      <CardContent sx={{ p: 2 }}>
-        <Typography variant="subtitle2" fontWeight={700} color={TXT} noWrap>{product.name}</Typography>
-        <Typography variant="caption" color={MUT} sx={{ display: 'block', mb: 1 }} noWrap>
-          {product.category || '—'}
-        </Typography>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5, flexWrap: 'wrap', gap: 0.5 }}>
-          <Typography variant="body2" fontWeight={700} color={P}>{fmtCurrency(product.price)}</Typography>
-          <Chip label={`Stock: ${product.stock_qty ?? 0}`} size="small"
-            sx={{ bgcolor: '#f1f5f9', color: TXT, fontSize: '0.7rem', fontWeight: 600 }} />
-        </Stack>
-        <Divider sx={{ mb: 1.5 }} />
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <FormControlLabel
-            control={
-              <Switch size="small" checked={!!product.online_delivery}
-                onChange={() => onToggleOnline(product)}
-                sx={{ '& .MuiSwitch-track': { bgcolor: product.online_delivery ? P : MUT } }} />
-            }
-            label={<Typography variant="caption" color={MUT}>List Online</Typography>}
-            sx={{ m: 0 }}
-          />
-          <Stack direction="row" gap={0.5}>
-            <Tooltip title="Edit product">
-              <IconButton size="small" onClick={() => onEdit(product)} sx={{ color: P }}>
-                <EditIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Remove from online">
-              <IconButton size="small" onClick={() => onDelete(product)} sx={{ color: ERR }}>
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
+
+        {/* Product Details */}
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Typography sx={{ fontWeight: 800, fontSize: '0.92rem', color: T.text }} noWrap>
+              {product.name}
+            </Typography>
+            <Chip
+              label={isOutOfStock ? 'Out of Stock' : (isOnline ? 'Active' : 'Inactive')}
+              size="small"
+              sx={{
+                bgcolor: isOutOfStock ? '#FEF2F2' : (isOnline ? '#ECFDF5' : '#FFF3E8'),
+                color: isOutOfStock ? '#E5484D' : (isOnline ? '#159A65' : '#FF6508'),
+                fontWeight: 800,
+                fontSize: '0.65rem',
+                height: 20,
+              }}
+            />
           </Stack>
-        </Stack>
-      </CardContent>
+
+          <Typography sx={{ fontSize: '0.72rem', color: T.textSecondary, mt: 0.25 }} noWrap>
+            {product.category || 'General'} {product.sku ? `• SKU: ${product.sku}` : ''}
+          </Typography>
+
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 1 }}>
+            <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: T.primary }}>
+              {fmtCurrency(product.price)}
+            </Typography>
+
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <Tooltip title={isOnline ? 'Online Delivery Active' : 'Offline Only'}>
+                <Switch
+                  size="small"
+                  checked={isOnline}
+                  onChange={() => onToggleOnline(product)}
+                  sx={{
+                    '& .MuiSwitch-switchBase.Mui-checked': { color: T.primary },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: T.primary },
+                  }}
+                />
+              </Tooltip>
+              <Tooltip title="Edit Product">
+                <IconButton size="small" onClick={() => onEdit(product)} sx={{ color: T.textSecondary }}>
+                  <EditIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Remove Listing">
+                <IconButton size="small" onClick={() => onDelete(product)} sx={{ color: '#E5484D' }}>
+                  <DeleteIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Stack>
+        </Box>
+      </Stack>
     </Card>
   );
 }
@@ -296,224 +277,252 @@ export default function OnlineProductsPage() {
     }
   }
 
+  /* ── Derived Categories ── */
+  const categoryList = ['All', ...new Set(products.map(p => p.category).filter(Boolean))];
+  const [selectedCat, setSelectedCat] = useState('All');
+
   /* ── Derived ── */
   const filtered = products.filter(p => {
-    const matchesSearch = !search || p.name?.toLowerCase().includes(search.toLowerCase()) || p.category?.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = !search || p.name?.toLowerCase().includes(search.toLowerCase()) || p.category?.toLowerCase().includes(search.toLowerCase()) || (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()));
     if (!matchesSearch) return false;
-    if (filterTab === 'ONLINE') return !!p.online_delivery;
-    if (filterTab === 'OFFLINE') return !p.online_delivery;
+    if (selectedCat !== 'All' && p.category !== selectedCat) return false;
+    if (filterTab === 'ACTIVE') return !!p.online_delivery && (p.stock_qty ?? 0) > 0;
+    if (filterTab === 'INACTIVE') return !p.online_delivery;
+    if (filterTab === 'OUT_OF_STOCK') return (p.stock_qty ?? 0) <= 0;
     return true;
   });
-  const onlineCount  = products.filter(p => p.online_delivery).length;
-  const offlineCount = products.filter(p => !p.online_delivery).length;
+  const activeCount = products.filter(p => p.online_delivery && (p.stock_qty ?? 0) > 0).length;
+  const inactiveCount = products.filter(p => !p.online_delivery).length;
+  const outOfStockCount = products.filter(p => (p.stock_qty ?? 0) <= 0).length;
 
   /* ── Render ── */
   return (
-    <AppShell activeTab="/business/inventory" title="Manage Online Products">
+    <AppShell activeTab="/business/online-products" title="Online Products">
       <Container maxWidth="lg" sx={{ py: 2 }}>
-        {/* Page Action Header */}
-        <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={1.5} sx={{ mb: 2.5 }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 900, color: TXT, lineHeight: 1.2 }}>
-              Online Catalog Products
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#64748b' }}>
-              Toggle products available for customer online delivery and instant ordering
-            </Typography>
-          </Box>
-          <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
-            <Button 
-              variant="outlined" 
-              size="small" 
-              onClick={fetchProducts}
-              startIcon={<RefreshIcon />}
-              sx={{ 
-                color: PD, 
-                borderColor: BOR, 
-                borderRadius: '10px',
-                textTransform: 'none',
-                fontWeight: 700,
-                flex: { xs: 1, sm: 'none' },
-                '&:hover': { borderColor: P, bgcolor: '#f0fdf4' }
-              }}
-            >
-              Refresh
-            </Button>
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => navigate('/business/inventory')}
-              startIcon={<AddIcon />}
+        
+        {/* 1. HERO PROMOTIONAL BANNER (Screen 2) */}
+        <Card
+          sx={{
+            mb: 2.5,
+            borderRadius: '18px',
+            background: 'linear-gradient(135deg, #FF6508 0%, #E9570A 100%)',
+            color: '#ffffff',
+            p: { xs: 2.25, sm: 3 },
+            boxShadow: '0 6px 20px rgba(255, 101, 8, 0.22)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <Box sx={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.1)', pointerEvents: 'none' }} />
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Box sx={{ pr: 1.5, zIndex: 1 }}>
+              <Chip
+                label="CATALOG VISIBILITY"
+                size="small"
+                sx={{ bgcolor: 'rgba(255,255,255,0.22)', color: '#ffffff', fontWeight: 800, fontSize: '0.62rem', height: 20, mb: 0.75 }}
+              />
+              <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.05rem', sm: '1.25rem' }, lineHeight: 1.25, mb: 0.5 }}>
+                List Your Best Products
+              </Typography>
+              <Typography sx={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.9)', mb: 1.5 }}>
+                Publish active catalog items to attract direct online customer orders & door deliveries.
+              </Typography>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => navigate('/business/inventory')}
+                endIcon={<ChevronRightIcon sx={{ fontSize: 16 }} />}
+                sx={{
+                  bgcolor: '#ffffff',
+                  color: '#E9570A',
+                  fontWeight: 800,
+                  fontSize: '0.75rem',
+                  borderRadius: '20px',
+                  textTransform: 'none',
+                  px: 2,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                  '&:hover': { bgcolor: '#f8fafc' },
+                }}
+              >
+                Add / Manage Products →
+              </Button>
+            </Box>
+            <Box
               sx={{
-                bgcolor: P,
-                color: '#fff',
-                borderRadius: '10px',
-                textTransform: 'none',
-                fontWeight: 800,
-                boxShadow: 'none',
-                flex: { xs: 1, sm: 'none' },
-                '&:hover': { bgcolor: PD }
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                bgcolor: 'rgba(255,255,255,0.2)',
+                display: 'grid',
+                placeItems: 'center',
+                flexShrink: 0,
+                zIndex: 1,
               }}
             >
-              Add Product
-            </Button>
+              <ProductIcon sx={{ fontSize: 34, color: '#ffffff' }} />
+            </Box>
           </Stack>
-        </Stack>
+        </Card>
 
-        {/* Compact 3-Column Stats Grid */}
-        <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
-          <Grid item xs={4}>
-            <StatCard 
-              icon={<InventoryIcon />} 
-              label="Total" 
-              value={products.length} 
-              color="#2563eb"
-              active={filterTab === 'ALL'}
-              onClick={() => setFilterTab('ALL')}
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <StatCard 
-              icon={<ActiveIcon />} 
-              label="Online" 
-              value={onlineCount} 
-              color="#059669"
-              active={filterTab === 'ONLINE'}
-              onClick={() => setFilterTab('ONLINE')}
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <StatCard 
-              icon={<InactiveIcon />} 
-              label="Offline" 
-              value={offlineCount} 
-              color="#ea580c"
-              active={filterTab === 'OFFLINE'}
-              onClick={() => setFilterTab('OFFLINE')}
-            />
-          </Grid>
-        </Grid>
-
-        {/* Search Bar & Filter Chips */}
-        <Box sx={{ mb: 2.5 }}>
-          <TextField
-            fullWidth 
-            size="small" 
-            placeholder="Search by product name or category…"
-            value={search} 
+        {/* 2. SEARCH BAR WITH SCANNER BUTTON (Screen 2) */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            bgcolor: T.surface,
+            borderRadius: '16px',
+            border: `1.5px solid ${T.border}`,
+            px: 1.75,
+            py: 0.5,
+            mb: 2,
+            boxShadow: '0 2px 6px rgba(15, 23, 42, 0.03)',
+          }}
+        >
+          <SearchIcon sx={{ color: T.textMuted, fontSize: 22, mr: 1 }} />
+          <InputBase
+            fullWidth
+            placeholder="Search products by title, SKU, or category..."
+            value={search}
             onChange={e => setSearch(e.target.value)}
-            InputProps={{ 
-              startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: MUT }} /></InputAdornment> 
-            }}
-            sx={{ 
-              mb: 1.5, 
-              bgcolor: SUR, 
-              borderRadius: '12px',
-              '& .MuiOutlinedInput-root': { borderRadius: '12px' }
-            }}
+            sx={{ fontSize: '0.88rem', fontWeight: 600, color: T.text }}
           />
+          <IconButton onClick={() => navigate('/scanner')} sx={{ color: T.primary, p: 0.75 }}>
+            <ScanIcon sx={{ fontSize: 22 }} />
+          </IconButton>
+        </Box>
 
+        {/* 3. HORIZONTAL CATEGORY CHIPS WITH ICONS (Screen 2) */}
+        {categoryList.length > 1 && (
+          <Box sx={{ mb: 2 }}>
+            <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 0.5, '&::-webkit-scrollbar': { display: 'none' } }}>
+              {categoryList.map(cat => {
+                const isSelected = selectedCat === cat;
+                return (
+                  <Chip
+                    key={cat}
+                    label={cat}
+                    clickable
+                    onClick={() => setSelectedCat(cat)}
+                    sx={{
+                      fontWeight: 800,
+                      fontSize: '0.74rem',
+                      borderRadius: '10px',
+                      bgcolor: isSelected ? T.primary : T.surface,
+                      color: isSelected ? '#ffffff' : T.textSecondary,
+                      border: `1px solid ${isSelected ? T.primary : T.border}`,
+                      '&:hover': { bgcolor: isSelected ? T.primaryDark : T.surfaceAlt },
+                    }}
+                  />
+                );
+              })}
+            </Stack>
+          </Box>
+        )}
+
+        {/* 4. STATUS FILTER TABS (Screen 2: All Products, Active, Inactive, Out of Stock) */}
+        <Box sx={{ mb: 2.5 }}>
           <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 0.5 }}>
-            <Chip
-              label={`All (${products.length})`}
-              size="small"
-              clickable
-              onClick={() => setFilterTab('ALL')}
-              sx={{
-                fontWeight: 700,
-                borderRadius: '8px',
-                bgcolor: filterTab === 'ALL' ? P : '#f1f5f9',
-                color: filterTab === 'ALL' ? '#ffffff' : '#475569',
-                '&:hover': { bgcolor: filterTab === 'ALL' ? PD : '#e2e8f0' }
-              }}
-            />
-            <Chip
-              label={`Listed Online (${onlineCount})`}
-              size="small"
-              clickable
-              onClick={() => setFilterTab('ONLINE')}
-              sx={{
-                fontWeight: 700,
-                borderRadius: '8px',
-                bgcolor: filterTab === 'ONLINE' ? '#059669' : '#f1f5f9',
-                color: filterTab === 'ONLINE' ? '#ffffff' : '#475569',
-                '&:hover': { bgcolor: filterTab === 'ONLINE' ? '#047857' : '#e2e8f0' }
-              }}
-            />
-            <Chip
-              label={`Offline Only (${offlineCount})`}
-              size="small"
-              clickable
-              onClick={() => setFilterTab('OFFLINE')}
-              sx={{
-                fontWeight: 700,
-                borderRadius: '8px',
-                bgcolor: filterTab === 'OFFLINE' ? '#ea580c' : '#f1f5f9',
-                color: filterTab === 'OFFLINE' ? '#ffffff' : '#475569',
-                '&:hover': { bgcolor: filterTab === 'OFFLINE' ? '#c2410c' : '#e2e8f0' }
-              }}
-            />
+            {[
+              { id: 'ALL', label: `All Products (${products.length})` },
+              { id: 'ACTIVE', label: `Active (${activeCount})` },
+              { id: 'INACTIVE', label: `Inactive (${inactiveCount})` },
+              { id: 'OUT_OF_STOCK', label: `Out of Stock (${outOfStockCount})` },
+            ].map(tab => {
+              const active = filterTab === tab.id;
+              return (
+                <Chip
+                  key={tab.id}
+                  label={tab.label}
+                  clickable
+                  onClick={() => setFilterTab(tab.id)}
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: '0.72rem',
+                    borderRadius: '20px',
+                    bgcolor: active ? T.primaryLight : T.surface,
+                    color: active ? T.primary : T.textSecondary,
+                    border: `1.5px solid ${active ? T.primary : T.border}`,
+                    '&:hover': { bgcolor: active ? T.primaryLight : T.surfaceAlt },
+                  }}
+                />
+              );
+            })}
           </Stack>
         </Box>
 
-        {/* Product Cards or Empty State */}
+        {/* 5. PRODUCT LIST CARDS (Screen 2) */}
         {loading ? (
           <Box sx={{ textAlign: 'center', py: 8 }}>
-            <CircularProgress sx={{ color: P }} />
-            <Typography variant="body2" color={MUT} sx={{ mt: 1.5, fontWeight: 600 }}>Loading catalog products…</Typography>
+            <CircularProgress sx={{ color: T.primary }} />
+            <Typography variant="body2" color={T.textMuted} sx={{ mt: 1.5, fontWeight: 600 }}>Loading catalog listings…</Typography>
           </Box>
         ) : filtered.length === 0 ? (
-          <Card elevation={0} sx={{ border: `1.5px dashed ${BOR}`, borderRadius: '20px', bgcolor: '#ffffff', py: 7, px: 3, textAlign: 'center' }}>
-            <Box sx={{ width: 64, height: 64, borderRadius: '50%', bgcolor: '#f1f5f9', display: 'grid', placeItems: 'center', mx: 'auto', mb: 2 }}>
-              <ProductIcon sx={{ fontSize: 32, color: '#94a3b8' }} />
+          <Card elevation={0} sx={{ border: `1.5px dashed ${T.border}`, borderRadius: '20px', bgcolor: T.surface, py: 7, px: 3, textAlign: 'center' }}>
+            <Box sx={{ width: 64, height: 64, borderRadius: '50%', bgcolor: T.surfaceAlt, display: 'grid', placeItems: 'center', mx: 'auto', mb: 2 }}>
+              <ProductIcon sx={{ fontSize: 32, color: T.textMuted }} />
             </Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: TXT, mb: 0.5 }}>
-              {search ? 'No matching products' : 'No products found'}
+            <Typography variant="h6" sx={{ fontWeight: 800, color: T.text, mb: 0.5 }}>
+              {search ? 'No matching products' : 'No online products listed yet'}
             </Typography>
-            <Typography variant="body2" sx={{ color: '#64748b', maxWidth: 440, mx: 'auto', mb: 2.5 }}>
+            <Typography variant="body2" sx={{ color: T.textSecondary, maxWidth: 440, mx: 'auto', mb: 2.5 }}>
               {search 
-                ? 'Try a different search keyword or switch the filter.' 
-                : 'Add products to your store inventory and easily toggle them for online ordering & customer delivery.'}
+                ? 'Try searching with a different keyword or category.' 
+                : 'Add products to your store inventory and easily toggle them for online customer delivery.'}
             </Typography>
             <Button
               variant="contained"
               onClick={() => navigate('/business/inventory')}
               startIcon={<AddIcon />}
               sx={{
-                bgcolor: P,
+                bgcolor: T.primary,
                 borderRadius: '12px',
                 px: 3.5,
                 py: 1.1,
                 fontWeight: 800,
                 textTransform: 'none',
                 boxShadow: 'none',
-                '&:hover': { bgcolor: PD }
+                '&:hover': { bgcolor: T.primaryDark }
               }}
             >
               Go to Inventory Manager
             </Button>
           </Card>
         ) : (
-          <Grid container spacing={2}>
+          <Stack spacing={1.5}>
             {filtered.map(p => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={p.id}>
-                <ProductCard
-                  product={p}
-                  onToggleOnline={handleToggleOnline}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              </Grid>
+              <ModernProductCard
+                key={p.id}
+                product={p}
+                onToggleOnline={handleToggleOnline}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
             ))}
-          </Grid>
+          </Stack>
         )}
 
-        {/* Info banner */}
-        <Alert severity="info" sx={{ mt: 3, borderRadius: '12px', border: '1px solid #bae6fd', bgcolor: '#f0f9ff' }}>
-          <Typography variant="body2" sx={{ color: '#0369a1' }}>
-            <strong>How it works:</strong> Toggle <strong>List Online</strong> on any product to publish or unpublish it from customer online delivery. Products must have positive stock quantity to be purchased by online customers.
-          </Typography>
-        </Alert>
+        {/* Floating/Fixed + Add Product Button */}
+        <Box sx={{ position: 'fixed', bottom: { xs: 80, sm: 30 }, right: 20, zIndex: 1000 }}>
+          <Button
+            variant="contained"
+            onClick={() => navigate('/business/inventory')}
+            startIcon={<AddIcon />}
+            sx={{
+              bgcolor: T.primary,
+              color: '#ffffff',
+              borderRadius: '24px',
+              px: 2.5,
+              py: 1.2,
+              fontWeight: 900,
+              fontSize: '0.86rem',
+              textTransform: 'none',
+              boxShadow: '0 4px 16px rgba(255, 101, 8, 0.4)',
+              '&:hover': { bgcolor: T.primaryDark },
+            }}
+          >
+            Add Product
+          </Button>
+        </Box>
       </Container>
 
       {/* Edit Dialog */}
@@ -542,7 +551,10 @@ export default function OnlineProductsPage() {
               control={
                 <Switch checked={editForm.online_delivery}
                   onChange={e => setEditForm(f => ({ ...f, online_delivery: e.target.checked }))}
-                  sx={{ '& .MuiSwitch-track': { bgcolor: editForm.online_delivery ? P : MUT } }} />
+                  sx={{
+                    '& .MuiSwitch-switchBase.Mui-checked': { color: T.primary },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: T.primary },
+                  }} />
               }
               label={<Typography variant="body2">List Online</Typography>}
             />
@@ -550,9 +562,9 @@ export default function OnlineProductsPage() {
         </DialogContent>
         <Divider />
         <DialogActions sx={{ px: 3, py: 2 }}>
-          <Button onClick={() => setEditOpen(false)} sx={{ color: MUT }}>Cancel</Button>
+          <Button onClick={() => setEditOpen(false)} sx={{ color: T.textMuted }}>Cancel</Button>
           <Button variant="contained" disabled={saving} onClick={handleSaveEdit}
-            sx={{ bgcolor: P, '&:hover': { bgcolor: PD }, borderRadius: 2, px: 3 }}>
+            sx={{ bgcolor: T.primary, '&:hover': { bgcolor: T.primaryDark }, borderRadius: 2, px: 3, textTransform: 'none', fontWeight: 800 }}>
             {saving ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : 'Save Changes'}
           </Button>
         </DialogActions>

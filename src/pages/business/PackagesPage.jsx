@@ -38,20 +38,22 @@ import {
   VerifiedUser,
 } from '@mui/icons-material';
 import AppShell from '../../components/layout/AppShell';
+import { T, cardHoverSx } from '../../theme/tokens';
 import {
   PLAN_TYPES,
   getSubscriptionDetails,
   activateMerchantSubscription,
 } from '../../utils/membershipHelper';
 
-const PRIMARY = '#228B22';
-const PRIMARY_DARK = '#1B4D3E';
-const ACCENT = '#f97316';
-const BG = '#faf8f3';
+const PRIMARY = '#FF6508';
+const PRIMARY_DARK = '#E9570A';
+const ACCENT = '#FF6508';
+const BG = '#F4F7FB';
 
 export default function PackagesPage() {
   const navigate = useNavigate();
 
+  const [activeTab, setActiveTab] = useState('PRIME_PLANS'); // 'ALL_DEALS' | 'MY_DEALS' | 'PRIME_PLANS'
   const [subDetails, setSubDetails] = useState(getSubscriptionDetails());
   const [loadingPlan, setLoadingPlan] = useState(null); // '750' | '99' | null
   const [toastMsg, setToastMsg] = useState(null);
@@ -189,7 +191,7 @@ export default function PackagesPage() {
                   Become a Member
                 </Typography>
                 <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.25 }}>
-                  Merchant Membership Plans • ₹999 for Yearly (Like OLX VIP) or ₹99/Month
+                  Merchant Deals & Prime Plans • Boost visibility and drive sales
                 </Typography>
               </Box>
             </Stack>
@@ -197,7 +199,98 @@ export default function PackagesPage() {
         </Box>
 
         {/* Main Content */}
-        <Container maxWidth="md" sx={{ mt: 3, px: { xs: 2, sm: 3 } }}>
+        <Container maxWidth="md" sx={{ mt: 2.5, px: { xs: 2, sm: 3 } }}>
+          {/* 1. SCREEN 3 HERO BANNER */}
+          <Card
+            sx={{
+              mb: 2.5,
+              borderRadius: '18px',
+              background: 'linear-gradient(135deg, #FF6508 0%, #E9570A 100%)',
+              color: '#ffffff',
+              p: { xs: 2.25, sm: 3 },
+              boxShadow: '0 6px 20px rgba(255, 101, 8, 0.22)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <Box sx={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.1)', pointerEvents: 'none' }} />
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <Box sx={{ pr: 1.5, zIndex: 1 }}>
+                <Chip
+                  label="PROMOTION & REACH"
+                  size="small"
+                  sx={{ bgcolor: 'rgba(255,255,255,0.22)', color: '#ffffff', fontWeight: 800, fontSize: '0.62rem', height: 20, mb: 0.75 }}
+                />
+                <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.05rem', sm: '1.25rem' }, lineHeight: 1.25, mb: 0.5 }}>
+                  Run Deals, Get More Orders
+                </Typography>
+                <Typography sx={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.9)', mb: 1.5 }}>
+                  Increase store visibility with targeted promotions and exclusive Prime member perks.
+                </Typography>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => setActiveTab('PRIME_PLANS')}
+                  sx={{
+                    bgcolor: '#ffffff',
+                    color: '#E9570A',
+                    fontWeight: 800,
+                    fontSize: '0.75rem',
+                    borderRadius: '20px',
+                    textTransform: 'none',
+                    px: 2,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                    '&:hover': { bgcolor: '#f8fafc' },
+                  }}
+                >
+                  Explore Prime Plans →
+                </Button>
+              </Box>
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: '50%',
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  display: 'grid',
+                  placeItems: 'center',
+                  flexShrink: 0,
+                  zIndex: 1,
+                }}
+              >
+                <WorkspacePremium sx={{ fontSize: 36, color: '#ffffff' }} />
+              </Box>
+            </Stack>
+          </Card>
+
+          {/* 2. SCREEN 3 SEGMENTED TABS (All Deals, My Deals, Prime Plans) */}
+          <Stack direction="row" spacing={1} sx={{ mb: 2.5, overflowX: 'auto', pb: 0.5 }}>
+            {[
+              { id: 'PRIME_PLANS', label: 'Prime Plans' },
+              { id: 'ALL_DEALS', label: 'All Deals' },
+              { id: 'MY_DEALS', label: 'My Deals' },
+            ].map(tab => {
+              const active = activeTab === tab.id;
+              return (
+                <Chip
+                  key={tab.id}
+                  label={tab.label}
+                  clickable
+                  onClick={() => setActiveTab(tab.id)}
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: '0.74rem',
+                    borderRadius: '20px',
+                    bgcolor: active ? PRIMARY : '#ffffff',
+                    color: active ? '#ffffff' : '#64748B',
+                    border: `1.5px solid ${active ? PRIMARY : '#E4EAF2'}`,
+                    '&:hover': { bgcolor: active ? PRIMARY_DARK : '#F1F5F9' },
+                  }}
+                />
+              );
+            })}
+          </Stack>
+
           {/* Toast Alert */}
           {toastMsg && (
             <Alert
