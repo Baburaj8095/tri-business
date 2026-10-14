@@ -242,15 +242,21 @@ function parseJwt(token) {
 function getAccessToken() {
   const t = readNamespaced("token");
   if (t) return t;
-  // Fallback: if we're on an admin route but tokens exist under user namespace (e.g. logged in from non-admin URL)
+
   try {
-    if (currentNamespace() !== "user") {
-      const k = "token_user";
-      const v =
-        (typeof localStorage !== "undefined" && localStorage.getItem(k)) ||
-        (typeof sessionStorage !== "undefined" && sessionStorage.getItem(k)) ||
-        null;
-      if (v) return v;
+    if (typeof localStorage !== "undefined") {
+      const keys = ["token_business", "token_captain", "token", "token_user", "token_admin"];
+      for (const k of keys) {
+        const val = localStorage.getItem(k);
+        if (val) return val;
+      }
+    }
+    if (typeof sessionStorage !== "undefined") {
+      const keys = ["token_business", "token_captain", "token", "token_user", "token_admin"];
+      for (const k of keys) {
+        const val = sessionStorage.getItem(k);
+        if (val) return val;
+      }
     }
   } catch (_) {}
   return null;
@@ -543,14 +549,6 @@ API.interceptors.request.use(async (config) => {
   // Ensure we have a fresh access token before each request
   let token = await ensureFreshAccess();
   if (!token) token = getAccessToken();
-
-  // If UI has explicitly blocked auth (e.g., after refresh failure), skip attaching Authorization header.
-  // This prevents auto-clearing tokens and avoids infinite refresh loops while preserving stored session.
-  try {
-    if (isAuthBlocked()) {
-      return config;
-    }
-  } catch (_) {}
 
   // Do not attach Authorization header for public endpoints to avoid 401 on AllowAny views
   // when a stale/invalid token is present.
@@ -1445,30 +1443,33 @@ export async function updateMerchantProfile(payload = {}) {
 
 // Merchant's own shops with resilient fallback
 export async function listMyShops(params = {}) {
+  const token = getAccessToken();
+  const headers = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
   try {
-    const res = await API.get("/captain/merchant/shops", { params, dedupe: "cancelPrevious" });
+    const res = await API.get("/captain/merchant/shops", { params, headers, dedupe: "cancelPrevious" });
     if (Array.isArray(res?.data) && res.data.length > 0) return res.data;
     if (Array.isArray(res) && res.length > 0) return res;
   } catch (err) {
-    // Resilient fallback for backend 502
+    console.warn("listMyShops error:", err);
   }
 
-  // Check local queue or stored name
-  const localQueue = JSON.parse(localStorage.getItem('trikonekt_captain_onboarding_queue') || '[]');
+  // Check stored active shop if exists
+  const activeShopStr = typeof localStorage !== 'undefined' ? localStorage.getItem('tri_business_active_shop') : null;
+  if (activeShopStr) {
+    try {
+      const parsed = JSON.parse(activeShopStr);
+      if (parsed && parsed.id) return [parsed];
+    } catch (_) {}
+  }
+
+  const localQueue = typeof localStorage !== 'undefined' ? JSON.parse(localStorage.getItem('trikonekt_captain_onboarding_queue') || '[]') : [];
   if (localQueue.length > 0) {
     return localQueue;
   }
-  const storedName = localStorage.getItem('business_full_name') || 'Main Outlet Store';
-  const storedMode = localStorage.getItem('service_mode_business') || 'ONLINE';
-  return [{
-    id: 1,
-    shop_name: storedName,
-    city: 'Bengaluru',
-    pincode: '560102',
-    service_mode: storedMode,
-    is_active: true,
-    status: 'ACTIVE'
-  }];
+
+  return [];
 }
 
 export async function createShop({
@@ -1526,7 +1527,10 @@ export async function createShop({
       fd.append(`document_${idx}`, doc);
     });
   }
-  const res = await API.post("/captain/merchant/shops", fd, { headers: { "Content-Type": "multipart/form-data" } });
+  const token = getAccessToken();
+  const headers = { "Content-Type": "multipart/form-data" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await API.post("/captain/merchant/shops", fd, { headers });
   return res?.data || res;
 }
 
@@ -1590,12 +1594,18 @@ export async function updateShop(id, {
       fd.append(`document_${idx}`, doc);
     });
   }
-  const res = await API.patch(`/captain/merchant/shops/${encodeURIComponent(id)}`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+  const token = getAccessToken();
+  const headers = { "Content-Type": "multipart/form-data" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await API.patch(`/captain/merchant/shops/${encodeURIComponent(id)}`, fd, { headers });
   return res?.data || res;
 }
 
 export async function deleteShop(id) {
-  const res = await API.delete(`/captain/merchant/shops/${encodeURIComponent(id)}`);
+  const token = getAccessToken();
+  const headers = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await API.delete(`/captain/merchant/shops/${encodeURIComponent(id)}`, { headers });
   return res?.data || res;
 }
 

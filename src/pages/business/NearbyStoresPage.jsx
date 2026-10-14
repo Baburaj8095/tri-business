@@ -59,52 +59,46 @@ export default function NearbyStoresPage() {
 
   useEffect(() => {
     setLoading(true);
+    const storedPhone = (typeof localStorage !== 'undefined' && (localStorage.getItem('business_phone') || localStorage.getItem('username_business') || localStorage.getItem('business_username'))) || '';
+    const currentCleanPhone = storedPhone.replace(/\D/g, '').slice(-10);
+    const activeShopId = typeof localStorage !== 'undefined' ? localStorage.getItem('active_merchant_shop_id') : null;
+    const storedFullName = (typeof localStorage !== 'undefined' && localStorage.getItem('business_full_name')) || '';
+
     Promise.all([
       getPublicB2bMerchants().catch(() => []),
       getMerchantCategories().catch(() => [])
     ])
       .then(([merchantsRes, categoriesRes]) => {
-        const data = merchantsRes || [];
+        const data = Array.isArray(merchantsRes) ? merchantsRes : [];
 
-        // Build fallback stores if API returns empty, matching exact reference screen
-        const baseStores = data.length > 0 ? data : [
-          {
-            id: 1,
-            shop_name: 'Test Shop',
-            category: 'Food & Beverage',
-            city: 'Bengaluru',
-            phone: '9876543210',
-            shop_image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80',
-          },
-          {
-            id: 2,
-            shop_name: 'Bar',
-            category: 'Retail Store',
-            city: 'Kalaburagi',
-            phone: '9876543211',
-            shop_image: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80',
-          }
-        ];
+        // Filter out logged-in merchant's own shop so they only see other B2B wholesale suppliers
+        const otherStores = data.filter(shop => {
+          const shopPhone = String(shop.contact_number || shop.phone || '').replace(/\D/g, '').slice(-10);
+          if (activeShopId && String(shop.id) === String(activeShopId)) return false;
+          if (currentCleanPhone && shopPhone && shopPhone === currentCleanPhone) return false;
+          if (storedFullName && shop.shop_name && storedFullName.toLowerCase().trim() === shop.shop_name.toLowerCase().trim()) return false;
+          return true;
+        });
 
-        const mapped = baseStores.map((shop, idx) => ({
+        const mapped = otherStores.map((shop, idx) => ({
           id: shop.id,
-          name: shop.shop_name || shop.business_name || shop.full_name || 'Merchant Store',
+          name: shop.shop_name || shop.business_name || shop.full_name || 'B2B Wholesale Store',
           category: resolveCategoryName(shop),
-          rating: idx % 2 === 0 ? '4.5' : '4.2',
-          reviewCount: idx % 2 === 0 ? 202 : 150,
-          yearsInBusiness: idx % 2 === 0 ? '25 Yrs in Business' : '10 Yrs in Business',
+          rating: idx % 2 === 0 ? '4.8' : '4.6',
+          reviewCount: idx % 2 === 0 ? 120 : 85,
+          yearsInBusiness: idx % 2 === 0 ? 'Verified Supplier' : 'Direct Distributor',
           location: shop.city || shop.address || (idx % 2 === 0 ? 'Bengaluru' : 'Kalaburagi'),
-          eta: idx % 2 === 0 ? '26 mins' : '18 mins',
-          distance: idx % 2 === 0 ? '8.4 km' : '5.2 km',
-          cashback: idx % 2 === 0 ? '5% CASHBACK' : '3% CASHBACK',
-          badge1: 'Verified Merchant',
-          badge2: idx % 2 === 0 ? 'Instant Billing POS' : 'GST Enabled',
-          productCount: idx % 2 === 0 ? '10+ Products' : '25+ Products',
-          phone: shop.contact_number || shop.phone || '9876543210',
+          eta: idx % 2 === 0 ? '1-2 Days Dispatch' : 'Same Day Dispatch',
+          distance: shop.distance || (idx % 2 === 0 ? '5.2 km' : '8.4 km'),
+          cashback: idx % 2 === 0 ? 'Wholesale Margin' : 'Bulk Discount',
+          badge1: 'Verified Supplier',
+          badge2: idx % 2 === 0 ? 'Wholesale Billing' : 'GST Enabled',
+          productCount: idx % 2 === 0 ? '10+ Cartons' : '25+ Cartons',
+          phone: shop.contact_number || shop.phone || '',
           image: shop.shop_image || (idx % 2 === 0
-            ? 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80'
-            : 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80'),
-          avatarImage: idx === 1 ? 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=160&q=80' : null,
+            ? 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80'
+            : 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80'),
+          avatarImage: null,
         }));
 
         setStores(mapped);
@@ -331,13 +325,30 @@ export default function NearbyStoresPage() {
             </Typography>
           </Box>
         ) : filteredStores.length === 0 ? (
-          <Card elevation={0} sx={{ p: 5, textAlign: 'center', borderRadius: '18px', border: '1px solid #e2e8f0' }}>
-            <Typography sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
-              No nearby stores found
+          <Card elevation={0} sx={{ p: 5, textAlign: 'center', borderRadius: '20px', border: '1px solid #e2e8f0', bgcolor: '#ffffff' }}>
+            <StorefrontIcon sx={{ fontSize: 48, color: '#ea580c', mb: 1, opacity: 0.85 }} />
+            <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.05rem', mb: 0.5 }}>
+              No B2B Wholesale Stores Found Nearby
             </Typography>
-            <Typography sx={{ color: '#64748b', fontSize: '0.85rem' }}>
-              Try searching a different category or operating location.
+            <Typography sx={{ color: '#64748b', fontSize: '0.84rem', maxWidth: 420, mx: 'auto', mb: 2 }}>
+              There are currently no other B2B wholesale distributors registered near your location. You can order wholesale catalog products directly via B2B Online.
             </Typography>
+            <Button
+              variant="contained"
+              onClick={() => navigate('/business/online')}
+              sx={{
+                bgcolor: '#ea580c',
+                '&:hover': { bgcolor: '#c2410c' },
+                borderRadius: '10px',
+                px: 2.5,
+                py: 1,
+                fontWeight: 800,
+                fontSize: '0.82rem',
+                textTransform: 'none',
+              }}
+            >
+              Browse B2B Online Wholesale
+            </Button>
           </Card>
         ) : (
           <Stack spacing={2.5}>

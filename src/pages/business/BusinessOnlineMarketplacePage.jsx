@@ -734,10 +734,10 @@ export default function BusinessOnlineMarketplacePage() {
               <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
                 <Box>
                   <Typography sx={{ fontSize: { xs: '1.25rem', sm: '1.4rem' }, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.3px' }}>
-                    All Categories ({filteredMasterCategories.length})
+                    B2B Online Wholesale ({filteredMasterCategories.length})
                   </Typography>
                   <Typography sx={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500, mt: 0.25 }}>
-                    Browse products across every business category
+                    Browse verified B2B suppliers, distributor cartons & factory direct packs
                   </Typography>
                 </Box>
                 <IconButton
@@ -858,7 +858,7 @@ export default function BusinessOnlineMarketplacePage() {
             {/* All Categories List / Grid (Matching Screen 9) */}
             <Box sx={{ px: { xs: 2, sm: 3 } }}>
               <Typography sx={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', mb: 1.5 }}>
-                All Categories
+                B2B Wholesale Categories
               </Typography>
               <Stack spacing={1.25}>
                 {filteredMasterCategories.map((cat) => {

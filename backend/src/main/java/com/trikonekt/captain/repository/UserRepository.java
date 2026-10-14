@@ -50,11 +50,16 @@ public class UserRepository {
         return jdbc.queryForList(
             "SELECT s.id, u.id as user_id, u.full_name, u.phone, u.pincode, " +
             "       s.shop_name, s.address, s.city, s.contact_number, mc.name as category_name, " +
+            "       'B2B Wholesale' as business_type, " +
             "       CASE WHEN UPPER(COALESCE(s.status, '')) = 'ACTIVE' THEN true ELSE false END as is_active " +
             "FROM accounts_customuser u " +
             "JOIN market_shop s ON u.id = s.merchant_id " +
             "LEFT JOIN business_merchantcategory mc ON s.category_id = mc.id " +
-            "WHERE (u.category = 'merchant' OR u.category = 'business' OR u.category = 'agency_sub_franchise') AND u.is_active = true AND UPPER(COALESCE(s.status, '')) = 'ACTIVE' " +
+            "LEFT JOIN market_merchantprofile mp ON u.id = mp.user_id " +
+            "WHERE (u.category = 'merchant' OR u.username LIKE 'ONB2B%' OR u.username LIKE 'NSB2B%' OR UPPER(COALESCE(mp.service_mode, '')) = 'B2B') " +
+            "  AND u.category <> 'business' " +
+            "  AND NOT (u.username LIKE 'ONB2C%' OR u.username LIKE 'NSB2C%') " +
+            "  AND u.is_active = true AND UPPER(COALESCE(s.status, '')) = 'ACTIVE' " +
             "LIMIT 50"
         );
     }
