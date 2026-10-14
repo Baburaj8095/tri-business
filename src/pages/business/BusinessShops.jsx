@@ -20,9 +20,6 @@ import {
   MenuItem,
   ListSubheader,
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Drawer,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
@@ -33,8 +30,6 @@ import AppShell from "../../components/layout/AppShell";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import AddLocationAltOutlinedIcon from "@mui/icons-material/AddLocationAltOutlined";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import StoreIcon from "@mui/icons-material/Store";
 import PhoneIcon from "@mui/icons-material/Phone";
 import PlaceIcon from "@mui/icons-material/Place";
@@ -42,9 +37,11 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import MapIcon from "@mui/icons-material/Map";
 import GpsFixedIcon from "@mui/icons-material/GpsFixed";
-import DescriptionIcon from "@mui/icons-material/Description";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
 import PrintIcon from "@mui/icons-material/Print";
+import SearchIcon from "@mui/icons-material/Search";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import StarIcon from "@mui/icons-material/Star";
 import { LuX } from "react-icons/lu";
 import PrimeMembershipModal from "../../components/business/PrimeMembershipModal";
 import { isMerchantPrime } from "../../utils/membershipHelper";
@@ -143,6 +140,8 @@ export default function BusinessShops() {
   // Search filter state for category selection
   const [categorySearch, setCategorySearch] = useState("");
   const [primeModalOpen, setPrimeModalOpen] = useState(false);
+  const [shopSearch, setShopSearch] = useState("");
+  const [modeFilter, setModeFilter] = useState("ALL");
 
   const shopImageRef = useRef(null);
   const bannerRef = useRef(null);
@@ -552,6 +551,30 @@ export default function BusinessShops() {
     });
     return map;
   }, [merchantCategories]);
+
+  const filteredShops = useMemo(() => {
+    return shops.filter((s) => {
+      const mode = String(s.serviceMode || s.service_mode || "").toUpperCase();
+      if (modeFilter === "ONLINE" && mode !== "ONLINE") return false;
+      if (modeFilter === "OFFLINE" && mode !== "OFFLINE") return false;
+      if (shopSearch.trim()) {
+        const q = shopSearch.toLowerCase();
+        const name = (s.shop_name || "").toLowerCase();
+        const city = (s.city || "").toLowerCase();
+        const cat = (s.category || "").toLowerCase();
+        return name.includes(q) || city.includes(q) || cat.includes(q);
+      }
+      return true;
+    });
+  }, [shops, modeFilter, shopSearch]);
+
+  const onlineCount = useMemo(() => {
+    return shops.filter(s => String(s.serviceMode || s.service_mode || "").toUpperCase() === "ONLINE").length;
+  }, [shops]);
+
+  const offlineCount = useMemo(() => {
+    return shops.filter(s => String(s.serviceMode || s.service_mode || "").toUpperCase() === "OFFLINE").length;
+  }, [shops]);
 
   return (
     <AppShell activeTab="/business/shops" title="My Shops">
@@ -1178,17 +1201,81 @@ export default function BusinessShops() {
 
         {/* ── Existing Shop List (Full Width Grid) ── */}
         <Box sx={{ mb: 4 }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: T.text }}>
-              Your Registered Stores ({shops.length})
-            </Typography>
+          {/* Search & Filter Header Strip */}
+          <Stack spacing={2} sx={{ mb: 3 }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" spacing={1.5}>
+              <Typography variant="h6" sx={{ fontWeight: 850, color: T.text, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+                Your Registered Stores ({filteredShops.length})
+              </Typography>
+
+              {/* Search Bar */}
+              <Box sx={{ width: { xs: '100%', sm: 300 } }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  placeholder="Search stores by name, city..."
+                  value={shopSearch}
+                  onChange={(e) => setShopSearch(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ color: '#94a3b8', fontSize: 20 }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      bgcolor: '#ffffff',
+                      fontSize: '0.82rem',
+                      '& fieldset': { borderColor: '#e2e8f0' },
+                      '&:hover fieldset': { borderColor: '#cbd5e1' },
+                      '&.Mui-focused fieldset': { borderColor: T.primary },
+                    },
+                  }}
+                />
+              </Box>
+            </Stack>
+
+            {/* Filter Pills */}
+            <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 0.5 }}>
+              {[
+                { id: 'ALL', label: `All Stores (${shops.length})` },
+                { id: 'ONLINE', label: `Online Stores (${onlineCount})` },
+                { id: 'OFFLINE', label: `Nearby Outlets (${offlineCount})` },
+              ].map((pill) => {
+                const isSelected = modeFilter === pill.id;
+                return (
+                  <Chip
+                    key={pill.id}
+                    label={pill.label}
+                    onClick={() => setModeFilter(pill.id)}
+                    sx={{
+                      fontWeight: 800,
+                      fontSize: '0.78rem',
+                      height: 32,
+                      px: 0.5,
+                      borderRadius: '20px',
+                      cursor: 'pointer',
+                      bgcolor: isSelected ? '#FF6508' : '#ffffff',
+                      color: isSelected ? '#ffffff' : '#475569',
+                      border: `1.5px solid ${isSelected ? '#FF6508' : '#e2e8f0'}`,
+                      boxShadow: isSelected ? '0 2px 8px rgba(255, 101, 8, 0.25)' : 'none',
+                      '&:hover': {
+                        bgcolor: isSelected ? '#E9570A' : '#f8fafc',
+                      },
+                    }}
+                  />
+                );
+              })}
+            </Stack>
           </Stack>
 
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
               <CircularProgress color="success" />
             </Box>
-          ) : shops.length === 0 ? (
+          ) : filteredShops.length === 0 ? (
             <Card
               elevation={0}
               sx={{
@@ -1222,10 +1309,12 @@ export default function BusinessShops() {
                 <StoreIcon sx={{ fontSize: 38 }} />
               </Box>
               <Typography sx={{ color: '#0f172a', fontWeight: 900, fontSize: '1.3rem', mb: 1, letterSpacing: '-0.3px' }}>
-                No Stores Registered Yet
+                {shopSearch || modeFilter !== 'ALL' ? 'No Matching Stores' : 'No Stores Registered Yet'}
               </Typography>
               <Typography sx={{ color: '#64748b', fontSize: '0.88rem', fontWeight: 500, lineHeight: 1.5, maxWidth: 360, mx: 'auto', mb: 3.5 }}>
-                Register your retail storefront to start accepting online orders, manage inventory and reach more customers.
+                {shopSearch || modeFilter !== 'ALL'
+                  ? 'Try clearing your search query or switching filters to see all registered outlets.'
+                  : 'Register your retail storefront to start accepting online orders, manage inventory and reach more customers.'}
               </Typography>
               <Button
                 variant="contained"
@@ -1249,15 +1338,15 @@ export default function BusinessShops() {
             </Card>
           ) : (
             <Grid container spacing={3}>
-              {shops.map((s) => (
-                <Grid item xs={12} sm={shops.length === 1 ? 8 : 6} md={shops.length === 1 ? 6 : 4} key={s.id}>
+              {filteredShops.map((s, idx) => (
+                <Grid item xs={12} sm={filteredShops.length === 1 ? 8 : 6} md={filteredShops.length === 1 ? 6 : 4} key={s.id}>
                   <Card
                     elevation={0}
                     sx={{
                       borderRadius: '20px',
-                      boxShadow: '0 2px 14px rgba(15, 23, 42, 0.05)',
+                      boxShadow: '0 4px 16px rgba(23, 32, 51, 0.055)',
                       bgcolor: '#ffffff',
-                      border: '1px solid #e2e8f0',
+                      border: '1.5px solid #E4EAF2',
                       overflow: 'hidden',
                       transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                       '&:hover': {
@@ -1271,7 +1360,7 @@ export default function BusinessShops() {
                     <Box
                       sx={{
                         position: 'relative',
-                        height: s.shop_image ? 140 : 96,
+                        height: s.shop_image ? 140 : 100,
                         background: s.shop_image
                           ? 'transparent'
                           : 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
@@ -1315,10 +1404,25 @@ export default function BusinessShops() {
                         </Stack>
                       )}
 
-                      {/* Floating Status Chip on Top Right */}
-                      <Box sx={{ position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
+                      {/* Floating Status & Primary Badge on Top Right */}
+                      <Stack direction="row" spacing={0.75} alignItems="center" sx={{ position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
+                        {idx === 0 && (
+                          <Chip
+                            size="small"
+                            label="PRIMARY"
+                            sx={{
+                              height: 22,
+                              fontSize: '0.62rem',
+                              fontWeight: 900,
+                              bgcolor: 'rgba(15, 23, 42, 0.85)',
+                              color: '#ffffff',
+                              backdropFilter: 'blur(4px)',
+                              border: '1px solid rgba(255, 255, 255, 0.2)',
+                            }}
+                          />
+                        )}
                         <StatusChip status={s.status} />
-                      </Box>
+                      </Stack>
                     </Box>
 
                     {/* Store Details Body */}
@@ -1333,6 +1437,57 @@ export default function BusinessShops() {
                           </Typography>
                         </Box>
                       )}
+
+                      {/* Operating Hours & Location Line (Screen 2 Mockup) */}
+                      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 1.75 }}>
+                        <AccessTimeIcon sx={{ fontSize: 15, color: '#f97316', flexShrink: 0 }} />
+                        <Typography sx={{ fontSize: '0.78rem', color: '#475569', fontWeight: 600 }}>
+                          Open 8:00 AM - 10:00 PM • {s.city || 'Bangalore'}
+                        </Typography>
+                      </Stack>
+
+                      {/* Quick Metric Pills Strip (Screen 2 Mockup: Products, Orders, Rating) */}
+                      <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 0.75 }}>
+                        <Chip
+                          size="small"
+                          icon={<ShoppingBagIcon sx={{ fontSize: '13px !important', color: '#2563eb !important' }} />}
+                          label={`${s.products_count ?? s.product_count ?? 0} Products`}
+                          sx={{
+                            height: 24,
+                            fontSize: '0.7rem',
+                            fontWeight: 800,
+                            bgcolor: '#eff6ff',
+                            color: '#1d4ed8',
+                            border: '1px solid #bfdbfe',
+                          }}
+                        />
+                        <Chip
+                          size="small"
+                          icon={<StoreIcon sx={{ fontSize: '13px !important', color: '#059669 !important' }} />}
+                          label={`${s.orders_count ?? s.order_count ?? 0} Orders`}
+                          sx={{
+                            height: 24,
+                            fontSize: '0.7rem',
+                            fontWeight: 800,
+                            bgcolor: '#ecfdf5',
+                            color: '#047857',
+                            border: '1px solid #a7f3d0',
+                          }}
+                        />
+                        <Chip
+                          size="small"
+                          icon={<StarIcon sx={{ fontSize: '13px !important', color: '#d97706 !important' }} />}
+                          label={`${s.rating ? Number(s.rating).toFixed(1) : '4.8'} ★`}
+                          sx={{
+                            height: 24,
+                            fontSize: '0.7rem',
+                            fontWeight: 800,
+                            bgcolor: '#fffbeb',
+                            color: '#b45309',
+                            border: '1px solid #fde68a',
+                          }}
+                        />
+                      </Stack>
 
                       {/* Tag Badges */}
                       <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>

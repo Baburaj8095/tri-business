@@ -3,7 +3,6 @@ import {
   Box,
   Typography,
   Card,
-  CardContent,
   TextField,
   Button,
   Stack,
@@ -16,7 +15,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   Grid,
   InputAdornment,
   useMediaQuery,
@@ -28,14 +26,11 @@ import {
   Fab,
   Divider,
   Switch,
-  FormControlLabel,
-  alpha,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import AppShell from "../../components/layout/AppShell";
 
 // Icons
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -43,10 +38,7 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
-import CheckIcon from "@mui/icons-material/Check";
-import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
-import TuneIcon from "@mui/icons-material/Tune";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
@@ -56,12 +48,8 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RemoveIcon from "@mui/icons-material/Remove";
-import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import HistoryIcon from "@mui/icons-material/History";
 import SwapVertIcon from "@mui/icons-material/SwapVert";
-import CameraAltIcon from "@mui/icons-material/CameraAlt";
-import FlashOnIcon from "@mui/icons-material/FlashOn";
-import BarcodeReaderIcon from "@mui/icons-material/DocumentScanner";
 
 import PrimeMembershipModal from "../../components/business/PrimeMembershipModal";
 import { isMerchantPrime } from "../../utils/membershipHelper";
@@ -859,6 +847,48 @@ export default function InventoryPage() {
               </IconButton>
             </Stack>
           </Box>
+
+          {/* Quick Category Scroll Strip (Screen 3 Mockup) */}
+          <Stack direction="row" spacing={1} sx={{ mb: 2, overflowX: 'auto', pb: 0.5, '::-webkit-scrollbar': { display: 'none' } }}>
+            <Chip
+              label="All Categories"
+              onClick={() => setFilterCategory("All")}
+              sx={{
+                fontWeight: 800,
+                fontSize: '0.78rem',
+                height: 32,
+                borderRadius: '20px',
+                cursor: 'pointer',
+                bgcolor: filterCategory === "All" ? '#FF6508' : '#ffffff',
+                color: filterCategory === "All" ? '#ffffff' : '#475569',
+                border: `1.5px solid ${filterCategory === "All" ? '#FF6508' : '#e2e8f0'}`,
+                boxShadow: filterCategory === "All" ? '0 2px 8px rgba(255, 101, 8, 0.25)' : 'none',
+              }}
+            />
+            {categories.slice(0, 10).map((c) => {
+              const cName = typeof c === 'string' ? c : (c?.name || String(c));
+              const isSel = filterCategory === cName;
+              return (
+                <Chip
+                  key={cName}
+                  label={cName}
+                  onClick={() => setFilterCategory(cName)}
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: '0.78rem',
+                    height: 32,
+                    borderRadius: '20px',
+                    cursor: 'pointer',
+                    bgcolor: isSel ? '#FF6508' : '#ffffff',
+                    color: isSel ? '#ffffff' : '#475569',
+                    border: `1.5px solid ${isSel ? '#FF6508' : '#e2e8f0'}`,
+                    boxShadow: isSel ? '0 2px 8px rgba(255, 101, 8, 0.25)' : 'none',
+                    whiteSpace: 'nowrap',
+                  }}
+                />
+              );
+            })}
+          </Stack>
 
           {/* Filter Dropdown Chips */}
           <Stack direction="row" spacing={1.25} sx={{ mb: 2.5, overflowX: 'auto', pb: 0.5 }}>

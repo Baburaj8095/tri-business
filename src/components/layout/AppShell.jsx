@@ -17,10 +17,6 @@ import {
   ListItemIcon,
   Tooltip,
   Drawer,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Chip
 } from '@mui/material';
 import {
@@ -39,15 +35,12 @@ import {
   KeyboardArrowDownRounded as ArrowDownIcon,
   LogoutRounded as LogoutIcon,
   QrCodeScannerRounded as ScanIcon,
-  MoreHorizRounded as MoreIcon,
   VerifiedRounded as VerifiedIcon,
   ShieldOutlined as KycIcon,
   AccountBalanceWalletOutlined as WalletIcon,
   ArrowBackRounded as BackIcon,
   LocalShippingOutlined as DeliveryIcon,
-  LockOutlined as LockIcon,
   ChevronRightRounded as ChevronRightIcon,
-  CloseRounded as CloseIcon,
   EditRounded as EditIcon,
   CheckCircleRounded as CheckCircleIcon,
   AddRounded as AddIcon,

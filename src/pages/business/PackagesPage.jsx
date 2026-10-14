@@ -14,7 +14,6 @@ import {
   Alert,
   LinearProgress,
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Divider,
@@ -28,17 +27,13 @@ import {
   Lock,
   Bolt,
   CreditCard,
-  CalendarToday,
   Receipt,
-  Download,
   Print,
   InfoOutlined,
   Close,
-  Stars,
   VerifiedUser,
 } from '@mui/icons-material';
 import AppShell from '../../components/layout/AppShell';
-import { T, cardHoverSx } from '../../theme/tokens';
 import {
   PLAN_TYPES,
   getSubscriptionDetails,
@@ -205,7 +200,7 @@ export default function PackagesPage() {
             sx={{
               mb: 2.5,
               borderRadius: '18px',
-              background: 'linear-gradient(135deg, #FF6508 0%, #E9570A 100%)',
+              background: "url('/assets/banners/special-deals-background.svg') center/cover no-repeat, linear-gradient(135deg, #FF6508 0%, #E9570A 100%)",
               color: '#ffffff',
               p: { xs: 2.25, sm: 3 },
               boxShadow: '0 6px 20px rgba(255, 101, 8, 0.22)',

@@ -7,7 +7,7 @@ import QrCodeScannerRoundedIcon from "@mui/icons-material/QrCodeScannerRounded";
 
 const UI = {
   bg: "#000000",
-  primary: "#93c193",
+  primary: "#FF6508",
   onPrimary: "#ffffff",
   muted: "#cbd5e1",
 };

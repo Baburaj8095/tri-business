@@ -2,12 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Container, Typography, Button, Card, CardContent,
   Stack, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Drawer,
-  TextField, MenuItem, IconButton, Avatar, Divider, Switch,
+  TextField, MenuItem, IconButton, Divider, Switch,
   FormControlLabel, Alert, CircularProgress, Snackbar,
-  Grid, Tooltip, InputAdornment
+  Grid, Tooltip
 } from '@mui/material';
 import {
-  ArrowBack as BackIcon,
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -20,13 +19,11 @@ import {
   LocalOffer as OfferIcon,
   ToggleOn as ToggleOnIcon,
   ToggleOff as ToggleOffIcon,
-  Visibility as PreviewIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getMerchantProfile } from '../../api/api';
 import AppShell from '../../components/layout/AppShell';
-import { T, cardHoverSx } from '../../theme/tokens';
 
 /* ─── Design tokens (exact brand palette) ─────────────────────────────────── */
 const P   = '#FF6508';
@@ -516,7 +513,7 @@ export default function AdsManagerPage() {
           sx={{
             mb: 2.5,
             borderRadius: '18px',
-            background: 'linear-gradient(135deg, #FF6508 0%, #E9570A 100%)',
+            background: "url('/assets/banners/ads-campaign-background.svg') center/cover no-repeat, linear-gradient(135deg, #FF6508 0%, #E9570A 100%)",
             color: '#ffffff',
             p: { xs: 2.25, sm: 3 },
             boxShadow: '0 6px 20px rgba(255, 101, 8, 0.22)',
