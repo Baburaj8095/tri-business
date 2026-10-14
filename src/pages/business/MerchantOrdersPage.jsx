@@ -1142,8 +1142,8 @@ export default function MerchantOrdersPage() {
                     width: 32,
                     height: 32,
                     borderRadius: '8px',
-                    bgcolor: '#ecfdf5',
-                    color: '#047857',
+                    bgcolor: '#fff7ed',
+                    color: '#ea580c',
                     display: 'grid',
                     placeItems: 'center',
                     border: '1px solid #a7f3d0'
@@ -1172,7 +1172,7 @@ export default function MerchantOrdersPage() {
                     bgcolor: '#f8fafc',
                     '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e2e8f0' },
                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#cbd5e1' },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#047857', borderWidth: 2 },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#ea580c', borderWidth: 2 },
                   }}
                 >
                   {shops.map(s => (
@@ -1250,7 +1250,7 @@ export default function MerchantOrdersPage() {
             <Box>
               {loadingOnlineOrders ? (
                 <Box sx={{ py: 8, display: 'grid', placeItems: 'center' }}>
-                  <CircularProgress size={32} sx={{ color: '#047857' }} />
+                  <CircularProgress size={32} sx={{ color: '#ea580c' }} />
                 </Box>
               ) : (
                 (() => {
@@ -1280,8 +1280,8 @@ export default function MerchantOrdersPage() {
                             width: 64,
                             height: 64,
                             borderRadius: '50%',
-                            bgcolor: '#ecfdf5',
-                            color: '#047857',
+                            bgcolor: '#fff7ed',
+                            color: '#ea580c',
                             border: '2px solid #a7f3d0',
                             display: 'grid',
                             placeItems: 'center',
@@ -1305,15 +1305,15 @@ export default function MerchantOrdersPage() {
                             if (selectedShopId) fetchOnlineOrders(selectedShopId);
                           }}
                           sx={{
-                            borderColor: '#047857',
-                            color: '#047857',
+                            borderColor: '#ea580c',
+                            color: '#ea580c',
                             fontWeight: 800,
                             borderRadius: '10px',
                             textTransform: 'none',
                             fontSize: '0.78rem',
                             height: '34px',
                             px: 2.5,
-                            '&:hover': { bgcolor: '#ecfdf5', borderColor: '#065f46' }
+                            '&:hover': { bgcolor: '#fff7ed', borderColor: '#c2410c' }
                           }}
                         >
                           ↻ Refresh Orders
@@ -1413,7 +1413,7 @@ export default function MerchantOrdersPage() {
             <Box>
               {loadingB2bOrders ? (
                 <Box sx={{ py: 8, display: 'grid', placeItems: 'center' }}>
-                  <CircularProgress size={32} sx={{ color: '#047857' }} />
+                  <CircularProgress size={32} sx={{ color: '#ea580c' }} />
                 </Box>
               ) : (
                 (() => {
@@ -1443,8 +1443,8 @@ export default function MerchantOrdersPage() {
                             width: 64,
                             height: 64,
                             borderRadius: '50%',
-                            bgcolor: '#ecfdf5',
-                            color: '#047857',
+                            bgcolor: '#fff7ed',
+                            color: '#ea580c',
                             border: '2px solid #a7f3d0',
                             display: 'grid',
                             placeItems: 'center',
@@ -1466,15 +1466,15 @@ export default function MerchantOrdersPage() {
                           size="small"
                           onClick={fetchB2bOrders}
                           sx={{
-                            borderColor: '#047857',
-                            color: '#047857',
+                            borderColor: '#ea580c',
+                            color: '#ea580c',
                             fontWeight: 800,
                             borderRadius: '10px',
                             textTransform: 'none',
                             fontSize: '0.78rem',
                             height: '34px',
                             px: 2.5,
-                            '&:hover': { bgcolor: '#ecfdf5', borderColor: '#065f46' }
+                            '&:hover': { bgcolor: '#fff7ed', borderColor: '#c2410c' }
                           }}
                         >
                           ↻ Refresh Wholesale Orders

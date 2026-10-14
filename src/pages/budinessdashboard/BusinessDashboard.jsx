@@ -2395,11 +2395,11 @@ function BusinessDashboard() {
             mb: 2.25,
             p: { xs: 2, sm: 3 },
             borderRadius: '20px',
-            background: 'linear-gradient(135deg, #064e3b 0%, #047857 55%, #0d9488 100%)',
+            background: 'linear-gradient(135deg, #ea580c 0%, #f97316 55%, #fb923c 100%)',
             color: '#ffffff',
             position: 'relative',
             overflow: 'hidden',
-            boxShadow: '0 6px 20px rgba(6, 78, 59, 0.16)'
+            boxShadow: '0 6px 20px rgba(234, 88, 12, 0.22)'
           }}
         >
           {/* Subtle luminous accent glow */}
@@ -2462,7 +2462,7 @@ function BusinessDashboard() {
                     flex: 1,
                     height: '38px',
                     bgcolor: '#ffffff',
-                    color: '#064e3b',
+                    color: '#ea580c',
                     fontWeight: 800,
                     fontSize: '0.78rem',
                     borderRadius: '10px',
@@ -2470,7 +2470,7 @@ function BusinessDashboard() {
                     boxShadow: '0 2px 6px rgba(0, 0, 0, 0.12)',
                     px: 1.5,
                     whiteSpace: 'nowrap',
-                    '&:hover': { bgcolor: '#f0fdf4' },
+                    '&:hover': { bgcolor: '#fff7ed' },
                     '&:active': { transform: 'scale(0.98)' }
                   }}
                 >
@@ -2657,7 +2657,7 @@ function BusinessDashboard() {
                     height: 18,
                     fontSize: '0.62rem',
                     fontWeight: 900,
-                    bgcolor: isMerchantPrime() ? '#10b981' : '#f59e0b',
+                    bgcolor: isMerchantPrime() ? '#ea580c' : '#f59e0b',
                     color: '#fff',
                   }}
                 />

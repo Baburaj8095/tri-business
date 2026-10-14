@@ -596,7 +596,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                             setSponsorInfo(null);
                             setSponsorError('');
                           }}
-                          placeholder={role === 'BUSINESS' ? "CB9689570448" : "e.g. 9876543210"}
+                          placeholder={role === 'BUSINESS' ? "Enter Captain ID or Mobile" : "Enter Sponsor Mobile or ID"}
                           onKeyDown={e => e.key === 'Enter' && verifySponsor()}
                           InputProps={{
                             disableUnderline: true,

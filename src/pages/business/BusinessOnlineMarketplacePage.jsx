@@ -746,7 +746,7 @@ export default function BusinessOnlineMarketplacePage() {
                   sx={{ bgcolor: '#ffffff', border: '1px solid #e2e8f0', color: '#0f172a', p: 1 }}
                 >
                   <Badge badgeContent={totalCartCount} color="success" max={99}>
-                    <BagIcon sx={{ fontSize: 20, color: '#059669' }} />
+                    <BagIcon sx={{ fontSize: 20, color: '#ea580c' }} />
                   </Badge>
                 </IconButton>
               </Stack>
@@ -869,8 +869,8 @@ export default function BusinessOnlineMarketplacePage() {
                       onClick={() => handleSelectCategory(cat.label)}
                       sx={{
                         borderRadius: '18px',
-                        border: isSelected ? '2px solid #10b981' : '1px solid #e2e8f0',
-                        bgcolor: isSelected ? '#f0fdf4' : '#ffffff',
+                        border: isSelected ? '2px solid #ea580c' : '1px solid #e2e8f0',
+                        bgcolor: isSelected ? '#fff7ed' : '#ffffff',
                         p: 1.5,
                         display: 'flex',
                         alignItems: 'center',
@@ -928,7 +928,7 @@ export default function BusinessOnlineMarketplacePage() {
                               {cat.count || '80+ items'}
                             </Typography>
                             {cat.badge && (
-                              <Typography sx={{ fontSize: '0.62rem', fontWeight: 800, color: '#059669', bgcolor: '#ecfdf5', px: 0.75, py: 0.15, borderRadius: '4px' }}>
+                              <Typography sx={{ fontSize: '0.62rem', fontWeight: 800, color: '#ea580c', bgcolor: '#fff7ed', px: 0.75, py: 0.15, borderRadius: '4px' }}>
                                 {cat.badge}
                               </Typography>
                             )}
@@ -991,7 +991,7 @@ export default function BusinessOnlineMarketplacePage() {
                     <Typography
                       sx={{
                         fontSize: '0.72rem',
-                        color: '#059669',
+                        color: '#ea580c',
                         fontWeight: 700,
                         display: 'flex',
                         alignItems: 'center',
@@ -1014,17 +1014,17 @@ export default function BusinessOnlineMarketplacePage() {
                     startIcon={<FilterIcon sx={{ fontSize: 16 }} />}
                     onClick={handleBackFromBrowse}
                     sx={{
-                      bgcolor: '#ecfdf5',
-                      color: '#047857',
+                      bgcolor: '#fff7ed',
+                      color: '#ea580c',
                       fontWeight: 800,
                       fontSize: '0.72rem',
                       textTransform: 'none',
                       borderRadius: '10px',
-                      border: '1px solid #a7f3d0',
+                      border: '1px solid #fed7aa',
                       py: 0.5,
                       px: 1.2,
                       display: { xs: 'none', sm: 'inline-flex' },
-                      '&:hover': { bgcolor: '#d1fae5' },
+                      '&:hover': { bgcolor: '#ffedd5' },
                     }}
                   >
                     All Categories ({allAvailableCategories.length})
@@ -1041,7 +1041,7 @@ export default function BusinessOnlineMarketplacePage() {
                     }}
                   >
                     <Badge badgeContent={totalCartCount} color="success" max={99}>
-                      <BagIcon sx={{ fontSize: 20, color: '#059669' }} />
+                      <BagIcon sx={{ fontSize: 20, color: '#ea580c' }} />
                     </Badge>
                   </IconButton>
                   <IconButton
@@ -1209,7 +1209,7 @@ export default function BusinessOnlineMarketplacePage() {
                       sx={{
                         display: 'inline-block',
                         bgcolor: 'rgba(5, 150, 105, 0.12)',
-                        color: '#047857',
+                        color: '#ea580c',
                         fontSize: '0.62rem',
                         fontWeight: 900,
                         px: 1,
@@ -1263,7 +1263,7 @@ export default function BusinessOnlineMarketplacePage() {
                 }}
               >
                 <Chip
-                  icon={<FilterIcon sx={{ fontSize: '15px !important', color: '#047857' }} />}
+                  icon={<FilterIcon sx={{ fontSize: '15px !important', color: '#ea580c' }} />}
                   label="Filters"
                   size="small"
                   onClick={() => setCategoryDrawerOpen(true)}
@@ -1502,7 +1502,7 @@ export default function BusinessOnlineMarketplacePage() {
                                 sx={{
                                   borderRadius: '10px',
                                   borderColor: '#10b981',
-                                  color: '#059669',
+                                  color: '#ea580c',
                                   fontWeight: 900,
                                   fontSize: '0.78rem',
                                   px: 2,
@@ -1512,7 +1512,7 @@ export default function BusinessOnlineMarketplacePage() {
                                   bgcolor: '#ffffff',
                                   boxShadow: '0 1px 3px rgba(16, 185, 129, 0.1)',
                                   '&:hover': {
-                                    bgcolor: '#ecfdf5',
+                                    bgcolor: '#fff7ed',
                                     borderColor: '#059669',
                                   },
                                 }}
@@ -1632,7 +1632,7 @@ export default function BusinessOnlineMarketplacePage() {
               <Box
                 sx={{
                   bgcolor: '#ffffff',
-                  color: '#047857',
+                  color: '#ea580c',
                   px: 1.85,
                   py: 0.85,
                   borderRadius: '10px',
@@ -1648,7 +1648,7 @@ export default function BusinessOnlineMarketplacePage() {
                 }}
               >
                 <span>View Cart</span>
-                <ChevronRightIcon sx={{ fontSize: 18, color: '#047857' }} />
+                <ChevronRightIcon sx={{ fontSize: 18, color: '#ea580c' }} />
               </Box>
             </Box>
           </Box>
@@ -1706,7 +1706,7 @@ export default function BusinessOnlineMarketplacePage() {
                 </Box>
 
                 {/* Delivery Badge */}
-                <Typography sx={{ fontSize: '0.72rem', color: '#059669', fontWeight: 800, mb: 0.5 }}>
+                <Typography sx={{ fontSize: '0.72rem', color: '#ea580c', fontWeight: 800, mb: 0.5 }}>
                   ⚡ Delivering in {selectedProductDetails.deliveryMins}
                 </Typography>
 
@@ -1748,7 +1748,7 @@ export default function BusinessOnlineMarketplacePage() {
                   }}
                 >
                   <Stack direction="row" spacing={1.25} alignItems="center">
-                    <ShieldIcon sx={{ color: '#059669', fontSize: 22 }} />
+                    <ShieldIcon sx={{ color: '#ea580c', fontSize: 22 }} />
                     <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>
                       48 hours replacement guarantee
                     </Typography>
@@ -1948,7 +1948,7 @@ export default function BusinessOnlineMarketplacePage() {
                             height: 16,
                             fontSize: '0.58rem',
                             fontWeight: 900,
-                            bgcolor: '#059669',
+                            bgcolor: '#ea580c',
                             color: '#ffffff',
                           }}
                         />

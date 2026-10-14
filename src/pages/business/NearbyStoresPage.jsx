@@ -194,11 +194,11 @@ export default function NearbyStoresPage() {
                 fontSize: '0.78rem',
                 fontWeight: viewMode === 'map' ? 800 : 600,
                 textTransform: 'none',
-                bgcolor: viewMode === 'map' ? '#15803d' : 'transparent',
+                bgcolor: viewMode === 'map' ? '#ea580c' : 'transparent',
                 color: viewMode === 'map' ? '#ffffff' : '#64748b',
                 minWidth: 0,
                 boxShadow: viewMode === 'map' ? '0 2px 6px rgba(21,128,61,0.25)' : 'none',
-                '&:hover': { bgcolor: viewMode === 'map' ? '#166534' : '#f8fafc' },
+                '&:hover': { bgcolor: viewMode === 'map' ? '#c2410c' : '#f8fafc' },
               }}
             >
               Map
@@ -215,11 +215,11 @@ export default function NearbyStoresPage() {
                 fontSize: '0.78rem',
                 fontWeight: viewMode === 'list' ? 800 : 600,
                 textTransform: 'none',
-                bgcolor: viewMode === 'list' ? '#15803d' : 'transparent',
+                bgcolor: viewMode === 'list' ? '#ea580c' : 'transparent',
                 color: viewMode === 'list' ? '#ffffff' : '#64748b',
                 minWidth: 0,
                 boxShadow: viewMode === 'list' ? '0 2px 6px rgba(21,128,61,0.25)' : 'none',
-                '&:hover': { bgcolor: viewMode === 'list' ? '#166534' : '#f8fafc' },
+                '&:hover': { bgcolor: viewMode === 'list' ? '#c2410c' : '#f8fafc' },
               }}
             >
               List
@@ -251,7 +251,7 @@ export default function NearbyStoresPage() {
                 height: '44px',
                 '& fieldset': { borderColor: '#e2e8f0' },
                 '&:hover fieldset': { borderColor: '#cbd5e1' },
-                '&.Mui-focused fieldset': { borderColor: '#15803d' }
+                '&.Mui-focused fieldset': { borderColor: '#ea580c' }
               },
               '& .MuiInputBase-input': { fontSize: '0.86rem', color: '#0f172a' }
             }}
@@ -268,7 +268,7 @@ export default function NearbyStoresPage() {
               color: '#0f172a',
               flexShrink: 0,
               boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-              '&:hover': { bgcolor: '#f8fafc', borderColor: '#15803d' }
+              '&:hover': { bgcolor: '#f8fafc', borderColor: '#ea580c' }
             }}
           >
             <FilterIcon sx={{ fontSize: 20 }} />
@@ -304,13 +304,13 @@ export default function NearbyStoresPage() {
                   fontSize: '0.82rem',
                   fontWeight: isSelected ? 800 : 600,
                   textTransform: 'none',
-                  bgcolor: isSelected ? '#15803d' : '#ffffff',
+                  bgcolor: isSelected ? '#ea580c' : '#ffffff',
                   color: isSelected ? '#FFFFFF' : '#475569',
-                  border: `1px solid ${isSelected ? '#15803d' : '#e2e8f0'}`,
+                  border: `1px solid ${isSelected ? '#ea580c' : '#e2e8f0'}`,
                   boxShadow: isSelected ? '0 2px 8px rgba(21,128,61,0.25)' : 'none',
                   '&:hover': {
-                    bgcolor: isSelected ? '#166534' : '#f8fafc',
-                    borderColor: isSelected ? '#166534' : '#cbd5e1',
+                    bgcolor: isSelected ? '#c2410c' : '#f8fafc',
+                    borderColor: isSelected ? '#c2410c' : '#cbd5e1',
                   }
                 }}
               >
@@ -325,7 +325,7 @@ export default function NearbyStoresPage() {
            ══════════════════════════════════════════════════════════════════════════ */}
         {loading ? (
           <Box sx={{ textAlign: 'center', py: 10 }}>
-            <CircularProgress sx={{ color: '#15803d' }} />
+            <CircularProgress sx={{ color: '#ea580c' }} />
             <Typography sx={{ mt: 2, color: '#64748b', fontWeight: 600, fontSize: '0.88rem' }}>
               Finding stores near you...
             </Typography>
@@ -359,7 +359,7 @@ export default function NearbyStoresPage() {
                     boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)',
                     width: '100%',
                     '&:hover': {
-                      borderColor: '#15803d',
+                      borderColor: '#ea580c',
                       boxShadow: '0 8px 24px rgba(21, 128, 61, 0.12)',
                       transform: 'translateY(-2px)',
                     },
@@ -495,7 +495,7 @@ export default function NearbyStoresPage() {
                               bgcolor: '#dcfce7',
                               display: 'grid',
                               placeItems: 'center',
-                              color: '#047857',
+                              color: '#ea580c',
                               border: '1px solid #bbf7d0',
                             }}
                           >
@@ -520,8 +520,8 @@ export default function NearbyStoresPage() {
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: 0.35,
-                              bgcolor: '#ecfdf5',
-                              color: '#065f46',
+                              bgcolor: '#fff7ed',
+                              color: '#9a3412',
                               border: '1px solid #a7f3d0',
                               borderRadius: '6px',
                               px: 0.75,
@@ -530,7 +530,7 @@ export default function NearbyStoresPage() {
                               fontWeight: 800,
                             }}
                           >
-                            <VerifiedIcon sx={{ fontSize: 13, color: '#059669' }} />
+                            <VerifiedIcon sx={{ fontSize: 13, color: '#ea580c' }} />
                             <span>{store.badge1}</span>
                           </Box>
 
@@ -560,15 +560,15 @@ export default function NearbyStoresPage() {
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: 0.35,
-                            bgcolor: '#ecfdf5',
+                            bgcolor: '#fff7ed',
                             border: '1px solid #a7f3d0',
                             borderRadius: '8px',
                             px: 1,
                             py: 0.35,
                           }}
                         >
-                          <StarIcon sx={{ fontSize: 14, color: '#047857' }} />
-                          <Typography sx={{ fontSize: '0.84rem', fontWeight: 900, color: '#047857', lineHeight: 1 }}>
+                          <StarIcon sx={{ fontSize: 14, color: '#d97706' }} />
+                          <Typography sx={{ fontSize: '0.84rem', fontWeight: 900, color: '#d97706', lineHeight: 1 }}>
                             {store.rating}
                           </Typography>
                         </Box>
@@ -595,7 +595,7 @@ export default function NearbyStoresPage() {
                           e.stopPropagation();
                           window.location.href = `tel:${store.phone}`;
                         }}
-                        startIcon={<PhoneIcon sx={{ fontSize: 15, color: '#047857' }} />}
+                        startIcon={<PhoneIcon sx={{ fontSize: 15, color: '#ea580c' }} />}
                         sx={{
                           flex: 1,
                           minWidth: 0,
@@ -661,7 +661,7 @@ export default function NearbyStoresPage() {
                           minWidth: 0,
                           height: 38,
                           px: { xs: 0.8, sm: 1.5 },
-                          bgcolor: '#15803d',
+                          bgcolor: '#ea580c',
                           color: '#ffffff',
                           borderRadius: '10px',
                           fontWeight: 800,
@@ -670,7 +670,7 @@ export default function NearbyStoresPage() {
                           whiteSpace: 'nowrap',
                           boxShadow: 'none',
                           '& .MuiButton-startIcon': { mr: { xs: 0.4, sm: 0.75 }, ml: 0 },
-                          '&:hover': { bgcolor: '#166534', boxShadow: 'none' },
+                          '&:hover': { bgcolor: '#c2410c', boxShadow: 'none' },
                           '&:active': { transform: 'scale(0.98)' }
                         }}
                       >
