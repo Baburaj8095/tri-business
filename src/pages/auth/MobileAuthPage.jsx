@@ -83,12 +83,12 @@ export default function MobileAuthPage() {
       const cleanPhone = clean.replace(/\D/g, '').slice(-10);
       const is10DigitPhone = cleanPhone.length === 10;
 
-      // Candidate identifiers to try sequentially
+      // Candidate identifiers to try sequentially (supporting raw phone, CB, ONB2C, ONB2B, NSB2C, NSB2B)
       const candidateIdentifiers = is10DigitPhone
         ? (userRole === 'CAPTAIN' 
-            ? [cleanPhone, `CB${cleanPhone}`, clean] 
-            : [cleanPhone, `ONB2C_${cleanPhone}`, `ONB2B_${cleanPhone}`, `NSB2B_${cleanPhone}`, `NSB2C_${cleanPhone}`, `CB${cleanPhone}`, clean])
-        : [clean];
+            ? [cleanPhone, `CB${cleanPhone}`, `CB-${cleanPhone}`, clean] 
+            : [cleanPhone, `ONB2C${cleanPhone}`, `ONB2B${cleanPhone}`, `NSB2C${cleanPhone}`, `NSB2B${cleanPhone}`, `ONB2C_${cleanPhone}`, `ONB2B_${cleanPhone}`, `NSB2C_${cleanPhone}`, `NSB2B_${cleanPhone}`, `CB${cleanPhone}`, clean])
+        : [clean, clean.replace(/-/g, '')];
 
       let res = null;
       let targetIdentifier = clean;

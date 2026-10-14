@@ -32,16 +32,38 @@ public class AuthService {
         String identifier = req.getIdentifier().trim().toUpperCase();
         Optional<Map<String, Object>> userOpt;
 
-        // Resolve identifier: 10 digits → find by phone, else find by username
+        // Resolve identifier: 10 digits → find by phone, then try CB/ON/NS prefixes
         if (identifier.matches("\\d{10}")) {
-            // Try phone directly, then try CB+phone
             userOpt = userRepository.findByPhone(identifier);
             if (userOpt.isEmpty()) {
                 userOpt = userRepository.findByUsername("CB" + identifier);
             }
+            if (userOpt.isEmpty()) {
+                userOpt = userRepository.findByUsername("ONB2C" + identifier);
+            }
+            if (userOpt.isEmpty()) {
+                userOpt = userRepository.findByUsername("ONB2B" + identifier);
+            }
+            if (userOpt.isEmpty()) {
+                userOpt = userRepository.findByUsername("NSB2C" + identifier);
+            }
+            if (userOpt.isEmpty()) {
+                userOpt = userRepository.findByUsername("NSB2B" + identifier);
+            }
         } else {
-            // Any alphanumeric user ID (CB, NSB2B, etc.)
+            // Any alphanumeric user ID (CB9689570448, CB-9689570448, NSB2B..., etc.)
             userOpt = userRepository.findByUsername(identifier);
+            if (userOpt.isEmpty() && identifier.contains("-")) {
+                userOpt = userRepository.findByUsername(identifier.replace("-", ""));
+            }
+            if (userOpt.isEmpty()) {
+                // If user entered prefix with a phone, extract digits and try by phone
+                String digitsOnly = identifier.replaceAll("\\D", "");
+                if (digitsOnly.length() >= 10) {
+                    String phone10 = digitsOnly.substring(digitsOnly.length() - 10);
+                    userOpt = userRepository.findByPhone(phone10);
+                }
+            }
         }
 
         Map<String, Object> user = userOpt.orElseThrow(() ->
