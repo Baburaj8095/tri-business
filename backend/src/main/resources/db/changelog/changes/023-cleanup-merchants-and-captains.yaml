@@ -73,7 +73,8 @@ databaseChangeLog:
                       -- Extra captains to delete (excluding captain 9689570448):
                       (u.category = 'agency_sub_franchise' AND (v_captain_id IS NULL OR u.id <> v_captain_id))
                   )
-                  -- Protect staff, superusers, and root consumer sponsor
+                  -- Strictly protect all consumers, staff, superusers, and root consumer sponsor
+                  AND COALESCE(u.category, '') <> 'consumer'
                   AND u.is_superuser = false
                   AND u.is_staff = false
                   AND u.phone NOT IN ('9999999999', '999999999')
