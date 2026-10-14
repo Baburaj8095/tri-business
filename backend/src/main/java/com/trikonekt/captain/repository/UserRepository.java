@@ -97,10 +97,15 @@ public class UserRepository {
             "       COALESCE(ara.district, '') as district, COALESCE(CAST(ara.state_id AS VARCHAR), '') as state " +
             "FROM accounts_customuser u " +
             "LEFT JOIN accounts_agencyregionassignment ara ON u.id = ara.user_id " +
-            "WHERE (u.phone = ? OR u.phone = ? OR UPPER(u.username) = UPPER(?) OR UPPER(u.prefixed_id) = UPPER(?) OR UPPER(u.username) = UPPER(?) OR UPPER(u.username) = UPPER(?)) " +
-            "AND u.is_active = true " +
+            "WHERE (u.phone = ? OR u.phone = ? OR u.phone = ? OR u.phone = ? " +
+            "    OR UPPER(u.username) = UPPER(?) OR UPPER(u.prefixed_id) = UPPER(?) " +
+            "    OR UPPER(u.username) = UPPER(?) OR UPPER(u.username) = UPPER(?) " +
+            "    OR (LENGTH(?) >= 10 AND u.phone LIKE ?)) " +
+            "AND (u.is_active = true OR u.is_active IS NULL OR u.account_active = true) " +
             "LIMIT 1",
-            clean, phone10, clean, clean, "CB" + clean, "CB" + phone10
+            clean, phone10, "+91" + phone10, "91" + phone10,
+            clean, clean, "CB" + clean, "CB" + phone10,
+            phone10, "%" + phone10
         );
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }

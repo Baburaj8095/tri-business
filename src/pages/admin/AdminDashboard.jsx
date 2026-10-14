@@ -2717,14 +2717,15 @@ export default function AdminDashboard() {
 
             <Grid item xs={12} sm={6}>
               <Typography variant="caption" sx={{ fontWeight: 700, color: T.text, mb: 0.5, display: 'block' }}>
-                Sponsoring Partner / Admin ID *
+                Sponsoring Consumer Mobile / Partner / Admin ID *
               </Typography>
               <TextField
                 fullWidth
                 size="small"
-                placeholder="e.g. TRPN8095809500 or CB..."
+                placeholder="e.g. Consumer Mobile (10 digits), 9999999999, or TRPN..."
                 value={createCaptainForm.sponsorId}
                 onChange={(e) => setCreateCaptainForm(p => ({ ...p, sponsorId: e.target.value.toUpperCase() }))}
+                helperText="Accepts any active consumer mobile number, consumer user ID, or root sponsor 9999999999"
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
               />
             </Grid>
