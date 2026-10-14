@@ -24,42 +24,61 @@ public class ShopRepository {
      */
     public List<ShopResponse> findShopsByMerchantId(Long merchantId) {
         return jdbc.query(
-            "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
-            "contact_number, shop_image, banner, category_id, subcategory_id, " +
-            "status, created_at, service_mode, home_delivery_enabled, delivery_radius_km, min_order_value, base_delivery_fee, discount_percent, scan_pay_commission_percent " +
-            "FROM market_shop WHERE merchant_id = ? ORDER BY created_at DESC",
+            "SELECT s.id, s.shop_name, s.address, s.city, s.pincode, s.latitude, s.longitude, " +
+            "s.contact_number, s.shop_image, s.banner, s.category_id, s.subcategory_id, " +
+            "s.status, s.created_at, s.service_mode, s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.discount_percent, s.scan_pay_commission_percent, " +
+            "COALESCE(u.email, '') as user_email, COALESCE(u.phone, '') as user_phone, " +
+            "COALESCE(mp.address, '') as merchant_address, COALESCE(mp.mobile_number, '') as merchant_mobile " +
+            "FROM market_shop s " +
+            "LEFT JOIN accounts_customuser u ON s.merchant_id = u.id " +
+            "LEFT JOIN market_merchantprofile mp ON u.id = mp.user_id " +
+            "WHERE s.merchant_id = ? ORDER BY s.created_at DESC",
             new Object[]{merchantId},
-            (rs, rowNum) -> ShopResponse.builder()
-                .id(rs.getLong("id"))
-                .shop_name(rs.getString("shop_name"))
-                .address(rs.getString("address"))
-                .city(rs.getString("city"))
-                .state(null)
-                .pincode(rs.getString("pincode"))
-                .latitude(rs.getDouble("latitude"))
-                .longitude(rs.getDouble("longitude"))
-                .contact_number(rs.getString("contact_number"))
-                .email(null)
-                .shop_image(normalizeImageUrl(rs.getString("shop_image")))
-                .banner(normalizeImageUrl(rs.getString("banner")))
-                .category(rs.getLong("category_id"))
-                .subcategory(rs.getLong("subcategory_id"))
-                .description(null)
-                .gst_number(null)
-                .pan_number(null)
-                .business_reg_number(null)
-                .business_logo(null)
-                .is_active("ACTIVE".equals(rs.getString("status")))
-                .serviceMode(rs.getString("service_mode"))
-                .homeDeliveryEnabled(rs.getBoolean("home_delivery_enabled"))
-                .deliveryRadiusKm(rs.getDouble("delivery_radius_km"))
-                .minOrderValue(rs.getDouble("min_order_value"))
-                .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
-                .discountPercent(rs.getDouble("discount_percent"))
-                .scanPayCommissionPercent(rs.getDouble("scan_pay_commission_percent"))
-                .createdAt(rs.getString("created_at"))
-                .updatedAt(rs.getString("created_at"))
-                .build()
+            (rs, rowNum) -> {
+                String contact = rs.getString("contact_number");
+                if (contact == null || contact.isBlank()) {
+                    contact = rs.getString("merchant_mobile");
+                }
+                if (contact == null || contact.isBlank()) {
+                    contact = rs.getString("user_phone");
+                }
+                String address = rs.getString("address");
+                if (address == null || address.isBlank()) {
+                    address = rs.getString("merchant_address");
+                }
+                String email = rs.getString("user_email");
+                return ShopResponse.builder()
+                    .id(rs.getLong("id"))
+                    .shop_name(rs.getString("shop_name"))
+                    .address(address)
+                    .city(rs.getString("city"))
+                    .state(null)
+                    .pincode(rs.getString("pincode"))
+                    .latitude(rs.getDouble("latitude"))
+                    .longitude(rs.getDouble("longitude"))
+                    .contact_number(contact)
+                    .email(email)
+                    .shop_image(normalizeImageUrl(rs.getString("shop_image")))
+                    .banner(normalizeImageUrl(rs.getString("banner")))
+                    .category(rs.getLong("category_id"))
+                    .subcategory(rs.getLong("subcategory_id"))
+                    .description(null)
+                    .gst_number(null)
+                    .pan_number(null)
+                    .business_reg_number(null)
+                    .business_logo(null)
+                    .is_active("ACTIVE".equals(rs.getString("status")))
+                    .serviceMode(rs.getString("service_mode"))
+                    .homeDeliveryEnabled(rs.getBoolean("home_delivery_enabled"))
+                    .deliveryRadiusKm(rs.getDouble("delivery_radius_km"))
+                    .minOrderValue(rs.getDouble("min_order_value"))
+                    .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
+                    .discountPercent(rs.getDouble("discount_percent"))
+                    .scanPayCommissionPercent(rs.getDouble("scan_pay_commission_percent"))
+                    .createdAt(rs.getString("created_at"))
+                    .updatedAt(rs.getString("created_at"))
+                    .build();
+            }
         );
     }
 

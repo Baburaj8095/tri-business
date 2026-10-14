@@ -49,14 +49,10 @@ public class RegionRepository {
     public void insertWallet(long userId) {
         try {
             jdbc.update(
-                "INSERT INTO accounts_wallet " +
-                "(user_id, balance, main_balance, withdrawable_balance, self_account_balance, " +
-                " franchise_total_earning, franchise_active_work, franchise_inactive_work, " +
-                " franchise_self_rebirth, franchise_company_marketing, " +
-                " franchise_reward_points, franchise_shopping_scanner, created_at, updated_at) " +
-                "VALUES (?, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NOW(), NOW()) " +
-                "ON CONFLICT DO NOTHING",
-                userId
+                "INSERT INTO accounts_wallet (user_id, balance, main_balance, withdrawable_balance, created_at, updated_at) " +
+                "SELECT ?, 0, 0, 0, NOW(), NOW() " +
+                "WHERE NOT EXISTS (SELECT 1 FROM accounts_wallet WHERE user_id = ?)",
+                userId, userId
             );
         } catch (Exception e) {
             // Wallet creation is best-effort; log and continue

@@ -277,7 +277,7 @@ public class AdminService {
         SponsorInfo sponsor = sponsorService.verifySponsor(req.getSponsorId());
         if (!sponsor.isValid()) {
             throw new RuntimeException("Invalid or inactive sponsor ID: " + req.getSponsorId() +
-                ". Sponsor must be an active Pincode Partner (TRPN) or existing Captain (CB).");
+                ". Sponsor must be an active Consumer, Pincode Partner (TRPN), Captain (CB), or root sponsor (9999999999).");
         }
 
         // Determine initial password

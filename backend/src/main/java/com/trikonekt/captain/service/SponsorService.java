@@ -28,9 +28,26 @@ public class SponsorService {
         }
 
         String normalizedId = sponsorId.trim().toUpperCase();
+        String cleanDigits = normalizedId.replaceAll("\\D", "");
+
+        // Check if this matches root consumer sponsor: 999999999, 9999999999, ROOT, ROOTCONSUMER
+        boolean isRootConsumer = "999999999".equals(cleanDigits) || "9999999999".equals(cleanDigits)
+            || "ROOT".equals(normalizedId) || "ROOTCONSUMER".equals(normalizedId);
+
         Optional<Map<String, Object>> userOpt = userRepository.findSponsor(normalizedId);
 
         if (userOpt.isEmpty()) {
+            if (isRootConsumer) {
+                return SponsorInfo.builder()
+                    .sponsorId("9999999999")
+                    .sponsorName("Root Consumer Sponsor")
+                    .category("consumer")
+                    .valid(true)
+                    .pincode("560001")
+                    .district("Bengaluru")
+                    .state("Karnataka")
+                    .build();
+            }
             return SponsorInfo.builder()
                 .sponsorId(normalizedId)
                 .valid(false)
@@ -38,13 +55,11 @@ public class SponsorService {
         }
 
         Map<String, Object> user = userOpt.get();
-        String category = (String) user.getOrDefault("category", "");
-        boolean isSuperuser = Boolean.TRUE.equals(user.get("is_superuser"));
-        boolean isStaff = Boolean.TRUE.equals(user.get("is_staff"));
+        String category = (String) user.getOrDefault("category", "consumer");
+        boolean isActive = Boolean.TRUE.equals(user.get("is_active")) || "true".equalsIgnoreCase(String.valueOf(user.get("is_active")));
 
-        boolean isValidSponsor = VALID_SPONSOR_CATEGORIES.contains(category)
-            || isSuperuser || isStaff || category.contains("agency")
-            || category.contains("captain") || "user".equalsIgnoreCase(category);
+        // Any active consumer, partner, agency, or captain is a valid sponsor
+        boolean isValidSponsor = isActive || isRootConsumer;
 
         String officialId = (String) user.getOrDefault("username", normalizedId);
 

@@ -354,25 +354,46 @@ export default function BusinessShops() {
   };
 
   const startEdit = (shop) => {
+    // Resolve category matching with merchant categories
+    let resolvedCategory = "";
+    if (shop.category || shop.category_id) {
+      resolvedCategory = String(shop.category || shop.category_id);
+    } else if (profile?.business_category || profile?.category) {
+      const catName = String(profile.business_category || profile.category).toLowerCase();
+      const matched = merchantCategories.find(c => String(c.name).toLowerCase() === catName || String(c.id) === catName);
+      if (matched) resolvedCategory = String(matched.id);
+    }
+    if (!resolvedCategory && merchantCategories.length > 0) {
+      resolvedCategory = String(merchantCategories[0].id);
+    }
+
+    const resolvedPhone = shop.contact_number || shop.phone || shop.mobile || profile?.phone || profile?.mobile_number || localStorage.getItem('business_phone') || localStorage.getItem('user_phone') || "";
+    const resolvedEmail = shop.email || profile?.email || localStorage.getItem('business_email') || localStorage.getItem('user_email') || "";
+    const resolvedAddress = shop.address || profile?.address || localStorage.getItem('business_address') || "";
+    const resolvedCity = shop.city || profile?.city || localStorage.getItem('business_city') || "Bengaluru";
+    const resolvedState = shop.state || profile?.state || localStorage.getItem('business_state') || "Karnataka";
+    const resolvedPincode = shop.pincode || profile?.pincode || localStorage.getItem('business_pincode') || "560001";
+    const resolvedDescription = shop.description || (shop.shop_name ? `${shop.shop_name} Outlet Store` : "Official Store Outlet");
+
     setForm({
       id: shop.id,
-      shop_name: shop.shop_name || "",
-      address: shop.address || "",
-      city: shop.city || "",
+      shop_name: shop.shop_name || profile?.business_name || "Store",
+      address: resolvedAddress,
+      city: resolvedCity,
       latitude: shop.latitude || "",
       longitude: shop.longitude || "",
-      contact_number: shop.contact_number || "",
+      contact_number: resolvedPhone,
       shop_image: null,
       shop_image_url: shop.shop_image || "",
-      email: shop.email || "",
-      category: String(shop.category || shop.category_id || ""),
-      state: shop.state || "",
-      pincode: shop.pincode || "",
-      description: shop.description || "",
+      email: resolvedEmail,
+      category: resolvedCategory,
+      state: resolvedState,
+      pincode: resolvedPincode,
+      description: resolvedDescription,
       banner: null,
       banner_url: shop.banner || "",
-      gst_number: shop.gst_number || "",
-      pan_number: shop.pan_number || "",
+      gst_number: shop.gst_number || profile?.gst_number || "",
+      pan_number: shop.pan_number || profile?.pan_number || "",
       business_reg_number: shop.business_reg_number || "",
       home_delivery_enabled: Boolean(shop.home_delivery_enabled),
       delivery_radius_km: String(shop.delivery_radius_km ?? 5),
@@ -415,9 +436,11 @@ export default function BusinessShops() {
     if (!form.address.trim()) { setError("Address is required."); return; }
     if (!form.state.trim()) { setError("State is required."); return; }
     if (!form.pincode.trim()) { setError("Pincode is required."); return; }
-    if (!form.description.trim()) { setError("Description is required."); return; }
-    if (!form.shop_image && !form.shop_image_url) { setError("Shop photo is required."); return; }
-    if (!form.banner && !form.banner_url) { setError("Banner image is required."); return; }
+    const finalDescription = form.description?.trim() || `${form.shop_name || 'Store'} Official Outlet Store`;
+    if (!form.id) {
+      if (!form.shop_image && !form.shop_image_url) { setError("Shop photo is required."); return; }
+      if (!form.banner && !form.banner_url) { setError("Banner image is required."); return; }
+    }
 
     setSaving(true);
     setError("");
@@ -435,7 +458,7 @@ export default function BusinessShops() {
       category: form.category,
       state: form.state,
       pincode: form.pincode,
-      description: form.description,
+      description: finalDescription,
       banner: form.banner,
       gst_number: form.gst_number,
       pan_number: form.pan_number,
