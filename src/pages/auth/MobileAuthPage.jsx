@@ -69,7 +69,7 @@ export default function MobileAuthPage() {
 
     const clean = identifier.trim();
     if (!clean) {
-      setError(userRole === 'CAPTAIN' ? 'Please enter your 10-digit mobile or Captain ID' : 'Please enter your 10-digit mobile number or User ID');
+      setError(userRole === 'CAPTAIN' ? 'Please enter your 10-digit mobile or Captain ID' : 'Please enter your 10-digit mobile number');
       return;
     }
     if (!password) {
@@ -80,47 +80,39 @@ export default function MobileAuthPage() {
     setLoading(true);
 
     try {
+      const cleanPhone = clean.replace(/\D/g, '').slice(-10);
+      const is10DigitPhone = cleanPhone.length === 10;
+
+      // Candidate identifiers to try sequentially
+      const candidateIdentifiers = is10DigitPhone
+        ? (userRole === 'CAPTAIN' 
+            ? [cleanPhone, `CB${cleanPhone}`, clean] 
+            : [cleanPhone, `ONB2C_${cleanPhone}`, `ONB2B_${cleanPhone}`, `NSB2B_${cleanPhone}`, `NSB2C_${cleanPhone}`, `CB${cleanPhone}`, clean])
+        : [clean];
+
+      let res = null;
       let targetIdentifier = clean;
-      if (userRole === 'BUSINESS' && channelPrefix !== 'AUTO' && /^\d{10}$/.test(clean)) {
-        targetIdentifier = `${channelPrefix}${clean}`;
-      }
 
-      let res = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: targetIdentifier, password }),
-      });
-
-      // If initial attempt failed and user entered phone number, retry with alternative format
-      if (!res.ok && /^\d{10}$/.test(clean)) {
-        const altIdentifier = userRole === 'CAPTAIN' ? `CB${clean}` : clean;
-        if (altIdentifier !== targetIdentifier) {
-          const fallbackRes = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
+      for (const candidate of candidateIdentifiers) {
+        try {
+          const attemptRes = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ identifier: altIdentifier, password }),
+            body: JSON.stringify({ identifier: candidate, password }),
           });
-          if (fallbackRes.ok) {
-            res = fallbackRes;
-            targetIdentifier = altIdentifier;
+
+          if (attemptRes.ok) {
+            res = attemptRes;
+            targetIdentifier = candidate;
+            break;
           }
-        }
-        if (!res.ok && userRole === 'CAPTAIN' && altIdentifier !== clean) {
-          const rawRes = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ identifier: clean, password }),
-          });
-          if (rawRes.ok) {
-            res = rawRes;
-            targetIdentifier = clean;
-          }
+        } catch {
+          // Continue to next candidate
         }
       }
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || errData.error || errData.detail || 'Invalid credentials or inactive account.');
+      if (!res || !res.ok) {
+        throw new Error('Invalid mobile number or password. Please verify your credentials.');
       }
 
       const data = await res.json();
@@ -564,45 +556,12 @@ export default function MobileAuthPage() {
                     </Box>
                   </Box>
 
-                  {/* Channel / Audience Auto-Detect Pills (Only for Business) */}
-                  {userRole === 'BUSINESS' && (
-                    <Box>
-                      <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', mb: 0.75 }}>
-                        Channel Mode:
-                      </Typography>
-                      <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
-                        {[
-                          { label: 'Auto-Detect', value: 'AUTO' },
-                          { label: 'Online B2B', value: 'ONB2B' },
-                          { label: 'Online B2C', value: 'ONB2C' },
-                          { label: 'Nearby Store', value: 'NSB2B' },
-                        ].map((p) => {
-                          const sel = channelPrefix === p.value;
-                          return (
-                            <Button
-                              key={p.value}
-                              size="small"
-                              onClick={() => setChannelPrefix(p.value)}
-                              sx={{
-                                borderRadius: '8px',
-                                py: 0.35,
-                                px: 1.25,
-                                fontSize: '0.72rem',
-                                fontWeight: sel ? 800 : 600,
-                                textTransform: 'none',
-                                bgcolor: sel ? '#ecfdf5' : '#ffffff',
-                                color: sel ? '#087F5B' : '#64748b',
-                                border: `1px solid ${sel ? '#a7f3d0' : '#e2e8f0'}`,
-                                '&:hover': { bgcolor: sel ? '#ecfdf5' : '#f8fafc' },
-                              }}
-                            >
-                              {p.label}
-                            </Button>
-                          );
-                        })}
-                      </Stack>
-                    </Box>
-                  )}
+                  {/* Phone Helper Notice */}
+                  <Box sx={{ bgcolor: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '10px', p: 1, textAlign: 'center' }}>
+                    <Typography sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#047857' }}>
+                      ✓ Log in using your 10-digit mobile number. No prefixes needed.
+                    </Typography>
+                  </Box>
 
                   {/* Primary Submit Button */}
                   <Button
