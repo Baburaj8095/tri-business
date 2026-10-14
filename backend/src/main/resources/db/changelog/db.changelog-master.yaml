@@ -65,3 +65,6 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/022-inventory-stock-management.yaml
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/023-cleanup-merchants-and-captains.yaml
+      relativeToChangelogFile: false

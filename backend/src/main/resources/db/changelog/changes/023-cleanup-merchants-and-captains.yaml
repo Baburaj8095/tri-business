@@ -1,0 +1,194 @@
+databaseChangeLog:
+  - changeSet:
+      id: 023-cleanup-merchants-and-captains
+      author: trikonekt
+      validCheckSum: ANY
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              DO $$
+              DECLARE
+                  v_captain_id BIGINT;
+                  v_online_b2c_id BIGINT;
+                  v_online_b2b_id BIGINT;
+                  v_offline_b2c_id BIGINT;
+                  v_offline_b2b_id BIGINT;
+              BEGIN
+                  -- 1. Identify Captain 9689570448
+                  SELECT id INTO v_captain_id FROM accounts_customuser 
+                  WHERE (phone = '9689570448' OR username = 'CB9689570448' OR prefixed_id = 'CB-9689570448')
+                  ORDER BY id DESC LIMIT 1;
+
+                  -- 2. Identify 1 Online B2C merchant (latest registered)
+                  SELECT u.id INTO v_online_b2c_id 
+                  FROM accounts_customuser u
+                  LEFT JOIN market_merchantprofile mp ON u.id = mp.user_id
+                  WHERE (u.category = 'business' OR u.username LIKE 'ONB2C%')
+                    AND (UPPER(COALESCE(mp.service_mode, '')) = 'ONLINE' OR u.username LIKE 'ON%')
+                    AND u.is_superuser = false AND u.is_staff = false
+                  ORDER BY u.date_joined DESC, u.id DESC LIMIT 1;
+
+                  -- 3. Identify 1 Online B2B merchant (latest registered)
+                  SELECT u.id INTO v_online_b2b_id 
+                  FROM accounts_customuser u
+                  LEFT JOIN market_merchantprofile mp ON u.id = mp.user_id
+                  WHERE (u.category = 'merchant' OR u.username LIKE 'ONB2B%')
+                    AND (UPPER(COALESCE(mp.service_mode, '')) = 'ONLINE' OR u.username LIKE 'ON%')
+                    AND u.is_superuser = false AND u.is_staff = false
+                  ORDER BY u.date_joined DESC, u.id DESC LIMIT 1;
+
+                  -- 4. Identify 1 Offline B2C merchant (latest registered)
+                  SELECT u.id INTO v_offline_b2c_id 
+                  FROM accounts_customuser u
+                  LEFT JOIN market_merchantprofile mp ON u.id = mp.user_id
+                  WHERE (u.category = 'business' OR u.username LIKE 'NSB2C%')
+                    AND (UPPER(COALESCE(mp.service_mode, '')) <> 'ONLINE' OR u.username LIKE 'NS%')
+                    AND u.id NOT IN (COALESCE(v_online_b2c_id, -1))
+                    AND u.is_superuser = false AND u.is_staff = false
+                  ORDER BY u.date_joined DESC, u.id DESC LIMIT 1;
+
+                  -- 5. Identify 1 Offline B2B merchant (latest registered)
+                  SELECT u.id INTO v_offline_b2b_id 
+                  FROM accounts_customuser u
+                  LEFT JOIN market_merchantprofile mp ON u.id = mp.user_id
+                  WHERE (u.category = 'merchant' OR u.username LIKE 'NSB2B%')
+                    AND (UPPER(COALESCE(mp.service_mode, '')) <> 'ONLINE' OR u.username LIKE 'NS%')
+                    AND u.id NOT IN (COALESCE(v_online_b2b_id, -1))
+                    AND u.is_superuser = false AND u.is_staff = false
+                  ORDER BY u.date_joined DESC, u.id DESC LIMIT 1;
+
+                  -- Create temporary table with IDs of users to delete
+                  CREATE TEMP TABLE tmp_users_to_delete ON COMMIT DROP AS
+                  SELECT u.id FROM accounts_customuser u
+                  WHERE (
+                      -- Extra merchants to delete:
+                      (u.category IN ('merchant', 'business') AND u.id NOT IN (
+                          COALESCE(v_online_b2c_id, -1),
+                          COALESCE(v_online_b2b_id, -1),
+                          COALESCE(v_offline_b2c_id, -1),
+                          COALESCE(v_offline_b2b_id, -1)
+                      ))
+                      OR
+                      -- Extra captains to delete (excluding captain 9689570448):
+                      (u.category = 'agency_sub_franchise' AND (v_captain_id IS NULL OR u.id <> v_captain_id))
+                  )
+                  -- Protect staff, superusers, and root consumer sponsor
+                  AND u.is_superuser = false
+                  AND u.is_staff = false
+                  AND u.phone NOT IN ('9999999999', '999999999')
+                  AND u.username NOT IN ('9999999999', '999999999', 'ROOT');
+
+                  -- Create temporary table with shop IDs belonging to deleted merchants
+                  CREATE TEMP TABLE tmp_shops_to_delete ON COMMIT DROP AS
+                  SELECT id FROM market_shop 
+                  WHERE merchant_id IN (SELECT id FROM tmp_users_to_delete);
+
+                  -- Dynamic safe deletes (checking table existence)
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'product_stock_movements') THEN
+                      EXECUTE 'DELETE FROM product_stock_movements WHERE shop_id IN (SELECT id FROM tmp_shops_to_delete) OR actor_user_id IN (SELECT id FROM tmp_users_to_delete)';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'marketplace_ads') THEN
+                      EXECUTE 'DELETE FROM marketplace_ads WHERE shop_id IN (SELECT id FROM tmp_shops_to_delete) OR user_id IN (SELECT id FROM tmp_users_to_delete)';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'market_shopproduct') THEN
+                      EXECUTE 'DELETE FROM market_shopproduct WHERE shop_id IN (SELECT id FROM tmp_shops_to_delete)';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'offline_payment_commissions') THEN
+                      EXECUTE 'DELETE FROM offline_payment_commissions WHERE shop_id IN (SELECT id FROM tmp_shops_to_delete) OR beneficiary_user_id IN (SELECT id FROM tmp_users_to_delete)';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'offline_payments') THEN
+                      EXECUTE 'DELETE FROM offline_payments WHERE shop_id IN (SELECT id FROM tmp_shops_to_delete)';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'b2b_order_status_history') THEN
+                      EXECUTE 'DELETE FROM b2b_order_status_history WHERE order_id IN (SELECT id FROM b2b_orders WHERE shop_id IN (SELECT id FROM tmp_shops_to_delete))';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'b2b_orders') THEN
+                      EXECUTE 'DELETE FROM b2b_orders WHERE shop_id IN (SELECT id FROM tmp_shops_to_delete)';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'online_order_items') THEN
+                      EXECUTE 'DELETE FROM online_order_items WHERE shop_id IN (SELECT id FROM tmp_shops_to_delete)';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'online_orders') THEN
+                      EXECUTE 'DELETE FROM online_orders WHERE shop_id IN (SELECT id FROM tmp_shops_to_delete)';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'market_shop') THEN
+                      EXECUTE 'DELETE FROM market_shop WHERE id IN (SELECT id FROM tmp_shops_to_delete)';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'market_merchantprofile') THEN
+                      EXECUTE 'DELETE FROM market_merchantprofile WHERE user_id IN (SELECT id FROM tmp_users_to_delete)';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'merchant_kyc_details') THEN
+                      EXECUTE 'DELETE FROM merchant_kyc_details WHERE user_id IN (SELECT id FROM tmp_users_to_delete)';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'captain_kyc_details') THEN
+                      EXECUTE 'DELETE FROM captain_kyc_details WHERE user_id IN (SELECT id FROM tmp_users_to_delete)';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'accounts_agencyregionassignment') THEN
+                      EXECUTE 'DELETE FROM accounts_agencyregionassignment WHERE user_id IN (SELECT id FROM tmp_users_to_delete)';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'captain_registrations') THEN
+                      EXECUTE 'DELETE FROM captain_registrations WHERE user_id IN (SELECT id FROM tmp_users_to_delete)';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'accounts_wallettransaction') THEN
+                      EXECUTE 'DELETE FROM accounts_wallettransaction WHERE user_id IN (SELECT id FROM tmp_users_to_delete)';
+                  END IF;
+
+                  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'accounts_wallet') THEN
+                      EXECUTE 'DELETE FROM accounts_wallet WHERE user_id IN (SELECT id FROM tmp_users_to_delete)';
+                  END IF;
+
+                  -- Delete the extra users
+                  DELETE FROM accounts_customuser WHERE id IN (SELECT id FROM tmp_users_to_delete);
+
+                  -- Ensure Captain 9689570448 exists and is active; if not present, create it
+                  IF v_captain_id IS NULL THEN
+                      INSERT INTO accounts_customuser (
+                          username, password, email, first_name, last_name,
+                          is_active, is_staff, is_superuser, date_joined,
+                          role, category, full_name, phone, pincode,
+                          sponsor_id, prefix_code, prefixed_id,
+                          account_active, autopool_enabled, rewards_enabled,
+                          is_agency_unlocked, can_create_self_accounts,
+                          address, depth, identity_type
+                      ) VALUES (
+                          'CB9689570448',
+                          'bcrypt$$2a$10$w8Tf9u10V7rWwO1yv7Xf0eZgM3iHhZ9eO4yK4j2lM1nO.9pQ8rStu',
+                          'captain9689570448@trikonekt.com', '', '',
+                          true, false, false, NOW(),
+                          'agency', 'agency_sub_franchise', 'Captain 9689570448', '9689570448', '560001',
+                          '9999999999', 'CB', 'CB-9689570448',
+                          true, false, false, false, false,
+                          'Bengaluru', 0, 'END_USER'
+                      ) RETURNING id INTO v_captain_id;
+
+                      INSERT INTO accounts_wallet (user_id, balance, main_balance, withdrawable_balance, created_at, updated_at)
+                      SELECT v_captain_id, 0, 0, 0, NOW(), NOW()
+                      WHERE NOT EXISTS (SELECT 1 FROM accounts_wallet WHERE user_id = v_captain_id);
+
+                      INSERT INTO captain_kyc_details (user_id, kyc_status, created_at, updated_at)
+                      VALUES (v_captain_id, 'APPROVED', NOW(), NOW())
+                      ON CONFLICT (user_id) DO UPDATE SET kyc_status = 'APPROVED';
+                  ELSE
+                      UPDATE accounts_customuser SET is_active = true, account_active = true WHERE id = v_captain_id;
+                      INSERT INTO captain_kyc_details (user_id, kyc_status, created_at, updated_at)
+                      VALUES (v_captain_id, 'APPROVED', NOW(), NOW())
+                      ON CONFLICT (user_id) DO UPDATE SET kyc_status = 'APPROVED', updated_at = NOW();
+                  END IF;
+
+              END $$;
