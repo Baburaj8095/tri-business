@@ -1,0 +1,63 @@
+:root {
+  /* Trikonekt premium light theme */
+  --tri-brand: #F5660A;
+  --tri-brand-hover: #E95500;
+  --tri-brand-soft: #FFF0E4;
+  --tri-brand-border: #FFD6B4;
+  --tri-ink: #172033;
+  --tri-muted: #697789;
+  --tri-subtle: #95A1B0;
+  --tri-page: #F6F8FC;
+  --tri-surface: #FFFFFF;
+  --tri-border: #E2E8F0;
+  --tri-success: #14966B;
+  --tri-success-soft: #E8F8F1;
+  --tri-info: #3478D4;
+  --tri-info-soft: #EDF5FF;
+  --tri-violet: #8156D9;
+  --tri-violet-soft: #F3EEFF;
+  --tri-warning: #B87908;
+  --tri-warning-soft: #FFF8DF;
+  --tri-danger: #D83B45;
+  --tri-danger-soft: #FFF0F0;
+  --tri-radius-card: 22px;
+  --tri-radius-control: 14px;
+  --tri-shadow-card: 0 4px 16px rgba(23, 32, 51, .055), 0 1px 3px rgba(23, 32, 51, .04);
+  --tri-shadow-elevated: 0 10px 30px rgba(23, 32, 51, .10);
+  --tri-space-1: 4px;
+  --tri-space-2: 8px;
+  --tri-space-3: 12px;
+  --tri-space-4: 16px;
+  --tri-space-5: 20px;
+  --tri-space-6: 24px;
+}
+html, body { background: var(--tri-page); color: var(--tri-ink); }
+.tri-page-background {
+  background-color: var(--tri-page);
+  background-image: url('/assets/backgrounds/merchant-home-warm-ivory.svg');
+  background-size: cover;
+  background-position: top center;
+  background-attachment: scroll;
+}
+.tri-card {
+  background: var(--tri-surface);
+  border: 1px solid var(--tri-border);
+  border-radius: var(--tri-radius-card);
+  box-shadow: var(--tri-shadow-card);
+}
+.tri-card--full { grid-column: 1 / -1; }
+.tri-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.tri-dashboard-grid > * { min-width: 0; }
+@media (max-width: 360px) {
+  .tri-dashboard-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+}
+@media (min-width: 768px) {
+  .tri-dashboard-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+}
+@media (min-width: 1200px) {
+  .tri-dashboard-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

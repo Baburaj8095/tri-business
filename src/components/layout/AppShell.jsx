@@ -86,6 +86,30 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [bgTheme, setBgTheme] = useState(() => localStorage.getItem('tri_home_bg_theme') || 'warm-ivory');
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const stored = localStorage.getItem('tri_home_bg_theme');
+      if (stored) setBgTheme(stored);
+    };
+    window.addEventListener('storage', handleThemeChange);
+    window.addEventListener('tri_theme_change', handleThemeChange);
+    return () => {
+      window.removeEventListener('storage', handleThemeChange);
+      window.removeEventListener('tri_theme_change', handleThemeChange);
+    };
+  }, []);
+
+  const getHomeBg = () => {
+    if (bgTheme === 'soft-gradient') {
+      return "url('/assets/backgrounds/merchant-home-soft-gradient.svg') top center / cover no-repeat, #F6F8FC";
+    }
+    if (bgTheme === 'pattern') {
+      return "url('/assets/patterns/commerce-line-pattern.svg') top center / 320px repeat, #FFF9F0";
+    }
+    return "url('/assets/backgrounds/merchant-home-warm-ivory.svg') top center / cover no-repeat, #F6F8FC";
+  };
 
   // Dynamic Time Greeting
   const getGreeting = () => {
@@ -655,6 +679,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
         {/* ─── PAGE CONTENT CONTAINER (Guaranteed Breathing Room) ─── */}
         <Box
           component="main"
+          className={isHome ? 'tri-page-background' : ''}
           sx={{
             flex: 1,
             pt: {
@@ -669,6 +694,9 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
             maxWidth: T.maxContentWidth,
             width: '100%',
             mx: 'auto',
+            background: isHome ? getHomeBg() : 'transparent',
+            backgroundAttachment: 'scroll',
+            transition: 'background 0.3s ease',
           }}
         >
           {children}

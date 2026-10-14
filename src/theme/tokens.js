@@ -75,6 +75,16 @@ export const T = {
   topBarHeight: 68,
   mobileNavHeight: 64,
   maxContentWidth: 1400,
+
+  // Supplied Premium Vector Assets (from trikonekt_merchant_ui_assets)
+  assets: {
+    bgWarmIvory: '/assets/backgrounds/merchant-home-warm-ivory.svg',
+    bgSoftGradient: '/assets/backgrounds/merchant-home-soft-gradient.svg',
+    patternCommerce: '/assets/patterns/commerce-line-pattern.svg',
+    bannerPrime: '/assets/banners/prime-promotion-background.svg',
+    bannerDeals: '/assets/banners/special-deals-background.svg',
+    bannerAds: '/assets/banners/ads-campaign-background.svg',
+  },
 };
 
 // Reusable standard styles
