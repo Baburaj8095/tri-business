@@ -91,28 +91,28 @@ export default function BusinessProfile() {
 
   // Form State
   const [form, setForm] = useState({
-    business_name: "Online B2C",
-    trade_category: "Grocery & Daily Needs",
-    mobile_number: "+91 9876543210",
-    email: "merchant@trikonekt.com",
-    gstin: "29AAAAA0000A1Z5",
-    member_since: "12 Jan 2023",
-    address: "Main Market Road, Bengaluru - 560102",
-    city: "Bengaluru",
-    pincode: "560102",
-    operating_hours: "08:00 AM - 10:00 PM",
-    delivery_time: "10–15 mins delivery",
-    service_mode: "Online & Offline",
-    bank_name: "HDFC Bank",
-    account_number: "••••• 4892",
-    ifsc_code: "HDFC0001234",
-    rating: "4.8",
-    reviews_count: "202",
-    total_orders: "5",
-    active_outlets: "1",
-    monthly_sales: "₹12,450",
-    cover_image: "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=1200&q=80",
-    store_thumbnail: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80",
+    business_name: "",
+    trade_category: "",
+    mobile_number: "",
+    email: "",
+    gstin: "",
+    member_since: "",
+    address: "",
+    city: "",
+    pincode: "",
+    operating_hours: "",
+    delivery_time: "",
+    service_mode: "",
+    bank_name: "",
+    account_number: "",
+    ifsc_code: "",
+    rating: "",
+    reviews_count: "",
+    total_orders: "",
+    active_outlets: "0",
+    monthly_sales: "",
+    cover_image: "",
+    store_thumbnail: "",
   });
 
   useEffect(() => {
@@ -135,25 +135,35 @@ export default function BusinessProfile() {
       if (cancelled) return;
 
       const activeShop = myShops[0] || {};
-      const resolvedName = apiProf?.business_name || activeShop.shop_name || "Online B2C";
-      const resolvedMobile = apiProf?.mobile_number || "9876543210";
-      const formattedMobile = resolvedMobile.startsWith("+91")
-        ? resolvedMobile
-        : `+91 ${resolvedMobile.replace(/\D/g, "")}`;
+      const resolvedName = apiProf?.business_name || activeShop.shop_name || "Merchant Business";
+      const resolvedMobile = apiProf?.mobile_number || "";
+      const formattedMobile = resolvedMobile
+        ? (resolvedMobile.startsWith("+91") ? resolvedMobile : `+91 ${resolvedMobile.replace(/\D/g, "")}`)
+        : "";
 
       setForm((prev) => ({
         ...prev,
         business_name: resolvedName,
         mobile_number: formattedMobile,
-        email: apiProf?.email || "merchant@trikonekt.com",
-        trade_category: activeShop.category || apiProf?.trade_category || "Grocery & Daily Needs",
-        address: activeShop.address
-          ? `${activeShop.address}, ${activeShop.city || "Bengaluru"} - ${activeShop.pincode || "560102"}`
-          : "Main Market Road, Bengaluru - 560102",
-        city: activeShop.city || "Bengaluru",
-        pincode: activeShop.pincode || "560102",
-        gstin: activeShop.gst_number || "29AAAAA0000A1Z5",
-        active_outlets: String(myShops.length || 1),
+        email: apiProf?.email || "",
+        trade_category: activeShop.category || apiProf?.trade_category || activeShop.category_name || "Retail & Wholesale",
+        address: activeShop.address || apiProf?.address || "",
+        city: activeShop.city || apiProf?.city || "",
+        pincode: activeShop.pincode || apiProf?.pincode || "",
+        gstin: activeShop.gst_number || apiProf?.gstin || "",
+        operating_hours: activeShop.operating_hours || "",
+        delivery_time: activeShop.delivery_time || "",
+        service_mode: apiProf?.service_mode || activeShop.service_mode || "OFFLINE",
+        bank_name: apiProf?.bank_name || "",
+        account_number: apiProf?.account_number ? `••••• ${String(apiProf.account_number).slice(-4)}` : "",
+        ifsc_code: apiProf?.ifsc_code || "",
+        rating: apiProf?.rating ? Number(apiProf.rating).toFixed(1) : "",
+        reviews_count: apiProf?.reviews_count ? String(apiProf.reviews_count) : "",
+        total_orders: apiProf?.total_orders ? String(apiProf.total_orders) : "",
+        active_outlets: String(myShops.filter(s => s.status === "ACTIVE").length || 0),
+        monthly_sales: apiProf?.monthly_sales ? `₹${Number(apiProf.monthly_sales).toLocaleString("en-IN")}` : "",
+        cover_image: activeShop.cover_image || apiProf?.cover_image || "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=1200&q=80",
+        store_thumbnail: activeShop.store_thumbnail || apiProf?.store_thumbnail || "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80",
       }));
 
       setProfile(apiProf);

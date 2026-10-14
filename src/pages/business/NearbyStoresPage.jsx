@@ -80,24 +80,22 @@ export default function NearbyStoresPage() {
           return true;
         });
 
-        const mapped = otherStores.map((shop, idx) => ({
+        const mapped = otherStores.map((shop) => ({
           id: shop.id,
           name: shop.shop_name || shop.business_name || shop.full_name || 'B2B Wholesale Store',
           category: resolveCategoryName(shop),
-          rating: idx % 2 === 0 ? '4.8' : '4.6',
-          reviewCount: idx % 2 === 0 ? 120 : 85,
-          yearsInBusiness: idx % 2 === 0 ? 'Verified Supplier' : 'Direct Distributor',
-          location: shop.city || shop.address || (idx % 2 === 0 ? 'Bengaluru' : 'Kalaburagi'),
-          eta: idx % 2 === 0 ? '1-2 Days Dispatch' : 'Same Day Dispatch',
-          distance: shop.distance || (idx % 2 === 0 ? '5.2 km' : '8.4 km'),
-          cashback: idx % 2 === 0 ? 'Wholesale Margin' : 'Bulk Discount',
-          badge1: 'Verified Supplier',
-          badge2: idx % 2 === 0 ? 'Wholesale Billing' : 'GST Enabled',
-          productCount: idx % 2 === 0 ? '10+ Cartons' : '25+ Cartons',
+          rating: shop.rating ? Number(shop.rating).toFixed(1) : null,
+          reviewCount: shop.review_count || shop.reviews_count || null,
+          yearsInBusiness: shop.service_mode === 'B2B' ? 'B2B Wholesale Supplier' : 'Verified Merchant',
+          location: shop.city || shop.address || 'Karnataka',
+          eta: shop.eta || null,
+          distance: shop.distance ? `${Number(shop.distance).toFixed(1)} km` : null,
+          cashback: shop.cashback_rate ? `${shop.cashback_rate}% Cashback` : null,
+          badge1: shop.is_verified ? 'Verified Supplier' : 'Verified Merchant',
+          badge2: shop.service_mode ? `${shop.service_mode} Billing` : 'GST Enabled',
+          productCount: shop.product_count ? `${shop.product_count} Products` : null,
           phone: shop.contact_number || shop.phone || '',
-          image: shop.shop_image || (idx % 2 === 0
-            ? 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80'
-            : 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80'),
+          image: shop.shop_image || shop.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80',
           avatarImage: null,
         }));
 
@@ -404,29 +402,32 @@ export default function NearbyStoresPage() {
                     />
 
                     {/* Top-Left: Cashback Tag Badge */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 12,
-                        left: 12,
-                        bgcolor: 'rgba(6, 78, 59, 0.92)',
-                        backdropFilter: 'blur(4px)',
-                        color: '#ffffff',
-                        px: 1,
-                        py: 0.4,
-                        borderRadius: '8px',
-                        fontSize: '9.5px',
-                        fontWeight: 900,
-                        letterSpacing: '0.4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                      }}
-                    >
-                      <TagIcon sx={{ fontSize: 13, color: '#ffffff' }} />
-                      <span>{store.cashback}</span>
-                    </Box>
+                    {/* Top-Left: Cashback Tag Badge */}
+                    {store.cashback && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 12,
+                          left: 12,
+                          bgcolor: 'rgba(6, 78, 59, 0.92)',
+                          backdropFilter: 'blur(4px)',
+                          color: '#ffffff',
+                          px: 1,
+                          py: 0.4,
+                          borderRadius: '8px',
+                          fontSize: '9.5px',
+                          fontWeight: 900,
+                          letterSpacing: '0.4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                        }}
+                      >
+                        <TagIcon sx={{ fontSize: 13, color: '#ffffff' }} />
+                        <span>{store.cashback}</span>
+                      </Box>
+                    )}
 
                     {/* Top-Right: Circular Heart Favorite Button */}
                     <IconButton
@@ -453,27 +454,29 @@ export default function NearbyStoresPage() {
                     </IconButton>
 
                     {/* Bottom-Right: Products Count Badge */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        bottom: 10,
-                        right: 12,
-                        bgcolor: 'rgba(15, 23, 42, 0.76)',
-                        backdropFilter: 'blur(4px)',
-                        color: '#ffffff',
-                        px: 0.9,
-                        py: 0.3,
-                        borderRadius: '6px',
-                        fontSize: '10.5px',
-                        fontWeight: 800,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                      }}
-                    >
-                      <GalleryIcon sx={{ fontSize: 13 }} />
-                      <span>{store.productCount}</span>
-                    </Box>
+                    {store.productCount && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          bottom: 10,
+                          right: 12,
+                          bgcolor: 'rgba(15, 23, 42, 0.76)',
+                          backdropFilter: 'blur(4px)',
+                          color: '#ffffff',
+                          px: 0.9,
+                          py: 0.3,
+                          borderRadius: '6px',
+                          fontSize: '10.5px',
+                          fontWeight: 800,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                        }}
+                      >
+                        <GalleryIcon sx={{ fontSize: 13 }} />
+                        <span>{store.productCount}</span>
+                      </Box>
+                    )}
                   </Box>
 
                   {/* ─── CARD BODY DETAILS ─── */}
@@ -565,35 +568,39 @@ export default function NearbyStoresPage() {
                       </Box>
 
                       {/* Right: Star Rating Box & Review Count */}
-                      <Box sx={{ textAlign: 'center', flexShrink: 0 }}>
-                        <Box
-                          sx={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 0.35,
-                            bgcolor: '#fff7ed',
-                            border: '1px solid #a7f3d0',
-                            borderRadius: '8px',
-                            px: 1,
-                            py: 0.35,
-                          }}
-                        >
-                          <StarIcon sx={{ fontSize: 14, color: '#d97706' }} />
-                          <Typography sx={{ fontSize: '0.84rem', fontWeight: 900, color: '#d97706', lineHeight: 1 }}>
-                            {store.rating}
-                          </Typography>
+                      {store.rating && (
+                        <Box sx={{ textAlign: 'center', flexShrink: 0 }}>
+                          <Box
+                            sx={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 0.35,
+                              bgcolor: '#FFF7ED',
+                              border: '1px solid #FED7AA',
+                              borderRadius: '8px',
+                              px: 1,
+                              py: 0.35,
+                            }}
+                          >
+                            <StarIcon sx={{ fontSize: 14, color: '#EA580C' }} />
+                            <Typography sx={{ fontSize: '0.84rem', fontWeight: 900, color: '#EA580C', lineHeight: 1 }}>
+                              {store.rating}
+                            </Typography>
+                          </Box>
+                          {store.reviewCount && (
+                            <Typography sx={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, mt: 0.3 }}>
+                              ({store.reviewCount})
+                            </Typography>
+                          )}
                         </Box>
-                        <Typography sx={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, mt: 0.3 }}>
-                          ({store.reviewCount})
-                        </Typography>
-                      </Box>
+                      )}
                     </Stack>
 
                     {/* Line 2: Location & Distance */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
                       <LocationIcon sx={{ fontSize: 15, color: '#64748b' }} />
                       <Typography sx={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 500 }} noWrap>
-                        {store.location} • {store.eta} • {store.distance}
+                        {[store.location, store.eta, store.distance].filter(Boolean).join(' • ')}
                       </Typography>
                     </Box>
 

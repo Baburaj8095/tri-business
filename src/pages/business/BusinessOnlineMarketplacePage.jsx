@@ -551,36 +551,51 @@ export default function BusinessOnlineMarketplacePage() {
   const [categorySearchQuery, setCategorySearchQuery] = useState("");
   const [apiCategories, setApiCategories] = useState([]);
 
-  // Fetch live merchant categories from Spring Boot API
+  // Fetch live merchant categories and online categories from Spring Boot API
   useEffect(() => {
     let mounted = true;
-    getMerchantCategories()
-      .then(cats => {
-        if (mounted && Array.isArray(cats) && cats.length > 0) {
-          setApiCategories(cats);
+    Promise.all([
+      getMerchantCategories().catch(() => []),
+      axios.get(`${CAPTAIN_API}/captain/online-categories`).then(r => r.data).catch(() => [])
+    ]).then(([merchantCats, onlineCats]) => {
+      if (mounted) {
+        const combined = [
+          ...(Array.isArray(onlineCats) ? onlineCats : []),
+          ...(Array.isArray(merchantCats) ? merchantCats : [])
+        ];
+        if (combined.length > 0) {
+          setApiCategories(combined);
         }
-      })
-      .catch(() => {});
+      }
+    });
     return () => { mounted = false; };
   }, []);
 
-  // Merge MASTER_CATEGORIES with API categories
+  // Merge live database categories
   const allAvailableCategories = useMemo(() => {
-    const list = [...MASTER_CATEGORIES];
-    const existingLabels = new Set(list.map(c => c.label.toLowerCase()));
+    const list = [];
+    const seen = new Set();
 
+    // Prioritize database categories with icon_url
     apiCategories.forEach(apiCat => {
       const name = apiCat.name || apiCat.label;
-      if (name && !existingLabels.has(name.toLowerCase())) {
+      if (name && !seen.has(name.toLowerCase())) {
         list.push({
           id: `api-cat-${apiCat.id || name}`,
           label: name,
-          icon: '📦',
-          image: apiCat.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80',
-          count: 'Live Merchant',
+          icon: apiCat.icon_name || '📦',
+          image: apiCat.icon_url || apiCat.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80',
+          count: 'Wholesale B2B',
           badge: 'Verified',
         });
-        existingLabels.add(name.toLowerCase());
+        seen.add(name.toLowerCase());
+      }
+    });
+
+    MASTER_CATEGORIES.forEach(c => {
+      if (!seen.has(c.label.toLowerCase())) {
+        list.push(c);
+        seen.add(c.label.toLowerCase());
       }
     });
 

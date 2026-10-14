@@ -1008,7 +1008,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
 
               {/* Balance Amount */}
               <Typography sx={{ fontSize: '1.65rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', my: 1.25 }}>
-                ₹45,280.00
+                ₹{Number(profile?.wallet_balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </Typography>
 
               {/* Action Buttons: Add Funds & Withdraw */}
