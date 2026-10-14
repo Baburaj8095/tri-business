@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import {
   Box, Container, Typography, TextField, Button, Stack, Alert,
@@ -53,7 +53,7 @@ const getStrength = (pwd) => {
   if (s === 2) return { score: 40, label: 'Fair', color: '#f59e0b' };
   if (s === 3) return { score: 60, label: 'Good', color: '#84cc16' };
   if (s === 4) return { score: 80, label: 'Strong', color: '#10b981' };
-  return { score: 100, label: 'Very Strong', color: '#047857' };
+  return { score: 100, label: 'Very Strong', color: '#EA580C' };
 };
 
 /* ─── Clean Form Input Styling ─── */
@@ -69,10 +69,10 @@ const inputSx = (hasError) => ({
       borderWidth: 1.5,
     },
     '&:hover fieldset': {
-      borderColor: hasError ? '#ef4444' : '#047857',
+      borderColor: hasError ? '#ef4444' : '#EA580C',
     },
     '&.Mui-focused fieldset': {
-      borderColor: '#047857',
+      borderColor: '#EA580C',
       borderWidth: 2,
     },
     '&.Mui-focused': {
@@ -210,15 +210,16 @@ const UnifiedRegister = ({ initialRole = null }) => {
 
     try {
       let res = await fetch(`${CAPTAIN_API}/captain/sponsor/verify?id=${encodeURIComponent(id)}`);
-      let data = res.ok ? await res.json() : null;
+      let data = null;
+      try { data = await res.json(); } catch (_) {}
 
       if ((!data || !data.valid) && is10DigitMobile) {
         try {
           const cbRes = await fetch(`${CAPTAIN_API}/captain/sponsor/verify?id=${encodeURIComponent('CB' + cleanDigits)}`);
-          if (cbRes.ok) {
+          try {
             const cbData = await cbRes.json();
             if (cbData && cbData.valid) data = cbData;
-          }
+          } catch (_) {}
         } catch (_) {}
       }
 
@@ -414,7 +415,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
         left: 0,
         right: 0,
         height: 60,
-        background: 'linear-gradient(180deg, #047857 0%, rgba(4,120,87,0) 100%)',
+        background: 'linear-gradient(180deg, #EA580C 0%, rgba(4,120,87,0) 100%)',
         opacity: 0.1,
         pointerEvents: 'none',
       }} />
@@ -455,13 +456,13 @@ const UnifiedRegister = ({ initialRole = null }) => {
 
         {/* Business Portal Indicator */}
         <Box sx={{
-          bgcolor: '#ecfdf5',
+          bgcolor: '#FFF7ED',
           borderRadius: '16px',
           px: 1.5,
           py: 0.4,
-          border: '1px solid #a7f3d0',
+          border: '1px solid #FED7AA',
         }}>
-          <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#047857' }}>
+          <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#EA580C' }}>
             Tri-Business
           </Typography>
         </Box>
@@ -485,7 +486,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                       borderRadius: '50%',
                       display: 'grid',
                       placeItems: 'center',
-                      bgcolor: isCurrent || isDone ? '#047857' : '#ffffff',
+                      bgcolor: isCurrent || isDone ? '#EA580C' : '#ffffff',
                       color: isCurrent || isDone ? '#ffffff' : '#94a3b8',
                       border: isCurrent || isDone ? 'none' : '1.5px solid #cbd5e1',
                       fontSize: '0.78rem',
@@ -497,7 +498,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                     <Typography sx={{
                       fontSize: '0.68rem',
                       fontWeight: isCurrent ? 800 : 600,
-                      color: isCurrent ? '#047857' : isDone ? '#0f172a' : '#94a3b8',
+                      color: isCurrent ? '#EA580C' : isDone ? '#0f172a' : '#94a3b8',
                       mt: 0.5,
                       letterSpacing: '0.01em',
                     }}>
@@ -510,7 +511,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                       flex: 1,
                       maxWidth: 42,
                       height: 2,
-                      bgcolor: stepNum < step ? '#047857' : '#e2e8f0',
+                      bgcolor: stepNum < step ? '#EA580C' : '#e2e8f0',
                       mx: 0.8,
                       mb: 2.2,
                       transition: 'all 0.2s',
@@ -580,7 +581,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                         py: 0.6,
                         transition: 'all 0.2s',
                         '&:focus-within': {
-                          borderColor: '#087F5B',
+                          borderColor: '#EA580C',
                           boxShadow: '0 0 0 3px rgba(8, 127, 91, 0.12)',
                         },
                       }}>
@@ -622,13 +623,13 @@ const UnifiedRegister = ({ initialRole = null }) => {
                             textTransform: 'none',
                             fontWeight: 800,
                             fontSize: '0.86rem',
-                            bgcolor: '#087F5B',
+                            bgcolor: '#EA580C',
                             color: '#ffffff',
                             px: 2.2,
                             py: 0.75,
                             minWidth: 78,
                             boxShadow: 'none',
-                            '&:hover': { bgcolor: '#05684D' },
+                            '&:hover': { bgcolor: '#C2410C' },
                           }}
                         >
                           {sponsorVerifying ? <CircularProgress size={16} color="inherit" /> : 'Verify'}
@@ -646,7 +647,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                     {sponsorInfo && (
                       <Box sx={{
                         bgcolor: '#f0fdf4',
-                        border: '1.5px solid #a7f3d0',
+                        border: '1.5px solid #FED7AA',
                         borderRadius: '16px',
                         p: 2,
                       }}>
@@ -699,7 +700,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                           flexShrink: 0,
                           border: '1px solid #99f6e4',
                         }}>
-                          <Storefront sx={{ fontSize: 26, color: '#087F5B' }} />
+                          <Storefront sx={{ fontSize: 26, color: '#EA580C' }} />
                         </Box>
                         <Box>
                           <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a', mb: 0.3 }}>
@@ -802,8 +803,8 @@ const UnifiedRegister = ({ initialRole = null }) => {
                           sx={{
                             borderRadius: '12px', bgcolor: '#ffffff', fontSize: '0.92rem', fontWeight: 600,
                             '& fieldset': { borderColor: '#cbd5e1', borderWidth: 1.5 },
-                            '&:hover fieldset': { borderColor: '#087F5B' },
-                            '&.Mui-focused fieldset': { borderColor: '#087F5B', borderWidth: 2 },
+                            '&:hover fieldset': { borderColor: '#EA580C' },
+                            '&.Mui-focused fieldset': { borderColor: '#EA580C', borderWidth: 2 },
                           }}
                         >
                           {CATEGORIES.map(c => (
@@ -832,16 +833,16 @@ const UnifiedRegister = ({ initialRole = null }) => {
                               sx={{
                                 p: 1.6,
                                 borderRadius: '14px',
-                                border: `1.5px solid ${isSelected ? '#087F5B' : '#e2e8f0'}`,
+                                border: `1.5px solid ${isSelected ? '#EA580C' : '#e2e8f0'}`,
                                 bgcolor: isSelected ? '#f0fdf4' : '#ffffff',
                                 cursor: 'pointer',
                                 textAlign: 'center',
                                 transition: 'all 0.15s ease',
-                                '&:hover': { borderColor: '#087F5B' },
+                                '&:hover': { borderColor: '#EA580C' },
                               }}
                             >
                               <Typography sx={{ fontSize: 24, mb: 0.5 }}>{m.icon}</Typography>
-                              <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: isSelected ? '#087F5B' : '#0f172a', mb: 0.3 }}>
+                              <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: isSelected ? '#EA580C' : '#0f172a', mb: 0.3 }}>
                                 {m.title}
                               </Typography>
                               <Typography sx={{ fontSize: '0.66rem', color: '#64748b', lineHeight: 1.3 }}>
@@ -870,7 +871,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                               sx={{
                                 p: 1.4,
                                 borderRadius: '14px',
-                                border: `1.5px solid ${isSelected ? '#087F5B' : '#e2e8f0'}`,
+                                border: `1.5px solid ${isSelected ? '#EA580C' : '#e2e8f0'}`,
                                 bgcolor: isSelected ? '#f0fdf4' : '#ffffff',
                                 cursor: 'pointer',
                                 textAlign: 'center',
@@ -879,10 +880,10 @@ const UnifiedRegister = ({ initialRole = null }) => {
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                '&:hover': { borderColor: '#087F5B' },
+                                '&:hover': { borderColor: '#EA580C' },
                               }}
                             >
-                              <Typography sx={{ fontWeight: 800, fontSize: '0.86rem', color: isSelected ? '#087F5B' : '#0f172a' }}>
+                              <Typography sx={{ fontWeight: 800, fontSize: '0.86rem', color: isSelected ? '#EA580C' : '#0f172a' }}>
                                 {s.title}
                               </Typography>
                               <Typography sx={{ fontSize: '0.68rem', color: '#64748b' }}>
@@ -959,7 +960,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                         sx={inputSx(!!errors.pincode)}
                         InputProps={{
                           endAdornment: form.pincodeLoading ? (
-                            <InputAdornment position="end"><CircularProgress size={16} sx={{ color: '#087F5B' }} /></InputAdornment>
+                            <InputAdornment position="end"><CircularProgress size={16} sx={{ color: '#EA580C' }} /></InputAdornment>
                           ) : form.pincodeVerified ? (
                             <InputAdornment position="end">
                               <CheckCircle sx={{ color: '#10b981', fontSize: 20 }} />
@@ -968,7 +969,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                         }}
                       />
                       {form.district && form.state && (
-                        <Typography sx={{ fontSize: '0.74rem', color: '#047857', fontWeight: 700, mt: 0.5 }}>
+                        <Typography sx={{ fontSize: '0.74rem', color: '#EA580C', fontWeight: 700, mt: 0.5 }}>
                           📍 {form.district}, {form.state}
                         </Typography>
                       )}
@@ -985,7 +986,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                       alignItems: 'flex-start',
                       gap: 1.2,
                     }}>
-                      <Typography sx={{ color: '#047857', fontSize: 18, lineHeight: 1 }}>ⓘ</Typography>
+                      <Typography sx={{ color: '#EA580C', fontSize: 18, lineHeight: 1 }}>ⓘ</Typography>
                       <Box>
                         <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b', mb: 0.2 }}>
                           Store Setup & KYC Completed in Dashboard
@@ -1096,13 +1097,13 @@ const UnifiedRegister = ({ initialRole = null }) => {
                         <Checkbox
                           checked={form.termsAccepted}
                           onChange={e => setForm(p => ({ ...p, termsAccepted: e.target.checked }))}
-                          sx={{ color: '#087F5B', '&.Mui-checked': { color: '#087F5B' } }}
+                          sx={{ color: '#EA580C', '&.Mui-checked': { color: '#EA580C' } }}
                           size="small"
                         />
                       }
                       label={
                         <Typography sx={{ fontSize: '0.74rem', color: '#334155', fontWeight: 600 }}>
-                          I agree to the <Box component="span" sx={{ color: '#087F5B', textDecoration: 'underline' }}>Terms & Conditions</Box> and <Box component="span" sx={{ color: '#087F5B', textDecoration: 'underline' }}>Privacy Policy</Box>
+                          I agree to the <Box component="span" sx={{ color: '#EA580C', textDecoration: 'underline' }}>Terms & Conditions</Box> and <Box component="span" sx={{ color: '#EA580C', textDecoration: 'underline' }}>Privacy Policy</Box>
                         </Typography>
                       }
                     />
@@ -1134,14 +1135,14 @@ const UnifiedRegister = ({ initialRole = null }) => {
                     <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Person sx={{ fontSize: 18, color: '#087F5B' }} />
+                          <Person sx={{ fontSize: 18, color: '#EA580C' }} />
                           <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
                             Captain Sponsor
                           </Typography>
                         </Box>
                         <Typography
                           onClick={() => setStep(1)}
-                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#087F5B', cursor: 'pointer' }}
+                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#EA580C', cursor: 'pointer' }}
                         >
                           Edit
                         </Typography>
@@ -1158,14 +1159,14 @@ const UnifiedRegister = ({ initialRole = null }) => {
                     <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Store sx={{ fontSize: 18, color: '#087F5B' }} />
+                          <Store sx={{ fontSize: 18, color: '#EA580C' }} />
                           <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
                             Business Details
                           </Typography>
                         </Box>
                         <Typography
                           onClick={() => setStep(2)}
-                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#087F5B', cursor: 'pointer' }}
+                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#EA580C', cursor: 'pointer' }}
                         >
                           Edit
                         </Typography>
@@ -1188,14 +1189,14 @@ const UnifiedRegister = ({ initialRole = null }) => {
                     <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', p: 1.8 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Lock sx={{ fontSize: 18, color: '#087F5B' }} />
+                          <Lock sx={{ fontSize: 18, color: '#EA580C' }} />
                           <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>
                             Owner & Login ID
                           </Typography>
                         </Box>
                         <Typography
                           onClick={() => setStep(2)}
-                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#087F5B', cursor: 'pointer' }}
+                          sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#EA580C', cursor: 'pointer' }}
                         >
                           Edit
                         </Typography>
@@ -1214,7 +1215,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                     </Box>
 
                     {/* Post-Registration Roadmap Card */}
-                    <Box sx={{ bgcolor: '#f0fdf4', borderRadius: '16px', border: '1.5px solid #a7f3d0', p: 1.8 }}>
+                    <Box sx={{ bgcolor: '#f0fdf4', borderRadius: '16px', border: '1.5px solid #FED7AA', p: 1.8 }}>
                       <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#15803d', mb: 0.8 }}>
                         ✓ Post-Registration Setup (Inside Dashboard)
                       </Typography>
@@ -1247,10 +1248,10 @@ const UnifiedRegister = ({ initialRole = null }) => {
                       textTransform: 'none',
                       fontWeight: 800,
                       py: 1.4,
-                      bgcolor: '#087F5B',
+                      bgcolor: '#EA580C',
                       fontSize: '0.94rem',
                       boxShadow: '0 4px 14px rgba(8, 127, 91, 0.25)',
-                      '&:hover': { bgcolor: '#05684D' },
+                      '&:hover': { bgcolor: '#C2410C' },
                     }}
                   >
                     Continue →
@@ -1267,10 +1268,10 @@ const UnifiedRegister = ({ initialRole = null }) => {
                       textTransform: 'none',
                       fontWeight: 800,
                       py: 1.4,
-                      bgcolor: '#087F5B',
+                      bgcolor: '#EA580C',
                       fontSize: '0.94rem',
                       boxShadow: '0 4px 14px rgba(8, 127, 91, 0.25)',
-                      '&:hover': { bgcolor: '#05684D' },
+                      '&:hover': { bgcolor: '#C2410C' },
                     }}
                   >
                     {loading ? (
@@ -1295,7 +1296,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
                 width: 76,
                 height: 76,
                 borderRadius: '50%',
-                bgcolor: '#047857',
+                bgcolor: '#EA580C',
                 display: 'grid',
                 placeItems: 'center',
                 color: '#ffffff',
@@ -1348,11 +1349,11 @@ const UnifiedRegister = ({ initialRole = null }) => {
                     textTransform: 'none',
                     fontWeight: 800,
                     py: 1.4,
-                    bgcolor: '#047857',
+                    bgcolor: '#EA580C',
                     fontSize: '0.94rem',
                     mb: 1.2,
                     boxShadow: 'none',
-                    '&:hover': { bgcolor: '#065f46' },
+                    '&:hover': { bgcolor: '#C2410C' },
                   }}
                 >
                   Go to Business Dashboard →
@@ -1366,12 +1367,12 @@ const UnifiedRegister = ({ initialRole = null }) => {
                     borderRadius: '12px',
                     textTransform: 'none',
                     fontWeight: 700,
-                    color: '#047857',
-                    borderColor: '#047857',
+                    color: '#EA580C',
+                    borderColor: '#EA580C',
                     py: 1.2,
                     fontSize: '0.88rem',
                     mb: 1,
-                    '&:hover': { bgcolor: '#f0fdf4', borderColor: '#065f46' },
+                    '&:hover': { bgcolor: '#f0fdf4', borderColor: '#C2410C' },
                   }}
                 >
                   Complete KYC (PAN & GST) Now
@@ -1404,3 +1405,4 @@ const UnifiedRegister = ({ initialRole = null }) => {
 };
 
 export default UnifiedRegister;
+

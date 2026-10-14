@@ -89,16 +89,19 @@ public class UserRepository {
             return Optional.empty();
         }
         String clean = sponsorId.trim();
+        String cleanDigits = clean.replaceAll("\\D", "");
+        String phone10 = cleanDigits.length() >= 10 ? cleanDigits.substring(cleanDigits.length() - 10) : cleanDigits;
+
         List<Map<String, Object>> rows = jdbc.queryForList(
             "SELECT u.id, u.username, u.full_name, u.category, u.role, u.pincode, u.sponsor_id, u.prefixed_id, u.phone, u.is_superuser, u.is_staff, " +
-            "       COALESCE(ara.district, '') as district, COALESCE(ara.state_id, '') as state " +
+            "       COALESCE(ara.district, '') as district, COALESCE(CAST(ara.state_id AS VARCHAR), '') as state " +
             "FROM accounts_customuser u " +
             "LEFT JOIN accounts_agencyregionassignment ara ON u.id = ara.user_id " +
-            "WHERE (u.phone = ? OR UPPER(u.username) = UPPER(?) OR UPPER(u.prefixed_id) = UPPER(?) OR UPPER(u.username) = UPPER(?)) " +
+            "WHERE (u.phone = ? OR u.phone = ? OR UPPER(u.username) = UPPER(?) OR UPPER(u.prefixed_id) = UPPER(?) OR UPPER(u.username) = UPPER(?) OR UPPER(u.username) = UPPER(?)) " +
             "AND (u.category IN ('agency_pincode', 'agency_sub_franchise', 'captain') OR u.is_superuser = true OR u.is_staff = true OR u.role = 'captain') " +
             "AND u.is_active = true " +
             "LIMIT 1",
-            clean, clean, clean, "CB" + clean
+            clean, phone10, clean, clean, "CB" + clean, "CB" + phone10
         );
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }

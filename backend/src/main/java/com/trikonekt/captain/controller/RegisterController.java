@@ -57,9 +57,6 @@ public class RegisterController {
             return ResponseEntity.badRequest().build();
         }
         SponsorInfo info = sponsorService.verifySponsor(id.trim());
-        if (!info.isValid()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(info);
-        }
         return ResponseEntity.ok(info);
     }
 }
