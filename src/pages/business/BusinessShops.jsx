@@ -1085,15 +1085,15 @@ export default function BusinessShops() {
                   width: 76,
                   height: 76,
                   borderRadius: '50%',
-                  bgcolor: '#ecfdf5',
-                  color: '#047857',
-                  border: '2px solid #a7f3d0',
+                  bgcolor: '#FFF7ED',
+                  color: '#EA580C',
+                  border: '2px solid #FED7AA',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   mx: 'auto',
                   mb: 2.5,
-                  boxShadow: '0 4px 12px rgba(4, 120, 87, 0.1)',
+                  boxShadow: '0 4px 12px rgba(234, 88, 12, 0.15)',
                 }}
               >
                 <StoreIcon sx={{ fontSize: 38 }} />
@@ -1109,7 +1109,7 @@ export default function BusinessShops() {
                 startIcon={<AddIcon />}
                 onClick={() => navigate('/registration-wizard')}
                 sx={{
-                  bgcolor: '#047857',
+                  bgcolor: '#EA580C',
                   color: '#ffffff',
                   borderRadius: '14px',
                   textTransform: 'none',
@@ -1117,8 +1117,8 @@ export default function BusinessShops() {
                   fontSize: '0.92rem',
                   px: 4,
                   py: 1.3,
-                  boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)',
-                  '&:hover': { bgcolor: '#065f46' },
+                  boxShadow: '0 4px 14px rgba(234, 88, 12, 0.25)',
+                  '&:hover': { bgcolor: '#C2410C' },
                 }}
               >
                 Add Your First Store
@@ -1508,11 +1508,11 @@ export default function BusinessShops() {
               </Box>
 
               {/* Verification & Perks Badge */}
-              <Box sx={{ mt: 2, p: 1.5, bgcolor: '#ecfdf5', borderRadius: '12px', border: '1px solid #a7f3d0' }}>
-                <Typography sx={{ color: '#047857', fontWeight: 800, fontSize: '0.78rem' }}>
+              <Box sx={{ mt: 2, p: 1.5, bgcolor: '#FFF7ED', borderRadius: '12px', border: '1px solid #FED7AA' }}>
+                <Typography sx={{ color: '#EA580C', fontWeight: 800, fontSize: '0.78rem' }}>
                   ✓ Verified Trikonekt Merchant Standee
                 </Typography>
-                <Typography sx={{ color: '#065f46', fontSize: '0.7rem', fontWeight: 600, mt: 0.25 }}>
+                <Typography sx={{ color: '#C2410C', fontSize: '0.7rem', fontWeight: 600, mt: 0.25 }}>
                   Accepts UPI, Cards, Net Banking &amp; TRI Coins Cashback
                 </Typography>
               </Box>

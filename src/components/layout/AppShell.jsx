@@ -498,7 +498,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                     <IconButton
                       onClick={() => setStoreModalOpen(true)}
                       title="Switch Store"
-                      sx={{ bgcolor: '#ecfdf5', color: '#047857', p: 0.8, '&:hover': { bgcolor: '#d1fae5' } }}
+                      sx={{ bgcolor: '#FFF7ED', color: '#EA580C', p: 0.8, '&:hover': { bgcolor: '#FFEDD5' } }}
                     >
                       <NearbyIcon sx={{ fontSize: 20 }} />
                     </IconButton>
@@ -518,9 +518,9 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                   right: 0,
                   height: '108px',
                   zIndex: 1100,
-                  background: 'linear-gradient(135deg, #064e3b 0%, #047857 55%, #0d9488 100%)',
+                  background: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
                   color: '#ffffff',
-                  boxShadow: '0 4px 20px rgba(6, 78, 59, 0.28)',
+                  boxShadow: '0 4px 20px rgba(234, 88, 12, 0.28)',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -536,7 +536,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                       sx={{
                         width: 38,
                         height: 38,
-                        bgcolor: '#064e3b',
+                        bgcolor: '#C2410C',
                         color: '#ffffff',
                         fontWeight: 900,
                         fontSize: '0.85rem',
@@ -562,7 +562,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                           label="ONLINE"
                           size="small"
                           sx={{
-                            bgcolor: '#10b981',
+                            bgcolor: 'rgba(255,255,255,0.22)',
                             color: '#ffffff',
                             fontWeight: 900,
                             fontSize: '0.62rem',
@@ -706,12 +706,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business-dashboard') ? '#047857' : '#64748B',
+              color: isCurrentActive('/business-dashboard') ? '#EA580C' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <HomeIcon sx={{ fontSize: 22, color: isCurrentActive('/business-dashboard') ? '#047857' : '#64748B', mb: 0.25 }} />
+            <HomeIcon sx={{ fontSize: 22, color: isCurrentActive('/business-dashboard') ? '#EA580C' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business-dashboard') ? 800 : 600 }}>
               Home
             </Typography>
@@ -728,12 +728,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business/online-marketplace') ? '#047857' : '#64748B',
+              color: isCurrentActive('/business/online-marketplace') ? '#EA580C' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <MarketplaceIcon sx={{ fontSize: 22, color: isCurrentActive('/business/online-marketplace') ? '#047857' : '#64748B', mb: 0.25 }} />
+            <MarketplaceIcon sx={{ fontSize: 22, color: isCurrentActive('/business/online-marketplace') ? '#EA580C' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business/online-marketplace') ? 800 : 600 }}>
               Online
             </Typography>
@@ -757,11 +757,11 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                 width: 52,
                 height: 52,
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
+                background: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
                 color: '#ffffff',
                 display: 'grid',
                 placeItems: 'center',
-                boxShadow: '0 4px 14px rgba(4, 120, 87, 0.45)',
+                boxShadow: '0 4px 14px rgba(234, 88, 12, 0.45)',
                 border: '3px solid #ffffff',
                 transition: 'transform 0.15s ease',
                 '&:active': { transform: 'scale(0.92)' }
@@ -769,7 +769,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
             >
               <ScanIcon sx={{ fontSize: 26 }} />
             </Box>
-            <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/scanner') ? 800 : 600, color: isCurrentActive('/scanner') ? '#047857' : '#64748B', mt: 0.25 }}>
+            <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/scanner') ? 800 : 600, color: isCurrentActive('/scanner') ? '#EA580C' : '#64748B', mt: 0.25 }}>
               Scanner
             </Typography>
           </Box>
@@ -785,12 +785,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business/nearby-stores') ? '#047857' : '#64748B',
+              color: isCurrentActive('/business/nearby-stores') ? '#EA580C' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <NearbyIcon sx={{ fontSize: 22, color: isCurrentActive('/business/nearby-stores') ? '#047857' : '#64748B', mb: 0.25 }} />
+            <NearbyIcon sx={{ fontSize: 22, color: isCurrentActive('/business/nearby-stores') ? '#EA580C' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business/nearby-stores') ? 800 : 600 }}>
               Nearby
             </Typography>
@@ -807,12 +807,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business/orders') ? '#047857' : '#64748B',
+              color: isCurrentActive('/business/orders') ? '#EA580C' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <OrdersIcon sx={{ fontSize: 22, color: isCurrentActive('/business/orders') ? '#047857' : '#64748B', mb: 0.25 }} />
+            <OrdersIcon sx={{ fontSize: 22, color: isCurrentActive('/business/orders') ? '#EA580C' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business/orders') ? 800 : 600 }}>
               Orders
             </Typography>
@@ -843,7 +843,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
             sx={{
               p: 2.5,
               pb: 4.5,
-              background: 'linear-gradient(135deg, #059669 0%, #10B981 60%, #047857 100%)',
+              background: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
               color: '#ffffff',
               position: 'relative',
               overflow: 'hidden',
@@ -862,7 +862,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                     sx={{
                       width: 52,
                       height: 52,
-                      bgcolor: '#064e3b',
+                      bgcolor: '#C2410C',
                       color: '#ffffff',
                       fontWeight: 900,
                       fontSize: '1.2rem',
@@ -915,7 +915,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                     }}
                     sx={{ cursor: 'pointer', mt: 0.4 }}
                   >
-                    <NearbyIcon sx={{ fontSize: 13, color: '#34d399' }} />
+                    <NearbyIcon sx={{ fontSize: 13, color: '#FED7AA' }} />
                     <Typography sx={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.9)', fontWeight: 600 }} noWrap>
                       {activeShop?.city ? `${activeShop.city}, Karnataka` : 'Bengaluru, Karnataka'}
                     </Typography>
@@ -931,7 +931,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 0.4,
-                    bgcolor: '#065f46',
+                    bgcolor: 'rgba(255,255,255,0.22)',
                     color: '#ffffff',
                     border: '1px solid rgba(255,255,255,0.25)',
                     borderRadius: '20px',
@@ -942,7 +942,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  <CheckCircleIcon sx={{ fontSize: 13, color: '#34d399' }} />
+                  <CheckCircleIcon sx={{ fontSize: 13, color: '#ffffff' }} />
                   Verified Business
                 </Box>
                 <Box
@@ -984,15 +984,15 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               sx={{
                 p: 2,
                 borderRadius: '18px',
-                bgcolor: '#f0fdf4',
-                border: '1.5px solid #bbf7d0',
+                bgcolor: '#FFF7ED',
+                border: '1.5px solid #FED7AA',
                 mb: 2.5,
               }}
             >
               {/* Header row */}
               <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.25 }}>
                 <Stack direction="row" alignItems="center" spacing={1}>
-                  <Box sx={{ width: 32, height: 32, borderRadius: '8px', bgcolor: '#dcfce7', display: 'grid', placeItems: 'center', color: '#047857' }}>
+                  <Box sx={{ width: 32, height: 32, borderRadius: '8px', bgcolor: '#FFEDD5', display: 'grid', placeItems: 'center', color: '#EA580C' }}>
                     <WalletIcon sx={{ fontSize: 18 }} />
                   </Box>
                   <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -1002,7 +1002,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                 <Chip
                   label="⚡ Instant"
                   size="small"
-                  sx={{ bgcolor: '#dcfce7', color: '#047857', fontWeight: 800, fontSize: '0.68rem', height: 22, px: 0.5 }}
+                  sx={{ bgcolor: '#FFEDD5', color: '#EA580C', fontWeight: 800, fontSize: '0.68rem', height: 22, px: 0.5 }}
                 />
               </Stack>
 
@@ -1020,14 +1020,14 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                   sx={{
                     flex: 1,
                     height: 40,
-                    bgcolor: '#047857',
+                    bgcolor: '#EA580C',
                     color: '#ffffff',
                     fontSize: '0.8rem',
                     fontWeight: 800,
                     textTransform: 'none',
                     borderRadius: '11px',
-                    boxShadow: 'none',
-                    '&:hover': { bgcolor: '#065f46', boxShadow: 'none' },
+                    boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)',
+                    '&:hover': { bgcolor: '#C2410C', boxShadow: 'none' },
                     '&:active': { transform: 'scale(0.98)' }
                   }}
                 >
@@ -1064,9 +1064,9 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
             {/* 3. 7 Business Module Cards */}
             <Stack spacing={1.1} sx={{ pb: 2 }}>
               {[
-                { label: 'My Shops', subtitle: 'Add new branch or update details', path: '/business/shops', icon: <ShopsIcon />, color: '#059669', bg: '#ecfdf5' },
+                { label: 'My Shops', subtitle: 'Add new branch or update details', path: '/business/shops', icon: <ShopsIcon />, color: '#EA580C', bg: '#FFF7ED' },
                 { label: 'Tri Inventory & Billing', subtitle: 'Stock counts, barcodes, and billing', path: '/business/inventory', icon: <InventoryIcon />, color: '#2563eb', bg: '#eff6ff' },
-                { label: 'Manage Online Products', subtitle: 'Add, edit and manage your listings', path: '/business/online-products', icon: <StoreIcon />, color: '#9333ea', bg: '#faf5ff' },
+                { label: 'Online Products', subtitle: 'Add, edit and manage your listings', path: '/business/online-products', icon: <StoreIcon />, color: '#9333ea', bg: '#faf5ff' },
                 { label: 'Ads & Campaigns', subtitle: 'Run banners & sponsored listings', path: '/business/ads', icon: <AdsIcon />, color: '#ea580c', bg: '#fff7ed' },
                 { label: 'Delivery (Tri Sarathi)', subtitle: 'Manage delivery partners and orders', path: '/business/delivery', icon: <DeliveryIcon />, color: '#0284c7', bg: '#f0f9ff' },
                 { label: 'Business Profile', subtitle: 'View and update your business details', path: '/business/profile', icon: <ProfileIcon />, color: '#db2777', bg: '#fdf2f8' },

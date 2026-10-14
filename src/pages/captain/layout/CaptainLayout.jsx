@@ -42,7 +42,7 @@ class CaptainErrorBoundary extends React.Component {
           <Button
             variant="contained"
             onClick={() => window.location.reload()}
-            sx={{ bgcolor: '#047857', color: '#ffffff', borderRadius: '12px', fontWeight: 800, textTransform: 'none', px: 3, '&:hover': { bgcolor: '#064e3b' } }}
+            sx={{ bgcolor: '#EA580C', color: '#ffffff', borderRadius: '12px', fontWeight: 800, textTransform: 'none', px: 3, '&:hover': { bgcolor: '#C2410C' } }}
           >
             Reload Screen
           </Button>
@@ -94,7 +94,7 @@ export default function CaptainLayout() {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', bgcolor: '#f8fafc' }}>
-        <CircularProgress sx={{ color: '#047857' }} />
+        <CircularProgress sx={{ color: '#EA580C' }} />
       </Box>
     );
   }
@@ -145,7 +145,7 @@ export default function CaptainLayout() {
               cursor: 'pointer',
               flex: 1,
               py: 0.5,
-              color: activeTab === 'home' ? '#047857' : '#94a3b8',
+              color: activeTab === 'home' ? '#EA580C' : '#94a3b8',
               transition: 'all 0.15s ease',
             }}
           >
@@ -165,7 +165,7 @@ export default function CaptainLayout() {
               cursor: 'pointer',
               flex: 1,
               py: 0.5,
-              color: activeTab === 'merchants' ? '#047857' : '#94a3b8',
+              color: activeTab === 'merchants' ? '#EA580C' : '#94a3b8',
               transition: 'all 0.15s ease',
             }}
           >
@@ -175,7 +175,7 @@ export default function CaptainLayout() {
             </Typography>
           </Box>
 
-          {/* Tab 3: Scanner (Floating Emerald Circle in Center) */}
+          {/* Tab 3: Scanner (Floating Orange Circle in Center) */}
           <Box sx={{ position: 'relative', flex: 1, display: 'flex', justifyContent: 'center' }}>
             <Box
               onClick={() => navigate('/scanner')}
@@ -183,11 +183,11 @@ export default function CaptainLayout() {
                 width: 52,
                 height: 52,
                 borderRadius: '50%',
-                bgcolor: '#047857',
+                bgcolor: '#EA580C',
                 color: '#ffffff',
                 display: 'grid',
                 placeItems: 'center',
-                boxShadow: '0 6px 18px rgba(4, 120, 87, 0.45)',
+                boxShadow: '0 6px 18px rgba(234, 88, 12, 0.45)',
                 cursor: 'pointer',
                 position: 'absolute',
                 top: -22,
@@ -218,7 +218,7 @@ export default function CaptainLayout() {
               cursor: 'pointer',
               flex: 1,
               py: 0.5,
-              color: activeTab === 'analytics' ? '#047857' : '#94a3b8',
+              color: activeTab === 'analytics' ? '#EA580C' : '#94a3b8',
               transition: 'all 0.15s ease',
             }}
           >
@@ -238,7 +238,7 @@ export default function CaptainLayout() {
               cursor: 'pointer',
               flex: 1,
               py: 0.5,
-              color: activeTab === 'profile' ? '#047857' : '#94a3b8',
+              color: activeTab === 'profile' ? '#EA580C' : '#94a3b8',
               transition: 'all 0.15s ease',
             }}
           >

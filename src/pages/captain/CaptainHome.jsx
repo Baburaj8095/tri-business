@@ -49,16 +49,16 @@ export default function CaptainHome() {
   return (
     <Box sx={{ pb: 3 }}>
 
-      {/* ── Top Curved Dark Emerald Header (Matches Mockup Screen 1) ── */}
+      {/* ── Top Curved Orange Header ── */}
       <Box sx={{
-        background: 'linear-gradient(145deg, #022c22 0%, #064e3b 55%, #047857 100%)',
+        background: 'linear-gradient(145deg, #431407 0%, #7c2d12 55%, #EA580C 100%)',
         color: '#ffffff',
         pt: 3,
         pb: 3.5,
         px: 2.5,
         borderBottomLeftRadius: '28px',
         borderBottomRightRadius: '28px',
-        boxShadow: '0 8px 24px rgba(2, 44, 34, 0.25)',
+        boxShadow: '0 8px 24px rgba(234, 88, 12, 0.25)',
       }}>
         {/* Row 1: Avatar, Greeting, Name, Badges & Header Action Icons */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
@@ -180,13 +180,13 @@ export default function CaptainHome() {
 
         {/* ── Banner: Grow Your Network (Exact Match to Mockup Screen 1) ── */}
         <Box sx={{
-          background: 'linear-gradient(135deg, #064e3b 0%, #047857 60%, #059669 100%)',
+          background: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
           borderRadius: '20px',
           p: 2.5,
           color: '#ffffff',
           position: 'relative',
           overflow: 'hidden',
-          boxShadow: '0 8px 24px rgba(4, 120, 87, 0.2)',
+          boxShadow: '0 8px 24px rgba(234, 88, 12, 0.25)',
           mb: 3,
         }}>
           {/* Subtle line chart background decoration */}
@@ -210,7 +210,7 @@ export default function CaptainHome() {
               endIcon={<ArrowForwardIcon sx={{ fontSize: 15 }} />}
               sx={{
                 bgcolor: '#ffffff',
-                color: '#064e3b',
+                color: '#EA580C',
                 fontWeight: 900,
                 fontSize: '0.76rem',
                 textTransform: 'none',
@@ -218,7 +218,7 @@ export default function CaptainHome() {
                 px: 1.8,
                 py: 0.6,
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
-                '&:hover': { bgcolor: '#f0fdf4' },
+                '&:hover': { bgcolor: '#FFF7ED' },
               }}
             >
               View Growth Insights
@@ -234,8 +234,8 @@ export default function CaptainHome() {
               val: '250',
               trend: '+12%',
               trendUp: true,
-              icon: <StoreIcon sx={{ fontSize: 20, color: '#047857' }} />,
-              iconBg: '#ecfdf5',
+              icon: <StoreIcon sx={{ fontSize: 20, color: '#EA580C' }} />,
+              iconBg: '#FFF7ED',
               onClick: () => navigate('/captain/merchants'),
             },
             {
@@ -372,7 +372,7 @@ export default function CaptainHome() {
             </Typography>
             <Typography
               onClick={() => navigate('/captain/merchants')}
-              sx={{ fontSize: '0.78rem', color: '#047857', fontWeight: 800, cursor: 'pointer' }}
+              sx={{ fontSize: '0.78rem', color: '#EA580C', fontWeight: 800, cursor: 'pointer' }}
             >
               See All
             </Typography>

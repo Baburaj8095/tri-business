@@ -48,8 +48,8 @@ import { useNavigate } from "react-router-dom";
 import AppShell from "../../components/layout/AppShell";
 import { getMerchantProfile, updateMerchantProfile, listMyShops } from "../../api/api";
 
-const PRIMARY = "#059669";
-const PRIMARY_DARK = "#047857";
+const PRIMARY = "#EA580C";
+const PRIMARY_DARK = "#C2410C";
 const BG = "#f8fafc";
 const SURFACE = "#ffffff";
 const TEXT = "#0f172a";
@@ -692,7 +692,7 @@ export default function BusinessProfile() {
             {/* Row 1: Business Name */}
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={1.25}>
-                <BankIcon sx={{ fontSize: 18, color: "#059669" }} />
+                <BankIcon sx={{ fontSize: 18, color: "#EA580C" }} />
                 <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
                   Business Name
                 </Typography>
@@ -705,7 +705,7 @@ export default function BusinessProfile() {
             {/* Row 2: Category */}
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={1.25}>
-                <CategoryIcon sx={{ fontSize: 18, color: "#059669" }} />
+                <CategoryIcon sx={{ fontSize: 18, color: "#EA580C" }} />
                 <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
                   Category
                 </Typography>
@@ -718,7 +718,7 @@ export default function BusinessProfile() {
             {/* Row 3: Mobile Number */}
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={1.25}>
-                <PhoneIcon sx={{ fontSize: 18, color: "#059669" }} />
+                <PhoneIcon sx={{ fontSize: 18, color: "#EA580C" }} />
                 <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
                   Mobile Number
                 </Typography>
@@ -731,7 +731,7 @@ export default function BusinessProfile() {
             {/* Row 4: Email Address */}
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={1.25}>
-                <EmailIcon sx={{ fontSize: 18, color: "#059669" }} />
+                <EmailIcon sx={{ fontSize: 18, color: "#EA580C" }} />
                 <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
                   Email Address
                 </Typography>
@@ -744,7 +744,7 @@ export default function BusinessProfile() {
             {/* Row 5: GSTIN */}
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={1.25}>
-                <DocIcon sx={{ fontSize: 18, color: "#059669" }} />
+                <DocIcon sx={{ fontSize: 18, color: "#EA580C" }} />
                 <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
                   GSTIN
                 </Typography>
@@ -757,7 +757,7 @@ export default function BusinessProfile() {
             {/* Row 6: Member Since */}
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={1.25}>
-                <CalendarIcon sx={{ fontSize: 18, color: "#059669" }} />
+                <CalendarIcon sx={{ fontSize: 18, color: "#EA580C" }} />
                 <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
                   Member Since
                 </Typography>

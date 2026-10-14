@@ -135,16 +135,16 @@ export default function CaptainMerchantsPage() {
   return (
     <Box sx={{ pb: 3 }}>
 
-      {/* ── Top Header Bar (Matches Mockup Screen 2) ── */}
+      {/* ── Top Header Bar ── */}
       <Box sx={{
-        background: 'linear-gradient(145deg, #022c22 0%, #064e3b 55%, #047857 100%)',
+        background: 'linear-gradient(145deg, #431407 0%, #7c2d12 55%, #EA580C 100%)',
         color: '#ffffff',
         pt: 3,
         pb: 2.8,
         px: 2.5,
         borderBottomLeftRadius: '28px',
         borderBottomRightRadius: '28px',
-        boxShadow: '0 8px 24px rgba(2, 44, 34, 0.25)',
+        boxShadow: '0 8px 24px rgba(234, 88, 12, 0.25)',
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -229,15 +229,15 @@ export default function CaptainMerchantsPage() {
               label={tab.label}
               onClick={() => setActiveFilter(tab.id)}
               sx={{
-                bgcolor: activeFilter === tab.id ? '#047857' : '#ffffff',
+                bgcolor: activeFilter === tab.id ? '#EA580C' : '#ffffff',
                 color: activeFilter === tab.id ? '#ffffff' : '#64748b',
                 border: activeFilter === tab.id ? 'none' : '1px solid #e2e8f0',
                 fontWeight: 700,
                 fontSize: '0.76rem',
                 height: 32,
                 cursor: 'pointer',
-                boxShadow: activeFilter === tab.id ? '0 2px 6px rgba(4, 120, 87, 0.25)' : 'none',
-                '&:hover': { bgcolor: activeFilter === tab.id ? '#064e3b' : '#f8fafc' },
+                boxShadow: activeFilter === tab.id ? '0 2px 6px rgba(234, 88, 12, 0.25)' : 'none',
+                '&:hover': { bgcolor: activeFilter === tab.id ? '#C2410C' : '#f8fafc' },
               }}
             />
           ))}
@@ -248,7 +248,7 @@ export default function CaptainMerchantsPage() {
           position: 'relative',
           borderRadius: '18px',
           height: 120,
-          background: 'linear-gradient(135deg, #e0f2fe 0%, #dcfce7 100%)',
+          background: 'linear-gradient(135deg, #e0f2fe 0%, #FFF7ED 100%)',
           border: '1.5px solid #cbd5e1',
           overflow: 'hidden',
           p: 1.5,
@@ -261,13 +261,13 @@ export default function CaptainMerchantsPage() {
           {/* Map grid lines graphic */}
           <Box sx={{
             position: 'absolute', inset: 0, opacity: 0.35, pointerEvents: 'none',
-            backgroundImage: 'radial-gradient(#047857 1px, transparent 1px)',
+            backgroundImage: 'radial-gradient(#EA580C 1px, transparent 1px)',
             backgroundSize: '16px 16px',
           }} />
 
           {/* Map pins */}
           <Box sx={{ position: 'absolute', top: 20, left: 40, color: '#3b82f6', fontSize: 18 }}>📍</Box>
-          <Box sx={{ position: 'absolute', top: 35, left: 140, color: '#047857', fontSize: 22 }}>📍</Box>
+          <Box sx={{ position: 'absolute', top: 35, left: 140, color: '#EA580C', fontSize: 22 }}>📍</Box>
           <Box sx={{ position: 'absolute', top: 25, right: 80, color: '#f59e0b', fontSize: 20 }}>📍</Box>
 
           <Box />
@@ -281,17 +281,18 @@ export default function CaptainMerchantsPage() {
               borderRadius: '20px', display: 'flex', alignItems: 'center', gap: 0.5,
               backdropFilter: 'blur(4px)', border: '1px solid rgba(255, 255, 255, 0.8)',
             }}>
-              <LocationIcon sx={{ fontSize: 14, color: '#047857' }} />
+              <LocationIcon sx={{ fontSize: 14, color: '#EA580C' }} />
               <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: '#0f172a' }}>
                 Bengaluru, Karnataka
               </Typography>
             </Box>
 
             <Box sx={{
-              bgcolor: '#047857', color: '#ffffff', px: 1.5, py: 0.5,
+              bgcolor: '#EA580C', color: '#ffffff', px: 1.5, py: 0.5,
               borderRadius: '20px', display: 'flex', alignItems: 'center', gap: 0.6,
               fontWeight: 800, fontSize: '0.72rem', cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(4, 120, 87, 0.3)',
+              boxShadow: '0 2px 6px rgba(234, 88, 12, 0.3)',
+              '&:hover': { bgcolor: '#C2410C' },
             }}>
               <MapIcon sx={{ fontSize: 14 }} />
               Map View

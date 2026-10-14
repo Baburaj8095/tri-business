@@ -35,8 +35,8 @@ const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
   || window.REACT_APP_CAPTAIN_API_URL
   || 'https://api-captain.trikonektbusiness.com/api';
 
-const PRIMARY = "#087F5B";
-const PRIMARY_DARK = "#05684D";
+const PRIMARY = "#EA580C";
+const PRIMARY_DARK = "#C2410C";
 const BG = "#f8fafc";
 const SURFACE = "#ffffff";
 const TEXT = "#0f172a";
@@ -315,14 +315,14 @@ export default function BusinessKYC() {
                     justifyContent: 'space-between',
                   }}>
                     <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Box sx={{ width: 26, height: 26, borderRadius: '50%', bgcolor: '#087F5B', color: '#fff', display: 'grid', placeItems: 'center', fontSize: '0.78rem', fontWeight: 800 }}>
+                      <Box sx={{ width: 26, height: 26, borderRadius: '50%', bgcolor: '#EA580C', color: '#fff', display: 'grid', placeItems: 'center', fontSize: '0.78rem', fontWeight: 800 }}>
                         1
                       </Box>
                       <Typography sx={{ fontWeight: 700, fontSize: '0.86rem', color: TEXT }}>
                         Business Information
                       </Typography>
                     </Stack>
-                    <Chip label="Completed" size="small" sx={{ bgcolor: '#ecfdf5', color: '#047857', fontWeight: 700, fontSize: '0.7rem' }} />
+                    <Chip label="Completed" size="small" sx={{ bgcolor: '#FFF7ED', color: '#EA580C', fontWeight: 700, fontSize: '0.7rem' }} />
                   </Paper>
 
                   {/* Step 2: Identity Documents */}
@@ -331,7 +331,7 @@ export default function BusinessKYC() {
                     sx={{
                       p: 1.8,
                       borderRadius: '14px',
-                      border: `1.5px solid ${activeStep === 2 ? '#087F5B' : BORDER}`,
+                      border: `1.5px solid ${activeStep === 2 ? '#EA580C' : BORDER}`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
@@ -340,7 +340,7 @@ export default function BusinessKYC() {
                     }}
                   >
                     <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Box sx={{ width: 26, height: 26, borderRadius: '50%', bgcolor: '#087F5B', color: '#fff', display: 'grid', placeItems: 'center', fontSize: '0.78rem', fontWeight: 800 }}>
+                      <Box sx={{ width: 26, height: 26, borderRadius: '50%', bgcolor: '#EA580C', color: '#fff', display: 'grid', placeItems: 'center', fontSize: '0.78rem', fontWeight: 800 }}>
                         2
                       </Box>
                       <Typography sx={{ fontWeight: 700, fontSize: '0.86rem', color: TEXT }}>
@@ -351,8 +351,8 @@ export default function BusinessKYC() {
                       label={kycData.panNumber ? "Saved" : "Pending"}
                       size="small"
                       sx={{
-                        bgcolor: kycData.panNumber ? '#ecfdf5' : '#fef3c7',
-                        color: kycData.panNumber ? '#047857' : '#b45309',
+                        bgcolor: kycData.panNumber ? '#FFF7ED' : '#fef3c7',
+                        color: kycData.panNumber ? '#EA580C' : '#b45309',
                         fontWeight: 700,
                         fontSize: '0.7rem',
                       }}
@@ -485,8 +485,8 @@ export default function BusinessKYC() {
                         <CircularProgress size={24} sx={{ color: PRIMARY }} />
                       ) : kycData.panCardUrl ? (
                         <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
-                          <CheckCircle sx={{ color: '#10b981', fontSize: 20 }} />
-                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#047857' }}>
+                          <CheckCircle sx={{ color: '#EA580C', fontSize: 20 }} />
+                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#EA580C' }}>
                             PAN Document Uploaded (Click to replace)
                           </Typography>
                         </Stack>
@@ -529,15 +529,15 @@ export default function BusinessKYC() {
                         bgcolor: '#f8fafc',
                         textAlign: 'center',
                         cursor: 'pointer',
-                        '&:hover': { borderColor: PRIMARY, bgcolor: '#f0fdf4' },
+                        '&:hover': { borderColor: PRIMARY, bgcolor: '#FFF7ED' },
                       }}
                     >
                       {uploadingProof ? (
                         <CircularProgress size={24} sx={{ color: PRIMARY }} />
                       ) : kycData.businessProofUrl ? (
                         <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
-                          <CheckCircle sx={{ color: '#10b981', fontSize: 20 }} />
-                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#047857' }}>
+                          <CheckCircle sx={{ color: '#EA580C', fontSize: 20 }} />
+                          <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#EA580C' }}>
                             Proof Document Uploaded (Click to replace)
                           </Typography>
                         </Stack>
@@ -702,8 +702,8 @@ export default function BusinessKYC() {
                           <CircularProgress size={20} sx={{ color: PRIMARY }} />
                         ) : kycData.gstCertificateUrl ? (
                           <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
-                            <CheckCircle sx={{ color: '#10b981', fontSize: 18 }} />
-                            <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#047857' }}>
+                            <CheckCircle sx={{ color: '#EA580C', fontSize: 18 }} />
+                            <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#EA580C' }}>
                               GST Certificate Uploaded (Click to replace)
                             </Typography>
                           </Stack>

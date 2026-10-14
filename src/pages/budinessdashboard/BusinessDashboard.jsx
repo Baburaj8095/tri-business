@@ -811,8 +811,8 @@ function ShopCard({ shop }) {
         transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
         '&:hover': {
           transform: 'translateY(-3px)',
-          boxShadow: '0 8px 24px rgba(4, 120, 87, 0.12)',
-          borderColor: '#047857'
+          boxShadow: '0 8px 24px rgba(234, 88, 12, 0.15)',
+          borderColor: '#EA580C'
         },
       }}
     >
@@ -836,7 +836,7 @@ function ShopCard({ shop }) {
             position: 'absolute',
             top: 10,
             left: 10,
-            bgcolor: 'rgba(6, 78, 59, 0.92)',
+            bgcolor: 'rgba(234, 88, 12, 0.92)',
             backdropFilter: 'blur(4px)',
             color: '#ffffff',
             px: 1,
@@ -897,12 +897,12 @@ function ShopCard({ shop }) {
             size="small"
             label="✓ Verified"
             sx={{
-              bgcolor: '#f0fdf4',
-              color: '#15803d',
+              bgcolor: '#FFF7ED',
+              color: '#EA580C',
               fontWeight: 800,
               fontSize: '0.68rem',
               height: 22,
-              border: '1px solid #bbf7d0',
+              border: '1px solid #FED7AA',
             }}
           />
         </Stack>
@@ -918,10 +918,10 @@ function ShopCard({ shop }) {
             fontWeight: 800,
             fontSize: '0.86rem',
             height: '42px',
-            bgcolor: '#047857',
+            bgcolor: '#EA580C',
             color: '#ffffff',
-            boxShadow: '0 2px 8px rgba(4, 120, 87, 0.25)',
-            '&:hover': { bgcolor: '#065f46', boxShadow: '0 4px 12px rgba(4, 120, 87, 0.35)' },
+            boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)',
+            '&:hover': { bgcolor: '#C2410C', boxShadow: '0 4px 12px rgba(234, 88, 12, 0.35)' },
             '&:active': { transform: 'scale(0.98)' },
           }}
         >
@@ -977,9 +977,9 @@ function CategoryCard({ item, onClick }) {
             sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
           />
         ) : Icon ? (
-          <Icon style={{ fontSize: 30, color: '#047857' }} />
+          <Icon style={{ fontSize: 30, color: '#EA580C' }} />
         ) : (
-          <ShoppingBagOutlinedIcon sx={{ fontSize: 30, color: '#047857' }} />
+          <ShoppingBagOutlinedIcon sx={{ fontSize: 30, color: '#EA580C' }} />
         )}
       </Box>
       <Typography
@@ -2517,11 +2517,11 @@ function BusinessDashboard() {
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
-              '&:hover': { borderColor: '#10b981', transform: 'translateY(-2px)', boxShadow: '0 8px 20px rgba(16, 185, 129, 0.1)' }
+              '&:hover': { borderColor: '#EA580C', transform: 'translateY(-2px)', boxShadow: '0 8px 20px rgba(234, 88, 12, 0.12)' }
             }}
           >
             <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 1.25 }}>
-              <Box sx={{ width: 34, height: 34, borderRadius: '10px', bgcolor: '#ecfdf5', color: '#047857', display: 'grid', placeItems: 'center', border: '1px solid #a7f3d0' }}>
+              <Box sx={{ width: 34, height: 34, borderRadius: '10px', bgcolor: '#FFF7ED', color: '#EA580C', display: 'grid', placeItems: 'center', border: '1px solid #FED7AA' }}>
                 <StorefrontOutlinedIcon sx={{ fontSize: 18 }} />
               </Box>
               <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -2571,18 +2571,18 @@ function BusinessDashboard() {
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
-              '&:hover': { borderColor: '#059669', transform: 'translateY(-2px)', boxShadow: '0 8px 20px rgba(5, 150, 105, 0.1)' }
+              '&:hover': { borderColor: '#EA580C', transform: 'translateY(-2px)', boxShadow: '0 8px 20px rgba(234, 88, 12, 0.12)' }
             }}
           >
             <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 1.25 }}>
-              <Box sx={{ width: 34, height: 34, borderRadius: '10px', bgcolor: '#f0fdf4', color: '#059669', display: 'grid', placeItems: 'center', border: '1px solid #bbf7d0' }}>
+              <Box sx={{ width: 34, height: 34, borderRadius: '10px', bgcolor: '#FFF7ED', color: '#EA580C', display: 'grid', placeItems: 'center', border: '1px solid #FED7AA' }}>
                 <AccountBalanceWalletOutlinedIcon sx={{ fontSize: 18 }} />
               </Box>
               <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Wallet Balance
               </Typography>
             </Stack>
-            <Typography sx={{ fontSize: '1.5rem', fontWeight: 900, color: '#047857', letterSpacing: '-0.5px' }}>
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 900, color: '#EA580C', letterSpacing: '-0.5px' }}>
               ₹{Number(profile?.wallet_balance || 0).toLocaleString('en-IN')}
             </Typography>
           </Card>
@@ -2780,7 +2780,7 @@ function BusinessDashboard() {
                 <Button
                   size="small"
                   onClick={() => navigate('/business/nearby-stores')}
-                  sx={{ textTransform: 'none', fontWeight: 800, color: '#047857', fontSize: '0.8rem' }}
+                  sx={{ textTransform: 'none', fontWeight: 800, color: '#EA580C', fontSize: '0.8rem' }}
                 >
                   View All ({b2bShops.length || 0}) →
                 </Button>
@@ -2857,14 +2857,14 @@ function BusinessDashboard() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1.5,
-                bgcolor: '#f0fdf4',
-                border: '1.5px solid #bbf7d0',
-                boxShadow: '0 2px 8px rgba(4, 120, 87, 0.08)',
+                bgcolor: '#FFF7ED',
+                border: '1.5px solid #FED7AA',
+                boxShadow: '0 2px 8px rgba(234, 88, 12, 0.08)',
                 transition: 'all 0.2s ease',
                 '&:hover': {
-                  borderColor: '#047857',
+                  borderColor: '#EA580C',
                   transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 18px rgba(4, 120, 87, 0.15)'
+                  boxShadow: '0 6px 18px rgba(234, 88, 12, 0.15)'
                 }
               }}
             >
@@ -2873,12 +2873,12 @@ function BusinessDashboard() {
                   width: 44,
                   height: 44,
                   borderRadius: '12px',
-                  bgcolor: '#047857',
+                  bgcolor: '#EA580C',
                   color: '#ffffff',
                   display: 'grid',
                   placeItems: 'center',
                   flexShrink: 0,
-                  boxShadow: '0 2px 8px rgba(4, 120, 87, 0.3)'
+                  boxShadow: '0 2px 8px rgba(234, 88, 12, 0.3)'
                 }}
               >
                 <LuFileText size={24} color="#ffffff" />

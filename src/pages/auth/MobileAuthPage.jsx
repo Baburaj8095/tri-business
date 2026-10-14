@@ -316,7 +316,7 @@ export default function MobileAuthPage() {
                       fontSize: '0.82rem',
                       fontWeight: userRole === 'BUSINESS' ? 900 : 700,
                       bgcolor: userRole === 'BUSINESS' ? '#ffffff' : 'transparent',
-                      color: userRole === 'BUSINESS' ? '#047857' : '#64748b',
+                      color: userRole === 'BUSINESS' ? '#EA580C' : '#64748b',
                       boxShadow: userRole === 'BUSINESS' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
                       py: 0.7,
                       '&:hover': { bgcolor: userRole === 'BUSINESS' ? '#ffffff' : 'rgba(255,255,255,0.4)' },
@@ -352,20 +352,20 @@ export default function MobileAuthPage() {
                 width: 64,
                 height: 64,
                 borderRadius: '50%',
-                bgcolor: userRole === 'CAPTAIN' ? '#f0fdfa' : '#ecfdf5',
-                border: `2px solid ${userRole === 'CAPTAIN' ? '#99f6e4' : '#a7f3d0'}`,
+                bgcolor: userRole === 'CAPTAIN' ? '#f0fdfa' : '#FFF7ED',
+                border: `2px solid ${userRole === 'CAPTAIN' ? '#99f6e4' : '#FFEDD5'}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 mx: 'auto',
                 mb: 2,
-                boxShadow: `0 4px 14px ${userRole === 'CAPTAIN' ? 'rgba(13, 148, 136, 0.15)' : 'rgba(4, 120, 87, 0.12)'}`,
+                boxShadow: `0 4px 14px ${userRole === 'CAPTAIN' ? 'rgba(13, 148, 136, 0.15)' : 'rgba(234, 88, 12, 0.18)'}`,
               }}
             >
               {userRole === 'CAPTAIN' ? (
                 <ShieldIcon sx={{ fontSize: 32, color: '#0d9488' }} />
               ) : (
-                <StoreIcon sx={{ fontSize: 32, color: '#047857' }} />
+                <StoreIcon sx={{ fontSize: 32, color: '#EA580C' }} />
               )}
             </Box>
 
@@ -419,7 +419,7 @@ export default function MobileAuthPage() {
                   fontSize: '0.82rem',
                   fontWeight: loginTab === 'PASSWORD' ? 800 : 600,
                   bgcolor: loginTab === 'PASSWORD' ? '#ffffff' : 'transparent',
-                  color: loginTab === 'PASSWORD' ? (userRole === 'CAPTAIN' ? '#0d9488' : '#047857') : '#64748b',
+                  color: loginTab === 'PASSWORD' ? (userRole === 'CAPTAIN' ? '#0d9488' : '#EA580C') : '#64748b',
                   boxShadow: loginTab === 'PASSWORD' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
                   py: 0.9,
                   '&:hover': { bgcolor: loginTab === 'PASSWORD' ? '#ffffff' : 'rgba(255,255,255,0.4)' },
@@ -437,7 +437,7 @@ export default function MobileAuthPage() {
                   fontSize: '0.82rem',
                   fontWeight: loginTab === 'OTP' ? 800 : 600,
                   bgcolor: loginTab === 'OTP' ? '#ffffff' : 'transparent',
-                  color: loginTab === 'OTP' ? (userRole === 'CAPTAIN' ? '#0d9488' : '#047857') : '#64748b',
+                  color: loginTab === 'OTP' ? (userRole === 'CAPTAIN' ? '#0d9488' : '#EA580C') : '#64748b',
                   boxShadow: loginTab === 'OTP' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
                   py: 0.9,
                   '&:hover': { bgcolor: loginTab === 'OTP' ? '#ffffff' : 'rgba(255,255,255,0.4)' },
@@ -474,8 +474,8 @@ export default function MobileAuthPage() {
                         py: 0.6,
                         transition: 'all 0.15s ease',
                         '&:focus-within': {
-                          borderColor: '#087F5B',
-                          boxShadow: '0 0 0 3px rgba(8, 127, 91, 0.12)',
+                          borderColor: '#EA580C',
+                          boxShadow: '0 0 0 3px rgba(234, 88, 12, 0.15)',
                         },
                       }}
                     >
@@ -513,8 +513,8 @@ export default function MobileAuthPage() {
                         py: 0.6,
                         transition: 'all 0.15s ease',
                         '&:focus-within': {
-                          borderColor: '#087F5B',
-                          boxShadow: '0 0 0 3px rgba(8, 127, 91, 0.12)',
+                          borderColor: '#EA580C',
+                          boxShadow: '0 0 0 3px rgba(234, 88, 12, 0.15)',
                         },
                       }}
                     >
@@ -549,7 +549,7 @@ export default function MobileAuthPage() {
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 0.75 }}>
                       <Typography
                         onClick={() => setLoginTab('OTP')}
-                        sx={{ fontSize: '0.76rem', color: '#087F5B', fontWeight: 700, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                        sx={{ fontSize: '0.76rem', color: '#EA580C', fontWeight: 700, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
                       >
                         Forgot Password?
                       </Typography>
@@ -557,8 +557,8 @@ export default function MobileAuthPage() {
                   </Box>
 
                   {/* Phone Helper Notice */}
-                  <Box sx={{ bgcolor: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '10px', p: 1, textAlign: 'center' }}>
-                    <Typography sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#047857' }}>
+                  <Box sx={{ bgcolor: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: '10px', p: 1, textAlign: 'center' }}>
+                    <Typography sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#C2410C' }}>
                       ✓ Log in using your 10-digit mobile number. No prefixes needed.
                     </Typography>
                   </Box>
@@ -570,16 +570,16 @@ export default function MobileAuthPage() {
                     variant="contained"
                     disabled={loading}
                     sx={{
-                      bgcolor: '#087F5B',
+                      bgcolor: '#EA580C',
                       color: '#ffffff',
                       fontWeight: 800,
                       fontSize: '0.94rem',
                       py: 1.4,
                       borderRadius: '14px',
                       textTransform: 'none',
-                      boxShadow: '0 4px 14px rgba(8, 127, 91, 0.25)',
+                      boxShadow: '0 4px 14px rgba(234, 88, 12, 0.25)',
                       mt: 1,
-                      '&:hover': { bgcolor: '#05684D' },
+                      '&:hover': { bgcolor: '#C2410C' },
                       '&:active': { transform: 'scale(0.98)' },
                     }}
                   >
@@ -642,8 +642,8 @@ export default function MobileAuthPage() {
                         py: 0.6,
                         transition: 'all 0.15s ease',
                         '&:focus-within': {
-                          borderColor: '#087F5B',
-                          boxShadow: '0 0 0 3px rgba(8, 127, 91, 0.12)',
+                          borderColor: '#EA580C',
+                          boxShadow: '0 0 0 3px rgba(234, 88, 12, 0.15)',
                         },
                       }}
                     >
@@ -674,16 +674,16 @@ export default function MobileAuthPage() {
                     disabled={loading}
                     endIcon={!loading && <KeyIcon sx={{ fontSize: 18 }} />}
                     sx={{
-                      bgcolor: '#087F5B',
+                      bgcolor: '#EA580C',
                       color: '#ffffff',
                       fontWeight: 800,
                       fontSize: '0.94rem',
                       py: 1.4,
                       borderRadius: '14px',
                       textTransform: 'none',
-                      boxShadow: '0 4px 14px rgba(8, 127, 91, 0.25)',
+                      boxShadow: '0 4px 14px rgba(234, 88, 12, 0.25)',
                       mt: 1,
-                      '&:hover': { bgcolor: '#05684D' },
+                      '&:hover': { bgcolor: '#C2410C' },
                       '&:active': { transform: 'scale(0.98)' },
                     }}
                   >
@@ -782,10 +782,10 @@ export default function MobileAuthPage() {
                       width: 40,
                       height: 40,
                       borderRadius: '12px',
-                      bgcolor: '#ecfdf5',
+                      bgcolor: '#FFF7ED',
                       display: 'grid',
                       placeItems: 'center',
-                      color: '#087F5B',
+                      color: '#EA580C',
                       flexShrink: 0,
                     }}
                   >
@@ -806,15 +806,15 @@ export default function MobileAuthPage() {
                   fullWidth
                   onClick={() => navigate('/registration')}
                   sx={{
-                    borderColor: '#087F5B',
-                    color: '#087F5B',
+                    borderColor: '#EA580C',
+                    color: '#EA580C',
                     fontWeight: 800,
                     fontSize: '0.84rem',
                     borderRadius: '12px',
                     py: 1.1,
                     textTransform: 'none',
                     borderWidth: 1.5,
-                    '&:hover': { bgcolor: '#f0fdf4', borderColor: '#05684D', borderWidth: 1.5 },
+                    '&:hover': { bgcolor: '#FFF7ED', borderColor: '#C2410C', borderWidth: 1.5 },
                   }}
                 >
                   Register as Business Merchant →
@@ -826,7 +826,7 @@ export default function MobileAuthPage() {
 
           {/* Footer Terms */}
           <Typography sx={{ textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8', mt: 2 }}>
-            Secured by Trikonekt • <strong style={{ color: '#087F5B' }}>Privacy & Terms</strong>
+            Secured by Trikonekt • <strong style={{ color: '#EA580C' }}>Privacy & Terms</strong>
           </Typography>
         </Container>
       )}
@@ -835,10 +835,10 @@ export default function MobileAuthPage() {
       {authStep === 'OTP_VERIFY' && (
         <Box sx={{ width: '100%', flex: 1, display: 'flex', flexDirection: 'column' }}>
           
-          {/* Top Curved Green Banner Header */}
+          {/* Top Curved Orange Banner Header */}
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
+              background: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
               color: '#ffffff',
               pt: 3,
               pb: 5,
@@ -846,7 +846,7 @@ export default function MobileAuthPage() {
               borderBottomLeftRadius: '32px',
               borderBottomRightRadius: '32px',
               position: 'relative',
-              boxShadow: '0 8px 24px rgba(6, 78, 59, 0.25)',
+              boxShadow: '0 8px 24px rgba(234, 88, 12, 0.25)',
             }}
           >
             <IconButton
@@ -909,14 +909,14 @@ export default function MobileAuthPage() {
                       width: 44,
                       height: 52,
                       border: '2px solid',
-                      borderColor: digit ? '#047857' : '#cbd5e1',
+                      borderColor: digit ? '#EA580C' : '#cbd5e1',
                       borderRadius: '12px',
-                      bgcolor: digit ? '#ecfdf5' : '#ffffff',
+                      bgcolor: digit ? '#FFF7ED' : '#ffffff',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       transition: 'all 0.15s ease',
-                      boxShadow: digit ? '0 2px 8px rgba(4, 120, 87, 0.15)' : 'none',
+                      boxShadow: digit ? '0 2px 8px rgba(234, 88, 12, 0.15)' : 'none',
                     }}
                   >
                     <input
@@ -947,7 +947,7 @@ export default function MobileAuthPage() {
               <Box sx={{ textAlign: 'center', my: 2 }}>
                 {countdown > 0 ? (
                   <Typography sx={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600 }}>
-                    Resend code in <strong style={{ color: '#047857' }}>{countdown}s</strong>
+                    Resend code in <strong style={{ color: '#EA580C' }}>{countdown}s</strong>
                   </Typography>
                 ) : (
                   <Button
@@ -956,7 +956,7 @@ export default function MobileAuthPage() {
                       setCountdown(30);
                       setOtpDigits(['', '', '', '', '', '']);
                     }}
-                    sx={{ textTransform: 'none', fontWeight: 800, color: '#047857', fontSize: '0.84rem' }}
+                    sx={{ textTransform: 'none', fontWeight: 800, color: '#EA580C', fontSize: '0.84rem' }}
                   >
                     Resend OTP
                   </Button>
@@ -970,15 +970,15 @@ export default function MobileAuthPage() {
                 disabled={loading}
                 onClick={handleVerifyOtp}
                 sx={{
-                  bgcolor: '#047857',
+                  bgcolor: '#EA580C',
                   color: '#ffffff',
                   fontWeight: 900,
                   fontSize: '0.95rem',
                   py: 1.35,
                   borderRadius: '14px',
                   textTransform: 'none',
-                  boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)',
-                  '&:hover': { bgcolor: '#065f46' },
+                  boxShadow: '0 4px 14px rgba(234, 88, 12, 0.25)',
+                  '&:hover': { bgcolor: '#C2410C' },
                   '&:active': { transform: 'scale(0.98)' },
                 }}
               >
@@ -987,7 +987,7 @@ export default function MobileAuthPage() {
             </Box>
 
             <Typography sx={{ textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8', py: 3 }}>
-              Didn't receive SMS? Contact Support at <strong style={{ color: '#047857' }}>support@trikonekt.com</strong>
+              Didn't receive SMS? Contact Support at <strong style={{ color: '#EA580C' }}>support@trikonekt.com</strong>
             </Typography>
           </Container>
         </Box>

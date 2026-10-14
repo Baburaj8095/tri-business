@@ -12,18 +12,18 @@ import { motion } from 'framer-motion';
 
 /* ─── Design Tokens ─── */
 const T = {
-  primary: '#228B22',
-  primaryDark: '#1B4D3E',
-  primaryLight: '#ecfdf5',
-  accent: '#10b981',
+  primary: '#EA580C',
+  primaryDark: '#C2410C',
+  primaryLight: '#FFF7ED',
+  accent: '#FF7A00',
   text: '#0f172a',
   textSecondary: '#475569',
   textMuted: '#94a3b8',
   border: '#e2e8f0',
   error: '#ef4444',
   success: '#10b981',
-  gradient: 'linear-gradient(135deg, #1B4D3E 0%, #228B22 100%)',
-  darkGrad: 'linear-gradient(150deg, #091e17 0%, #1B4D3E 60%, #143d31 100%)',
+  gradient: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
+  darkGrad: 'linear-gradient(150deg, #1e0d05 0%, #431407 60%, #7c2d12 100%)',
 };
 
 const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
