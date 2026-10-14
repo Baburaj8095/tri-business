@@ -29,7 +29,7 @@ public class MerchantCategoryRepository {
      */
     public List<MerchantCategoryResponse> findActive(String audience, String search) {
         StringBuilder sql = new StringBuilder(
-            "SELECT id, name, audience, sort_order " +
+            "SELECT id, name, audience, sort_order, COALESCE(icon_name, '') as icon_name, COALESCE(icon_url, '') as icon_url " +
             "FROM business_merchantcategory " +
             "WHERE is_active = TRUE"
         );
@@ -52,6 +52,8 @@ public class MerchantCategoryRepository {
                 .name(rs.getString("name"))
                 .audience(rs.getString("audience"))
                 .sortOrder(rs.getInt("sort_order"))
+                .iconName(rs.getString("icon_name"))
+                .iconUrl(rs.getString("icon_url"))
                 .build()
         );
     }
@@ -84,6 +86,8 @@ public class MerchantCategoryRepository {
         final String name = request.getName() != null ? request.getName().trim() : "";
         final String origAudience = request.getAudience() != null ? request.getAudience().trim().toUpperCase() : "MERCHANT";
         final String audience = ("CONSUMER".equals(origAudience) || "MERCHANT".equals(origAudience)) ? origAudience : "MERCHANT";
+        final String iconName = request.getIconName() != null ? request.getIconName().trim() : "";
+        final String iconUrl = request.getIconUrl() != null ? request.getIconUrl().trim() : "";
 
         final Integer finalSortOrder;
         if (request.getSortOrder() != null && request.getSortOrder() >= 0) {
@@ -99,12 +103,14 @@ public class MerchantCategoryRepository {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(con -> {
             PreparedStatement ps = con.prepareStatement(
-                "INSERT INTO business_merchantcategory (name, audience, sort_order, is_active, created_at) VALUES (?, ?, ?, TRUE, NOW())",
+                "INSERT INTO business_merchantcategory (name, audience, sort_order, icon_name, icon_url, is_active, created_at) VALUES (?, ?, ?, ?, ?, TRUE, NOW())",
                 Statement.RETURN_GENERATED_KEYS
             );
             ps.setString(1, name);
             ps.setString(2, audience);
             ps.setInt(3, finalSortOrder);
+            ps.setString(4, iconName);
+            ps.setString(5, iconUrl);
             return ps;
         }, keyHolder);
 
@@ -114,13 +120,15 @@ public class MerchantCategoryRepository {
         }
 
         return jdbc.queryForObject(
-            "SELECT id, name, audience, sort_order FROM business_merchantcategory WHERE id = ?",
+            "SELECT id, name, audience, sort_order, COALESCE(icon_name, '') as icon_name, COALESCE(icon_url, '') as icon_url FROM business_merchantcategory WHERE id = ?",
             new Object[]{id},
             (rs, rowNum) -> MerchantCategoryResponse.builder()
                 .id(rs.getLong("id"))
                 .name(rs.getString("name"))
                 .audience(rs.getString("audience"))
                 .sortOrder(rs.getInt("sort_order"))
+                .iconName(rs.getString("icon_name"))
+                .iconUrl(rs.getString("icon_url"))
                 .build()
         );
     }
@@ -133,27 +141,31 @@ public class MerchantCategoryRepository {
         String origAudience = request.getAudience() != null ? request.getAudience().trim().toUpperCase() : "MERCHANT";
         String audience = ("CONSUMER".equals(origAudience) || "MERCHANT".equals(origAudience)) ? origAudience : "MERCHANT";
         Integer sortOrder = request.getSortOrder();
+        String iconName = request.getIconName();
+        String iconUrl = request.getIconUrl();
 
         if (sortOrder != null && sortOrder >= 0) {
             jdbc.update(
-                "UPDATE business_merchantcategory SET name = ?, audience = ?, sort_order = ? WHERE id = ?",
-                name, audience, sortOrder, id
+                "UPDATE business_merchantcategory SET name = ?, audience = ?, sort_order = ?, icon_name = COALESCE(?, icon_name), icon_url = COALESCE(?, icon_url) WHERE id = ?",
+                name, audience, sortOrder, iconName, iconUrl, id
             );
         } else {
             jdbc.update(
-                "UPDATE business_merchantcategory SET name = ?, audience = ? WHERE id = ?",
-                name, audience, id
+                "UPDATE business_merchantcategory SET name = ?, audience = ?, icon_name = COALESCE(?, icon_name), icon_url = COALESCE(?, icon_url) WHERE id = ?",
+                name, audience, iconName, iconUrl, id
             );
         }
 
         return jdbc.queryForObject(
-            "SELECT id, name, audience, sort_order FROM business_merchantcategory WHERE id = ?",
+            "SELECT id, name, audience, sort_order, COALESCE(icon_name, '') as icon_name, COALESCE(icon_url, '') as icon_url FROM business_merchantcategory WHERE id = ?",
             new Object[]{id},
             (rs, rowNum) -> MerchantCategoryResponse.builder()
                 .id(rs.getLong("id"))
                 .name(rs.getString("name"))
                 .audience(rs.getString("audience"))
                 .sortOrder(rs.getInt("sort_order"))
+                .iconName(rs.getString("icon_name"))
+                .iconUrl(rs.getString("icon_url"))
                 .build()
         );
     }

@@ -23,7 +23,7 @@ public class OnlineCategoryRepository {
     /** Public: all active categories ordered by sort_order */
     public List<Map<String, Object>> findAllActive() {
         return jdbc.queryForList(
-            "SELECT id, name, slug, icon_name, color, sort_order " +
+            "SELECT id, name, slug, icon_name, color, sort_order, COALESCE(icon_url, '') as icon_url " +
             "FROM online_product_categories " +
             "WHERE is_active = TRUE " +
             "ORDER BY sort_order ASC, name ASC"
@@ -33,7 +33,7 @@ public class OnlineCategoryRepository {
     /** Admin: all categories (including inactive) */
     public List<Map<String, Object>> findAll() {
         return jdbc.queryForList(
-            "SELECT id, name, slug, icon_name, color, sort_order, is_active, created_at " +
+            "SELECT id, name, slug, icon_name, color, sort_order, is_active, created_at, COALESCE(icon_url, '') as icon_url " +
             "FROM online_product_categories " +
             "ORDER BY sort_order ASC, name ASC"
         );

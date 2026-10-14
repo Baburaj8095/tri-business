@@ -13,4 +13,10 @@ public class MerchantCategoryResponse {
 
     @JsonProperty("sort_order")
     private int sortOrder;
+
+    @JsonProperty("icon_name")
+    private String iconName;
+
+    @JsonProperty("icon_url")
+    private String iconUrl;
 }

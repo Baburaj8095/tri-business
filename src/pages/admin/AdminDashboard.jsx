@@ -79,18 +79,87 @@ import {
 } from '../../api/api';
 
 const T = {
-  primary: '#1e3a8a', // Dark Navy
-  primaryLight: '#3b82f6',
+  primary: '#0f172a',
+  primaryLight: '#ea580c', // Trikonekt Brand Orange
+  brandOrange: '#ea580c',
+  brandOrangeHover: '#c2410c',
+  brandOrangeLight: '#fff7ed',
   bg: '#f8fafc',
   surface: '#ffffff',
   text: '#0f172a',
-  textSecondary: '#475569',
+  textSecondary: '#64748b',
   border: '#e2e8f0',
   success: '#10b981',
   warning: '#f59e0b',
   danger: '#ef4444',
-  headerGradient: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)'
+  headerGradient: 'linear-gradient(135deg, #0f172a 0%, #1e293b 65%, #ea580c 100%)'
 };
+
+// Rich Visual Directory mapping marketplace categories to icons, images & badges
+export const CATEGORY_VISUAL_MAP = {
+  'vegetables & fruits': { icon: '🥦', iconName: 'eco', image: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=300&q=80', badge: 'Fresh Farm', color: '#16a34a' },
+  'dairy, bread & eggs': { icon: '🥛', iconName: 'egg_alt', image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=300&q=80', badge: 'Chilled', color: '#ea580c' },
+  'atta, rice & dal': { icon: '🌾', iconName: 'grain', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=300&q=80', badge: 'Wholesale', color: '#d97706' },
+  'snacks & drinks': { icon: '🍿', iconName: 'fastfood', image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=300&q=80', badge: 'Quick Bite', color: '#ef4444' },
+  'instant food & noodles': { icon: '🍜', iconName: 'ramen_dining', image: 'https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=300&q=80', badge: '10 Mins', color: '#f59e0b' },
+  'tea, coffee & health drinks': { icon: '☕', iconName: 'coffee', image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=300&q=80', badge: 'Beverage', color: '#854d0e' },
+  'bakery & biscuits': { icon: '🍪', iconName: 'cookie', image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=300&q=80', badge: 'Oven Fresh', color: '#b45309' },
+  'sweet tooth & chocolates': { icon: '🍫', iconName: 'icecream', image: 'https://images.unsplash.com/photo-1582293041079-7814c2f12063?auto=format&fit=crop&w=300&q=80', badge: 'Desserts', color: '#ec4899' },
+  'cold drinks & juices': { icon: '🥤', iconName: 'local_drink', image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=300&q=80', badge: 'Hydration', color: '#0284c7' },
+  'masalas & spices': { icon: '🌶️', iconName: 'whatshot', image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=300&q=80', badge: 'Authentic', color: '#dc2626' },
+  'sauces & spreads': { icon: '🍯', iconName: 'soup_kitchen', image: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&w=300&q=80', badge: 'Gourmet', color: '#c2410c' },
+  'cleaning & household': { icon: '🧹', iconName: 'cleaning_services', image: 'https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=300&q=80', badge: 'Home Essentials', color: '#0d9488' },
+  'personal care & hygiene': { icon: '🧼', iconName: 'soap', image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=300&q=80', badge: 'Wellness', color: '#06b6d4' },
+  'baby care & diapers': { icon: '👶', iconName: 'child_friendly', image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=300&q=80', badge: 'Gentle', color: '#a855f7' },
+  'pet supplies & food': { icon: '🐾', iconName: 'pets', image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=300&q=80', badge: 'Pet Care', color: '#6366f1' },
+  'electronics & mobiles': { icon: '📱', iconName: 'devices', image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=300&q=80', badge: 'Hot Tech', color: '#3b82f6' },
+  'kitchen & dining essentials': { icon: '🍽️', iconName: 'restaurant', image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=300&q=80', badge: 'Dining', color: '#475569' },
+  'hardware & electricals': { icon: '🔌', iconName: 'electrical_services', image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=300&q=80', badge: 'Hardware', color: '#e11d48' },
+  'beauty & cosmetics': { icon: '💄', iconName: 'brush', image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=300&q=80', badge: 'Beauty', color: '#db2777' },
+  'stationery & office supplies': { icon: '✏️', iconName: 'edit', image: 'https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?auto=format&fit=crop&w=300&q=80', badge: 'Office', color: '#2563eb' },
+  'restaurant & hotel supplies': { icon: '👨‍🍳', iconName: 'store', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=300&q=80', badge: 'B2B Bulk', color: '#ea580c' },
+  'fashion & garments': { icon: '👕', iconName: 'checkroom', image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=300&q=80', badge: 'Apparel', color: '#8b5cf6' },
+  'fresh meat & seafood': { icon: '🍗', iconName: 'set_meal', image: 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?auto=format&fit=crop&w=300&q=80', badge: 'Fresh Daily', color: '#b91c1c' },
+  'organic & gourmet': { icon: '🌱', iconName: 'spa', image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=300&q=80', badge: 'Certified Organic', color: '#15803d' },
+  'food & beverage': { icon: '🍔', iconName: 'restaurant', image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=300&q=80', badge: 'F&B', color: '#ea580c' },
+  'grocery & daily needs': { icon: '🛒', iconName: 'shopping_cart', image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80', badge: 'Daily Needs', color: '#16a34a' },
+  'retail & shopping': { icon: '🛍️', iconName: 'storefront', image: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=300&q=80', badge: 'Retail', color: '#f59e0b' },
+  'beauty & wellness': { icon: '💅', iconName: 'spa', image: 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?auto=format&fit=crop&w=300&q=80', badge: 'Wellness', color: '#db2777' },
+  'health & medical': { icon: '💊', iconName: 'local_hospital', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=300&q=80', badge: 'Medical', color: '#dc2626' },
+  'education & training': { icon: '📚', iconName: 'school', image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=300&q=80', badge: 'Education', color: '#2563eb' },
+  'home services': { icon: '🔧', iconName: 'handyman', image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=300&q=80', badge: 'Services', color: '#0d9488' },
+  'automobile': { icon: '🚗', iconName: 'directions_car', image: 'https://images.unsplash.com/photo-1489824904134-891ab64532f1?auto=format&fit=crop&w=300&q=80', badge: 'Automobile', color: '#3b82f6' },
+  'travel & transport': { icon: '✈️', iconName: 'flight', image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=300&q=80', badge: 'Travel', color: '#0284c7' },
+  'finance & insurance': { icon: '💳', iconName: 'account_balance', image: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=300&q=80', badge: 'Finance', color: '#16a34a' },
+  'mechanic': { icon: '🛠️', iconName: 'build', image: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=300&q=80', badge: 'Automotive', color: '#475569' },
+  'professional services': { icon: '💼', iconName: 'business_center', image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=300&q=80', badge: 'Corporate', color: '#0f172a' },
+  'construction & hardware': { icon: '🏗️', iconName: 'construction', image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=300&q=80', badge: 'Building', color: '#d97706' },
+  'electronics & repairs': { icon: '💻', iconName: 'devices', image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=300&q=80', badge: 'Repairs', color: '#2563eb' },
+  'entertainment & lifestyle': { icon: '🎭', iconName: 'theater_comedy', image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=300&q=80', badge: 'Lifestyle', color: '#ec4899' },
+  'agriculture & farming': { icon: '🚜', iconName: 'agriculture', image: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=300&q=80', badge: 'Agri', color: '#15803d' },
+  'wholesale & distribution': { icon: '📦', iconName: 'inventory', image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=300&q=80', badge: 'B2B Wholesale', color: '#ea580c' },
+  'pets & animals': { icon: '🐶', iconName: 'pets', image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=300&q=80', badge: 'Pets', color: '#6366f1' },
+  'kids & baby care': { icon: '🍼', iconName: 'child_care', image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=300&q=80', badge: 'Kids', color: '#a855f7' },
+  'religious & cultural': { icon: '🪔', iconName: 'temple_hindu', image: 'https://images.unsplash.com/photo-1609137144820-21a8d052ce31?auto=format&fit=crop&w=300&q=80', badge: 'Devotional', color: '#d97706' },
+  'other': { icon: '🏷️', iconName: 'category', image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80', badge: 'General', color: '#64748b' }
+};
+
+export function getCategoryVisual(name, iconUrl = null, iconName = null) {
+  const key = String(name || '').toLowerCase().trim();
+  const preset = CATEGORY_VISUAL_MAP[key] || {
+    icon: '📦',
+    iconName: iconName || 'category',
+    image: iconUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80',
+    badge: 'Category',
+    color: '#ea580c'
+  };
+
+  return {
+    ...preset,
+    image: iconUrl && iconUrl.trim() ? iconUrl.trim() : preset.image,
+    iconName: iconName && iconName.trim() ? iconName.trim() : preset.iconName
+  };
+}
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -111,13 +180,14 @@ export default function AdminDashboard() {
   // Categories & Subcategories State
   const [categories, setCategories] = useState([]);
   const [selectedCatId, setSelectedCatId] = useState(null);
+  const [categorySearch, setCategorySearch] = useState('');
   const [subcategories, setSubcategories] = useState([]);
   const [subcategoriesLoading, setSubcategoriesLoading] = useState(false);
 
   // Category Modals
   const [catModalOpen, setCatModalOpen] = useState(false);
   const [editingCat, setEditingCat] = useState(null);
-  const [catForm, setCatForm] = useState({ name: '', audience: 'MERCHANT', sortOrder: '' });
+  const [catForm, setCatForm] = useState({ name: '', audience: 'MERCHANT', sortOrder: '', iconName: '', iconUrl: '' });
 
   // Subcategory Modals
   const [subModalOpen, setSubModalOpen] = useState(false);
@@ -594,14 +664,17 @@ export default function AdminDashboard() {
   const handleOpenCatModal = (cat = null) => {
     if (cat) {
       setEditingCat(cat);
+      const visual = getCategoryVisual(cat.name, cat.icon_url || cat.iconUrl, cat.icon_name || cat.iconName);
       setCatForm({
         name: cat.name,
         audience: cat.audience || 'MERCHANT',
-        sortOrder: String(cat.sort_order || '')
+        sortOrder: String(cat.sort_order || ''),
+        iconName: cat.icon_name || cat.iconName || visual.iconName || 'category',
+        iconUrl: cat.icon_url || cat.iconUrl || visual.image || ''
       });
     } else {
       setEditingCat(null);
-      setCatForm({ name: '', audience: 'MERCHANT', sortOrder: '' });
+      setCatForm({ name: '', audience: 'MERCHANT', sortOrder: '', iconName: 'category', iconUrl: '' });
     }
     setCatModalOpen(true);
   };
@@ -612,10 +685,13 @@ export default function AdminDashboard() {
       return;
     }
     try {
+      const visual = getCategoryVisual(catForm.name, catForm.iconUrl, catForm.iconName);
       const payload = {
         name: catForm.name.trim(),
         audience: catForm.audience,
-        sortOrder: catForm.sortOrder === '' ? null : Number(catForm.sortOrder)
+        sortOrder: catForm.sortOrder === '' ? null : Number(catForm.sortOrder),
+        icon_name: catForm.iconName || visual.iconName,
+        icon_url: catForm.iconUrl || visual.image
       };
       if (editingCat) {
         await updateMerchantCategory(editingCat.id, payload);
@@ -1971,82 +2047,245 @@ export default function AdminDashboard() {
           {activeTab === 5 && (
             <Grid container spacing={3} sx={{ flexGrow: 1 }}>
               {/* Categories/Niche Column */}
-              <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
-                <Paper sx={{ p: 3, borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Grid item xs={12} md={7} sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: '20px', boxShadow: '0 4px 20px rgba(15,23,42,0.04)', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff' }}>
+                  {/* Clean Top Header */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5, flexWrap: 'wrap', gap: 1.5 }}>
                     <Box>
-                      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Niches / Categories</Typography>
-                      <Typography variant="caption" color="textSecondary">Manage system store categories</Typography>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#ea580c' }} />
+                        <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', letterSpacing: '-0.3px', fontSize: '1.2rem' }}>
+                          Store Niches & Categories
+                        </Typography>
+                      </Stack>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500, display: 'block', mt: 0.5 }}>
+                        Manage store classifications, icons & audience distribution
+                      </Typography>
                     </Box>
                     <Button
                       variant="contained"
                       size="small"
                       startIcon={<AddIcon />}
                       onClick={() => handleOpenCatModal()}
-                      sx={{ background: T.primaryLight, textTransform: 'none', borderRadius: '8px' }}
+                      sx={{
+                        bgcolor: '#ea580c',
+                        '&:hover': { bgcolor: '#c2410c' },
+                        textTransform: 'none',
+                        borderRadius: '10px',
+                        px: 2,
+                        py: 0.75,
+                        fontWeight: 700,
+                        fontSize: '0.85rem',
+                        boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)'
+                      }}
                     >
                       Add Category
                     </Button>
                   </Box>
 
-                  {/* Filter Audience for Categories */}
-                  <TextField
-                    select
-                    label="Filter Audience"
-                    fullWidth
-                    size="small"
-                    value={activeFilter}
-                    onChange={(e) => { setActiveFilter(e.target.value); setSelectedCatId(null); }}
-                    sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-                  >
-                    <MenuItem value="">All Audiences</MenuItem>
-                    <MenuItem value="MERCHANT">Merchant Only</MenuItem>
-                    <MenuItem value="CONSUMER">Consumer Only</MenuItem>
-                  </TextField>
+                  {/* Summary Metric Chips */}
+                  <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
+                    <Chip
+                      label={`Total: ${categories.length}`}
+                      size="small"
+                      sx={{ fontWeight: 800, bgcolor: '#f1f5f9', color: '#0f172a', borderRadius: '8px' }}
+                    />
+                    <Chip
+                      label={`Consumer B2C: ${categories.filter(c => c.audience === 'CONSUMER').length}`}
+                      size="small"
+                      sx={{ fontWeight: 700, bgcolor: '#eff6ff', color: '#2563eb', borderRadius: '8px' }}
+                    />
+                    <Chip
+                      label={`Merchant B2B: ${categories.filter(c => c.audience === 'MERCHANT').length}`}
+                      size="small"
+                      sx={{ fontWeight: 700, bgcolor: '#fff7ed', color: '#ea580c', borderRadius: '8px' }}
+                    />
+                  </Stack>
 
-                  <TableContainer component={Box} sx={{ flexGrow: 1, maxHeight: 400 }}>
+                  {/* Search Bar & Audience Filters */}
+                  <Grid container spacing={1.5} sx={{ mb: 2 }}>
+                    <Grid item xs={12} sm={7}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        placeholder="Search category name or tag..."
+                        value={categorySearch}
+                        onChange={(e) => setCategorySearch(e.target.value)}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <SearchIcon sx={{ color: '#94a3b8', fontSize: 20 }} />
+                            </InputAdornment>
+                          ),
+                          sx: { borderRadius: '12px', bgcolor: '#f8fafc', fontSize: '0.85rem' }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={5}>
+                      <TextField
+                        select
+                        fullWidth
+                        size="small"
+                        value={activeFilter}
+                        onChange={(e) => { setActiveFilter(e.target.value); setSelectedCatId(null); }}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#f8fafc', fontSize: '0.85rem' } }}
+                      >
+                        <MenuItem value="">All Audiences</MenuItem>
+                        <MenuItem value="MERCHANT">Merchant B2B</MenuItem>
+                        <MenuItem value="CONSUMER">Consumer B2C</MenuItem>
+                      </TextField>
+                    </Grid>
+                  </Grid>
+
+                  {/* Categories Table with Rich Visual Icons */}
+                  <TableContainer component={Box} sx={{ flexGrow: 1, maxHeight: 460, borderRadius: '12px', border: '1px solid #f1f5f9' }}>
                     <Table stickyHeader size="small">
                       <TableHead>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Audience</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Sort</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }} align="right">Actions</TableCell>
+                        <TableRow sx={{ '& th': { bgcolor: '#f8fafc', fontWeight: 800, color: '#475569', fontSize: '0.78rem' } }}>
+                          <TableCell>Icon / Visual</TableCell>
+                          <TableCell>Category Name</TableCell>
+                          <TableCell>Audience</TableCell>
+                          <TableCell align="center">Sort</TableCell>
+                          <TableCell align="right">Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {loading ? (
                           <TableRow>
-                            <TableCell colSpan={4} align="center"><CircularProgress size={24} /></TableCell>
+                            <TableCell colSpan={5} align="center" sx={{ py: 4 }}><CircularProgress size={28} sx={{ color: '#ea580c' }} /></TableCell>
                           </TableRow>
-                        ) : categories.length === 0 ? (
+                        ) : categories.filter(c => {
+                            if (activeFilter && c.audience !== activeFilter) return false;
+                            if (categorySearch.trim()) {
+                              const q = categorySearch.toLowerCase().trim();
+                              return (c.name || '').toLowerCase().includes(q) || (c.audience || '').toLowerCase().includes(q);
+                            }
+                            return true;
+                          }).length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={4} align="center">No Categories constructed yet.</TableCell>
+                            <TableCell colSpan={5} align="center" sx={{ py: 4, color: '#94a3b8' }}>
+                              No categories match your search or filter.
+                            </TableCell>
                           </TableRow>
                         ) : (
-                          categories.map((cat) => (
-                            <TableRow
-                              key={cat.id}
-                              hover
-                              selected={selectedCatId === cat.id}
-                              onClick={() => handleSelectCategoryRow(cat.id)}
-                              sx={{ cursor: 'pointer', '&.Mui-selected': { bgcolor: 'rgba(59,130,246,0.08) !important' } }}
-                            >
-                              <TableCell sx={{ fontWeight: 'bold', color: selectedCatId === cat.id ? T.primaryLight : 'inherit' }}>
-                                {cat.name}
-                              </TableCell>
-                              <TableCell><Chip label={cat.audience} size="small" variant="outlined" sx={{ fontWeight: 'bold', fontSize: '0.65rem' }} /></TableCell>
-                              <TableCell sx={{ fontWeight: 'semibold' }}>{cat.sort_order}</TableCell>
-                              <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                                <IconButton size="small" onClick={() => handleOpenCatModal(cat)} color="primary">
-                                  <EditIcon sx={{ fontSize: 16 }} />
-                                </IconButton>
-                                <IconButton size="small" onClick={() => handleDeleteCategory(cat.id)} color="error">
-                                  <DeleteIcon sx={{ fontSize: 16 }} />
-                                </IconButton>
-                              </TableCell>
-                            </TableRow>
-                          ))
+                          categories.filter(c => {
+                            if (activeFilter && c.audience !== activeFilter) return false;
+                            if (categorySearch.trim()) {
+                              const q = categorySearch.toLowerCase().trim();
+                              return (c.name || '').toLowerCase().includes(q) || (c.audience || '').toLowerCase().includes(q);
+                            }
+                            return true;
+                          }).map((cat) => {
+                            const visual = getCategoryVisual(cat.name, cat.icon_url || cat.iconUrl, cat.icon_name || cat.iconName);
+                            const isSelected = selectedCatId === cat.id;
+                            return (
+                              <TableRow
+                                key={cat.id}
+                                hover
+                                selected={isSelected}
+                                onClick={() => handleSelectCategoryRow(cat.id)}
+                                sx={{
+                                  cursor: 'pointer',
+                                  transition: 'background-color 0.15s ease',
+                                  '&.Mui-selected': { bgcolor: 'rgba(234, 88, 12, 0.08) !important' }
+                                }}
+                              >
+                                <TableCell sx={{ py: 1.2 }}>
+                                  <Box sx={{ position: 'relative', width: 44, height: 44 }}>
+                                    <Avatar
+                                      src={visual.image}
+                                      variant="rounded"
+                                      sx={{
+                                        width: 44,
+                                        height: 44,
+                                        borderRadius: '12px',
+                                        border: '1.5px solid #e2e8f0',
+                                        bgcolor: '#fff7ed',
+                                        fontSize: '1.25rem',
+                                        boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                                      }}
+                                    >
+                                      {visual.icon}
+                                    </Avatar>
+                                    <Box
+                                      sx={{
+                                        position: 'absolute',
+                                        bottom: -3,
+                                        right: -3,
+                                        bgcolor: '#ffffff',
+                                        borderRadius: '50%',
+                                        width: 20,
+                                        height: 20,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '0.75rem',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                                        border: '1px solid #e2e8f0'
+                                      }}
+                                    >
+                                      {visual.icon}
+                                    </Box>
+                                  </Box>
+                                </TableCell>
+                                <TableCell sx={{ py: 1.2 }}>
+                                  <Box>
+                                    <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: isSelected ? '#ea580c' : '#0f172a' }}>
+                                      {cat.name}
+                                    </Typography>
+                                    <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.25 }}>
+                                      <Chip
+                                        label={visual.badge || 'Verified'}
+                                        size="small"
+                                        sx={{
+                                          height: 18,
+                                          fontSize: '0.65rem',
+                                          fontWeight: 800,
+                                          bgcolor: '#fff7ed',
+                                          color: '#ea580c',
+                                          border: '1px solid rgba(234, 88, 12, 0.2)'
+                                        }}
+                                      />
+                                      <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>
+                                        ID #{cat.id}
+                                      </Typography>
+                                    </Stack>
+                                  </Box>
+                                </TableCell>
+                                <TableCell sx={{ py: 1.2 }}>
+                                  <Chip
+                                    label={cat.audience === 'MERCHANT' ? 'B2B Wholesale' : 'B2C Retail'}
+                                    size="small"
+                                    sx={{
+                                      fontWeight: 800,
+                                      fontSize: '0.7rem',
+                                      borderRadius: '8px',
+                                      bgcolor: cat.audience === 'MERCHANT' ? '#fff7ed' : '#eff6ff',
+                                      color: cat.audience === 'MERCHANT' ? '#ea580c' : '#2563eb',
+                                      border: `1px solid ${cat.audience === 'MERCHANT' ? '#fed7aa' : '#bfdbfe'}`
+                                    }}
+                                  />
+                                </TableCell>
+                                <TableCell align="center" sx={{ py: 1.2, fontWeight: 700, color: '#64748b', fontSize: '0.82rem' }}>
+                                  <Box sx={{ px: 1, py: 0.25, borderRadius: '6px', bgcolor: '#f1f5f9', display: 'inline-block' }}>
+                                    {cat.sort_order}
+                                  </Box>
+                                </TableCell>
+                                <TableCell align="right" sx={{ py: 1.2 }} onClick={(e) => e.stopPropagation()}>
+                                  <Tooltip title="Edit Category">
+                                    <IconButton size="small" onClick={() => handleOpenCatModal(cat)} sx={{ color: '#ea580c', '&:hover': { bgcolor: '#fff7ed' } }}>
+                                      <EditIcon sx={{ fontSize: 17 }} />
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip title="Delete Category">
+                                    <IconButton size="small" onClick={() => handleDeleteCategory(cat.id)} sx={{ color: '#ef4444', '&:hover': { bgcolor: '#fef2f2' } }}>
+                                      <DeleteIcon sx={{ fontSize: 17 }} />
+                                    </IconButton>
+                                  </Tooltip>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })
                         )}
                       </TableBody>
                     </Table>
@@ -2055,13 +2294,13 @@ export default function AdminDashboard() {
               </Grid>
 
               {/* Subcategories Column */}
-              <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
-                <Paper sx={{ p: 3, borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+              <Grid item xs={12} md={5} sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: '20px', boxShadow: '0 4px 20px rgba(15,23,42,0.04)', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Box>
-                      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Subcategories</Typography>
-                      <Typography variant="caption" color="textSecondary">
-                        {selectedCatId ? `Belonging to Selected Category (ID: ${selectedCatId})` : 'Select a Category from Left first'}
+                      <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.15rem' }}>Subcategories</Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500 }}>
+                        {selectedCatId ? `Filtered for Category #${selectedCatId}` : 'Select a Category from Left to View'}
                       </Typography>
                     </Box>
                     <Button
@@ -2070,43 +2309,67 @@ export default function AdminDashboard() {
                       disabled={!selectedCatId}
                       startIcon={<AddIcon />}
                       onClick={() => handleOpenSubModal()}
-                      sx={{ background: T.success, textTransform: 'none', borderRadius: '8px', '&.Mui-disabled': { background: '#cbd5e1' } }}
+                      sx={{
+                        bgcolor: '#ea580c',
+                        '&:hover': { bgcolor: '#c2410c' },
+                        textTransform: 'none',
+                        borderRadius: '10px',
+                        px: 1.75,
+                        fontWeight: 700,
+                        '&.Mui-disabled': { bgcolor: '#e2e8f0' }
+                      }}
                     >
                       Add Subcategory
                     </Button>
                   </Box>
 
-                  <TableContainer component={Box} sx={{ flexGrow: 1, maxHeight: 400 }}>
+                  <TableContainer component={Box} sx={{ flexGrow: 1, maxHeight: 460, borderRadius: '12px', border: '1px solid #f1f5f9' }}>
                     <Table size="small">
                       <TableHead>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Subcategory Name</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Audience</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Sort</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }} align="right">Actions</TableCell>
+                        <TableRow sx={{ '& th': { bgcolor: '#f8fafc', fontWeight: 800, color: '#475569', fontSize: '0.78rem' } }}>
+                          <TableCell>Subcategory Name</TableCell>
+                          <TableCell>Audience</TableCell>
+                          <TableCell align="center">Sort</TableCell>
+                          <TableCell align="right">Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {subcategoriesLoading ? (
                           <TableRow>
-                            <TableCell colSpan={4} align="center"><CircularProgress size={24} /></TableCell>
+                            <TableCell colSpan={4} align="center" sx={{ py: 4 }}><CircularProgress size={24} sx={{ color: '#ea580c' }} /></TableCell>
                           </TableRow>
                         ) : !selectedCatId ? (
                           <TableRow>
-                            <TableCell colSpan={4} align="center">Select a Niche Category from the left to view subcategories.</TableCell>
+                            <TableCell colSpan={4} align="center" sx={{ py: 6, color: '#94a3b8' }}>
+                              Select a Niche Category from the left to view subcategories.
+                            </TableCell>
                           </TableRow>
                         ) : subcategories.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={4} align="center">No active subcategories constructed for this category yet.</TableCell>
+                            <TableCell colSpan={4} align="center" sx={{ py: 6, color: '#94a3b8' }}>
+                              No active subcategories constructed for this category yet.
+                            </TableCell>
                           </TableRow>
                         ) : (
                           subcategories.map((sub) => (
                             <TableRow key={sub.id} hover>
-                              <TableCell sx={{ fontWeight: 'bold' }}>{sub.name}</TableCell>
-                              <TableCell><Chip label={sub.audience} size="small" variant="outlined" sx={{ fontWeight: 'bold', fontSize: '0.65rem' }} /></TableCell>
-                              <TableCell sx={{ fontWeight: 'semibold' }}>{sub.sort_order}</TableCell>
-                              <TableCell align="right">
-                                <IconButton size="small" onClick={() => handleOpenSubModal(sub)} color="primary">
+                              <TableCell sx={{ fontWeight: 800, color: '#0f172a', py: 1.2 }}>{sub.name}</TableCell>
+                              <TableCell sx={{ py: 1.2 }}>
+                                <Chip
+                                  label={sub.audience === 'MERCHANT' ? 'B2B Wholesale' : 'B2C Retail'}
+                                  size="small"
+                                  sx={{
+                                    fontWeight: 700,
+                                    fontSize: '0.65rem',
+                                    borderRadius: '6px',
+                                    bgcolor: sub.audience === 'MERCHANT' ? '#fff7ed' : '#eff6ff',
+                                    color: sub.audience === 'MERCHANT' ? '#ea580c' : '#2563eb'
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell align="center" sx={{ py: 1.2, fontWeight: 700, color: '#64748b' }}>{sub.sort_order}</TableCell>
+                              <TableCell align="right" sx={{ py: 1.2 }}>
+                                <IconButton size="small" onClick={() => handleOpenSubModal(sub)} sx={{ color: '#ea580c' }}>
                                   <EditIcon sx={{ fontSize: 16 }} />
                                 </IconButton>
                                 <IconButton size="small" onClick={() => handleDeleteSubcategory(sub.id)} color="error">
@@ -2126,65 +2389,145 @@ export default function AdminDashboard() {
 
           {/* VIEW 6: Online Product Categories */}
           {activeTab === 6 && (
-            <Paper sx={{ p: 3, borderRadius: '16px', boxShadow: 'none', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: '20px', boxShadow: '0 4px 20px rgba(15,23,42,0.04)', border: `1px solid ${T.border}`, flexGrow: 1, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 1.5 }}>
                 <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Online Product Categories</Typography>
-                  <Typography variant="caption" color="textSecondary">Categories displayed as pills in the consumer Online Marketplace</Typography>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#ea580c' }} />
+                    <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', letterSpacing: '-0.3px', fontSize: '1.2rem' }}>
+                      Online Marketplace Categories ({onlineCategories.length})
+                    </Typography>
+                  </Stack>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500, display: 'block', mt: 0.5 }}>
+                    Categories displayed as browse pills, master cards and filters across the Online Marketplace
+                  </Typography>
                 </Box>
-                <Button variant="contained" size="small" startIcon={<AddIcon />} onClick={() => handleOpenOnlineCatModal()}
-                  sx={{ background: T.success, textTransform: 'none', borderRadius: '8px' }}>
-                  Add Category
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={() => handleOpenOnlineCatModal()}
+                  sx={{
+                    bgcolor: '#ea580c',
+                    '&:hover': { bgcolor: '#c2410c' },
+                    textTransform: 'none',
+                    borderRadius: '10px',
+                    px: 2,
+                    py: 0.75,
+                    fontWeight: 700,
+                    fontSize: '0.85rem',
+                    boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)'
+                  }}
+                >
+                  Add Online Category
                 </Button>
               </Box>
 
-              <TableContainer component={Box} sx={{ maxHeight: 520 }}>
+              <TableContainer component={Box} sx={{ maxHeight: 560, borderRadius: '12px', border: '1px solid #f1f5f9' }}>
                 <Table stickyHeader size="small">
                   <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Slug</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Icon</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Color</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Sort</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Active</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }} align="right">Actions</TableCell>
+                    <TableRow sx={{ '& th': { bgcolor: '#f8fafc', fontWeight: 800, color: '#475569', fontSize: '0.78rem' } }}>
+                      <TableCell>Visual / Icon</TableCell>
+                      <TableCell>Category Name</TableCell>
+                      <TableCell>Slug</TableCell>
+                      <TableCell>Brand Color</TableCell>
+                      <TableCell align="center">Sort</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell align="right">Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {onlineCatLoading ? (
-                      <TableRow><TableCell colSpan={8} align="center"><CircularProgress size={24} /></TableCell></TableRow>
+                      <TableRow><TableCell colSpan={7} align="center" sx={{ py: 4 }}><CircularProgress size={28} sx={{ color: '#ea580c' }} /></TableCell></TableRow>
                     ) : onlineCategories.length === 0 ? (
-                      <TableRow><TableCell colSpan={8} align="center">No online categories yet. Click "Add Category" to create one.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={7} align="center" sx={{ py: 6, color: '#94a3b8' }}>No online categories yet. Click "Add Online Category" to create one.</TableCell></TableRow>
                     ) : (
-                      onlineCategories.map(cat => (
-                        <TableRow key={cat.id} hover>
-                          <TableCell>{cat.id}</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>{cat.name}</TableCell>
-                          <TableCell sx={{ fontSize: '0.75rem', color: '#64748b' }}>{cat.slug}</TableCell>
-                          <TableCell sx={{ fontSize: '0.75rem' }}>{cat.icon_name}</TableCell>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Box sx={{ width: 16, height: 16, borderRadius: '50%', bgcolor: cat.color || '#0d9488', border: '1px solid #e2e8f0' }} />
-                              <Typography variant="caption">{cat.color}</Typography>
-                            </Box>
-                          </TableCell>
-                          <TableCell>{cat.sort_order}</TableCell>
-                          <TableCell>
-                            <Chip label={cat.is_active ? 'Active' : 'Hidden'} size="small"
-                              sx={{ bgcolor: cat.is_active ? '#ecfdf5' : '#fef2f2', color: cat.is_active ? '#059669' : '#dc2626', fontWeight: 700, fontSize: '0.65rem' }} />
-                          </TableCell>
-                          <TableCell align="right">
-                            <IconButton size="small" onClick={() => handleOpenOnlineCatModal(cat)} color="primary">
-                              <EditIcon sx={{ fontSize: 16 }} />
-                            </IconButton>
-                            <IconButton size="small" onClick={() => handleDeleteOnlineCategory(cat.id)} color="error">
-                              <DeleteIcon sx={{ fontSize: 16 }} />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      onlineCategories.map(cat => {
+                        const visual = getCategoryVisual(cat.name, cat.icon_url, cat.icon_name);
+                        return (
+                          <TableRow key={cat.id} hover sx={{ '&:hover': { bgcolor: '#f8fafc' } }}>
+                            <TableCell sx={{ py: 1.2 }}>
+                              <Box sx={{ position: 'relative', width: 42, height: 42 }}>
+                                <Avatar
+                                  src={cat.icon_url || visual.image}
+                                  variant="rounded"
+                                  sx={{
+                                    width: 42,
+                                    height: 42,
+                                    borderRadius: '10px',
+                                    border: '1.5px solid #e2e8f0',
+                                    bgcolor: '#fff7ed',
+                                    fontSize: '1.1rem'
+                                  }}
+                                >
+                                  {visual.icon}
+                                </Avatar>
+                                <Box
+                                  sx={{
+                                    position: 'absolute',
+                                    bottom: -3,
+                                    right: -3,
+                                    bgcolor: '#ffffff',
+                                    borderRadius: '50%',
+                                    width: 18,
+                                    height: 18,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '0.7rem',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                                    border: '1px solid #e2e8f0'
+                                  }}
+                                >
+                                  {visual.icon}
+                                </Box>
+                              </Box>
+                            </TableCell>
+                            <TableCell sx={{ py: 1.2 }}>
+                              <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>{cat.name}</Typography>
+                              <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>Icon: {cat.icon_name || visual.iconName}</Typography>
+                            </TableCell>
+                            <TableCell sx={{ fontSize: '0.75rem', color: '#64748b', py: 1.2 }}>
+                              <Box component="code" sx={{ bgcolor: '#f1f5f9', px: 1, py: 0.3, borderRadius: '6px', fontSize: '0.72rem' }}>
+                                {cat.slug}
+                              </Box>
+                            </TableCell>
+                            <TableCell sx={{ py: 1.2 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: cat.color || '#ea580c', border: '1.5px solid #ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569' }}>{cat.color}</Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell align="center" sx={{ py: 1.2, fontWeight: 700, color: '#64748b' }}>
+                              <Box sx={{ px: 1, py: 0.25, borderRadius: '6px', bgcolor: '#f1f5f9', display: 'inline-block' }}>
+                                {cat.sort_order}
+                              </Box>
+                            </TableCell>
+                            <TableCell sx={{ py: 1.2 }}>
+                              <Chip
+                                label={cat.is_active ? 'Active' : 'Hidden'}
+                                size="small"
+                                sx={{
+                                  bgcolor: cat.is_active ? '#ecfdf5' : '#fef2f2',
+                                  color: cat.is_active ? '#059669' : '#dc2626',
+                                  fontWeight: 800,
+                                  fontSize: '0.65rem',
+                                  borderRadius: '6px',
+                                  border: `1px solid ${cat.is_active ? '#a7f3d0' : '#fecaca'}`
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell align="right" sx={{ py: 1.2 }}>
+                              <IconButton size="small" onClick={() => handleOpenOnlineCatModal(cat)} sx={{ color: '#ea580c' }}>
+                                <EditIcon sx={{ fontSize: 16 }} />
+                              </IconButton>
+                              <IconButton size="small" onClick={() => handleDeleteOnlineCategory(cat.id)} color="error">
+                                <DeleteIcon sx={{ fontSize: 16 }} />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>
@@ -2360,29 +2703,100 @@ export default function AdminDashboard() {
           )}
 
           {/* Online Category Modal */}
-          <Dialog open={onlineCatModalOpen} onClose={() => setOnlineCatModalOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
-            <DialogTitle sx={{ fontWeight: 'bold' }}>{editingOnlineCat ? 'Edit Online Category' : 'Add Online Category'}</DialogTitle>
-            <Divider />
-            <DialogContent sx={{ pt: 2 }}>
+          <Dialog open={onlineCatModalOpen} onClose={() => setOnlineCatModalOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px', p: 1 } }}>
+            <DialogTitle sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.2rem', pb: 1 }}>
+              {editingOnlineCat ? 'Edit Online Category' : 'Add Online Category'}
+            </DialogTitle>
+            <DialogContent sx={{ pt: 1 }}>
+              {(() => {
+                const previewVisual = getCategoryVisual(onlineCatForm.name || 'Online Category', null, onlineCatForm.iconName);
+                return (
+                  <Box
+                    sx={{
+                      mb: 2.5,
+                      p: 2,
+                      borderRadius: '16px',
+                      bgcolor: '#fff7ed',
+                      border: '1.5px dashed #ea580c',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                    }}
+                  >
+                    <Box sx={{ position: 'relative', width: 48, height: 48 }}>
+                      <Avatar
+                        src={previewVisual.image}
+                        variant="rounded"
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: '12px',
+                          border: '2px solid #ffffff',
+                          bgcolor: '#ffffff'
+                        }}
+                      >
+                        {previewVisual.icon}
+                      </Avatar>
+                    </Box>
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography variant="caption" sx={{ color: '#ea580c', fontWeight: 800, textTransform: 'uppercase', fontSize: '0.65rem' }}>
+                        Live Pill Preview
+                      </Typography>
+                      <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: '#0f172a' }}>
+                        {onlineCatForm.name || 'Category Name'}
+                      </Typography>
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                        <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: onlineCatForm.color || '#ea580c' }} />
+                        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700 }}>
+                          Color: {onlineCatForm.color || '#ea580c'}
+                        </Typography>
+                      </Stack>
+                    </Box>
+                  </Box>
+                );
+              })()}
+
               <Stack gap={2}>
                 <TextField label="Category Name" value={onlineCatForm.name} size="small" fullWidth
-                  onChange={e => setOnlineCatForm(f => ({ ...f, name: e.target.value }))} />
-                <TextField label="Icon Name (MUI icon slug)" value={onlineCatForm.iconName} size="small" fullWidth
-                  helperText="e.g. category, storefront, local_offer"
-                  onChange={e => setOnlineCatForm(f => ({ ...f, iconName: e.target.value }))} />
-                <TextField label="Color (hex)" value={onlineCatForm.color} size="small" fullWidth
-                  InputProps={{ startAdornment: <Box sx={{ width: 16, height: 16, borderRadius: '50%', bgcolor: onlineCatForm.color, border: '1px solid #e2e8f0', mr: 1 }} /> }}
-                  onChange={e => setOnlineCatForm(f => ({ ...f, color: e.target.value }))} />
+                  onChange={e => setOnlineCatForm(f => ({ ...f, name: e.target.value }))}
+                  InputProps={{ sx: { borderRadius: '12px' } }} />
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField label="Icon Slug (e.g. eco, fastfood)" value={onlineCatForm.iconName} size="small" fullWidth
+                      helperText="e.g. eco, egg_alt, grain, devices"
+                      onChange={e => setOnlineCatForm(f => ({ ...f, iconName: e.target.value }))}
+                      InputProps={{ sx: { borderRadius: '12px' } }} />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField label="Color (hex)" value={onlineCatForm.color} size="small" fullWidth
+                      InputProps={{
+                        startAdornment: <Box sx={{ width: 16, height: 16, borderRadius: '50%', bgcolor: onlineCatForm.color, border: '1px solid #e2e8f0', mr: 1 }} />,
+                        sx: { borderRadius: '12px' }
+                      }}
+                      onChange={e => setOnlineCatForm(f => ({ ...f, color: e.target.value }))} />
+                  </Grid>
+                </Grid>
                 <TextField label="Sort Order" value={onlineCatForm.sortOrder} size="small" type="number" fullWidth
-                  onChange={e => setOnlineCatForm(f => ({ ...f, sortOrder: e.target.value }))} />
+                  placeholder="e.g. 1, 2, 3"
+                  onChange={e => setOnlineCatForm(f => ({ ...f, sortOrder: e.target.value }))}
+                  InputProps={{ sx: { borderRadius: '12px' } }} />
               </Stack>
             </DialogContent>
-            <Divider />
             <DialogActions sx={{ px: 3, py: 2 }}>
-              <Button onClick={() => setOnlineCatModalOpen(false)} sx={{ color: '#94a3b8' }}>Cancel</Button>
-              <Button variant="contained" onClick={handleSaveOnlineCategory}
-                sx={{ background: T.success, '&:hover': { background: '#059669' }, borderRadius: 2 }}>
-                {editingOnlineCat ? 'Save Changes' : 'Create'}
+              <Button onClick={() => setOnlineCatModalOpen(false)} sx={{ color: '#64748b', fontWeight: 700 }}>Cancel</Button>
+              <Button
+                variant="contained"
+                onClick={handleSaveOnlineCategory}
+                sx={{
+                  bgcolor: '#ea580c',
+                  '&:hover': { bgcolor: '#c2410c' },
+                  borderRadius: '10px',
+                  px: 2.5,
+                  fontWeight: 800,
+                  textTransform: 'none'
+                }}
+              >
+                {editingOnlineCat ? 'Save Changes' : 'Create Category'}
               </Button>
             </DialogActions>
           </Dialog>
@@ -2986,40 +3400,211 @@ export default function AdminDashboard() {
       </Dialog>
 
       {/* Category Creation/Edit Modal */}
-      <Dialog open={catModalOpen} onClose={() => setCatModalOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 'bold' }}>{editingCat ? 'Edit Niche Category' : 'Create Niche Category'}</DialogTitle>
+      <Dialog
+        open={catModalOpen}
+        onClose={() => setCatModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '20px', p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.2rem', pb: 1 }}>
+          {editingCat ? 'Edit Store Category' : 'Create New Store Category'}
+        </DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1.5 }}>
+          {/* Live Visual Preview Card */}
+          {(() => {
+            const previewVisual = getCategoryVisual(catForm.name || 'Category Name', catForm.iconUrl, catForm.iconName);
+            return (
+              <Box
+                sx={{
+                  mb: 3,
+                  p: 2,
+                  borderRadius: '16px',
+                  bgcolor: '#fff7ed',
+                  border: '1.5px dashed #ea580c',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                }}
+              >
+                <Box sx={{ position: 'relative', width: 52, height: 52 }}>
+                  <Avatar
+                    src={previewVisual.image}
+                    variant="rounded"
+                    sx={{
+                      width: 52,
+                      height: 52,
+                      borderRadius: '14px',
+                      border: '2px solid #ffffff',
+                      boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+                      bgcolor: '#ffffff'
+                    }}
+                  >
+                    {previewVisual.icon}
+                  </Avatar>
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      bottom: -4,
+                      right: -4,
+                      bgcolor: '#ffffff',
+                      borderRadius: '50%',
+                      width: 22,
+                      height: 22,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.8rem',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.15)'
+                    }}
+                  >
+                    {previewVisual.icon}
+                  </Box>
+                </Box>
+                <Box sx={{ flexGrow: 1 }}>
+                  <Typography variant="caption" sx={{ color: '#ea580c', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.65rem' }}>
+                    Live Customer & Marketplace Preview
+                  </Typography>
+                  <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: '#0f172a' }}>
+                    {catForm.name || 'Category Name'}
+                  </Typography>
+                  <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
+                    <Chip
+                      label={catForm.audience === 'MERCHANT' ? 'B2B Wholesale' : 'B2C Retail'}
+                      size="small"
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: '0.65rem',
+                        bgcolor: catForm.audience === 'MERCHANT' ? '#ffedd5' : '#dbeafe',
+                        color: catForm.audience === 'MERCHANT' ? '#c2410c' : '#1d4ed8'
+                      }}
+                    />
+                    <Chip
+                      label={previewVisual.badge}
+                      size="small"
+                      sx={{ fontWeight: 700, fontSize: '0.65rem', bgcolor: '#ffffff', color: '#475569' }}
+                    />
+                  </Stack>
+                </Box>
+              </Box>
+            );
+          })()}
+
+          {/* Quick Preset Pickers */}
+          <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', display: 'block', mb: 1 }}>
+            Quick Presets (Click to autofill icons & image):
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: 2.5 }}>
+            {[
+              { name: 'Vegetables & Fruits', icon: '🥦', iconName: 'eco', image: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=300&q=80', audience: 'CONSUMER' },
+              { name: 'Dairy, Bread & Eggs', icon: '🥛', iconName: 'egg_alt', image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=300&q=80', audience: 'CONSUMER' },
+              { name: 'Atta, Rice & Dal', icon: '🌾', iconName: 'grain', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=300&q=80', audience: 'MERCHANT' },
+              { name: 'Snacks & Drinks', icon: '🍿', iconName: 'fastfood', image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=300&q=80', audience: 'CONSUMER' },
+              { name: 'Wholesale & Bulk', icon: '📦', iconName: 'inventory', image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=300&q=80', audience: 'MERCHANT' },
+              { name: 'Grocery & Daily Needs', icon: '🛒', iconName: 'shopping_cart', image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80', audience: 'CONSUMER' },
+              { name: 'Health & Medical', icon: '💊', iconName: 'local_hospital', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=300&q=80', audience: 'CONSUMER' },
+              { name: 'Electronics & Mobiles', icon: '📱', iconName: 'devices', image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=300&q=80', audience: 'CONSUMER' },
+              { name: 'Mechanic & Repairs', icon: '🛠️', iconName: 'build', image: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=300&q=80', audience: 'CONSUMER' }
+            ].map(p => (
+              <Chip
+                key={p.name}
+                label={`${p.icon} ${p.name}`}
+                onClick={() => setCatForm(prev => ({
+                  ...prev,
+                  name: p.name,
+                  iconName: p.iconName,
+                  iconUrl: p.image,
+                  audience: p.audience
+                }))}
+                sx={{
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  bgcolor: catForm.name === p.name ? '#ea580c' : '#f1f5f9',
+                  color: catForm.name === p.name ? '#ffffff' : '#334155',
+                  '&:hover': { bgcolor: catForm.name === p.name ? '#c2410c' : '#e2e8f0' }
+                }}
+              />
+            ))}
+          </Box>
+
+          <Stack spacing={2}>
             <TextField
               label="Category Name"
               fullWidth
+              size="small"
               value={catForm.name}
               onChange={(e) => setCatForm(prev => ({ ...prev, name: e.target.value }))}
+              InputProps={{ sx: { borderRadius: '12px' } }}
+            />
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Target Audience"
+                  select
+                  fullWidth
+                  size="small"
+                  value={catForm.audience}
+                  onChange={(e) => setCatForm(prev => ({ ...prev, audience: e.target.value }))}
+                  InputProps={{ sx: { borderRadius: '12px' } }}
+                >
+                  <MenuItem value="MERCHANT">Merchant Only (B2B Wholesale)</MenuItem>
+                  <MenuItem value="CONSUMER">Consumer Only (B2C Retail)</MenuItem>
+                </TextField>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Sort Order"
+                  type="number"
+                  fullWidth
+                  size="small"
+                  placeholder="e.g. 10, 20"
+                  value={catForm.sortOrder}
+                  onChange={(e) => setCatForm(prev => ({ ...prev, sortOrder: e.target.value }))}
+                  InputProps={{ sx: { borderRadius: '12px' } }}
+                />
+              </Grid>
+            </Grid>
+            <TextField
+              label="Image URL (Unsplash or CDN)"
+              fullWidth
+              size="small"
+              placeholder="https://images.unsplash.com/photo-..."
+              value={catForm.iconUrl}
+              onChange={(e) => setCatForm(prev => ({ ...prev, iconUrl: e.target.value }))}
+              InputProps={{ sx: { borderRadius: '12px' } }}
+              helperText="Optional - Enter a direct high-res image link"
             />
             <TextField
-              label="Audience"
-              select
+              label="Icon Slug (e.g. eco, egg_alt, shopping_cart, build)"
               fullWidth
-              value={catForm.audience}
-              onChange={(e) => setCatForm(prev => ({ ...prev, audience: e.target.value }))}
-            >
-              <MenuItem value="MERCHANT">Merchant Only (B2B)</MenuItem>
-              <MenuItem value="CONSUMER">Consumer Only (B2C)</MenuItem>
-            </TextField>
-            <TextField
-              label="Sort Order"
-              type="number"
-              fullWidth
-              placeholder="e.g. 1, 2, 3"
-              value={catForm.sortOrder}
-              onChange={(e) => setCatForm(prev => ({ ...prev, sortOrder: e.target.value }))}
-              helperText="Optional - Left blank to auto-arrange"
+              size="small"
+              placeholder="eco, shopping_cart, build"
+              value={catForm.iconName}
+              onChange={(e) => setCatForm(prev => ({ ...prev, iconName: e.target.value }))}
+              InputProps={{ sx: { borderRadius: '12px' } }}
             />
-          </Box>
+          </Stack>
         </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setCatModalOpen(false)}>Cancel</Button>
-          <Button variant="contained" color="primary" onClick={handleSaveCategory}>Save Category</Button>
+        <DialogActions sx={{ p: 2.5, pt: 1 }}>
+          <Button onClick={() => setCatModalOpen(false)} sx={{ color: '#64748b', fontWeight: 700 }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSaveCategory}
+            sx={{
+              bgcolor: '#ea580c',
+              '&:hover': { bgcolor: '#c2410c' },
+              borderRadius: '10px',
+              px: 3,
+              fontWeight: 800,
+              textTransform: 'none'
+            }}
+          >
+            Save Category
+          </Button>
         </DialogActions>
       </Dialog>
 
