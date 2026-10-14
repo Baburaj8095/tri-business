@@ -353,6 +353,30 @@ export default function BusinessShops() {
     }
   };
 
+  const handleShopPincodeChange = async (e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+    setForm(p => ({ ...p, pincode: val }));
+
+    if (val.length === 6) {
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${val}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data[0]?.Status === 'Success' && Array.isArray(data[0]?.PostOffice) && data[0].PostOffice.length > 0) {
+            const po = data[0].PostOffice[0];
+            setForm(p => ({
+              ...p,
+              city: po.District || po.Block || p.city,
+              state: po.State || p.state,
+            }));
+          }
+        }
+      } catch (err) {
+        console.warn("Could not auto-fetch shop pincode details:", err);
+      }
+    }
+  };
+
   const startEdit = (shop) => {
     // Resolve category matching with merchant categories
     let resolvedCategory = "";
@@ -784,7 +808,7 @@ export default function BusinessShops() {
                         fullWidth
                         placeholder="Enter Pincode"
                         value={form.pincode}
-                        onChange={(e) => setForm(p => ({ ...p, pincode: e.target.value }))}
+                        onChange={handleShopPincodeChange}
                         sx={inputSx}
                       />
                     </Box>

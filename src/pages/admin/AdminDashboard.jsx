@@ -41,7 +41,8 @@ import {
   ListItemIcon,
   ListItemText,
   CssBaseline,
-  Stack
+  Stack,
+  InputAdornment
 } from '@mui/material';
 import {
   AdminPanelSettings as ShieldIcon,
@@ -185,6 +186,37 @@ export default function AdminDashboard() {
   });
   const [createdCaptainOutcome, setCreatedCaptainOutcome] = useState(null);
   const [outcomeModalOpen, setOutcomeModalOpen] = useState(false);
+
+  const [captainPincodeLoading, setCaptainPincodeLoading] = useState(false);
+
+  const handleCaptainPincodeChange = async (e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+    setCreateCaptainForm(p => ({ ...p, pincode: val }));
+
+    if (val.length === 6) {
+      setCaptainPincodeLoading(true);
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${val}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data[0]?.Status === 'Success' && Array.isArray(data[0]?.PostOffice) && data[0].PostOffice.length > 0) {
+            const po = data[0].PostOffice[0];
+            const resolvedDistrict = po.District || po.Block || '';
+            const resolvedState = po.State || '';
+            setCreateCaptainForm(p => ({
+              ...p,
+              district: resolvedDistrict || p.district,
+              state: resolvedState || p.state,
+            }));
+          }
+        }
+      } catch (err) {
+        console.warn("Could not auto-fetch pincode details:", err);
+      } finally {
+        setCaptainPincodeLoading(false);
+      }
+    }
+  };
 
   const handleOpenCreateCaptain = () => {
     setCreateCaptainForm({
@@ -2737,9 +2769,16 @@ export default function AdminDashboard() {
               <TextField
                 fullWidth
                 size="small"
-                placeholder="e.g. 600001"
+                placeholder="e.g. 560001"
                 value={createCaptainForm.pincode}
-                onChange={(e) => setCreateCaptainForm(p => ({ ...p, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
+                onChange={handleCaptainPincodeChange}
+                InputProps={{
+                  endAdornment: captainPincodeLoading ? (
+                    <InputAdornment position="end">
+                      <CircularProgress size={16} sx={{ color: '#047857' }} />
+                    </InputAdornment>
+                  ) : null
+                }}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
               />
             </Grid>
