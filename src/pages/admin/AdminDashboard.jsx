@@ -503,6 +503,7 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error("Dashboard fetch error:", err);
       generateMockData();
+      setToast({ open: true, type: 'error', message: 'Backend connection failed: unable to fetch live data.' });
     } finally {
       setLoading(false);
     }
@@ -748,25 +749,13 @@ export default function AdminDashboard() {
   };
 
   const generateMockData = () => {
-    setStats({ totalCaptains: 4, activeCaptains: 2, pendingKyc: 2, registeredThisMonth: 4, totalB2B: 3, totalB2C: 2 });
-    setCaptains([
-      { id: 1, username: 'CB9876543210', full_name: 'Baburaj Balaji', phone: '9876543210', pincode: '600001', sponsor_id: 'TRPN8095809500', is_active: true, date_joined: new Date().toISOString(), kyc_status: 'APPROVED' },
-      { id: 2, username: 'CB9876543211', full_name: 'Anish Kumar', phone: '9876543211', pincode: '600002', sponsor_id: 'CB9876543210', is_active: false, date_joined: new Date().toISOString(), kyc_status: 'PENDING' },
-      { id: 3, username: 'CB9876543212', full_name: 'Rahul Nair', phone: '9876543212', pincode: '600003', sponsor_id: 'TRPN8095809500', is_active: false, date_joined: new Date().toISOString(), kyc_status: 'REJECTED' },
-      { id: 4, username: 'CB9876543213', full_name: 'Suresh Raina', phone: '9876543213', pincode: '600004', sponsor_id: 'CB9876543210', is_active: true, date_joined: new Date().toISOString(), kyc_status: 'PENDING' }
-    ]);
-    setTotalCaptains(4);
-
-    setMerchants([
-      { id: 101, username: 'NSB2B9876543210', full_name: 'Baburaj Balaji B2B', phone: '9876543210', pincode: '600001', shop_name: 'Baburaj Wholesale Store', address: '456 Market Lane', city: 'Chennai', is_active: true, discount_percent: 10.0, date_joined: new Date().toISOString() },
-      { id: 102, username: 'NSB2C9876543210', full_name: 'Baburaj Balaji B2C', phone: '9876543210', pincode: '600001', shop_name: 'Baburaj Retail Shop', address: '123 Retail Road', city: 'Chennai', is_active: true, discount_percent: 5.0, date_joined: new Date().toISOString() }
-    ]);
-    setTotalMerchants(2);
-
+    setStats({ totalCaptains: 0, activeCaptains: 0, pendingKyc: 0, registeredThisMonth: 0, totalB2B: 0, totalB2C: 0 });
+    setCaptains([]);
+    setTotalCaptains(0);
+    setMerchants([]);
+    setTotalMerchants(0);
     if (role === 'SUPER_ADMIN') {
-      setSubAdmins([
-        { id: 1, username: 'subadmin1', email: 'sub1@trikonekt.com', role: 'SUB_ADMIN', modules: 'captains,kyc' }
-      ]);
+      setSubAdmins([]);
     }
   };
 
