@@ -42,8 +42,8 @@ export default function StoreRegistrationWizardPage() {
   const [formData, setFormData] = useState({
     shopName: '',
     category: '',
-    mobileNumber: '9876543210',
-    email: '',
+    mobileNumber: localStorage.getItem('business_phone') || localStorage.getItem('user_phone') || '',
+    email: localStorage.getItem('business_email') || localStorage.getItem('user_email') || '',
     fullAddress: '',
     landmark: '',
     city: 'Bengaluru',
@@ -156,6 +156,7 @@ export default function StoreRegistrationWizardPage() {
 
     try {
       const token = localStorage.getItem('token_business') || localStorage.getItem('token_captain');
+      const serviceMode = localStorage.getItem('service_mode_business') || 'ONLINE';
 
       const payload = {
         shop_name: formData.shopName,
@@ -170,6 +171,7 @@ export default function StoreRegistrationWizardPage() {
         description: `${formData.category} store registered via Trikonekt Business`,
         home_delivery_enabled: true,
         delivery_radius_km: 15.0,
+        service_mode: serviceMode,
       };
 
       let res = await fetch(`${CAPTAIN_API}/captain/merchant/shops`, {
@@ -191,6 +193,7 @@ export default function StoreRegistrationWizardPage() {
           city: formData.city,
           contact_number: formData.mobileNumber,
           shop_image: formData.shopPhotoPreview,
+          service_mode: serviceMode,
         };
         localStorage.setItem('tri_business_active_shop', JSON.stringify(mockShop));
       } else {
@@ -202,6 +205,7 @@ export default function StoreRegistrationWizardPage() {
       navigate('/business-dashboard', { replace: true });
     } catch (err) {
       // Graceful fallback
+      const serviceMode = localStorage.getItem('service_mode_business') || 'ONLINE';
       const mockShop = {
         id: Date.now(),
         shop_name: formData.shopName,
@@ -210,6 +214,7 @@ export default function StoreRegistrationWizardPage() {
         city: formData.city,
         contact_number: formData.mobileNumber,
         shop_image: formData.shopPhotoPreview,
+        service_mode: serviceMode,
       };
       localStorage.setItem('tri_business_active_shop', JSON.stringify(mockShop));
       navigate('/business-dashboard', { replace: true });

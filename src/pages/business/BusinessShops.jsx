@@ -151,34 +151,39 @@ export default function BusinessShops() {
   const [profile, setProfile] = useState(null);
 
   const emptyForm = useMemo(
-    () => ({
-      id: null,
-      shop_name: "",
-      address: "",
-      city: "",
-      latitude: "",
-      longitude: "",
-      contact_number: "",
-      shop_image: null,
-      shop_image_url: "",
-      email: "",
-      category: "",
-      state: "",
-      pincode: "",
-      description: "",
-      banner: null,
-      banner_url: "",
-      gst_number: "",
-      pan_number: "",
-      business_reg_number: "",
-      home_delivery_enabled: false,
-      delivery_radius_km: "5",
-      min_order_value: "0",
-      base_delivery_fee: "0",
-      discount_percent: "",
-      scan_pay_commission_percent: "",
-      business_documents: [],
-    }),
+    () => {
+      const storedMode = localStorage.getItem('service_mode_business');
+      const defaultMode = storedMode === 'OFFLINE' ? 'OFFLINE' : 'ONLINE';
+      return {
+        id: null,
+        shop_name: "",
+        service_mode: defaultMode,
+        address: "",
+        city: "",
+        latitude: "",
+        longitude: "",
+        contact_number: "",
+        shop_image: null,
+        shop_image_url: "",
+        email: "",
+        category: "",
+        state: "",
+        pincode: "",
+        description: "",
+        banner: null,
+        banner_url: "",
+        gst_number: "",
+        pan_number: "",
+        business_reg_number: "",
+        home_delivery_enabled: false,
+        delivery_radius_km: "5",
+        min_order_value: "0",
+        base_delivery_fee: "0",
+        discount_percent: "",
+        scan_pay_commission_percent: "",
+        business_documents: [],
+      };
+    },
     []
   );
 
@@ -208,7 +213,18 @@ export default function BusinessShops() {
   useEffect(() => {
     fetchShops();
     getMerchantProfile()
-      .then(p => setProfile(p))
+      .then(p => {
+        setProfile(p);
+        const resolvedMode = (p?.service_mode === 'OFFLINE' || p?.service_mode === 'ONLINE')
+          ? p.service_mode
+          : (localStorage.getItem('service_mode_business') === 'OFFLINE' ? 'OFFLINE' : 'ONLINE');
+        setForm(prev => {
+          if (!prev.id) {
+            return { ...prev, service_mode: resolvedMode };
+          }
+          return prev;
+        });
+      })
       .catch(err => console.error("Error loading profile in BusinessShops:", err));
   }, []);
 
@@ -234,7 +250,13 @@ export default function BusinessShops() {
   }, []);
 
   const resetForm = () => {
-    setForm(emptyForm);
+    const resolvedMode = (profile?.service_mode === 'OFFLINE' || profile?.service_mode === 'ONLINE')
+      ? profile.service_mode
+      : (localStorage.getItem('service_mode_business') === 'OFFLINE' ? 'OFFLINE' : 'ONLINE');
+    setForm({
+      ...emptyForm,
+      service_mode: resolvedMode,
+    });
     setSuccess("");
     setError("");
     setShowMapPicker(false);
@@ -399,9 +421,13 @@ export default function BusinessShops() {
     const resolvedPincode = shop.pincode || profile?.pincode || localStorage.getItem('business_pincode') || "560001";
     const resolvedDescription = shop.description || (shop.shop_name ? `${shop.shop_name} Outlet Store` : "Official Store Outlet");
 
+    const rawMode = String(shop.serviceMode || shop.service_mode || "").toUpperCase();
+    const resolvedServiceMode = rawMode === 'OFFLINE' ? 'OFFLINE' : 'ONLINE';
+
     setForm({
       id: shop.id,
       shop_name: shop.shop_name || profile?.business_name || "Store",
+      service_mode: resolvedServiceMode,
       address: resolvedAddress,
       city: resolvedCity,
       latitude: shop.latitude || "",
@@ -472,6 +498,7 @@ export default function BusinessShops() {
 
     const payload = {
       shop_name: form.shop_name,
+      service_mode: form.service_mode === 'OFFLINE' ? 'OFFLINE' : 'ONLINE',
       address: form.address,
       city: form.city || "Indiranagar",
       latitude: form.latitude || "0.0",
@@ -613,6 +640,55 @@ export default function BusinessShops() {
                         onChange={(e) => setForm(p => ({ ...p, shop_name: e.target.value }))}
                         sx={inputSx}
                       />
+                    </Box>
+
+                    {/* Service Mode Selector - Strictly ONLINE or OFFLINE, never BOTH */}
+                    <Box>
+                      <Typography sx={labelSx}>Service Mode *</Typography>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mt: 0.5 }}>
+                        <Box
+                          onClick={() => setForm(p => ({ ...p, service_mode: 'ONLINE' }))}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: '12px',
+                            border: `2px solid ${form.service_mode === 'ONLINE' ? T.primary : T.border}`,
+                            bgcolor: form.service_mode === 'ONLINE' ? T.primaryLight : '#ffffff',
+                            cursor: 'pointer',
+                            textAlign: 'center',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: form.service_mode === 'ONLINE' ? T.primary : T.text, mb: 0.25 }}>
+                            🌐 ONLINE
+                          </Typography>
+                          <Typography sx={{ fontSize: '0.68rem', color: T.textSecondary, lineHeight: 1.3 }}>
+                            Online Store & Delivery
+                          </Typography>
+                        </Box>
+
+                        <Box
+                          onClick={() => setForm(p => ({ ...p, service_mode: 'OFFLINE' }))}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: '12px',
+                            border: `2px solid ${form.service_mode === 'OFFLINE' ? T.primary : T.border}`,
+                            bgcolor: form.service_mode === 'OFFLINE' ? T.primaryLight : '#ffffff',
+                            cursor: 'pointer',
+                            textAlign: 'center',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: form.service_mode === 'OFFLINE' ? T.primary : T.text, mb: 0.25 }}>
+                            🏬 OFFLINE
+                          </Typography>
+                          <Typography sx={{ fontSize: '0.68rem', color: T.textSecondary, lineHeight: 1.3 }}>
+                            Nearby Store & Scan & Pay
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Typography sx={{ fontSize: '0.68rem', color: T.textMuted, mt: 0.75, fontWeight: 500 }}>
+                        Note: Trikonekt does not support combined modes. To operate both Online & Offline, register separate stores with the same mobile number.
+                      </Typography>
                     </Box>
 
                     {/* Business Type Select */}
@@ -1262,14 +1338,14 @@ export default function BusinessShops() {
                       <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
                         <Chip
                           size="small"
-                          label={(s.serviceMode || s.service_mode) === 'ONLINE' ? 'ONLINE STORE' : (s.serviceMode || s.service_mode) === 'BOTH' ? 'ONLINE + NEARBY STORE' : 'B2C NEARBY STORE'}
+                          label={(s.serviceMode || s.service_mode) === 'ONLINE' ? 'ONLINE STORE' : 'B2C NEARBY STORE'}
                           sx={{ 
                             fontWeight: 800, 
                             fontSize: '0.68rem', 
                             height: 22,
                             borderRadius: '6px',
-                            bgcolor: (s.serviceMode || s.service_mode) === 'ONLINE' ? '#eff6ff' : (s.serviceMode || s.service_mode) === 'BOTH' ? '#f5f3ff' : '#ecfdf5',
-                            color: (s.serviceMode || s.service_mode) === 'ONLINE' ? '#2563eb' : (s.serviceMode || s.service_mode) === 'BOTH' ? '#7c3aed' : '#059669',
+                            bgcolor: (s.serviceMode || s.service_mode) === 'ONLINE' ? '#eff6ff' : '#ecfdf5',
+                            color: (s.serviceMode || s.service_mode) === 'ONLINE' ? '#2563eb' : '#059669',
                             border: '1px solid rgba(0,0,0,0.06)'
                           }}
                         />

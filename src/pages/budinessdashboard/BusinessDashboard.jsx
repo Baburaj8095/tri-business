@@ -2083,13 +2083,13 @@ function BusinessDashboard() {
     age: '',
     address: '',
     commission_percent: '',
-    service_mode: 'BOTH'
+    service_mode: localStorage.getItem('service_mode_business') || 'ONLINE'
   });
   const joinPrimePath = "/demo/join-prime";
   const CAPTAIN_API_URL = process.env.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
   // Read service mode from localStorage (set on login/registration)
-  const serviceMode = localStorage.getItem('service_mode_business') || 'OFFLINE';
-  const isOnlineMerchant = serviceMode === 'ONLINE' || serviceMode === 'BOTH';
+  const serviceMode = localStorage.getItem('service_mode_business') || 'ONLINE';
+  const isOnlineMerchant = serviceMode === 'ONLINE';
 
   const [sponsoredShops, setSponsoredShops] = useState(ONLINE_B2B_ADS);
   const [featuredProducts, setFeaturedProducts] = useState(PRODUCTS);
@@ -2225,6 +2225,7 @@ function BusinessDashboard() {
           setProfile(data);
           localStorage.setItem('business_full_name', data.business_name || data.full_name || '');
           localStorage.setItem('business_phone', data.mobile_number || data.username || '');
+          if (data.service_mode) localStorage.setItem('service_mode_business', data.service_mode);
           setEditForm({
             business_name: data.business_name || '',
             mobile_number: data.mobile_number || '',
@@ -2232,7 +2233,7 @@ function BusinessDashboard() {
             age: data.age != null ? String(data.age) : '',
             address: data.address || '',
             commission_percent: data.commission_percent || '',
-            service_mode: data.service_mode || 'BOTH',
+            service_mode: data.service_mode || localStorage.getItem('service_mode_business') || 'ONLINE',
           });
         }
       })

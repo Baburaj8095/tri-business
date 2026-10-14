@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import {
   Box, Container, Typography, TextField, Button, Stack, Alert,
@@ -347,10 +347,7 @@ const UnifiedRegister = ({ initialRole = null }) => {
 
     try {
       const backendCategory = (form.salesType === 'B2B') ? 'merchant_business' : 'consumer_business';
-      let resolvedServiceMode = form.operatingModel; // 'ONLINE' | 'OFFLINE' | 'TRIZONE'
-      if (resolvedServiceMode === 'TRIZONE') {
-        resolvedServiceMode = 'BOTH';
-      }
+      const resolvedServiceMode = form.operatingModel === 'OFFLINE' ? 'OFFLINE' : 'ONLINE';
 
       const payload = {
         sponsorId: (sponsorInfo?.sponsorId || sponsorId).trim().toUpperCase(),
@@ -816,20 +813,19 @@ const UnifiedRegister = ({ initialRole = null }) => {
                       </FormControl>
                     </Box>
 
-                    {/* Business Operating Model (Online / Offline / TriZone) */}
+                    {/* Business Operating Model (Online / Offline) */}
                     <Box>
                       <FieldLabel label="Business Operating Model" required />
-                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.2 }}>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1.2 }}>
                         {[
                           { id: 'ONLINE', icon: '🌐', title: 'Online', desc: 'Sell on Trikonekt Online Marketplace' },
                           { id: 'OFFLINE', icon: '🏬', title: 'Offline', desc: 'Physical Store (Scan & Pay QR)' },
-                          { id: 'TRIZONE', icon: '⚖️', title: 'TriZone', desc: 'Territory Hyperlocal Network' },
                         ].map(m => {
                           const isSelected = form.operatingModel === m.id;
                           return (
                             <Box
                               key={m.id}
-                              onClick={() => setForm(p => ({ ...p, operatingModel: m.id, serviceMode: m.id === 'TRIZONE' ? 'BOTH' : m.id }))}
+                              onClick={() => setForm(p => ({ ...p, operatingModel: m.id, serviceMode: m.id }))}
                               sx={{
                                 p: 1.6,
                                 borderRadius: '14px',

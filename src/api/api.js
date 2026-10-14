@@ -1495,11 +1495,13 @@ export async function createShop({
   min_order_value = 0,
   base_delivery_fee = 0,
   discount_percent = 0,
+  service_mode = "",
   business_logo = null,
   business_documents = [],
 } = {}) {
   const fd = new FormData();
   if (shop_name) fd.append("shop_name", String(shop_name));
+  if (service_mode) fd.append("service_mode", String(service_mode));
   if (address) fd.append("address", String(address));
   if (city) fd.append("city", String(city));
   if (latitude !== "" && latitude !== null && latitude !== undefined) fd.append("latitude", String(latitude));
@@ -1557,12 +1559,14 @@ export async function updateShop(id, {
   min_order_value,
   base_delivery_fee,
   discount_percent,
+  service_mode,
   business_logo,
   business_documents,
   is_active,
 } = {}) {
   const fd = new FormData();
   if (shop_name !== undefined) fd.append("shop_name", String(shop_name));
+  if (service_mode !== undefined) fd.append("service_mode", String(service_mode));
   if (address !== undefined) fd.append("address", String(address));
   if (city !== undefined) fd.append("city", String(city));
   if (latitude !== undefined) fd.append("latitude", String(latitude));
