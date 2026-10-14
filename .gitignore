@@ -48,3 +48,9 @@ pnpm-debug.log*
 Thumbs.db
 node_modules
 scratch/
+
+# Java / Maven
+backend/target/
+target/
+*.jar
+
