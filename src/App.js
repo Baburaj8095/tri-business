@@ -68,10 +68,10 @@ function App() {
         <Route path="/" element={<SplashScreen />} />
         <Route path="/splash" element={<SplashScreen />} />
 
-        <Route path="/business-dashboard" element={<BusinessDashboardConsumer />} />
+        <Route path="/business-dashboard" element={<BusinessDashboard />} />
         <Route path="/v2/business-dashboard" element={<BusinessDashboard />} />
         <Route path="/scanner" element={<ScannerPage />} />
-        <Route path="/merchant" element={<BusinessDashboardMerchant />} />
+        <Route path="/merchant" element={<BusinessDashboard />} />
         <Route path="/business/profile" element={<BusinessProfile />} />
         <Route path="/business/kyc" element={<BusinessKYC />} />
         <Route path="/business/shops" element={<BusinessShops />} />
