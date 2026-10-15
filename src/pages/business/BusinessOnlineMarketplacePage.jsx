@@ -756,15 +756,23 @@ export default function BusinessOnlineMarketplacePage() {
                     Browse verified B2B suppliers, distributor cartons & factory direct packs
                   </Typography>
                 </Box>
-                <IconButton
-                  size="small"
+                <Box
                   onClick={() => navigate('/business/online-marketplace/cart')}
-                  sx={{ bgcolor: '#ffffff', border: '1px solid #e2e8f0', color: '#0f172a', p: 1 }}
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    bgcolor: '#FF6508',
+                    color: '#ffffff',
+                    display: 'grid',
+                    placeItems: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(255, 101, 8, 0.35)',
+                    flexShrink: 0,
+                  }}
                 >
-                  <Badge badgeContent={totalCartCount} color="success" max={99}>
-                    <BagIcon sx={{ fontSize: 20, color: '#ea580c' }} />
-                  </Badge>
-                </IconButton>
+                  <BagIcon sx={{ fontSize: 18, color: '#ffffff' }} />
+                </Box>
               </Stack>
 
               {/* Clean Full-Width Search Input */}
@@ -804,9 +812,27 @@ export default function BusinessOnlineMarketplacePage() {
             {/* Popular Categories (4-item quick grid matching Screen 9) */}
             {!categorySearchQuery && (
               <Box sx={{ px: { xs: 2, sm: 3 }, mt: 2, mb: 3 }}>
-                <Typography sx={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', mb: 1.5 }}>
-                  Popular Categories
-                </Typography>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+                  <Typography sx={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a' }}>
+                    Popular Categories
+                  </Typography>
+                  <Button
+                    size="small"
+                    onClick={() => handleSelectCategory(allAvailableCategories[0]?.label || 'Vegetables & Fruits')}
+                    endIcon={<ChevronRightIcon sx={{ fontSize: 16 }} />}
+                    sx={{
+                      color: '#064E3B',
+                      fontWeight: 800,
+                      fontSize: '0.74rem',
+                      textTransform: 'none',
+                      p: 0,
+                      minWidth: 0,
+                      '&:hover': { bgcolor: 'transparent' }
+                    }}
+                  >
+                    View All
+                  </Button>
+                </Stack>
                 <Grid container spacing={1.5}>
                   {allAvailableCategories.slice(0, 4).map((popCat) => (
                     <Grid item xs={3} key={popCat.id}>
@@ -871,44 +897,44 @@ export default function BusinessOnlineMarketplacePage() {
               </Box>
             )}
 
-            {/* All Categories List / Grid (Matching Screen 9) */}
+            {/* All Categories List / Grid (Matching Screen 9 & Reference Screen 2) */}
             <Box sx={{ px: { xs: 2, sm: 3 } }}>
               <Typography sx={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', mb: 1.5 }}>
                 B2B Wholesale Categories
               </Typography>
               <Stack spacing={1.25}>
-                {filteredMasterCategories.map((cat) => {
+                {filteredMasterCategories.slice(0, 4).map((cat) => {
                   const isSelected = currentCategoryKey.toLowerCase() === cat.label.toLowerCase();
                   return (
                     <Card
                       key={cat.id}
                       onClick={() => handleSelectCategory(cat.label)}
                       sx={{
-                        borderRadius: '18px',
-                        border: isSelected ? '2px solid #ea580c' : '1px solid #e2e8f0',
-                        bgcolor: isSelected ? '#fff7ed' : '#ffffff',
-                        p: 1.5,
+                        borderRadius: '16px',
+                        border: '1px solid #e2e8f0',
+                        bgcolor: '#ffffff',
+                        p: 1.25,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         cursor: 'pointer',
-                        boxShadow: '0 2px 6px rgba(15, 23, 42, 0.02)',
+                        boxShadow: '0 1px 3px rgba(15, 23, 42, 0.02)',
                         transition: 'all 0.15s ease',
                         '&:hover': {
-                          borderColor: '#10b981',
+                          borderColor: '#064E3B',
                           transform: 'translateY(-1px)',
-                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.08)',
+                          boxShadow: '0 4px 12px rgba(6, 78, 59, 0.08)',
                         },
                       }}
                     >
                       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
                         <Box
                           sx={{
-                            width: 54,
-                            height: 54,
-                            borderRadius: '14px',
+                            width: 52,
+                            height: 52,
+                            borderRadius: '12px',
                             bgcolor: '#f8fafc',
-                            p: 0.75,
+                            p: 0.5,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -932,30 +958,180 @@ export default function BusinessOnlineMarketplacePage() {
                             sx={{
                               fontSize: '0.88rem',
                               fontWeight: 800,
-                              color: isSelected ? '#047857' : '#0f172a',
+                              color: '#0f172a',
                               lineHeight: 1.25,
                             }}
                             noWrap
                           >
                             {cat.label}
                           </Typography>
-                          <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.35 }}>
+                          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.35 }}>
                             <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
-                              {cat.count || '80+ items'}
+                              Wholesale B2B
                             </Typography>
-                            {cat.badge && (
-                              <Typography sx={{ fontSize: '0.62rem', fontWeight: 800, color: '#ea580c', bgcolor: '#fff7ed', px: 0.75, py: 0.15, borderRadius: '4px' }}>
-                                {cat.badge}
-                              </Typography>
-                            )}
+                            <Typography sx={{ fontSize: '0.62rem', fontWeight: 800, color: '#ea580c', bgcolor: '#fff7ed', border: '1px solid #fed7aa', px: 0.75, py: 0.1, borderRadius: '4px' }}>
+                              Verified
+                            </Typography>
                           </Stack>
                         </Box>
                       </Stack>
-                      <ChevronRightIcon sx={{ color: isSelected ? '#10b981' : '#94a3b8', fontSize: 20 }} />
+                      <ChevronRightIcon sx={{ color: '#94a3b8', fontSize: 20 }} />
                     </Card>
                   );
                 })}
               </Stack>
+
+              {/* 3. Trending Products Section (Matching Screen 2 Reference) */}
+              <Box sx={{ mt: 3, mb: 2 }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+                  <Typography sx={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a' }}>
+                    Trending Products
+                  </Typography>
+                  <Button
+                    size="small"
+                    onClick={() => handleSelectCategory('Vegetables & Fruits')}
+                    endIcon={<ChevronRightIcon sx={{ fontSize: 16 }} />}
+                    sx={{
+                      color: '#064E3B',
+                      fontWeight: 800,
+                      fontSize: '0.74rem',
+                      textTransform: 'none',
+                      p: 0,
+                      minWidth: 0,
+                      '&:hover': { bgcolor: 'transparent' }
+                    }}
+                  >
+                    View All
+                  </Button>
+                </Stack>
+
+                <Grid container spacing={1.25}>
+                  {[
+                    {
+                      id: 'tp1',
+                      title: 'Fresh Tomato',
+                      price: 480,
+                      mrp: 620,
+                      pack: 'Min. 1 Carton',
+                      image: 'https://images.unsplash.com/photo-1546470427-e26264be0b11?auto=format&fit=crop&w=400&q=80',
+                      cat: 'Vegetables & Fruits',
+                    },
+                    {
+                      id: 'tp2',
+                      title: 'Amul Toned Milk',
+                      subtitle: '1L x 12 (Box)',
+                      price: 540,
+                      mrp: 580,
+                      pack: 'Min. 1 Box',
+                      image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=400&q=80',
+                      cat: 'Dairy, Bread & Eggs',
+                    },
+                    {
+                      id: 'tp3',
+                      title: 'Aashirvaad Atta',
+                      subtitle: '10kg (Bag)',
+                      price: 320,
+                      mrp: 360,
+                      pack: 'Min. 1 Bag',
+                      image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=400&q=80',
+                      cat: 'Atta, Rice & Dal',
+                    },
+                  ].map((item) => (
+                    <Grid item xs={4} key={item.id}>
+                      <Card
+                        elevation={0}
+                        onClick={() => handleSelectCategory(item.cat)}
+                        sx={{
+                          borderRadius: '14px',
+                          border: '1px solid #e2e8f0',
+                          bgcolor: '#ffffff',
+                          p: 1,
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          position: 'relative',
+                          cursor: 'pointer',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                          '&:hover': {
+                            borderColor: '#064E3B',
+                            boxShadow: '0 4px 12px rgba(6,78,59,0.08)',
+                          },
+                        }}
+                      >
+                        <FavoriteBorderIcon sx={{ position: 'absolute', top: 6, right: 6, fontSize: 15, color: '#94a3b8' }} />
+
+                        <Box
+                          sx={{
+                            height: 68,
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            mb: 0.75,
+                            mt: 1,
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={item.image}
+                            alt={item.title}
+                            sx={{ maxHeight: 60, maxWidth: '100%', objectFit: 'contain' }}
+                          />
+                        </Box>
+
+                        <Box>
+                          <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }} noWrap>
+                            {item.title}
+                          </Typography>
+                          {item.subtitle && (
+                            <Typography sx={{ fontSize: '0.62rem', color: '#64748b', lineHeight: 1 }} noWrap>
+                              {item.subtitle}
+                            </Typography>
+                          )}
+
+                          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }}>
+                            <Typography sx={{ fontSize: '0.78rem', fontWeight: 900, color: '#064E3B' }}>
+                              ₹{item.price}
+                            </Typography>
+                            <Typography sx={{ fontSize: '0.66rem', color: '#94a3b8', textDecoration: 'line-through' }}>
+                              ₹{item.mrp}
+                            </Typography>
+                          </Stack>
+
+                          <Typography sx={{ fontSize: '0.62rem', color: '#64748b', mt: 0.2 }}>
+                            {item.pack}
+                          </Typography>
+
+                          <Button
+                            size="small"
+                            fullWidth
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToCart({ id: item.id, title: item.title, price: item.price, mrp: item.mrp, image: item.image, packSize: item.pack });
+                            }}
+                            sx={{
+                              mt: 0.75,
+                              bgcolor: '#ecfdf5',
+                              color: '#059669',
+                              border: '1px solid #a7f3d0',
+                              borderRadius: '8px',
+                              py: 0.25,
+                              fontSize: '0.68rem',
+                              fontWeight: 900,
+                              textTransform: 'none',
+                              minWidth: 0,
+                              '&:hover': { bgcolor: '#064E3B', color: '#ffffff' },
+                            }}
+                          >
+                            + ADD
+                          </Button>
+                        </Box>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
             </Box>
           </Box>
         ) : (

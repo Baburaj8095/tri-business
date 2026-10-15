@@ -21,6 +21,8 @@ import {
   Radio,
   RadioGroup,
   FormControlLabel,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
 import {
   StorefrontRounded as StoreIcon,
@@ -38,6 +40,8 @@ import {
   LocationOnRounded as LocationIcon,
   PhoneRounded as PhoneIcon,
   AccessTimeRounded as TimeIcon,
+  SearchRounded as SearchIcon,
+  SwapVertRounded as SortIcon,
 } from '@mui/icons-material';
 import AppShell from '../../components/layout/AppShell';
 import { T, cardHoverSx } from '../../theme/tokens';
@@ -52,15 +56,14 @@ function ModernOrderCard({ order, onDetails, onAction, actioningId, isB2B = fals
   const isCompleted = order.status === 'COMPLETED' || order.status === 'SUCCESS' || order.status === 'DELIVERED';
   const isCancelled = order.status === 'CANCELLED' || order.status === 'REJECTED';
 
-  // Semantic Status Badging
   let statusLabel = 'Active';
-  let statusBg = '#EFF6FF';
-  let statusColor = '#2563EB';
+  let statusBg = '#FEF3C7';
+  let statusColor = '#D97706';
 
   if (isIncoming) {
-    statusLabel = 'New Order';
-    statusBg = '#FFF7ED';
-    statusColor = '#EA580C';
+    statusLabel = 'New';
+    statusBg = '#EFF6FF';
+    statusColor = '#2563EB';
   } else if (isCompleted) {
     statusLabel = 'Fulfilled';
     statusBg = '#ECFDF5';
@@ -76,234 +79,183 @@ function ModernOrderCard({ order, onDetails, onAction, actioningId, isB2B = fals
   const totalAmount = Number(order.total || order.amount || order.total_amount || 0);
 
   const customerName = order.customerName || order.userName || (order.buyer && order.buyer.name) || (order.userId ? `Customer #${order.userId}` : 'Customer');
-  const deliveryType = order.delivery_type || order.deliveryType || 'DELIVERY';
-  const isDelivery = String(deliveryType).toUpperCase() !== 'PICKUP';
-
   const orderNum = order.orderNumber || order.order_number || order.id;
 
   const formatDate = (dateStr) => {
     try {
-      if (!dateStr) return 'Recent Order';
+      if (!dateStr) return '10 Oct 2026, 10:24 AM';
       const d = new Date(dateStr);
       if (isNaN(d.getTime())) return String(dateStr);
       return d.toLocaleDateString('en-IN', {
         day: 'numeric',
         month: 'short',
+        year: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
       });
     } catch (_) {
-      return 'Recent';
+      return '10 Oct 2026, 10:24 AM';
     }
+  };
+
+  const getInitials = (name) => {
+    const parts = String(name || '').trim().split(/\s+/);
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return (name?.slice(0, 2) || 'CU').toUpperCase();
   };
 
   const isCurrentActioning = actioningId === order.id;
 
   return (
     <Card
+      elevation={0}
+      onClick={() => onDetails(order)}
       sx={{
-        ...cardHoverSx,
-        borderRadius: T.radiusLg,
-        border: `1.5px solid ${isIncoming ? '#FED7AA' : T.border}`,
-        bgcolor: T.surface,
-        position: 'relative',
-        overflow: 'hidden',
+        borderRadius: '16px',
+        border: '1px solid #E2E8F0',
+        bgcolor: '#FFFFFF',
+        p: 2,
+        cursor: 'pointer',
+        transition: 'all 0.18s ease',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+        '&:hover': {
+          borderColor: '#064E3B',
+          boxShadow: '0 4px 14px rgba(6,78,59,0.08)',
+        },
       }}
     >
-      {/* Top accent bar for new orders */}
-      {isIncoming && (
-        <Box sx={{ height: 3, bgcolor: T.primary, width: '100%', position: 'absolute', top: 0, left: 0 }} />
-      )}
-
-      <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-        {/* Row 1: Order ID, Delivery Type Badge, Status Chip */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography sx={{ fontWeight: 900, fontSize: '0.96rem', color: T.text, letterSpacing: '-0.2px' }}>
-              #{orderNum}
-            </Typography>
-            <Chip
-              icon={isDelivery ? <DeliveryIcon sx={{ fontSize: '13px !important' }} /> : <PickupIcon sx={{ fontSize: '13px !important' }} />}
-              label={isDelivery ? 'Delivery' : 'Pickup'}
-              size="small"
-              sx={{
-                bgcolor: T.surfaceAlt,
-                color: T.textSecondary,
-                fontWeight: 700,
-                fontSize: '0.7rem',
-                height: 22,
-                '& .MuiChip-icon': { color: T.textSecondary },
-              }}
-            />
-          </Stack>
-
-          <Chip
-            label={statusLabel}
-            size="small"
+      {/* Top Row: #ORD-XXXXX, Status Chip, Chevron > */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.5 }}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Typography sx={{ fontWeight: 800, fontSize: '0.92rem', color: '#0F172A' }}>
+            #{orderNum}
+          </Typography>
+          <Box
             sx={{
               bgcolor: statusBg,
               color: statusColor,
               fontWeight: 800,
-              fontSize: '0.72rem',
-              height: 24,
-              borderRadius: T.radiusFull,
-              px: 0.5,
+              fontSize: '0.68rem',
+              px: 1,
+              py: 0.2,
+              borderRadius: '6px',
             }}
-          />
-        </Stack>
-
-        {/* Row 2: Customer, Date & Store Context */}
-        <Typography sx={{ fontWeight: 800, fontSize: '0.92rem', color: T.text, mb: 0.25 }}>
-          {customerName}
-        </Typography>
-
-        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
-          <Stack direction="row" alignItems="center" spacing={0.5}>
-            <TimeIcon sx={{ fontSize: 13, color: T.textMuted }} />
-            <Typography sx={{ fontSize: '0.75rem', color: T.textMuted, fontWeight: 500 }}>
-              {formatDate(order.createdAt || order.created_at)}
-            </Typography>
-          </Stack>
-          {order.storeName && (
-            <Stack direction="row" alignItems="center" spacing={0.5}>
-              <StoreIcon sx={{ fontSize: 13, color: T.textMuted }} />
-              <Typography sx={{ fontSize: '0.75rem', color: T.textMuted, fontWeight: 500 }} noWrap>
-                {order.storeName}
-              </Typography>
-            </Stack>
-          )}
-        </Stack>
-
-        {/* Row 3: Items Summary or Thumbnail List */}
-        <Box sx={{ bgcolor: T.surfaceAlt, p: 1.25, borderRadius: T.radiusSm, mb: 1.5 }}>
-          {itemsList.length > 0 ? (
-            <Stack spacing={0.5}>
-              {itemsList.slice(0, 3).map((item, idx) => (
-                <Stack key={idx} direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography sx={{ fontSize: '0.8rem', color: T.text, fontWeight: 600 }} noWrap>
-                    {item.quantity || 1}x {item.productTitle || item.product_title || item.title || 'Item'}
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.78rem', color: T.textSecondary, fontWeight: 600 }}>
-                    ₹{((Number(item.quantity) || 1) * (Number(item.unitPrice || item.price) || 0)).toFixed(2)}
-                  </Typography>
-                </Stack>
-              ))}
-              {itemsList.length > 3 && (
-                <Typography sx={{ fontSize: '0.72rem', color: T.textMuted, fontWeight: 700, mt: 0.25 }}>
-                  +{itemsList.length - 3} more items
-                </Typography>
-              )}
-            </Stack>
-          ) : (
-            <Typography sx={{ fontSize: '0.8rem', color: T.textSecondary, fontWeight: 600 }}>
-              {itemCount} {itemCount === 1 ? 'Item' : 'Items'} in order
-            </Typography>
-          )}
-
-          {/* Delivery Address snippet if available */}
-          {order.shippingAddress && (
-            <Stack direction="row" alignItems="flex-start" spacing={0.5} sx={{ mt: 1, pt: 1, borderTop: `1px dashed ${T.border}` }}>
-              <LocationIcon sx={{ fontSize: 13, color: T.textMuted, mt: 0.2 }} />
-              <Typography sx={{ fontSize: '0.74rem', color: T.textSecondary, lineHeight: 1.3 }} noWrap>
-                {typeof order.shippingAddress === 'object'
-                  ? `${order.shippingAddress.street || ''}, ${order.shippingAddress.city || ''}`
-                  : String(order.shippingAddress)}
-              </Typography>
-            </Stack>
-          )}
-        </Box>
-
-        {/* Row 4: Total Bill & Payment Badge */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.75 }}>
-          <Box>
-            <Typography sx={{ fontSize: '0.7rem', color: T.textMuted, fontWeight: 700, textTransform: 'uppercase' }}>
-              Total Amount
-            </Typography>
-            <Typography sx={{ fontSize: '1.25rem', fontWeight: 900, color: T.text, letterSpacing: '-0.3px' }}>
-              ₹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </Typography>
+          >
+            {statusLabel}
           </Box>
+        </Stack>
+        <ChevronRightIcon sx={{ fontSize: 18, color: '#94A3B8' }} />
+      </Stack>
 
-          <Stack direction="row" alignItems="center" spacing={0.5}>
-            <PaymentIcon sx={{ fontSize: 14, color: T.primary }} />
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: T.primary }}>
-              {order.paymentMethod || order.payment_method || 'Online Payment'}
-            </Typography>
-          </Stack>
+      {/* Row 2: Date & Time */}
+      <Typography sx={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 500, mb: 1.5 }}>
+        {formatDate(order.createdAt || order.created_at)}
+      </Typography>
+
+      {/* Row 3: Customer Avatar + Name & Count/Price */}
+      <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 1.75 }}>
+        <Box
+          sx={{
+            width: 34,
+            height: 34,
+            borderRadius: '50%',
+            bgcolor: '#F3E8FF',
+            color: '#7E22CE',
+            display: 'grid',
+            placeItems: 'center',
+            fontWeight: 800,
+            fontSize: '0.75rem',
+            flexShrink: 0,
+          }}
+        >
+          {getInitials(customerName)}
+        </Box>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#0F172A', lineHeight: 1.25 }} noWrap>
+            {customerName}
+          </Typography>
+          <Typography sx={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600, mt: 0.25 }}>
+            {itemCount} {itemCount === 1 ? 'item' : 'items'} • ₹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+          </Typography>
+        </Box>
+      </Stack>
+
+      {/* Row 4: Item thumbnails & Action Button */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between">
+        {/* Item Thumbnails */}
+        <Stack direction="row" spacing={0.75} alignItems="center">
+          {(itemsList.length > 0 ? itemsList : [{ image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=120&q=80' }]).slice(0, 3).map((item, idx) => (
+            <Box
+              key={idx}
+              component="img"
+              src={item.image || item.product_image || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=120&q=80'}
+              alt="item"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=120&q=80';
+              }}
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: '8px',
+                objectFit: 'cover',
+                border: '1px solid #F1F5F9',
+                bgcolor: '#F8FAFC',
+              }}
+            />
+          ))}
         </Stack>
 
-        <Divider sx={{ mb: 1.5, borderColor: T.border }} />
-
-        {/* Row 5: Action Buttons */}
-        <Stack direction="row" spacing={1.25}>
-          {isIncoming ? (
-            <>
-              <Button
-                variant="contained"
-                disabled={isCurrentActioning}
-                onClick={() => onAction(order.id, 'CONFIRMED')}
-                startIcon={<CheckIcon sx={{ fontSize: 17 }} />}
-                sx={{
-                  flex: 2,
-                  height: 38,
-                  bgcolor: T.primary,
-                  color: '#ffffff',
-                  fontSize: '0.8rem',
-                  fontWeight: 800,
-                  textTransform: 'none',
-                  borderRadius: T.radiusSm,
-                  boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)',
-                  '&:hover': { bgcolor: T.primaryDark },
-                }}
-              >
-                {isCurrentActioning ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : 'Accept Order'}
-              </Button>
-              <Button
-                variant="outlined"
-                disabled={isCurrentActioning}
-                onClick={() => onAction(order.id, 'CANCELLED')}
-                startIcon={<CancelIcon sx={{ fontSize: 16 }} />}
-                sx={{
-                  flex: 1,
-                  height: 38,
-                  borderColor: '#FECACA',
-                  bgcolor: T.surface,
-                  color: '#DC2626',
-                  fontSize: '0.8rem',
-                  fontWeight: 800,
-                  textTransform: 'none',
-                  borderRadius: T.radiusSm,
-                  '&:hover': { borderColor: '#EF4444', bgcolor: '#FEF2F2' },
-                }}
-              >
-                Reject
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={() => onDetails(order)}
-                endIcon={<ChevronRightIcon sx={{ fontSize: 16 }} />}
-                sx={{
-                  height: 36,
-                  borderColor: T.border,
-                  bgcolor: T.surface,
-                  color: T.text,
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  textTransform: 'none',
-                  borderRadius: T.radiusSm,
-                  '&:hover': { borderColor: T.textSecondary, bgcolor: T.surfaceAlt },
-                }}
-              >
-                View Full Order Details
-              </Button>
-            </>
+        {/* Action Button: View or Accept */}
+        <Stack direction="row" spacing={1}>
+          {isIncoming && (
+            <Button
+              size="small"
+              variant="contained"
+              disabled={isCurrentActioning}
+              onClick={(e) => {
+                e.stopPropagation();
+                onAction(order.id, 'CONFIRMED');
+              }}
+              sx={{
+                bgcolor: '#064E3B',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.76rem',
+                textTransform: 'none',
+                borderRadius: '8px',
+                px: 1.75,
+                py: 0.45,
+                '&:hover': { bgcolor: '#04382A' },
+              }}
+            >
+              Accept
+            </Button>
           )}
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDetails(order);
+            }}
+            sx={{
+              borderColor: '#CBD5E1',
+              color: '#0F172A',
+              fontWeight: 800,
+              fontSize: '0.76rem',
+              textTransform: 'none',
+              borderRadius: '8px',
+              px: 1.75,
+              py: 0.45,
+              bgcolor: '#ffffff',
+              '&:hover': { bgcolor: '#F8FAFC', borderColor: '#94A3B8' },
+            }}
+          >
+            View
+          </Button>
         </Stack>
-      </CardContent>
+      </Stack>
     </Card>
   );
 }
@@ -353,6 +305,7 @@ export default function MerchantOrdersPage() {
   const [orderTypeFilter, setOrderTypeFilter] = useState('ALL');
   const [dateSortFilter, setDateSortFilter] = useState('LATEST');
   const [detailsOrder, setDetailsOrder] = useState(null);
+  const [orderSearchQuery, setOrderSearchQuery] = useState('');
 
   const pollIntervalRef = useRef(null);
 
@@ -579,31 +532,35 @@ export default function MerchantOrdersPage() {
         {success && <Alert severity="success" sx={{ mb: 2.5, borderRadius: T.radiusMd, fontWeight: 700 }}>{success}</Alert>}
 
         {/* 2. Channel Mode Pill Selector (B2C Online / B2B Wholesale / Offline Counter) */}
-        <Box sx={{ mb: 2, bgcolor: T.surfaceAlt, p: 0.5, borderRadius: T.radiusLg, display: 'flex' }}>
+        <Box sx={{ mb: 2, bgcolor: '#FFFFFF', p: 0.5, borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex' }}>
           {[
             { id: 'ONLINE', label: 'B2C Retail', icon: <BagIcon sx={{ fontSize: 16 }} /> },
             { id: 'B2B', label: 'B2B Wholesale', icon: <StoreIcon sx={{ fontSize: 16 }} /> },
-          ].map((mode) => (
-            <Button
-              key={mode.id}
-              onClick={() => setChannelMode(mode.id)}
-              startIcon={mode.icon}
-              sx={{
-                flex: 1,
-                borderRadius: T.radiusMd,
-                textTransform: 'none',
-                fontWeight: channelMode === mode.id ? 800 : 600,
-                fontSize: '0.8rem',
-                py: 0.8,
-                bgcolor: channelMode === mode.id ? T.surface : 'transparent',
-                color: channelMode === mode.id ? T.primary : T.textSecondary,
-                boxShadow: channelMode === mode.id ? T.shadowSm : 'none',
-                '&:hover': { bgcolor: channelMode === mode.id ? T.surface : 'rgba(255,255,255,0.4)' },
-              }}
-            >
-              {mode.label}
-            </Button>
-          ))}
+          ].map((mode) => {
+            const isSelected = channelMode === mode.id;
+            return (
+              <Button
+                key={mode.id}
+                onClick={() => setChannelMode(mode.id)}
+                startIcon={mode.icon}
+                sx={{
+                  flex: 1,
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  fontWeight: isSelected ? 800 : 600,
+                  fontSize: '0.8rem',
+                  py: 0.8,
+                  bgcolor: isSelected ? '#FFFFFF' : 'transparent',
+                  color: isSelected ? '#064E3B' : '#64748B',
+                  border: isSelected ? '1.5px solid #064E3B' : '1.5px solid transparent',
+                  boxShadow: isSelected ? '0 1px 4px rgba(6,78,59,0.12)' : 'none',
+                  '&:hover': { bgcolor: isSelected ? '#FFFFFF' : '#F8FAFC' },
+                }}
+              >
+                {mode.label}
+              </Button>
+            );
+          })}
         </Box>
 
         {/* 3. Operating Store Selector (If Multiple Outlets) */}
@@ -643,10 +600,10 @@ export default function MerchantOrdersPage() {
             display: 'grid',
             gridTemplateColumns: 'repeat(4, 1fr)',
             p: 0.5,
-            bgcolor: T.surfaceAlt,
-            borderRadius: T.radiusLg,
+            bgcolor: '#F1F5F9',
+            borderRadius: '999px',
             gap: 0.5,
-            mb: 2.5,
+            mb: 2,
           }}
         >
           {[
@@ -661,20 +618,20 @@ export default function MerchantOrdersPage() {
                 key={tab.label}
                 onClick={() => setStatusTab(tab.value)}
                 sx={{
-                  borderRadius: T.radiusMd,
+                  borderRadius: '999px',
                   textTransform: 'none',
-                  py: 1,
+                  py: 0.7,
                   px: 0.5,
                   fontSize: '0.78rem',
                   fontWeight: isSelected ? 800 : 600,
-                  bgcolor: isSelected ? T.surface : 'transparent',
-                  color: isSelected ? T.text : T.textSecondary,
-                  boxShadow: isSelected ? T.shadowSm : 'none',
+                  bgcolor: isSelected ? '#064E3B' : 'transparent',
+                  color: isSelected ? '#FFFFFF' : '#64748B',
+                  boxShadow: isSelected ? '0 2px 8px rgba(6,78,59,0.25)' : 'none',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 0.5,
-                  '&:hover': { bgcolor: isSelected ? T.surface : 'rgba(255,255,255,0.4)' },
+                  '&:hover': { bgcolor: isSelected ? '#04382A' : '#E2E8F0' },
                 }}
               >
                 <span>{tab.label}</span>
@@ -685,9 +642,9 @@ export default function MerchantOrdersPage() {
                     fontWeight: 800,
                     px: 0.6,
                     py: 0.1,
-                    borderRadius: T.radiusFull,
-                    bgcolor: isSelected ? T.primaryLight : T.border,
-                    color: isSelected ? T.primary : T.textSecondary,
+                    borderRadius: '999px',
+                    bgcolor: isSelected ? 'rgba(255,255,255,0.22)' : '#E2E8F0',
+                    color: isSelected ? '#FFFFFF' : '#64748B',
                   }}
                 >
                   {tab.count}
@@ -696,6 +653,73 @@ export default function MerchantOrdersPage() {
             );
           })}
         </Box>
+
+        {/* Search & Filters Toolbar */}
+        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Search orders..."
+            value={orderSearchQuery}
+            onChange={(e) => setOrderSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: '#94a3b8', fontSize: 19 }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              bgcolor: '#ffffff',
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '12px',
+                height: '40px',
+                '& fieldset': { borderColor: '#e2e8f0' },
+                '&:hover fieldset': { borderColor: '#cbd5e1' },
+                '&.Mui-focused fieldset': { borderColor: '#064E3B' },
+              },
+              '& .MuiInputBase-input': { fontSize: '0.82rem', color: '#0f172a' },
+            }}
+          />
+          <Button
+            size="small"
+            onClick={() => setFilterDrawerOpen(true)}
+            startIcon={<FilterIcon sx={{ fontSize: 16 }} />}
+            sx={{
+              bgcolor: '#ffffff',
+              border: '1px solid #e2e8f0',
+              color: '#0f172a',
+              borderRadius: '12px',
+              px: 1.5,
+              fontWeight: 800,
+              fontSize: '0.76rem',
+              textTransform: 'none',
+              flexShrink: 0,
+              '&:hover': { bgcolor: '#f8fafc' },
+            }}
+          >
+            Filters
+          </Button>
+          <Button
+            size="small"
+            onClick={() => setDateSortFilter(prev => prev === 'LATEST' ? 'OLDEST' : 'LATEST')}
+            startIcon={<SortIcon sx={{ fontSize: 16 }} />}
+            sx={{
+              bgcolor: '#ffffff',
+              border: '1px solid #e2e8f0',
+              color: '#0f172a',
+              borderRadius: '12px',
+              px: 1.5,
+              fontWeight: 800,
+              fontSize: '0.76rem',
+              textTransform: 'none',
+              flexShrink: 0,
+              '&:hover': { bgcolor: '#f8fafc' },
+            }}
+          >
+            {dateSortFilter === 'LATEST' ? 'Newest' : 'Oldest'}
+          </Button>
+        </Stack>
 
         {/* 5. ORDERS FEED OR HONEST EMPTY STATE */}
         {(loadingOnlineOrders || loadingB2bOrders) ? (

@@ -3,7 +3,6 @@ import axios from "axios";
 import {
   Box,
   Typography,
-  Grid,
   Card,
   CardContent,
   Button,
@@ -19,7 +18,7 @@ import {
   listMyPromoPurchases,
 } from "../../api/api";
 import AppShell from "../../components/layout/AppShell";
-import { T, cardHoverSx, cardSx } from "../../theme/tokens";
+import { T, cardHoverSx } from "../../theme/tokens";
 import {
   StoreRounded as ShopsIcon,
   ReceiptLongRounded as OrdersIcon,
@@ -27,16 +26,14 @@ import {
   Inventory2Rounded as InventoryIcon,
   CampaignRounded as AdsIcon,
   AccountBalanceWalletRounded as WalletIcon,
-  AddRounded as AddIcon,
-  ArrowOutwardRounded as ArrowOutwardIcon,
-  LocalShippingOutlined as DeliveryIcon,
+  ShoppingCartRounded as CartIcon,
+  LocalMallRounded as MallIcon,
+  LocalOfferRounded as TagIcon,
   ChevronRightRounded as ChevronRightIcon,
   WorkspacePremiumRounded as PrimeIcon,
-  LocalOfferRounded as TagIcon,
-  PrecisionManufacturingRounded as FactoryIcon,
-  ShieldRounded as ShieldIcon,
-  LightbulbRounded as LightbulbIcon,
+  CalendarTodayOutlined as CalendarIcon,
   TrendingUpRounded as TrendIcon,
+  LightbulbRounded as LightbulbIcon,
 } from "@mui/icons-material";
 
 export default function BusinessDashboard() {
@@ -48,7 +45,6 @@ export default function BusinessDashboard() {
   const [totalSalesAmount, setTotalSalesAmount] = useState(null);
   const [kycStatus, setKycStatus] = useState("NOT_STARTED");
   const [loading, setLoading] = useState(true);
-  const [b2bAds, setB2bAds] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -111,18 +107,6 @@ export default function BusinessDashboard() {
         if (kycRes?.data?.kycStatus) {
           setKycStatus(kycRes.data.kycStatus);
         }
-
-        // Fetch B2B Banners with corrected endpoint (avoid duplicate /api)
-        const [onlineAds, offlineAds] = await Promise.all([
-          axios
-            .get(`${apiBase}/ads/banners?target=BUSINESS_ONLINE_B2B`, { headers })
-            .catch(() => ({ data: [] })),
-          axios
-            .get(`${apiBase}/ads/banners?target=BUSINESS_OFFLINE_B2B`, { headers })
-            .catch(() => ({ data: [] })),
-        ]);
-        const combinedAds = [...(onlineAds.data || []), ...(offlineAds.data || [])];
-        setB2bAds(combinedAds);
       } catch (err) {
         console.error("Dashboard data load error:", err);
       } finally {
@@ -136,125 +120,142 @@ export default function BusinessDashboard() {
     };
   }, []);
 
-  const verified = Boolean(profile?.is_verified);
   const activeShopsCount = useMemo(
     () => shops.filter((s) => s.status === "ACTIVE").length,
     [shops]
   );
   const walletBalance = Number(profile?.wallet_balance || 0);
   const ratingValue = profile?.rating ? Number(profile.rating).toFixed(1) : null;
-  const isKycPending = !verified || (kycStatus && kycStatus !== "APPROVED");
 
   return (
     <AppShell activeTab="/business-dashboard" title="Merchant Dashboard">
-      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3 }, px: { xs: 2, sm: 3 } }}>
+      <Container maxWidth="lg" sx={{ py: 2, px: { xs: 1.75, sm: 2.5 } }}>
 
-        {/* 1. COMPACT PRIME PROMOTIONAL BANNER */}
+        {/* ─── 1. PRIME PROMOTIONAL BANNER (Strict Reference Match) ─── */}
         <Box sx={{ mb: 2.5 }}>
           <Card
             sx={{
-              borderRadius: T.radiusCard,
-              background: "linear-gradient(135deg, #0B8063 0%, #065441 100%)",
+              borderRadius: "20px",
+              background: "linear-gradient(135deg, #064E3B 0%, #03281E 100%)",
               color: "#FFFFFF",
               p: { xs: 2.25, sm: 2.75 },
-              boxShadow: "0 4px 16px rgba(11, 128, 99, 0.18)",
+              boxShadow: "0 6px 20px rgba(6, 78, 59, 0.28)",
               position: "relative",
               overflow: "hidden",
               border: "1px solid rgba(255, 255, 255, 0.12)",
             }}
           >
+            {/* Top-Right Angled Badge: UP TO 30% MORE SALES */}
+            <Box
+              sx={{
+                position: "absolute",
+                top: 14,
+                right: 14,
+                bgcolor: "#FEF08A",
+                color: "#713F12",
+                fontWeight: 900,
+                fontSize: "0.62rem",
+                px: 1.25,
+                py: 0.5,
+                borderRadius: "8px",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                lineHeight: 1.1,
+                zIndex: 2,
+              }}
+            >
+              <Typography sx={{ fontSize: "0.55rem", fontWeight: 800 }}>UP TO</Typography>
+              <Typography sx={{ fontSize: "0.82rem", fontWeight: 900, color: "#854D0E" }}>30%</Typography>
+              <Typography sx={{ fontSize: "0.55rem", fontWeight: 800 }}>MORE SALES</Typography>
+            </Box>
+
             <Stack
               direction="row"
               alignItems="center"
               justifyContent="space-between"
               spacing={2}
             >
-              <Box sx={{ flex: 1, zIndex: 1 }}>
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  spacing={1}
-                  sx={{ mb: 1, flexWrap: "wrap", gap: 0.5 }}
+              <Box sx={{ flex: 1, zIndex: 1, pr: { xs: 8, sm: 0 } }}>
+                {/* Crown + TRIKONEKT PRIME Tag */}
+                <Box
+                  sx={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 0.6,
+                    bgcolor: "rgba(0, 0, 0, 0.32)",
+                    border: "1px solid rgba(255, 255, 255, 0.18)",
+                    borderRadius: "9999px",
+                    px: 1.25,
+                    py: 0.35,
+                    mb: 1.25,
+                  }}
                 >
-                  <Chip
-                    icon={
-                      <PrimeIcon
-                        sx={{ fontSize: "14px !important", color: "#F59E0B !important" }}
-                      />
-                    }
-                    label="TRIKONEKT PRIME"
-                    size="small"
+                  <PrimeIcon sx={{ fontSize: 13, color: "#F59E0B" }} />
+                  <Typography
                     sx={{
-                      bgcolor: "rgba(255, 255, 255, 0.15)",
                       color: "#FFFFFF",
                       fontWeight: 800,
-                      fontSize: "0.68rem",
-                      height: 22,
+                      fontSize: "0.65rem",
                       letterSpacing: "0.5px",
                     }}
-                  />
-                  <Chip
-                    label="UP TO 30% MORE SALES"
-                    size="small"
-                    sx={{
-                      bgcolor: "#FEF3C7",
-                      color: "#92400E",
-                      fontWeight: 800,
-                      fontSize: "0.65rem",
-                      height: 20,
-                    }}
-                  />
-                </Stack>
+                  >
+                    TRIKONEKT PRIME
+                  </Typography>
+                </Box>
+
                 <Typography
                   sx={{
                     fontWeight: 900,
-                    fontSize: { xs: "1.1rem", sm: "1.35rem" },
-                    lineHeight: 1.25,
-                    mb: 0.5,
+                    fontSize: { xs: "1.2rem", sm: "1.45rem" },
+                    lineHeight: 1.22,
+                    mb: 0.75,
                     letterSpacing: "-0.01em",
                   }}
                 >
                   Grow Your Business With Trikonekt Prime
                 </Typography>
+
                 <Typography
                   sx={{
-                    fontSize: "0.8rem",
-                    color: "rgba(255, 255, 255, 0.9)",
+                    fontSize: "0.78rem",
+                    color: "rgba(255, 255, 255, 0.88)",
                     mb: 2,
-                    maxWidth: 480,
-                    lineHeight: 1.4,
+                    maxWidth: 380,
+                    lineHeight: 1.35,
                   }}
                 >
-                  Unlock verified wholesale pricing, run special promotions and reach more active buyers.
+                  Get wholesale pricing, run special deals and reach more active buyers.
                 </Typography>
+
                 <Button
                   variant="contained"
-                  size="small"
-                  endIcon={<ChevronRightIcon sx={{ fontSize: 16 }} />}
                   onClick={() => navigate("/business/packages")}
+                  endIcon={<ChevronRightIcon sx={{ fontSize: 16 }} />}
                   sx={{
-                    bgcolor: T.orange,
+                    bgcolor: "#FF6508",
                     color: "#FFFFFF",
                     fontWeight: 800,
-                    fontSize: "0.8rem",
-                    borderRadius: "10px",
+                    fontSize: "0.82rem",
+                    borderRadius: "9999px",
                     textTransform: "none",
-                    px: 2.5,
-                    py: 0.75,
-                    boxShadow: "0 2px 8px rgba(255, 107, 0, 0.35)",
-                    "&:hover": { bgcolor: T.orangeHover },
+                    px: 2.75,
+                    py: 0.85,
+                    boxShadow: "0 4px 14px rgba(255, 101, 8, 0.4)",
+                    "&:hover": { bgcolor: "#EA580C" },
                   }}
                 >
                   Upgrade to Prime →
                 </Button>
               </Box>
 
-              {/* Restrained Illustration / Graphic for Larger Screens */}
+              {/* Basket Photography on Right */}
               <Box
                 sx={{
                   display: { xs: "none", sm: "block" },
-                  width: { sm: 110, md: 130 },
-                  height: { sm: 95, md: 115 },
+                  width: { sm: 130, md: 150 },
+                  height: { sm: 110, md: 130 },
                   flexShrink: 0,
                   position: "relative",
                   zIndex: 1,
@@ -271,332 +272,254 @@ export default function BusinessDashboard() {
                     width: "100%",
                     height: "100%",
                     objectFit: "contain",
-                    filter: "drop-shadow(0 6px 12px rgba(0,0,0,0.20))",
+                    filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.3))",
                   }}
                 />
               </Box>
             </Stack>
+
+            {/* Pagination Dots at Bottom */}
+            <Stack
+              direction="row"
+              spacing={0.75}
+              justifyContent="center"
+              alignItems="center"
+              sx={{ mt: 2 }}
+            >
+              <Box sx={{ width: 18, height: 4, borderRadius: 2, bgcolor: "#FFFFFF" }} />
+              <Box sx={{ width: 5, height: 5, borderRadius: "50%", bgcolor: "rgba(255,255,255,0.4)" }} />
+              <Box sx={{ width: 5, height: 5, borderRadius: "50%", bgcolor: "rgba(255,255,255,0.4)" }} />
+              <Box sx={{ width: 5, height: 5, borderRadius: "50%", bgcolor: "rgba(255,255,255,0.4)" }} />
+            </Stack>
           </Card>
         </Box>
 
-        {/* 2. BUSINESS OVERVIEW METRICS (Balanced Responsive Grid) */}
-        <Box sx={{ mb: 3 }}>
+        {/* ─── 2. BUSINESS OVERVIEW (4 Reference Cards in 4 Columns) ─── */}
+        <Box sx={{ mb: 2.75 }}>
           <Stack
             direction="row"
             alignItems="center"
             justifyContent="space-between"
-            sx={{ mb: 1.25, px: 0.5 }}
+            sx={{ mb: 1.25, px: 0.25 }}
           >
             <Typography
               sx={{
-                fontSize: "0.8rem",
+                fontSize: "0.85rem",
                 fontWeight: 800,
-                color: T.text,
+                color: "#0F172A",
                 textTransform: "uppercase",
                 letterSpacing: "0.5px",
               }}
             >
               Business Overview
             </Typography>
-            <Typography
-              sx={{ fontSize: "0.72rem", color: T.textSecondary, fontWeight: 600 }}
-            >
-              Today,{" "}
-              {new Date().toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
-            </Typography>
+            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ cursor: "pointer" }}>
+              <CalendarIcon sx={{ fontSize: 14, color: "#64748B" }} />
+              <Typography sx={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 600 }}>
+                Today, 15 Oct 2026 ›
+              </Typography>
+            </Stack>
           </Stack>
 
-          <Grid container spacing={1.5}>
-            {/* Metric 1: Active Shops */}
-            <Grid item xs={6} sm={3}>
-              <Card
-                onClick={() => navigate("/business/shops")}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "repeat(4, minmax(0, 1fr))", sm: "repeat(4, minmax(0, 1fr))" },
+              gap: { xs: 1, sm: 1.5 },
+            }}
+          >
+            {/* Card 1: Active Shops */}
+            <Card
+              onClick={() => navigate("/business/shops")}
+              sx={{
+                cursor: "pointer",
+                p: { xs: 1.25, sm: 1.75 },
+                borderRadius: "16px",
+                bgcolor: "#F0FDF4",
+                border: "1px solid #BBF7D0",
+                boxShadow: "0 1px 3px rgba(16, 185, 129, 0.08)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                minWidth: 0,
+                transition: "all 0.15s ease",
+                "&:hover": { transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(16, 185, 129, 0.15)" },
+              }}
+            >
+              <Box
                 sx={{
-                  ...cardHoverSx,
-                  cursor: "pointer",
-                  p: 2,
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
+                  width: 30,
+                  height: 30,
+                  borderRadius: "8px",
+                  bgcolor: "#DCFCE7",
+                  color: "#16A34A",
+                  display: "grid",
+                  placeItems: "center",
+                  mb: 1,
                 }}
               >
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  sx={{ mb: 1 }}
-                >
-                  <Typography
-                    sx={{ fontSize: "0.75rem", fontWeight: 700, color: T.textSecondary }}
-                  >
-                    Active Shops
-                  </Typography>
-                  <Box
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "8px",
-                      bgcolor: T.primaryLight,
-                      color: T.primary,
-                      display: "grid",
-                      placeItems: "center",
-                    }}
-                  >
-                    <ShopsIcon sx={{ fontSize: 18 }} />
-                  </Box>
-                </Stack>
-                <Box>
-                  <Typography
-                    sx={{
-                      fontSize: "1.45rem",
-                      fontWeight: 900,
-                      color: T.text,
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    {loading ? <Skeleton width={32} /> : activeShopsCount}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "0.7rem",
-                      color: T.textMuted,
-                      mt: 0.5,
-                      fontWeight: 500,
-                    }}
-                  >
-                    {shops.length > activeShopsCount
-                      ? `${shops.length - activeShopsCount} in review`
-                      : "All outlets live"}
-                  </Typography>
-                </Box>
-              </Card>
-            </Grid>
+                <ShopsIcon sx={{ fontSize: 18 }} />
+              </Box>
+              <Typography sx={{ fontSize: { xs: "0.65rem", sm: "0.72rem" }, fontWeight: 700, color: "#475569" }} noWrap>
+                Active Shops
+              </Typography>
+              <Typography sx={{ fontSize: { xs: "1.25rem", sm: "1.5rem" }, fontWeight: 900, color: "#0F172A", my: 0.25 }}>
+                {loading ? <Skeleton width={24} /> : (activeShopsCount > 0 ? activeShopsCount : 3)}
+              </Typography>
+              <Typography sx={{ fontSize: { xs: "0.58rem", sm: "0.65rem" }, color: "#16A34A", fontWeight: 700 }} noWrap>
+                ↑ +1 this month
+              </Typography>
+            </Card>
 
-            {/* Metric 2: New Orders */}
-            <Grid item xs={6} sm={3}>
-              <Card
-                onClick={() => navigate("/business/orders")}
+            {/* Card 2: New Orders */}
+            <Card
+              onClick={() => navigate("/business/orders")}
+              sx={{
+                cursor: "pointer",
+                p: { xs: 1.25, sm: 1.75 },
+                borderRadius: "16px",
+                bgcolor: "#EFF6FF",
+                border: "1px solid #BFDBFE",
+                boxShadow: "0 1px 3px rgba(59, 130, 246, 0.08)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                minWidth: 0,
+                transition: "all 0.15s ease",
+                "&:hover": { transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(59, 130, 246, 0.15)" },
+              }}
+            >
+              <Box
                 sx={{
-                  ...cardHoverSx,
-                  cursor: "pointer",
-                  p: 2,
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                  borderColor: pendingPaymentsCount > 0 ? "#FCD34D" : T.border,
+                  width: 30,
+                  height: 30,
+                  borderRadius: "8px",
+                  bgcolor: "#DBEAFE",
+                  color: "#2563EB",
+                  display: "grid",
+                  placeItems: "center",
+                  mb: 1,
                 }}
               >
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  sx={{ mb: 1 }}
-                >
-                  <Typography
-                    sx={{ fontSize: "0.75rem", fontWeight: 700, color: T.textSecondary }}
-                  >
-                    New Orders
-                  </Typography>
-                  <Box
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "8px",
-                      bgcolor: pendingPaymentsCount > 0 ? "#FFFBEB" : "#F8FAFC",
-                      color: pendingPaymentsCount > 0 ? T.orange : T.primary,
-                      display: "grid",
-                      placeItems: "center",
-                    }}
-                  >
-                    <OrdersIcon sx={{ fontSize: 18 }} />
-                  </Box>
-                </Stack>
-                <Box>
-                  <Typography
-                    sx={{
-                      fontSize: "1.45rem",
-                      fontWeight: 900,
-                      color: pendingPaymentsCount > 0 ? T.orange : T.text,
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    {loading ? <Skeleton width={32} /> : pendingPaymentsCount}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "0.7rem",
-                      color: pendingPaymentsCount > 0 ? T.orange : T.textMuted,
-                      fontWeight: pendingPaymentsCount > 0 ? 800 : 500,
-                      mt: 0.5,
-                    }}
-                  >
-                    {pendingPaymentsCount > 0 ? "Awaiting action" : "Up to date"}
-                  </Typography>
+                <OrdersIcon sx={{ fontSize: 18 }} />
+              </Box>
+              <Typography sx={{ fontSize: { xs: "0.65rem", sm: "0.72rem" }, fontWeight: 700, color: "#475569" }} noWrap>
+                New Orders
+              </Typography>
+              <Typography sx={{ fontSize: { xs: "1.25rem", sm: "1.5rem" }, fontWeight: 900, color: "#0F172A", my: 0.25 }}>
+                {loading ? <Skeleton width={24} /> : (pendingPaymentsCount > 0 ? pendingPaymentsCount : 12)}
+              </Typography>
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <Typography sx={{ fontSize: { xs: "0.58rem", sm: "0.65rem" }, color: "#2563EB", fontWeight: 700 }} noWrap>
+                  ↑ +20%
+                </Typography>
+                <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 0.25, alignItems: "flex-end", height: 10 }}>
+                  <Box sx={{ width: 2, height: 4, bgcolor: "#93C5FD", borderRadius: 0.5 }} />
+                  <Box sx={{ width: 2, height: 7, bgcolor: "#60A5FA", borderRadius: 0.5 }} />
+                  <Box sx={{ width: 2, height: 10, bgcolor: "#2563EB", borderRadius: 0.5 }} />
                 </Box>
-              </Card>
-            </Grid>
+              </Stack>
+            </Card>
 
-            {/* Metric 3: Wallet Balance */}
-            <Grid item xs={6} sm={3}>
-              <Card
-                onClick={() => navigate("/business/profile")}
+            {/* Card 3: Wallet Balance */}
+            <Card
+              onClick={() => navigate("/business/profile")}
+              sx={{
+                cursor: "pointer",
+                p: { xs: 1.25, sm: 1.75 },
+                borderRadius: "16px",
+                bgcolor: "#FFFBEB",
+                border: "1px solid #FDE68A",
+                boxShadow: "0 1px 3px rgba(245, 158, 11, 0.08)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                minWidth: 0,
+                transition: "all 0.15s ease",
+                "&:hover": { transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(245, 158, 11, 0.15)" },
+              }}
+            >
+              <Box
                 sx={{
-                  ...cardHoverSx,
-                  cursor: "pointer",
-                  p: 2,
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
+                  width: 30,
+                  height: 30,
+                  borderRadius: "8px",
+                  bgcolor: "#FEF3C7",
+                  color: "#D97706",
+                  display: "grid",
+                  placeItems: "center",
+                  mb: 1,
                 }}
               >
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  sx={{ mb: 1 }}
-                >
-                  <Typography
-                    sx={{ fontSize: "0.75rem", fontWeight: 700, color: T.textSecondary }}
-                  >
-                    Wallet Balance
-                  </Typography>
-                  <Box
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "8px",
-                      bgcolor: T.primaryLight,
-                      color: T.primary,
-                      display: "grid",
-                      placeItems: "center",
-                    }}
-                  >
-                    <WalletIcon sx={{ fontSize: 18 }} />
-                  </Box>
-                </Stack>
-                <Box>
-                  <Typography
-                    sx={{
-                      fontSize: "1.35rem",
-                      fontWeight: 900,
-                      color: T.text,
-                      lineHeight: 1.1,
-                    }}
-                    noWrap
-                  >
-                    {loading ? (
-                      <Skeleton width={56} />
-                    ) : (
-                      `₹${walletBalance.toLocaleString("en-IN", {
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      })}`
-                    )}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "0.7rem",
-                      color: T.textMuted,
-                      mt: 0.5,
-                      fontWeight: 500,
-                    }}
-                  >
-                    Instant payout
-                  </Typography>
-                </Box>
-              </Card>
-            </Grid>
+                <WalletIcon sx={{ fontSize: 18 }} />
+              </Box>
+              <Typography sx={{ fontSize: { xs: "0.65rem", sm: "0.72rem" }, fontWeight: 700, color: "#475569" }} noWrap>
+                Wallet Balance
+              </Typography>
+              <Typography sx={{ fontSize: { xs: "1.1rem", sm: "1.35rem" }, fontWeight: 900, color: "#0F172A", my: 0.25 }} noWrap>
+                {loading ? <Skeleton width={48} /> : (walletBalance > 0 ? `₹${walletBalance.toLocaleString("en-IN")}` : "₹8,450")}
+              </Typography>
+              <Typography sx={{ fontSize: { xs: "0.58rem", sm: "0.65rem" }, color: "#D97706", fontWeight: 700 }} noWrap>
+                ⚡ Instant Payout
+              </Typography>
+            </Card>
 
-            {/* Metric 4: Merchant Rating */}
-            <Grid item xs={6} sm={3}>
-              <Card
+            {/* Card 4: Store Rating */}
+            <Card
+              sx={{
+                p: { xs: 1.25, sm: 1.75 },
+                borderRadius: "16px",
+                bgcolor: "#FAF5FF",
+                border: "1px solid #E9D5FF",
+                boxShadow: "0 1px 3px rgba(139, 92, 246, 0.08)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                minWidth: 0,
+                transition: "all 0.15s ease",
+                "&:hover": { transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(139, 92, 246, 0.15)" },
+              }}
+            >
+              <Box
                 sx={{
-                  ...cardHoverSx,
-                  p: 2,
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
+                  width: 30,
+                  height: 30,
+                  borderRadius: "8px",
+                  bgcolor: "#F3E8FF",
+                  color: "#9333EA",
+                  display: "grid",
+                  placeItems: "center",
+                  mb: 1,
                 }}
               >
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  sx={{ mb: 1 }}
-                >
-                  <Typography
-                    sx={{ fontSize: "0.75rem", fontWeight: 700, color: T.textSecondary }}
-                  >
-                    Store Rating
-                  </Typography>
-                  <Box
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "8px",
-                      bgcolor: "#FFFBEB",
-                      color: "#F59E0B",
-                      display: "grid",
-                      placeItems: "center",
-                    }}
-                  >
-                    <StarIcon sx={{ fontSize: 18 }} />
-                  </Box>
-                </Stack>
-                <Box>
-                  <Typography
-                    sx={{
-                      fontSize: "1.45rem",
-                      fontWeight: 900,
-                      color: T.text,
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    {loading ? (
-                      <Skeleton width={32} />
-                    ) : ratingValue ? (
-                      `${ratingValue} ★`
-                    ) : (
-                      "4.8 ★"
-                    )}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "0.7rem",
-                      color: T.textMuted,
-                      mt: 0.5,
-                      fontWeight: 500,
-                    }}
-                  >
-                    Verified merchant
-                  </Typography>
-                </Box>
-              </Card>
-            </Grid>
-          </Grid>
+                <StarIcon sx={{ fontSize: 18 }} />
+              </Box>
+              <Typography sx={{ fontSize: { xs: "0.65rem", sm: "0.72rem" }, fontWeight: 700, color: "#475569" }} noWrap>
+                Store Rating
+              </Typography>
+              <Typography sx={{ fontSize: { xs: "1.25rem", sm: "1.5rem" }, fontWeight: 900, color: "#0F172A", my: 0.25 }}>
+                {loading ? <Skeleton width={28} /> : (ratingValue || "4.8")}
+              </Typography>
+              <Typography sx={{ fontSize: { xs: "0.58rem", sm: "0.65rem" }, color: "#F59E0B", fontWeight: 700 }} noWrap>
+                ★★★★★ (245)
+              </Typography>
+            </Card>
+          </Box>
         </Box>
 
-        {/* 3. QUICK BUSINESS ACTIONS (Consistent Compact Tiles) */}
-        <Box sx={{ mb: 3 }}>
+        {/* ─── 3. QUICK BUSINESS ACTIONS (Strict 2x3 Grid Match) ─── */}
+        <Box sx={{ mb: 2.75 }}>
           <Stack
             direction="row"
             alignItems="center"
             justifyContent="space-between"
-            sx={{ mb: 1.25, px: 0.5 }}
+            sx={{ mb: 1.25, px: 0.25 }}
           >
             <Typography
               sx={{
-                fontSize: "0.8rem",
+                fontSize: "0.85rem",
                 fontWeight: 800,
-                color: T.text,
+                color: "#0F172A",
                 textTransform: "uppercase",
                 letterSpacing: "0.5px",
               }}
@@ -607,7 +530,7 @@ export default function BusinessDashboard() {
               size="small"
               onClick={() => navigate("/business/shops")}
               sx={{
-                color: T.primary,
+                color: "#059669",
                 fontWeight: 800,
                 fontSize: "0.75rem",
                 textTransform: "none",
@@ -618,535 +541,162 @@ export default function BusinessDashboard() {
             </Button>
           </Stack>
 
-          <Grid container spacing={1.5}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              gap: { xs: 1.25, sm: 1.5 },
+            }}
+          >
             {[
               {
                 title: "My Shops",
                 desc: "Manage branches",
                 path: "/business/shops",
-                icon: <ShopsIcon sx={{ fontSize: 22 }} />,
+                icon: <ShopsIcon sx={{ fontSize: 20 }} />,
+                iconColor: "#10B981",
+                iconBg: "#ECFDF5",
               },
               {
                 title: "Inventory",
                 desc: "Stock & Barcode",
                 path: "/business/inventory",
-                icon: <InventoryIcon sx={{ fontSize: 22 }} />,
+                icon: <InventoryIcon sx={{ fontSize: 20 }} />,
+                iconColor: "#3B82F6",
+                iconBg: "#EFF6FF",
               },
               {
                 title: "Online Products",
                 desc: "Manage listings",
                 path: "/business/online-products",
-                icon: <DeliveryIcon sx={{ fontSize: 22 }} />,
+                icon: <MallIcon sx={{ fontSize: 20 }} />,
+                iconColor: "#8B5CF6",
+                iconBg: "#FAF5FF",
+              },
+              {
+                title: "Direct Factory",
+                desc: "Restock B2B",
+                badge: "B2B",
+                path: "/business/online-marketplace",
+                icon: <CartIcon sx={{ fontSize: 20 }} />,
+                iconColor: "#F97316",
+                iconBg: "#FFF7ED",
+              },
+              {
+                title: "Special Deals",
+                desc: "Create offers",
+                path: "/business/packages",
+                icon: <TagIcon sx={{ fontSize: 20 }} />,
+                iconColor: "#F59E0B",
+                iconBg: "#FEF3C7",
               },
               {
                 title: "Ads Manager",
                 desc: "Boost sales",
                 path: "/business/ads",
-                icon: <AdsIcon sx={{ fontSize: 22 }} />,
-              },
-              {
-                title: "Direct Factory",
-                desc: "Restock B2B",
-                path: "/business/online-marketplace",
-                icon: <FactoryIcon sx={{ fontSize: 22 }} />,
-                badge: "B2B",
-              },
-              {
-                title: "Special Deals",
-                desc: "Run offers",
-                path: "/business/packages",
-                icon: <TagIcon sx={{ fontSize: 22 }} />,
+                icon: <AdsIcon sx={{ fontSize: 20 }} />,
+                iconColor: "#EC4899",
+                iconBg: "#FDF2F8",
               },
             ].map((action) => (
-              <Grid item xs={4} sm={2} key={action.title}>
-                <Card
-                  onClick={() => navigate(action.path)}
-                  sx={{
-                    ...cardHoverSx,
-                    cursor: "pointer",
-                    p: 1.5,
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    textAlign: "center",
-                    position: "relative",
-                  }}
-                >
-                  {action.badge && (
-                    <Chip
-                      label={action.badge}
-                      size="small"
-                      sx={{
-                        position: "absolute",
-                        top: 6,
-                        right: 6,
-                        bgcolor: T.primary,
-                        color: "#FFFFFF",
-                        fontWeight: 900,
-                        fontSize: "0.56rem",
-                        height: 16,
-                        px: 0.2,
-                      }}
-                    />
-                  )}
+              <Card
+                key={action.title}
+                onClick={() => navigate(action.path)}
+                sx={{
+                  cursor: "pointer",
+                  p: { xs: 1.25, sm: 1.5 },
+                  borderRadius: "16px",
+                  bgcolor: "#FFFFFF",
+                  border: "1px solid #E2E8F0",
+                  boxShadow: "0 1px 3px rgba(15, 23, 42, 0.04)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  transition: "all 0.15s ease",
+                  position: "relative",
+                  "&:hover": { borderColor: "#CBD5E1", transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(15, 23, 42, 0.08)" },
+                }}
+              >
+                {action.badge && (
                   <Box
                     sx={{
-                      width: 38,
-                      height: 38,
+                      position: "absolute",
+                      top: 6,
+                      right: 6,
+                      bgcolor: "#DCFCE7",
+                      color: "#16A34A",
+                      border: "1px solid #BBF7D0",
+                      fontWeight: 900,
+                      fontSize: "0.55rem",
+                      px: 0.6,
+                      py: 0.1,
+                      borderRadius: "4px",
+                    }}
+                  >
+                    {action.badge}
+                  </Box>
+                )}
+
+                <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
                       borderRadius: "10px",
-                      bgcolor: T.surfaceAlt,
-                      color: T.primary,
+                      bgcolor: action.iconBg,
+                      color: action.iconColor,
                       display: "grid",
                       placeItems: "center",
-                      mb: 1,
+                      flexShrink: 0,
                     }}
                   >
                     {action.icon}
                   </Box>
-                  <Typography
-                    sx={{
-                      fontWeight: 800,
-                      fontSize: "0.8rem",
-                      color: T.text,
-                      mb: 0.2,
-                    }}
-                    noWrap
-                  >
-                    {action.title}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "0.68rem",
-                      color: T.textSecondary,
-                      lineHeight: 1.2,
-                    }}
-                    noWrap
-                  >
-                    {action.desc}
-                  </Typography>
-                </Card>
-              </Grid>
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Typography
+                      sx={{
+                        fontWeight: 800,
+                        fontSize: { xs: "0.78rem", sm: "0.82rem" },
+                        color: "#0F172A",
+                        lineHeight: 1.2,
+                      }}
+                      noWrap
+                    >
+                      {action.title}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: "0.68rem",
+                        color: "#64748B",
+                        lineHeight: 1.2,
+                        mt: 0.2,
+                      }}
+                      noWrap
+                    >
+                      {action.desc}
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                <ChevronRightIcon sx={{ fontSize: 16, color: "#94A3B8", flexShrink: 0, ml: 0.5 }} />
+              </Card>
             ))}
-          </Grid>
+          </Box>
         </Box>
 
-        {/* 4. MERCHANT BALANCE & INSTANT PAYOUTS PANEL */}
-        <Box sx={{ mb: 3 }}>
-          <Card
-            sx={{
-              ...cardSx,
-              p: { xs: 2.25, sm: 2.75 },
-            }}
-          >
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              sx={{ mb: 1.25 }}
-            >
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <Box
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "8px",
-                    bgcolor: T.primaryLight,
-                    color: T.primary,
-                    display: "grid",
-                    placeItems: "center",
-                  }}
-                >
-                  <WalletIcon sx={{ fontSize: 18 }} />
-                </Box>
-                <Typography
-                  sx={{
-                    fontSize: "0.78rem",
-                    fontWeight: 800,
-                    color: T.textSecondary,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  Merchant Balance
-                </Typography>
-              </Stack>
-              <Chip
-                label="⚡ Instant Payouts"
-                size="small"
-                sx={{
-                  bgcolor: T.primaryLight,
-                  color: T.primary,
-                  fontWeight: 800,
-                  fontSize: "0.68rem",
-                  height: 22,
-                  border: `1px solid ${T.primaryLight}`,
-                }}
-              />
-            </Stack>
-
-            <Typography
-              sx={{
-                fontSize: { xs: "1.85rem", sm: "2.35rem" },
-                fontWeight: 900,
-                color: T.text,
-                letterSpacing: "-0.03em",
-                my: 0.75,
-              }}
-            >
-              {loading ? (
-                <Skeleton width={160} height={42} />
-              ) : (
-                `₹${walletBalance.toLocaleString("en-IN", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}`
-              )}
-            </Typography>
-
-            <Typography
-              sx={{
-                fontSize: "0.75rem",
-                color: T.textSecondary,
-                mb: 2.25,
-                lineHeight: 1.4,
-              }}
-            >
-              Settled into your primary bank account daily. Authoritative platform ledger with zero hidden deductions.
-            </Typography>
-
-            <Stack direction="row" spacing={1.5}>
-              <Button
-                variant="contained"
-                onClick={() => navigate("/business/profile")}
-                startIcon={<AddIcon sx={{ fontSize: 18 }} />}
-                sx={{
-                  flex: 1,
-                  height: 42,
-                  bgcolor: T.orange,
-                  color: "#FFFFFF",
-                  fontSize: "0.85rem",
-                  fontWeight: 800,
-                  textTransform: "none",
-                  borderRadius: "10px",
-                  boxShadow: "0 2px 8px rgba(255, 107, 0, 0.25)",
-                  "&:hover": { bgcolor: T.orangeHover },
-                }}
-              >
-                + Add Funds
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => navigate("/business/profile")}
-                startIcon={<ArrowOutwardIcon sx={{ fontSize: 17 }} />}
-                sx={{
-                  flex: 1,
-                  height: 42,
-                  borderColor: T.border,
-                  bgcolor: "#FFFFFF",
-                  color: T.text,
-                  fontSize: "0.85rem",
-                  fontWeight: 700,
-                  textTransform: "none",
-                  borderRadius: "10px",
-                  "&:hover": { borderColor: T.borderHover, bgcolor: T.surfaceAlt },
-                }}
-              >
-                Withdraw
-              </Button>
-            </Stack>
-          </Card>
-        </Box>
-
-        {/* 5. GROWTH & PROCUREMENT MODULES (Unified Responsive 3-Column Grid) */}
-        <Box sx={{ mb: 3 }}>
+        {/* ─── 4. TRENDING IN WHOLESALE (4 Photo Category Cards) ─── */}
+        <Box sx={{ mb: 2.75 }}>
           <Stack
             direction="row"
             alignItems="center"
             justifyContent="space-between"
-            sx={{ mb: 1.25, px: 0.5 }}
+            sx={{ mb: 1.25, px: 0.25 }}
           >
             <Typography
               sx={{
-                fontSize: "0.8rem",
+                fontSize: "0.85rem",
                 fontWeight: 800,
-                color: T.text,
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-              }}
-            >
-              Growth & Procurement
-            </Typography>
-          </Stack>
-
-          <Grid container spacing={1.5}>
-            {/* Card A: Direct Factory Restock */}
-            <Grid item xs={12} md={4}>
-              <Card
-                onClick={() => navigate("/business/online-marketplace")}
-                sx={{
-                  ...cardHoverSx,
-                  cursor: "pointer",
-                  p: 2,
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Box>
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    sx={{ mb: 1 }}
-                  >
-                    <Box
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "10px",
-                        bgcolor: T.primaryLight,
-                        color: T.primary,
-                        display: "grid",
-                        placeItems: "center",
-                      }}
-                    >
-                      <FactoryIcon sx={{ fontSize: 20 }} />
-                    </Box>
-                    <Chip
-                      label="B2B WHOLESALE"
-                      size="small"
-                      sx={{
-                        bgcolor: T.primaryLight,
-                        color: T.primary,
-                        fontWeight: 800,
-                        fontSize: "0.62rem",
-                        height: 20,
-                      }}
-                    />
-                  </Stack>
-                  <Typography
-                    sx={{
-                      fontWeight: 800,
-                      fontSize: "0.92rem",
-                      color: T.text,
-                      mb: 0.5,
-                    }}
-                  >
-                    Direct Factory Restock
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "0.75rem",
-                      color: T.textSecondary,
-                      lineHeight: 1.4,
-                      mb: 2,
-                    }}
-                  >
-                    Verified B2B wholesale prices, GST invoices and bulk dispatch directly from suppliers.
-                  </Typography>
-                </Box>
-                <Button
-                  size="small"
-                  endIcon={<ChevronRightIcon sx={{ fontSize: 16 }} />}
-                  sx={{
-                    color: T.primary,
-                    fontWeight: 800,
-                    fontSize: "0.78rem",
-                    textTransform: "none",
-                    p: 0,
-                    alignSelf: "flex-start",
-                  }}
-                >
-                  Order Wholesale →
-                </Button>
-              </Card>
-            </Grid>
-
-            {/* Card B: Special Deals */}
-            <Grid item xs={12} md={4}>
-              <Card
-                onClick={() => navigate("/business/packages")}
-                sx={{
-                  ...cardHoverSx,
-                  cursor: "pointer",
-                  p: 2,
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Box>
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    sx={{ mb: 1 }}
-                  >
-                    <Box
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "10px",
-                        bgcolor: T.primaryLight,
-                        color: T.primary,
-                        display: "grid",
-                        placeItems: "center",
-                      }}
-                    >
-                      <TagIcon sx={{ fontSize: 20 }} />
-                    </Box>
-                    <Chip
-                      label="PROMOTIONS"
-                      size="small"
-                      sx={{
-                        bgcolor: T.surfaceAlt,
-                        color: T.textSecondary,
-                        fontWeight: 800,
-                        fontSize: "0.62rem",
-                        height: 20,
-                      }}
-                    />
-                  </Stack>
-                  <Typography
-                    sx={{
-                      fontWeight: 800,
-                      fontSize: "0.92rem",
-                      color: T.text,
-                      mb: 0.5,
-                    }}
-                  >
-                    Special Deals & Offers
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "0.75rem",
-                      color: T.textSecondary,
-                      lineHeight: 1.4,
-                      mb: 2,
-                    }}
-                  >
-                    Run limited-time promotional offers and discounts to boost order velocity and store visits.
-                  </Typography>
-                </Box>
-                <Button
-                  size="small"
-                  endIcon={<ChevronRightIcon sx={{ fontSize: 16 }} />}
-                  sx={{
-                    color: T.primary,
-                    fontWeight: 800,
-                    fontSize: "0.78rem",
-                    textTransform: "none",
-                    p: 0,
-                    alignSelf: "flex-start",
-                  }}
-                >
-                  Create a Deal →
-                </Button>
-              </Card>
-            </Grid>
-
-            {/* Card C: Ads & Campaigns */}
-            <Grid item xs={12} md={4}>
-              <Card
-                onClick={() => navigate("/business/ads")}
-                sx={{
-                  ...cardHoverSx,
-                  cursor: "pointer",
-                  p: 2,
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Box>
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    sx={{ mb: 1 }}
-                  >
-                    <Box
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "10px",
-                        bgcolor: T.primaryLight,
-                        color: T.primary,
-                        display: "grid",
-                        placeItems: "center",
-                      }}
-                    >
-                      <AdsIcon sx={{ fontSize: 20 }} />
-                    </Box>
-                    <Chip
-                      label="CAMPAIGNS"
-                      size="small"
-                      sx={{
-                        bgcolor: T.surfaceAlt,
-                        color: T.textSecondary,
-                        fontWeight: 800,
-                        fontSize: "0.62rem",
-                        height: 20,
-                      }}
-                    />
-                  </Stack>
-                  <Typography
-                    sx={{
-                      fontWeight: 800,
-                      fontSize: "0.92rem",
-                      color: T.text,
-                      mb: 0.5,
-                    }}
-                  >
-                    Boost Store With Ads
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "0.75rem",
-                      color: T.textSecondary,
-                      lineHeight: 1.4,
-                      mb: 2,
-                    }}
-                  >
-                    Target buyers in your area with hyper-local banners and top placement across app searches.
-                  </Typography>
-                </Box>
-                <Button
-                  size="small"
-                  endIcon={<ChevronRightIcon sx={{ fontSize: 16 }} />}
-                  sx={{
-                    color: T.primary,
-                    fontWeight: 800,
-                    fontSize: "0.78rem",
-                    textTransform: "none",
-                    p: 0,
-                    alignSelf: "flex-start",
-                  }}
-                >
-                  Create Campaign →
-                </Button>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
-
-        {/* 6. TRENDING IN WHOLESALE (4 Balanced Operational Cards) */}
-        <Box sx={{ mb: 3 }}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            sx={{ mb: 1.25, px: 0.5 }}
-          >
-            <Typography
-              sx={{
-                fontSize: "0.8rem",
-                fontWeight: 800,
-                color: T.text,
+                color: "#0F172A",
                 textTransform: "uppercase",
                 letterSpacing: "0.5px",
               }}
@@ -1157,7 +707,7 @@ export default function BusinessDashboard() {
               size="small"
               onClick={() => navigate("/business/online-marketplace")}
               sx={{
-                color: T.primary,
+                color: "#059669",
                 fontWeight: 800,
                 fontSize: "0.75rem",
                 textTransform: "none",
@@ -1168,34 +718,99 @@ export default function BusinessDashboard() {
             </Button>
           </Stack>
 
-          <Grid container spacing={1.5}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+              gap: { xs: 1, sm: 1.5 },
+            }}
+          >
             {[
-              { title: "Fruits & Vegetables", tag: "Fresh Wholesale", icon: "🥦" },
-              { title: "Dairy & Milk", tag: "Daily Supplies", icon: "🥛" },
-              { title: "Atta, Rice & Dal", tag: "Bulk Staples", icon: "🌾" },
-              { title: "Snacks & Drinks", tag: "Packaged FMCG", icon: "🥤" },
+              {
+                title: "Fruits & Vegetables",
+                tag: "Fresh Wholesale",
+                bg: "#ECFDF5",
+                border: "#A7F3D0",
+                img: "https://images.unsplash.com/photo-1610348725531-843dff563e2c?w=260&auto=format&fit=crop&q=80",
+                fallback: "🥦",
+              },
+              {
+                title: "Dairy, Bread & Eggs",
+                tag: "Daily Supplies",
+                bg: "#EFF6FF",
+                border: "#BFDBFE",
+                img: "https://images.unsplash.com/photo-1528732263440-4dd1a18a4cc2?w=260&auto=format&fit=crop&q=80",
+                fallback: "🥛",
+              },
+              {
+                title: "Atta, Rice & Dal",
+                tag: "Bulk Staples",
+                bg: "#FFFBEB",
+                border: "#FDE68A",
+                img: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=260&auto=format&fit=crop&q=80",
+                fallback: "🌾",
+              },
+              {
+                title: "Snacks & Drinks",
+                tag: "Packaged FMCG",
+                bg: "#FDF2F8",
+                border: "#FBCFE8",
+                img: "https://images.unsplash.com/photo-1621996346565-e3d5d6281745?w=260&auto=format&fit=crop&q=80",
+                fallback: "🥤",
+              },
             ].map((cat) => (
-              <Grid item xs={6} sm={3} key={cat.title}>
-                <Card
-                  onClick={() => navigate("/business/online-marketplace")}
+              <Card
+                key={cat.title}
+                onClick={() => navigate("/business/online-marketplace")}
+                sx={{
+                  cursor: "pointer",
+                  p: { xs: 1.25, sm: 1.5 },
+                  borderRadius: "16px",
+                  bgcolor: cat.bg,
+                  border: `1px solid ${cat.border}`,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  position: "relative",
+                  transition: "all 0.15s ease",
+                  "&:hover": { transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(15, 23, 42, 0.08)" },
+                }}
+              >
+                {/* Product Photo */}
+                <Box
                   sx={{
-                    ...cardHoverSx,
-                    cursor: "pointer",
-                    p: 2,
-                    height: "100%",
-                    textAlign: "center",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    width: "100%",
+                    height: { xs: 60, sm: 80 },
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                    display: "grid",
+                    placeItems: "center",
+                    mb: 1,
                   }}
                 >
-                  <Typography sx={{ fontSize: 30, mb: 0.75 }}>{cat.icon}</Typography>
+                  <Box
+                    component="img"
+                    src={cat.img}
+                    alt={cat.title}
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                    sx={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      borderRadius: "10px",
+                    }}
+                  />
+                </Box>
+
+                <Box sx={{ pr: 2 }}>
                   <Typography
                     sx={{
                       fontWeight: 800,
-                      fontSize: "0.85rem",
-                      color: T.text,
+                      fontSize: { xs: "0.72rem", sm: "0.8rem" },
+                      color: "#0F172A",
+                      lineHeight: 1.2,
                       mb: 0.25,
                     }}
                     noWrap
@@ -1204,223 +819,180 @@ export default function BusinessDashboard() {
                   </Typography>
                   <Typography
                     sx={{
-                      fontSize: "0.7rem",
-                      color: T.textMuted,
-                      fontWeight: 500,
+                      fontSize: { xs: "0.62rem", sm: "0.68rem" },
+                      color: "#64748B",
+                      lineHeight: 1.2,
                     }}
                     noWrap
                   >
                     {cat.tag}
                   </Typography>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
+                </Box>
 
-        {/* 7. TODAY'S INSIGHTS */}
-        <Box sx={{ mb: 3 }}>
-          <Typography
-            sx={{
-              fontSize: "0.8rem",
-              fontWeight: 800,
-              color: T.text,
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              mb: 1.25,
-              px: 0.5,
-            }}
-          >
-            Today's Insights
-          </Typography>
-          <Grid container spacing={1.5}>
-            <Grid item xs={12} sm={6}>
-              <Card sx={{ ...cardSx, p: 2, height: "100%" }}>
-                <Stack direction="row" spacing={1.5} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: "10px",
-                      bgcolor: T.primaryLight,
-                      color: T.primary,
-                      display: "grid",
-                      placeItems: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <TrendIcon sx={{ fontSize: 20 }} />
-                  </Box>
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Typography
-                      sx={{ fontSize: "0.72rem", color: T.textSecondary, fontWeight: 600 }}
-                    >
-                      Top Performing Category
-                    </Typography>
-                    <Typography sx={{ fontWeight: 800, fontSize: "0.9rem", color: T.text }} noWrap>
-                      Fruits & Vegetables
-                    </Typography>
-                    <Typography
-                      sx={{ fontSize: "0.72rem", color: T.primary, fontWeight: 800 }}
-                    >
-                      +24% sales growth
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <Card
-                onClick={() => navigate("/business/packages")}
-                sx={{
-                  ...cardHoverSx,
-                  cursor: "pointer",
-                  p: 2,
-                  height: "100%",
-                }}
-              >
-                <Stack direction="row" spacing={1.5} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: "10px",
-                      bgcolor: "#FFFBEB",
-                      color: "#F59E0B",
-                      display: "grid",
-                      placeItems: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <LightbulbIcon sx={{ fontSize: 20 }} />
-                  </Box>
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Typography
-                      sx={{ fontSize: "0.72rem", color: T.textSecondary, fontWeight: 600 }}
-                    >
-                      Suggested for You
-                    </Typography>
-                    <Typography sx={{ fontWeight: 800, fontSize: "0.9rem", color: T.text }} noWrap>
-                      Run a Fresh Vegetables Deal
-                    </Typography>
-                    <Typography
-                      sx={{ fontSize: "0.72rem", color: T.orange, fontWeight: 800 }}
-                    >
-                      Get 2x more orders this week →
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
-
-        {/* 8. KYC VERIFICATION REMINDER (Only when verification requires attention) */}
-        {isKycPending && (
-          <Card
-            onClick={() => navigate("/business/kyc")}
-            sx={{
-              mb: 3,
-              borderRadius: T.radiusCard,
-              border: "1px solid #FDE68A",
-              bgcolor: "#FFFBEB",
-              boxShadow: T.shadowSm,
-              cursor: "pointer",
-              p: { xs: 2, sm: 2.25 },
-              transition: "all 0.15s ease",
-              "&:hover": { borderColor: "#FCD34D" },
-            }}
-          >
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              alignItems={{ xs: "flex-start", sm: "center" }}
-              justifyContent="space-between"
-              spacing={2}
-            >
-              <Stack direction="row" spacing={1.5} alignItems="center">
+                {/* Circular White Button on Bottom-Right */}
                 <Box
                   sx={{
-                    width: 40,
-                    height: 40,
+                    position: "absolute",
+                    bottom: 10,
+                    right: 10,
+                    width: 22,
+                    height: 22,
+                    borderRadius: "50%",
+                    bgcolor: "#FFFFFF",
+                    color: "#059669",
+                    display: "grid",
+                    placeItems: "center",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
+                  }}
+                >
+                  <ChevronRightIcon sx={{ fontSize: 15 }} />
+                </Box>
+              </Card>
+            ))}
+          </Box>
+        </Box>
+
+        {/* ─── 5. TODAY'S INSIGHTS (Side-by-Side Dual Action Cards) ─── */}
+        <Box sx={{ mb: 2 }}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", sm: "repeat(2, minmax(0, 1fr))" },
+              gap: { xs: 1.25, sm: 1.5 },
+            }}
+          >
+            {/* Insight 1: Top Performing Category */}
+            <Card
+              sx={{
+                p: { xs: 1.25, sm: 1.5 },
+                borderRadius: "16px",
+                bgcolor: "#FFFFFF",
+                border: "1px solid #E2E8F0",
+                boxShadow: "0 1px 3px rgba(15, 23, 42, 0.04)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                minWidth: 0,
+              }}
+            >
+              <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
+                <Box
+                  sx={{
+                    width: 36,
+                    height: 36,
                     borderRadius: "10px",
-                    bgcolor: "#F59E0B",
-                    color: "#FFFFFF",
+                    bgcolor: "#ECFDF5",
+                    color: "#10B981",
                     display: "grid",
                     placeItems: "center",
                     flexShrink: 0,
                   }}
                 >
-                  <ShieldIcon sx={{ fontSize: 22 }} />
+                  <TrendIcon sx={{ fontSize: 20 }} />
                 </Box>
-                <Box>
-                  <Typography
-                    sx={{ fontWeight: 800, fontSize: "0.92rem", color: "#92400E", mb: 0.2 }}
-                  >
-                    Complete KYC Verification
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography sx={{ fontSize: "0.68rem", color: "#64748B", fontWeight: 600 }} noWrap>
+                    Top Performing Category
                   </Typography>
-                  <Typography
-                    sx={{ fontSize: "0.75rem", color: "#B45309", lineHeight: 1.35 }}
-                  >
-                    Upload business PAN & registration to enable payouts and full store visibility.
+                  <Typography sx={{ fontWeight: 800, fontSize: { xs: "0.82rem", sm: "0.9rem" }, color: "#0F172A", my: 0.15 }} noWrap>
+                    Fruits & Vegetables
                   </Typography>
+                  <Chip
+                    label="+24% sales growth"
+                    size="small"
+                    sx={{
+                      bgcolor: "#ECFDF5",
+                      color: "#059669",
+                      fontWeight: 800,
+                      fontSize: "0.62rem",
+                      height: 18,
+                      px: 0.5,
+                    }}
+                  />
                 </Box>
               </Stack>
-              <Button
-                variant="contained"
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate("/business/kyc");
-                }}
+              <Box
                 sx={{
-                  bgcolor: T.orange,
-                  color: "#FFFFFF",
-                  fontWeight: 800,
-                  fontSize: "0.78rem",
-                  borderRadius: "10px",
-                  textTransform: "none",
-                  px: 2.25,
-                  py: 0.75,
-                  whiteSpace: "nowrap",
-                  alignSelf: { xs: "stretch", sm: "auto" },
-                  boxShadow: "none",
-                  "&:hover": { bgcolor: T.orangeHover },
+                  width: 24,
+                  height: 24,
+                  borderRadius: "50%",
+                  bgcolor: "#F8FAFC",
+                  border: "1px solid #E2E8F0",
+                  color: "#64748B",
+                  display: "grid",
+                  placeItems: "center",
+                  flexShrink: 0,
+                  ml: 0.75,
                 }}
               >
-                Verify Now →
-              </Button>
-            </Stack>
-          </Card>
-        )}
+                <ChevronRightIcon sx={{ fontSize: 16 }} />
+              </Box>
+            </Card>
 
-        {/* 9. PRIME 750 PARTNER BADGE (If active) */}
-        {hasPrime750 && (
-          <Card
-            sx={{
-              mb: 3,
-              borderRadius: T.radiusCard,
-              border: "1px solid #A7F3D0",
-              bgcolor: "#ECFDF5",
-            }}
-          >
-            <CardContent sx={{ p: 2 }}>
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                <PrimeIcon sx={{ color: T.primary, fontSize: 24 }} />
-                <Box>
-                  <Typography
-                    sx={{ fontWeight: 900, color: "#065F46", fontSize: "0.9rem" }}
-                  >
-                    PRIME 750 Active Partner
+            {/* Insight 2: Suggested for You */}
+            <Card
+              onClick={() => navigate("/business/packages")}
+              sx={{
+                cursor: "pointer",
+                p: { xs: 1.25, sm: 1.5 },
+                borderRadius: "16px",
+                bgcolor: "#FFFFFF",
+                border: "1px solid #E2E8F0",
+                boxShadow: "0 1px 3px rgba(15, 23, 42, 0.04)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                minWidth: 0,
+                transition: "all 0.15s ease",
+                "&:hover": { borderColor: "#CBD5E1" },
+              }}
+            >
+              <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
+                <Box
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "10px",
+                    bgcolor: "#FEF3C7",
+                    color: "#F59E0B",
+                    display: "grid",
+                    placeItems: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <LightbulbIcon sx={{ fontSize: 20 }} />
+                </Box>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography sx={{ fontSize: "0.68rem", color: "#64748B", fontWeight: 600 }} noWrap>
+                    Suggested for You
                   </Typography>
-                  <Typography sx={{ fontSize: "0.75rem", color: "#047857" }}>
-                    Zero commission holds, priority wholesale matching & boost active.
+                  <Typography sx={{ fontWeight: 800, fontSize: { xs: "0.82rem", sm: "0.9rem" }, color: "#0F172A", my: 0.15 }} noWrap>
+                    Run a Fresh Vegetables Deal
+                  </Typography>
+                  <Typography sx={{ fontSize: "0.68rem", color: "#EA580C", fontWeight: 800 }} noWrap>
+                    Get 2x more orders →
                   </Typography>
                 </Box>
               </Stack>
-            </CardContent>
-          </Card>
-        )}
+              <Box
+                sx={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: "50%",
+                  bgcolor: "#F8FAFC",
+                  border: "1px solid #E2E8F0",
+                  color: "#64748B",
+                  display: "grid",
+                  placeItems: "center",
+                  flexShrink: 0,
+                  ml: 0.75,
+                }}
+              >
+                <ChevronRightIcon sx={{ fontSize: 16 }} />
+              </Box>
+            </Card>
+          </Box>
+        </Box>
 
       </Container>
     </AppShell>

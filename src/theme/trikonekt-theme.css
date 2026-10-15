@@ -1,15 +1,16 @@
 :root {
-  /* Trikonekt Business Premium Light Theme */
-  --tri-brand: #0B8063;
-  --tri-brand-hover: #086951;
-  --tri-brand-soft: #E6F5F0;
+  /* Trikonekt Business Reference Theme */
+  --tri-brand: #064E3B;
+  --tri-brand-hover: #04382A;
+  --tri-brand-soft: #ECFDF5;
+  --tri-brand-accent: #10B981;
   --tri-brand-border: #A7F3D0;
-  --tri-cta: #FF6B00;
-  --tri-cta-hover: #E55F00;
-  --tri-ink: #172B4D;
-  --tri-muted: #64748B;
+  --tri-cta: #FF6508;
+  --tri-cta-hover: #EA580C;
+  --tri-ink: #0F172A;
+  --tri-muted: #475569;
   --tri-subtle: #94A3B8;
-  --tri-page: #F7F9FC;
+  --tri-page: #F8FAFC;
   --tri-surface: #FFFFFF;
   --tri-border: #E2E8F0;
   --tri-success: #159A65;

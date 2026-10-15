@@ -4,34 +4,35 @@
  */
 
 export const T = {
-  // Brand Palette (User Specified: #0B8063 primary brand, #FF6B00 highlight CTA)
-  primary: '#0B8063',        // Primary business brand emerald
-  primaryDark: '#086951',    // Deep emerald
-  primaryHover: '#086951',
-  primaryLight: '#E6F5F0',   // Soft brand surface
-  primaryAccent: '#FF6B00',  // Trikonekt Orange for key highlights & CTAs
-  primaryGradient: 'linear-gradient(135deg, #0B8063 0%, #086951 100%)',
-  primaryGradientSubtle: 'linear-gradient(135deg, rgba(11,128,99,0.06) 0%, rgba(8,105,81,0.02) 100%)',
+  // Brand Palette (Exact Reference Specifications)
+  primary: '#064E3B',        // Deep forest emerald green (Header & Brand)
+  primaryDark: '#04382A',    // Deepest green
+  primaryHover: '#04382A',
+  primaryLight: '#ECFDF5',   // Soft mint surface
+  primaryAccent: '#10B981',  // Bright emerald highlight
+  primaryGradient: 'linear-gradient(180deg, #064E3B 0%, #032E23 100%)',
+  primaryGradientSubtle: 'linear-gradient(135deg, rgba(6,78,59,0.06) 0%, rgba(4,56,42,0.02) 100%)',
 
-  // Highlight Orange (used sparingly for promo badges and prime CTAs)
-  orange: '#FF6B00',
-  orangeDark: '#E55F00',
-  orangeHover: '#E55F00',
+  // Highlight Orange (Scanner action & key promotional CTAs)
+  orange: '#FF6508',
+  orangeDark: '#EA580C',
+  orangeHover: '#EA580C',
   orangeLight: '#FFF3E8',
+  orangeGradient: 'linear-gradient(135deg, #FF6508 0%, #EA580C 100%)',
 
-  // Neutrals Canvas (Clean Premium Light Theme)
-  bg: '#F7F9FC',             // Clean light page background
-  surface: '#FFFFFF',        // Card background
-  surfaceAlt: '#F8FAFC',     // Secondary surface
-  surfaceHover: '#F1F5F9',
+  // Neutrals Canvas
+  bg: '#F8FAFC',             // Very light cool gray background
+  surface: '#FFFFFF',        // Pure white card background
+  surfaceAlt: '#F1F5F9',     // Secondary surface
+  surfaceHover: '#F8FAFC',
   border: '#E2E8F0',         // Clean subtle border
   borderHover: '#CBD5E1',
-  borderFocus: '#0B8063',
+  borderFocus: '#064E3B',
 
   // Typography
-  text: '#172B4D',           // Primary dark text
-  textSecondary: '#64748B',  // Secondary text
-  textMuted: '#94A3B8',      // Muted slate captions
+  text: '#0F172A',           // Dark navy primary text
+  textSecondary: '#475569',  // Slate secondary text
+  textMuted: '#94A3B8',      // Muted captions
   textInverse: '#FFFFFF',
 
   // Semantic Status Colors (only genuine status)

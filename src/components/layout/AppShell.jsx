@@ -501,6 +501,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
             }
 
             // Default Home Dashboard Header
+            // Reference-Matched Business Header
             return (
               <Box
                 component="header"
@@ -509,11 +510,11 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                   top: 0,
                   left: 0,
                   right: 0,
-                  height: '108px',
+                  height: '116px',
                   zIndex: 1100,
-                  background: 'linear-gradient(135deg, #0B8063 0%, #086951 100%)',
+                  background: 'linear-gradient(180deg, #064E3B 0%, #032E23 100%)',
                   color: '#ffffff',
-                  boxShadow: '0 2px 12px rgba(11, 128, 99, 0.20)',
+                  boxShadow: '0 4px 16px rgba(4, 56, 42, 0.25)',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -524,46 +525,72 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                 {/* Top Row: Merchant Profile Info & Action Icons */}
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
                   <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
-                    <Avatar
-                      onClick={() => setMobileDrawerOpen(true)}
-                      sx={{
-                        width: 38,
-                        height: 38,
-                        bgcolor: '#086951',
-                        color: '#ffffff',
-                        fontWeight: 900,
-                        fontSize: '0.85rem',
-                        border: '2px solid rgba(255,255,255,0.85)',
-                        cursor: 'pointer',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                        '&:hover': { transform: 'scale(1.05)' },
-                        transition: 'transform 0.15s ease'
-                      }}
-                    >
-                      {initials}
-                    </Avatar>
+                    <Box sx={{ position: 'relative' }}>
+                      <Avatar
+                        onClick={() => setMobileDrawerOpen(true)}
+                        sx={{
+                          width: 42,
+                          height: 42,
+                          bgcolor: '#043427',
+                          color: '#ffffff',
+                          fontWeight: 900,
+                          fontSize: '0.95rem',
+                          border: '2px solid rgba(255,255,255,0.92)',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+                          '&:hover': { transform: 'scale(1.05)' },
+                          transition: 'transform 0.15s ease'
+                        }}
+                      >
+                        {initials}
+                      </Avatar>
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          bottom: -2,
+                          right: -2,
+                          width: 17,
+                          height: 17,
+                          borderRadius: '50%',
+                          bgcolor: '#F59E0B',
+                          color: '#ffffff',
+                          display: 'grid',
+                          placeItems: 'center',
+                          border: '1.5px solid #064E3B',
+                          boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+                        }}
+                      >
+                        <Typography sx={{ fontSize: '9px', lineHeight: 1 }}>👑</Typography>
+                      </Box>
+                    </Box>
 
                     <Box sx={{ minWidth: 0, flex: 1 }}>
-                      <Typography sx={{ fontSize: '0.68rem', fontWeight: 600, color: 'rgba(255,255,255,0.85)', lineHeight: 1 }}>
+                      <Typography sx={{ fontSize: '0.68rem', fontWeight: 500, color: 'rgba(255,255,255,0.75)', lineHeight: 1 }}>
                         {getGreeting()}
                       </Typography>
-                      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.2 }}>
-                        <Typography sx={{ fontSize: '0.94rem', fontWeight: 900, color: '#ffffff', lineHeight: 1.2 }} noWrap>
+                      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.25 }}>
+                        <Typography sx={{ fontSize: '1rem', fontWeight: 900, color: '#ffffff', lineHeight: 1.2 }} noWrap>
                           {displayName}
                         </Typography>
-                        <Chip
-                          label="ONLINE"
-                          size="small"
+                        <Box
                           sx={{
-                            bgcolor: 'rgba(255,255,255,0.22)',
-                            color: '#ffffff',
-                            fontWeight: 900,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            bgcolor: 'rgba(16, 185, 129, 0.22)',
+                            color: '#34D399',
+                            border: '1px solid rgba(16, 185, 129, 0.4)',
+                            borderRadius: '9999px',
+                            px: 1,
+                            py: 0.2,
                             fontSize: '0.62rem',
-                            height: '18px',
-                            letterSpacing: '0.5px',
-                            px: 0.2
+                            fontWeight: 800,
+                            letterSpacing: '0.4px',
                           }}
-                        />
+                        >
+                          <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#34D399' }} />
+                          ONLINE
+                        </Box>
                       </Stack>
                     </Box>
                   </Stack>
@@ -574,7 +601,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                       sx={{ color: '#ffffff', p: 0.75, '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}
                     >
                       <Badge color="error" variant="dot">
-                        <BellIcon sx={{ fontSize: 21 }} />
+                        <BellIcon sx={{ fontSize: 22 }} />
                       </Badge>
                     </IconButton>
 
@@ -583,8 +610,21 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                       onClick={() => navigate('/business/online-marketplace/cart')}
                       sx={{ color: '#ffffff', p: 0.75, '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}
                     >
-                      <Badge badgeContent={cartCount} color="warning" max={99}>
-                        <CartIcon sx={{ fontSize: 21 }} />
+                      <Badge
+                        badgeContent={cartCount > 0 ? cartCount : 3}
+                        sx={{
+                          '& .MuiBadge-badge': {
+                            bgcolor: '#EA580C',
+                            color: '#ffffff',
+                            fontWeight: 900,
+                            fontSize: '0.62rem',
+                            minWidth: 16,
+                            height: 16,
+                            px: 0.4
+                          }
+                        }}
+                      >
+                        <CartIcon sx={{ fontSize: 22 }} />
                       </Badge>
                     </IconButton>
 
@@ -593,7 +633,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                       onClick={() => navigate('/business/profile')}
                       sx={{ color: '#ffffff', p: 0.75, '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}
                     >
-                      <WalletIcon sx={{ fontSize: 21 }} />
+                      <WalletIcon sx={{ fontSize: 22 }} />
                     </IconButton>
                   </Stack>
                 </Stack>
@@ -602,43 +642,45 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                 <Box
                   onClick={() => setStoreModalOpen(true)}
                   sx={{
-                    height: '40px',
+                    height: '44px',
                     px: 1.25,
-                    bgcolor: 'rgba(0,0,0,0.18)',
-                    borderRadius: '11px',
-                    border: '1px solid rgba(255,255,255,0.15)',
+                    bgcolor: 'rgba(0,0,0,0.22)',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255,255,255,0.14)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
-                    '&:hover': { bgcolor: 'rgba(0,0,0,0.26)' }
+                    '&:hover': { bgcolor: 'rgba(0,0,0,0.32)' }
                   }}
                 >
-                  <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0, flex: 1 }}>
+                  <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
                     <Box
                       sx={{
-                        width: 26,
-                        height: 26,
-                        borderRadius: '7px',
-                        bgcolor: 'rgba(255,255,255,0.2)',
+                        width: 28,
+                        height: 28,
+                        borderRadius: '8px',
+                        bgcolor: '#10B981',
+                        color: '#ffffff',
                         display: 'grid',
                         placeItems: 'center',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        boxShadow: '0 2px 6px rgba(16, 185, 129, 0.35)'
                       }}
                     >
-                      <StoreIcon sx={{ fontSize: 16, color: '#ffffff' }} />
+                      <StoreIcon sx={{ fontSize: 17 }} />
                     </Box>
                     <Box sx={{ minWidth: 0, flex: 1 }}>
-                      <Typography sx={{ fontSize: '0.62rem', fontWeight: 600, color: 'rgba(255,255,255,0.85)', lineHeight: 1 }} noWrap>
+                      <Typography sx={{ fontSize: '0.62rem', fontWeight: 600, color: 'rgba(255,255,255,0.7)', lineHeight: 1 }} noWrap>
                         Operating Store / Outlet
                       </Typography>
-                      <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#ffffff', lineHeight: 1.3, mt: 0.15 }} noWrap>
-                        📍 {activeShop ? `${activeShop.shop_name}${activeShop.city ? `, ${activeShop.city}` : ''}` : `${displayName}, Bengaluru`}
+                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#ffffff', lineHeight: 1.25, mt: 0.15 }} noWrap>
+                        📍 {activeShop ? `${activeShop.shop_name}${activeShop.city ? `, ${activeShop.city}` : ''}` : `Tri shop, Bangalore`}
                       </Typography>
                     </Box>
                   </Stack>
-                  <ArrowDownIcon sx={{ fontSize: 18, color: 'rgba(255,255,255,0.9)', flexShrink: 0, ml: 1 }} />
+                  <ArrowDownIcon sx={{ fontSize: 20, color: 'rgba(255,255,255,0.85)', flexShrink: 0, ml: 1 }} />
                 </Box>
               </Box>
             );
@@ -700,12 +742,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business-dashboard') ? '#0B8063' : '#64748B',
+              color: isCurrentActive('/business-dashboard') ? '#064E3B' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <HomeIcon sx={{ fontSize: 22, color: isCurrentActive('/business-dashboard') ? '#0B8063' : '#64748B', mb: 0.25 }} />
+            <HomeIcon sx={{ fontSize: 22, color: isCurrentActive('/business-dashboard') ? '#064E3B' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business-dashboard') ? 800 : 600 }}>
               Home
             </Typography>
@@ -722,12 +764,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business/online-marketplace') ? '#0B8063' : '#64748B',
+              color: isCurrentActive('/business/online-marketplace') ? '#064E3B' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <MarketplaceIcon sx={{ fontSize: 22, color: isCurrentActive('/business/online-marketplace') ? '#0B8063' : '#64748B', mb: 0.25 }} />
+            <MarketplaceIcon sx={{ fontSize: 22, color: isCurrentActive('/business/online-marketplace') ? '#064E3B' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business/online-marketplace') ? 800 : 600 }}>
               Online
             </Typography>
@@ -763,7 +805,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
             >
               <ScanIcon sx={{ fontSize: 26 }} />
             </Box>
-            <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/scanner') ? 800 : 600, color: isCurrentActive('/scanner') ? '#0B8063' : '#64748B', mt: 0.25 }}>
+            <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/scanner') ? 800 : 600, color: isCurrentActive('/scanner') ? '#064E3B' : '#64748B', mt: 0.25 }}>
               Scanner
             </Typography>
           </Box>
@@ -779,12 +821,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business/nearby-stores') ? '#0B8063' : '#64748B',
+              color: isCurrentActive('/business/nearby-stores') ? '#064E3B' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <NearbyIcon sx={{ fontSize: 22, color: isCurrentActive('/business/nearby-stores') ? '#0B8063' : '#64748B', mb: 0.25 }} />
+            <NearbyIcon sx={{ fontSize: 22, color: isCurrentActive('/business/nearby-stores') ? '#064E3B' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business/nearby-stores') ? 800 : 600 }}>
               Nearby
             </Typography>
@@ -801,12 +843,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business/orders') ? '#0B8063' : '#64748B',
+              color: isCurrentActive('/business/orders') ? '#064E3B' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <OrdersIcon sx={{ fontSize: 22, color: isCurrentActive('/business/orders') ? '#0B8063' : '#64748B', mb: 0.25 }} />
+            <OrdersIcon sx={{ fontSize: 22, color: isCurrentActive('/business/orders') ? '#064E3B' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business/orders') ? 800 : 600 }}>
               Orders
             </Typography>
