@@ -1,29 +1,29 @@
 :root {
-  /* Trikonekt premium light theme */
-  --tri-brand: #F5660A;
-  --tri-brand-hover: #E95500;
-  --tri-brand-soft: #FFF0E4;
-  --tri-brand-border: #FFD6B4;
-  --tri-ink: #172033;
-  --tri-muted: #697789;
-  --tri-subtle: #95A1B0;
-  --tri-page: #F6F8FC;
+  /* Trikonekt Business Premium Light Theme */
+  --tri-brand: #0B8063;
+  --tri-brand-hover: #086951;
+  --tri-brand-soft: #E6F5F0;
+  --tri-brand-border: #A7F3D0;
+  --tri-cta: #FF6B00;
+  --tri-cta-hover: #E55F00;
+  --tri-ink: #172B4D;
+  --tri-muted: #64748B;
+  --tri-subtle: #94A3B8;
+  --tri-page: #F7F9FC;
   --tri-surface: #FFFFFF;
   --tri-border: #E2E8F0;
-  --tri-success: #14966B;
-  --tri-success-soft: #E8F8F1;
-  --tri-info: #3478D4;
-  --tri-info-soft: #EDF5FF;
-  --tri-violet: #8156D9;
-  --tri-violet-soft: #F3EEFF;
-  --tri-warning: #B87908;
-  --tri-warning-soft: #FFF8DF;
-  --tri-danger: #D83B45;
-  --tri-danger-soft: #FFF0F0;
-  --tri-radius-card: 22px;
-  --tri-radius-control: 14px;
-  --tri-shadow-card: 0 4px 16px rgba(23, 32, 51, .055), 0 1px 3px rgba(23, 32, 51, .04);
-  --tri-shadow-elevated: 0 10px 30px rgba(23, 32, 51, .10);
+  --tri-success: #159A65;
+  --tri-success-soft: #ECFDF5;
+  --tri-info: #3B82F6;
+  --tri-info-soft: #EFF6FF;
+  --tri-warning: #F59E0B;
+  --tri-warning-soft: #FFFBEB;
+  --tri-danger: #EF4444;
+  --tri-danger-soft: #FEF2F2;
+  --tri-radius-card: 16px;
+  --tri-radius-control: 12px;
+  --tri-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --tri-shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.06);
   --tri-space-1: 4px;
   --tri-space-2: 8px;
   --tri-space-3: 12px;
@@ -31,13 +31,14 @@
   --tri-space-5: 20px;
   --tri-space-6: 24px;
 }
-html, body { background: var(--tri-page); color: var(--tri-ink); }
+html, body {
+  background: var(--tri-page);
+  color: var(--tri-ink);
+  margin: 0;
+  padding: 0;
+}
 .tri-page-background {
   background-color: var(--tri-page);
-  background-image: var(--tri-page-bg-image, none);
-  background-size: cover;
-  background-position: top center;
-  background-attachment: scroll;
 }
 .tri-card {
   background: var(--tri-surface);

@@ -79,30 +79,6 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
-  const [bgTheme, setBgTheme] = useState(() => localStorage.getItem('tri_home_bg_theme') || 'warm-ivory');
-
-  useEffect(() => {
-    const handleThemeChange = () => {
-      const stored = localStorage.getItem('tri_home_bg_theme');
-      if (stored) setBgTheme(stored);
-    };
-    window.addEventListener('storage', handleThemeChange);
-    window.addEventListener('tri_theme_change', handleThemeChange);
-    return () => {
-      window.removeEventListener('storage', handleThemeChange);
-      window.removeEventListener('tri_theme_change', handleThemeChange);
-    };
-  }, []);
-
-  const getHomeBg = () => {
-    if (bgTheme === 'soft-gradient') {
-      return "url('/assets/backgrounds/merchant-home-soft-gradient.svg') top center / cover no-repeat, #F6F8FC";
-    }
-    if (bgTheme === 'pattern') {
-      return "url('/assets/patterns/commerce-line-pattern.svg') top center / 320px repeat, #FFF9F0";
-    }
-    return "url('/assets/backgrounds/merchant-home-warm-ivory.svg') top center / cover no-repeat, #F6F8FC";
-  };
 
   // Dynamic Time Greeting
   const getGreeting = () => {
@@ -535,9 +511,9 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                   right: 0,
                   height: '108px',
                   zIndex: 1100,
-                  background: 'linear-gradient(135deg, #FF6508 0%, #E9570A 100%)',
+                  background: 'linear-gradient(135deg, #0B8063 0%, #086951 100%)',
                   color: '#ffffff',
-                  boxShadow: '0 4px 20px rgba(255, 101, 8, 0.28)',
+                  boxShadow: '0 2px 12px rgba(11, 128, 99, 0.20)',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -553,7 +529,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                       sx={{
                         width: 38,
                         height: 38,
-                        bgcolor: '#E9570A',
+                        bgcolor: '#086951',
                         color: '#ffffff',
                         fontWeight: 900,
                         fontSize: '0.85rem',
@@ -669,10 +645,9 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
           })()
         )}
 
-        {/* ─── PAGE CONTENT CONTAINER (Guaranteed Breathing Room) ─── */}
+        {/* ─── PAGE CONTENT CONTAINER (Clean Light Background #F7F9FC) ─── */}
         <Box
           component="main"
-          className={isHome ? 'tri-page-background' : ''}
           sx={{
             flex: 1,
             pt: {
@@ -687,9 +662,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
             maxWidth: T.maxContentWidth,
             width: '100%',
             mx: 'auto',
-            background: isHome ? getHomeBg() : 'transparent',
-            backgroundAttachment: 'scroll',
-            transition: 'background 0.3s ease',
+            bgcolor: '#F7F9FC',
           }}
         >
           {children}
@@ -727,12 +700,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business-dashboard') ? '#FF6508' : '#64748B',
+              color: isCurrentActive('/business-dashboard') ? '#0B8063' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <HomeIcon sx={{ fontSize: 22, color: isCurrentActive('/business-dashboard') ? '#FF6508' : '#64748B', mb: 0.25 }} />
+            <HomeIcon sx={{ fontSize: 22, color: isCurrentActive('/business-dashboard') ? '#0B8063' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business-dashboard') ? 800 : 600 }}>
               Home
             </Typography>
@@ -749,12 +722,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business/online-marketplace') ? '#FF6508' : '#64748B',
+              color: isCurrentActive('/business/online-marketplace') ? '#0B8063' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <MarketplaceIcon sx={{ fontSize: 22, color: isCurrentActive('/business/online-marketplace') ? '#FF6508' : '#64748B', mb: 0.25 }} />
+            <MarketplaceIcon sx={{ fontSize: 22, color: isCurrentActive('/business/online-marketplace') ? '#0B8063' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business/online-marketplace') ? 800 : 600 }}>
               Online
             </Typography>
@@ -778,11 +751,11 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                 width: 52,
                 height: 52,
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #FF6508 0%, #E9570A 100%)',
+                background: 'linear-gradient(135deg, #FF6B00 0%, #E55F00 100%)',
                 color: '#ffffff',
                 display: 'grid',
                 placeItems: 'center',
-                boxShadow: '0 4px 14px rgba(255, 101, 8, 0.45)',
+                boxShadow: '0 4px 14px rgba(255, 107, 0, 0.40)',
                 border: '3px solid #ffffff',
                 transition: 'transform 0.15s ease',
                 '&:active': { transform: 'scale(0.92)' }
@@ -790,7 +763,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
             >
               <ScanIcon sx={{ fontSize: 26 }} />
             </Box>
-            <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/scanner') ? 800 : 600, color: isCurrentActive('/scanner') ? '#FF6508' : '#64748B', mt: 0.25 }}>
+            <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/scanner') ? 800 : 600, color: isCurrentActive('/scanner') ? '#0B8063' : '#64748B', mt: 0.25 }}>
               Scanner
             </Typography>
           </Box>
@@ -806,12 +779,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business/nearby-stores') ? '#FF6508' : '#64748B',
+              color: isCurrentActive('/business/nearby-stores') ? '#0B8063' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <NearbyIcon sx={{ fontSize: 22, color: isCurrentActive('/business/nearby-stores') ? '#FF6508' : '#64748B', mb: 0.25 }} />
+            <NearbyIcon sx={{ fontSize: 22, color: isCurrentActive('/business/nearby-stores') ? '#0B8063' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business/nearby-stores') ? 800 : 600 }}>
               Nearby
             </Typography>
@@ -828,12 +801,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business/orders') ? '#FF6508' : '#64748B',
+              color: isCurrentActive('/business/orders') ? '#0B8063' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <OrdersIcon sx={{ fontSize: 22, color: isCurrentActive('/business/orders') ? '#FF6508' : '#64748B', mb: 0.25 }} />
+            <OrdersIcon sx={{ fontSize: 22, color: isCurrentActive('/business/orders') ? '#0B8063' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business/orders') ? 800 : 600 }}>
               Orders
             </Typography>

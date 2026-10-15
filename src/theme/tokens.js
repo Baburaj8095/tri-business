@@ -4,70 +4,78 @@
  */
 
 export const T = {
-  // Brand Palette (Exact Specifications)
-  primary: '#FF6508',        // Primary orange
-  primaryDark: '#E9570A',    // Deep orange
-  primaryHover: '#E9570A',
-  primaryLight: '#FFF3E8',   // Soft orange surface
-  primaryAccent: '#F2A900',  // Warning amber highlight
-  primaryGradient: 'linear-gradient(135deg, #FF6508 0%, #E9570A 100%)',
-  primaryGradientSubtle: 'linear-gradient(135deg, rgba(255,101,8,0.08) 0%, rgba(233,87,10,0.03) 100%)',
+  // Brand Palette (User Specified: #0B8063 primary brand, #FF6B00 highlight CTA)
+  primary: '#0B8063',        // Primary business brand emerald
+  primaryDark: '#086951',    // Deep emerald
+  primaryHover: '#086951',
+  primaryLight: '#E6F5F0',   // Soft brand surface
+  primaryAccent: '#FF6B00',  // Trikonekt Orange for key highlights & CTAs
+  primaryGradient: 'linear-gradient(135deg, #0B8063 0%, #086951 100%)',
+  primaryGradientSubtle: 'linear-gradient(135deg, rgba(11,128,99,0.06) 0%, rgba(8,105,81,0.02) 100%)',
 
-  // Neutrals Canvas
-  bg: '#F4F7FB',             // Main background
+  // Highlight Orange (used sparingly for promo badges and prime CTAs)
+  orange: '#FF6B00',
+  orangeDark: '#E55F00',
+  orangeHover: '#E55F00',
+  orangeLight: '#FFF3E8',
+
+  // Neutrals Canvas (Clean Premium Light Theme)
+  bg: '#F7F9FC',             // Clean light page background
   surface: '#FFFFFF',        // Card background
-  surfaceAlt: '#F1F5F9',     // Secondary surface
-  surfaceHover: '#F8FAFC',
-  border: '#E4EAF2',         // Subtle card/table border
+  surfaceAlt: '#F8FAFC',     // Secondary surface
+  surfaceHover: '#F1F5F9',
+  border: '#E2E8F0',         // Clean subtle border
   borderHover: '#CBD5E1',
-  borderFocus: '#FF6508',
+  borderFocus: '#0B8063',
 
   // Typography
-  text: '#17233D',           // Dark navy primary text
+  text: '#172B4D',           // Primary dark text
   textSecondary: '#64748B',  // Secondary text
   textMuted: '#94A3B8',      // Muted slate captions
   textInverse: '#FFFFFF',
 
-  // Semantic Status Colors
-  success: '#159A65',        // Success green
+  // Semantic Status Colors (only genuine status)
+  success: '#159A65',
   successBg: '#ECFDF5',
   successBorder: '#A7F3D0',
   successText: '#065F46',
 
-  warning: '#F2A900',        // Warning amber
-  warningBg: '#FEFCE8',
-  warningBorder: '#FEF08A',
-  warningText: '#854D0E',
+  warning: '#F59E0B',
+  warningBg: '#FFFBEB',
+  warningBorder: '#FDE68A',
+  warningText: '#92400E',
 
-  error: '#E5484D',          // Error red
+  error: '#EF4444',
   errorBg: '#FEF2F2',
   errorBorder: '#FECACA',
   errorText: '#991B1B',
 
-  blue: '#3678E5',           // Supporting blue
+  blue: '#3B82F6',
   blueBg: '#EFF6FF',
-  purple: '#8758E8',         // Supporting purple
+  purple: '#8B5CF6',
   purpleBg: '#F5F3FF',
 
-  // Channel Tags (Online vs Offline, B2B vs B2C)
-  b2b: '#FF6508',
-  b2bBg: '#FFF3E8',
-  b2c: '#3678E5',
+  // Channel Tags
+  b2b: '#0B8063',
+  b2bBg: '#E6F5F0',
+  b2c: '#3B82F6',
   b2cBg: '#EFF6FF',
   both: '#159A65',
   bothBg: '#ECFDF5',
 
-  // Radius Scale
+  // Radius Scale (16px standard card radius)
   radiusSm: '8px',
   radiusMd: '12px',
   radiusLg: '16px',
+  radiusCard: '16px',
   radiusXl: '20px',
   radiusFull: '9999px',
 
-  // Elevation Shadows (TriShopping Clean SaaS Style)
-  shadowSm: '0 1px 3px rgba(15, 23, 42, 0.04)',
-  shadowMd: '0 4px 16px rgba(15, 23, 42, 0.06)',
-  shadowLg: '0 10px 28px rgba(15, 23, 42, 0.08)',
+  // Elevation Shadows (Restrained, subtle, no heavy glow)
+  shadowSm: '0 1px 3px rgba(0, 0, 0, 0.05)',
+  shadowCard: '0 1px 3px rgba(0, 0, 0, 0.05)',
+  shadowMd: '0 4px 12px rgba(0, 0, 0, 0.06)',
+  shadowLg: '0 8px 24px rgba(0, 0, 0, 0.08)',
   shadowModal: '0 20px 48px rgba(15, 23, 42, 0.16)',
 
   // Spacing & Layout
@@ -76,7 +84,7 @@ export const T = {
   mobileNavHeight: 64,
   maxContentWidth: 1400,
 
-  // Supplied Premium Vector Assets (from trikonekt_merchant_ui_assets)
+  // Assets
   assets: {
     bgWarmIvory: '/assets/backgrounds/merchant-home-warm-ivory.svg',
     bgSoftGradient: '/assets/backgrounds/merchant-home-soft-gradient.svg',
@@ -89,19 +97,19 @@ export const T = {
 
 // Reusable standard styles
 export const cardSx = {
-  bgcolor: T.surface,
-  borderRadius: T.radiusLg,
-  border: `1px solid ${T.border}`,
-  boxShadow: T.shadowSm,
-  transition: 'all 0.2s ease-in-out',
+  bgcolor: '#FFFFFF',
+  borderRadius: '16px',
+  border: '1px solid #E2E8F0',
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+  transition: 'all 0.15s ease-in-out',
   overflow: 'hidden',
 };
 
 export const cardHoverSx = {
   ...cardSx,
   '&:hover': {
-    boxShadow: T.shadowMd,
-    borderColor: T.borderHover,
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.06)',
+    borderColor: '#CBD5E1',
     transform: 'translateY(-1px)',
   },
 };
