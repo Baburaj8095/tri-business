@@ -34,7 +34,7 @@
 html, body { background: var(--tri-page); color: var(--tri-ink); }
 .tri-page-background {
   background-color: var(--tri-page);
-  background-image: url('/assets/backgrounds/merchant-home-warm-ivory.svg');
+  background-image: var(--tri-page-bg-image, none);
   background-size: cover;
   background-position: top center;
   background-attachment: scroll;
