@@ -1,0 +1,40 @@
+name: Frontend Build & Verification
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "public/**"
+      - "package.json"
+      - "vercel.json"
+      - ".env*"
+      - ".github/workflows/frontend-build.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: frontend-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build React App
+        run: npm run build
+        env:
+          CI: false
+          GENERATE_SOURCEMAP: false
