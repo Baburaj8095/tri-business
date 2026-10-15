@@ -47,6 +47,29 @@ export default function BusinessDashboard() {
   const [quickActionIndex, setQuickActionIndex] = useState(0);
   const quickActionsRef = React.useRef(null);
 
+  const banners = useMemo(() => [
+    {
+      id: "emerald",
+      image: "/assets/banners/business_banner_emerald.png",
+      alt: "Grow Your Business with Trikonekt Business",
+      link: "/business/packages",
+    },
+    {
+      id: "light",
+      image: "/assets/banners/business_banner_light.png",
+      alt: "Manage Stores, Products & Reach More Customers",
+      link: "/business/online-marketplace",
+    },
+  ], []);
+  const [activeBannerIdx, setActiveBannerIdx] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveBannerIdx((prev) => (prev + 1) % 2);
+    }, 5500);
+    return () => clearInterval(timer);
+  }, []);
+
   const handleQuickActionsScroll = (e) => {
     const scrollLeft = e.currentTarget.scrollLeft;
     const cardWidth = 184 + 10;
@@ -138,167 +161,61 @@ export default function BusinessDashboard() {
     <AppShell activeTab="/business-dashboard" title="Merchant Dashboard">
       <Container maxWidth="lg" sx={{ py: 2, px: { xs: 1.75, sm: 2.5 }, maxWidth: "100%", width: "100%", overflowX: "hidden" }}>
 
-        {/* ─── 1. PRIME PROMOTIONAL BANNER (Strict Reference Match) ─── */}
-        <Box sx={{ mb: 2.5 }}>
-          <Card
+        {/* ─── 1. PROMOTIONAL HERO BANNER CAROUSEL ─── */}
+        <Box sx={{ mb: 2.75 }}>
+          <Box
+            onClick={() => navigate(banners[activeBannerIdx].link)}
             sx={{
-              borderRadius: "20px",
-              background: "linear-gradient(135deg, #064E3B 0%, #03281E 100%)",
-              color: "#FFFFFF",
-              p: { xs: 2.25, sm: 2.75 },
-              boxShadow: "0 6px 20px rgba(6, 78, 59, 0.28)",
               position: "relative",
+              borderRadius: "18px",
               overflow: "hidden",
-              border: "1px solid rgba(255, 255, 255, 0.12)",
+              boxShadow: "0 4px 16px rgba(20, 35, 29, 0.08)",
+              border: "1px solid #E2E8E5",
+              cursor: "pointer",
+              bgcolor: "#022C22",
+              aspectRatio: { xs: "1024 / 375", sm: "1024 / 350" },
+              width: "100%",
+              transition: "transform 0.15s ease",
+              "&:active": { transform: "scale(0.99)" },
             }}
           >
-            {/* Top-Right Angled Badge: UP TO 30% MORE SALES */}
             <Box
+              component="img"
+              src={banners[activeBannerIdx].image}
+              alt={banners[activeBannerIdx].alt}
               sx={{
-                position: "absolute",
-                top: 14,
-                right: 14,
-                bgcolor: "#FEF08A",
-                color: "#713F12",
-                fontWeight: 900,
-                fontSize: "0.62rem",
-                px: 1.25,
-                py: 0.5,
-                borderRadius: "8px",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                lineHeight: 1.1,
-                zIndex: 2,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                display: "block",
+                transition: "opacity 0.4s ease-in-out",
               }}
-            >
-              <Typography sx={{ fontSize: "0.55rem", fontWeight: 800 }}>UP TO</Typography>
-              <Typography sx={{ fontSize: "0.82rem", fontWeight: 900, color: "#854D0E" }}>30%</Typography>
-              <Typography sx={{ fontSize: "0.55rem", fontWeight: 800 }}>MORE SALES</Typography>
-            </Box>
+            />
+          </Box>
 
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              spacing={2}
-            >
-              <Box sx={{ flex: 1, zIndex: 1, pr: { xs: 8, sm: 0 } }}>
-                {/* Crown + TRIKONEKT PRIME Tag */}
-                <Box
-                  sx={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 0.6,
-                    bgcolor: "rgba(0, 0, 0, 0.32)",
-                    border: "1px solid rgba(255, 255, 255, 0.18)",
-                    borderRadius: "9999px",
-                    px: 1.25,
-                    py: 0.35,
-                    mb: 1.25,
-                  }}
-                >
-                  <PrimeIcon sx={{ fontSize: 13, color: "#F59E0B" }} />
-                  <Typography
-                    sx={{
-                      color: "#FFFFFF",
-                      fontWeight: 800,
-                      fontSize: "0.65rem",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    TRIKONEKT PRIME
-                  </Typography>
-                </Box>
-
-                <Typography
-                  sx={{
-                    fontWeight: 900,
-                    fontSize: { xs: "1.2rem", sm: "1.45rem" },
-                    lineHeight: 1.22,
-                    mb: 0.75,
-                    letterSpacing: "-0.01em",
-                  }}
-                >
-                  Grow Your Business With Trikonekt Prime
-                </Typography>
-
-                <Typography
-                  sx={{
-                    fontSize: "0.78rem",
-                    color: "rgba(255, 255, 255, 0.88)",
-                    mb: 2,
-                    maxWidth: 380,
-                    lineHeight: 1.35,
-                  }}
-                >
-                  Get wholesale pricing, run special deals and reach more active buyers.
-                </Typography>
-
-                <Button
-                  variant="contained"
-                  onClick={() => navigate("/business/packages")}
-                  endIcon={<ChevronRightIcon sx={{ fontSize: 16 }} />}
-                  sx={{
-                    bgcolor: "#FF6B00",
-                    color: "#FFFFFF",
-                    fontWeight: 800,
-                    fontSize: "0.82rem",
-                    borderRadius: "9999px",
-                    textTransform: "none",
-                    px: 2.75,
-                    py: 0.85,
-                    boxShadow: "0 4px 14px rgba(255, 107, 0, 0.35)",
-                    "&:hover": { bgcolor: "#E85D04" },
-                  }}
-                >
-                  Upgrade to Prime →
-                </Button>
-              </Box>
-
-              {/* Basket Photography on Right */}
+          {/* Pagination Dots */}
+          <Stack
+            direction="row"
+            spacing={0.75}
+            justifyContent="center"
+            alignItems="center"
+            sx={{ mt: 1.25 }}
+          >
+            {banners.map((b, idx) => (
               <Box
+                key={b.id}
+                onClick={() => setActiveBannerIdx(idx)}
                 sx={{
-                  display: { xs: "none", sm: "block" },
-                  width: { sm: 130, md: 150 },
-                  height: { sm: 110, md: 130 },
-                  flexShrink: 0,
-                  position: "relative",
-                  zIndex: 1,
+                  width: activeBannerIdx === idx ? 22 : 6,
+                  height: 6,
+                  borderRadius: 3,
+                  bgcolor: activeBannerIdx === idx ? "#064E3B" : "#CBD5D0",
+                  cursor: "pointer",
+                  transition: "all 0.25s ease",
                 }}
-              >
-                <Box
-                  component="img"
-                  src="/assets/illustrations/groceries_basket.png"
-                  alt="Prime Groceries"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                  sx={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "contain",
-                    filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.3))",
-                  }}
-                />
-              </Box>
-            </Stack>
-
-            {/* Pagination Dots at Bottom */}
-            <Stack
-              direction="row"
-              spacing={0.75}
-              justifyContent="center"
-              alignItems="center"
-              sx={{ mt: 2 }}
-            >
-              <Box sx={{ width: 18, height: 4, borderRadius: 2, bgcolor: "#FFFFFF" }} />
-              <Box sx={{ width: 5, height: 5, borderRadius: "50%", bgcolor: "rgba(255,255,255,0.4)" }} />
-              <Box sx={{ width: 5, height: 5, borderRadius: "50%", bgcolor: "rgba(255,255,255,0.4)" }} />
-              <Box sx={{ width: 5, height: 5, borderRadius: "50%", bgcolor: "rgba(255,255,255,0.4)" }} />
-            </Stack>
-          </Card>
+              />
+            ))}
+          </Stack>
         </Box>
 
         {/* ─── 2. BUSINESS OVERVIEW (Responsive 2-Column Grid) ─── */}

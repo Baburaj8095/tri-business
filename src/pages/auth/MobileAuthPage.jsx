@@ -42,7 +42,8 @@ export default function MobileAuthPage() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [channelPrefix, setChannelPrefix] = useState('AUTO'); // 'AUTO' | 'ONB2B' | 'ONB2C' | 'NSB2B' | 'NSB2C'
+  // Category & Role selector for merchant: 'ONB2C' | 'ONB2B' | 'NSB2C' | 'NSB2B'
+  const [selectedCategory, setSelectedCategory] = useState('ONB2C');
 
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [countdown, setCountdown] = useState(30);
@@ -80,10 +81,20 @@ export default function MobileAuthPage() {
     setLoading(true);
 
     try {
+      const channel = selectedCategory.startsWith('ON') ? 'ONLINE' : 'OFFLINE';
+      const businessType = selectedCategory.endsWith('B2B') ? 'B2B' : 'B2C';
+
       const res = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: cleanPhone, password, portal: userRole }),
+        body: JSON.stringify({
+          identifier: cleanPhone,
+          password,
+          portal: userRole,
+          prefix: userRole === 'BUSINESS' ? selectedCategory : '',
+          channel: userRole === 'BUSINESS' ? channel : '',
+          businessType: userRole === 'BUSINESS' ? businessType : '',
+        }),
       });
 
       if (!res.ok) {
@@ -434,6 +445,55 @@ export default function MobileAuthPage() {
               <form onSubmit={handlePasswordLogin}>
                 <Stack spacing={2} sx={{ mb: 2.5 }}>
                   
+                  {/* Category & Role Selector for Merchants */}
+                  {userRole === 'BUSINESS' && (
+                    <Box sx={{ mb: 0.5 }}>
+                      <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155', mb: 1, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Select Category & Role
+                      </Typography>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                        {[
+                          { id: 'ONB2C', label: 'Online B2C', desc: 'Retail Delivery', badge: 'ON' },
+                          { id: 'ONB2B', label: 'Online B2B', desc: 'Wholesale Delivery', badge: 'ON' },
+                          { id: 'NSB2C', label: 'Offline B2C', desc: 'Store Retail', badge: 'NS' },
+                          { id: 'NSB2B', label: 'Offline B2B', desc: 'Store Wholesale', badge: 'NS' },
+                        ].map((item) => {
+                          const isSel = selectedCategory === item.id;
+                          return (
+                            <Box
+                              key={item.id}
+                              onClick={() => setSelectedCategory(item.id)}
+                              sx={{
+                                p: 1.25,
+                                borderRadius: '12px',
+                                border: isSel ? '2px solid #EA580C' : '1.5px solid #e2e8f0',
+                                bgcolor: isSel ? '#FFF7ED' : '#ffffff',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                                '&:hover': {
+                                  borderColor: isSel ? '#EA580C' : '#cbd5e1',
+                                  bgcolor: isSel ? '#FFF7ED' : '#f8fafc',
+                                },
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.25 }}>
+                                <Typography sx={{ fontSize: '0.84rem', fontWeight: 800, color: isSel ? '#EA580C' : '#0f172a' }}>
+                                  {item.label}
+                                </Typography>
+                                <Typography sx={{ fontSize: '0.65rem', fontWeight: 800, px: 0.6, py: 0.1, borderRadius: '4px', bgcolor: isSel ? '#EA580C' : '#f1f5f9', color: isSel ? '#fff' : '#64748b' }}>
+                                  {item.badge}
+                                </Typography>
+                              </Box>
+                              <Typography sx={{ fontSize: '0.7rem', color: isSel ? '#C2410C' : '#64748b', fontWeight: 500 }}>
+                                {item.desc}
+                              </Typography>
+                            </Box>
+                          );
+                        })}
+                      </Box>
+                    </Box>
+                  )}
+
                   {/* Identifier Input */}
                   <Box>
                     <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#102033', mb: 0.75 }}>

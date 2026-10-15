@@ -809,6 +809,39 @@ export default function BusinessOnlineMarketplacePage() {
               </Box>
             </Box>
 
+            {/* Featured Promotional Banner */}
+            {!categorySearchQuery && (
+              <Box sx={{ px: { xs: 2, sm: 3 }, mt: 2, mb: 1 }}>
+                <Box
+                  onClick={() => navigate('/business/packages')}
+                  sx={{
+                    borderRadius: '16px',
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 16px rgba(20, 35, 29, 0.08)',
+                    border: '1px solid #E2E8E5',
+                    cursor: 'pointer',
+                    bgcolor: '#FFFFFF',
+                    aspectRatio: { xs: '1024 / 375', sm: '1024 / 350' },
+                    width: '100%',
+                    transition: 'transform 0.15s ease',
+                    '&:active': { transform: 'scale(0.99)' }
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src="/assets/banners/business_banner_light.png"
+                    alt="Grow Your Business with Trikonekt Wholesale"
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block'
+                    }}
+                  />
+                </Box>
+              </Box>
+            )}
+
             {/* Popular Categories (4-item quick grid matching Screen 9) */}
             {!categorySearchQuery && (
               <Box sx={{ px: { xs: 2, sm: 3 }, mt: 2, mb: 3 }}>

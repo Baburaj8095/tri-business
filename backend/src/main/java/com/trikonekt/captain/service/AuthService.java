@@ -54,9 +54,29 @@ public class AuthService {
             }
         } else if ("MERCHANT".equals(portal) || "BUSINESS".equals(portal)) {
             if (is10DigitPhone) {
-                userOpt = userRepository.findMerchantByPhone(cleanPhone);
+                // Determine prefix from request (e.g., ONB2C, ONB2B, NSB2C, NSB2B)
+                String resolvedPrefix = req.getPrefix() != null && !req.getPrefix().isBlank()
+                    ? req.getPrefix().trim().toUpperCase()
+                    : "";
+                if (resolvedPrefix.isEmpty() && req.getChannel() != null && req.getBusinessType() != null) {
+                    String ch = "ONLINE".equalsIgnoreCase(req.getChannel()) ? "ON" : "NS";
+                    String bt = "B2B".equalsIgnoreCase(req.getBusinessType()) ? "B2B" : "B2C";
+                    resolvedPrefix = ch + bt;
+                }
+
+                // 1. Try exact username matching prefix + phone (e.g. ONB2C9999999999)
+                if (!resolvedPrefix.isEmpty()) {
+                    userOpt = userRepository.findByUsername(resolvedPrefix + cleanPhone);
+                }
+
+                // 2. If not found by prefix, fallback to any merchant account for this phone
                 if (userOpt.isEmpty()) {
-                    throw new RuntimeException("No Merchant account registered with mobile number " + cleanPhone + ". Please register your store first.");
+                    userOpt = userRepository.findMerchantByPhone(cleanPhone);
+                }
+
+                if (userOpt.isEmpty()) {
+                    String desc = resolvedPrefix.isEmpty() ? "" : (" (" + resolvedPrefix + ")");
+                    throw new RuntimeException("No Merchant account" + desc + " registered with mobile number " + cleanPhone + ". Please register your store first.");
                 }
             } else {
                 userOpt = userRepository.findByUsername(raw.toUpperCase());
