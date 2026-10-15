@@ -48,13 +48,15 @@ import { useNavigate } from "react-router-dom";
 import AppShell from "../../components/layout/AppShell";
 import { getMerchantProfile, updateMerchantProfile, listMyShops } from "../../api/api";
 
-const PRIMARY = "#EA580C";
-const PRIMARY_DARK = "#C2410C";
-const BG = "#f8fafc";
-const SURFACE = "#ffffff";
-const TEXT = "#0f172a";
-const TEXT_MUTED = "#64748b";
-const BORDER = "#e2e8f0";
+const PRIMARY = "#064E3B";
+const PRIMARY_DARK = "#043C2E";
+const BRAND_ORANGE = "#FF6B00";
+const BRAND_ORANGE_HOVER = "#E85D04";
+const BG = "#F4F7F6";
+const SURFACE = "#FFFFFF";
+const TEXT = "#14231D";
+const TEXT_MUTED = "#64746C";
+const BORDER = "#E2E8E5";
 
 const DRAWER_PAPER_PROPS = {
   sx: {
@@ -702,7 +704,7 @@ export default function BusinessProfile() {
             {/* Row 1: Business Name */}
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={1.25}>
-                <BankIcon sx={{ fontSize: 18, color: "#EA580C" }} />
+                <BankIcon sx={{ fontSize: 18, color: "#064E3B" }} />
                 <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
                   Business Name
                 </Typography>
@@ -715,7 +717,7 @@ export default function BusinessProfile() {
             {/* Row 2: Category */}
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={1.25}>
-                <CategoryIcon sx={{ fontSize: 18, color: "#EA580C" }} />
+                <CategoryIcon sx={{ fontSize: 18, color: "#064E3B" }} />
                 <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
                   Category
                 </Typography>
@@ -728,7 +730,7 @@ export default function BusinessProfile() {
             {/* Row 3: Mobile Number */}
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={1.25}>
-                <PhoneIcon sx={{ fontSize: 18, color: "#EA580C" }} />
+                <PhoneIcon sx={{ fontSize: 18, color: "#064E3B" }} />
                 <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
                   Mobile Number
                 </Typography>
@@ -741,7 +743,7 @@ export default function BusinessProfile() {
             {/* Row 4: Email Address */}
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={1.25}>
-                <EmailIcon sx={{ fontSize: 18, color: "#EA580C" }} />
+                <EmailIcon sx={{ fontSize: 18, color: "#064E3B" }} />
                 <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
                   Email Address
                 </Typography>
@@ -754,7 +756,7 @@ export default function BusinessProfile() {
             {/* Row 5: GSTIN */}
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={1.25}>
-                <DocIcon sx={{ fontSize: 18, color: "#EA580C" }} />
+                <DocIcon sx={{ fontSize: 18, color: "#064E3B" }} />
                 <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
                   GSTIN
                 </Typography>
@@ -767,7 +769,7 @@ export default function BusinessProfile() {
             {/* Row 6: Member Since */}
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={1.25}>
-                <CalendarIcon sx={{ fontSize: 18, color: "#EA580C" }} />
+                <CalendarIcon sx={{ fontSize: 18, color: "#064E3B" }} />
                 <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
                   Member Since
                 </Typography>
@@ -1255,7 +1257,7 @@ export default function BusinessProfile() {
               type="submit"
               variant="contained"
               disabled={saving}
-              sx={{ bgcolor: PRIMARY, color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: PRIMARY_DARK } }}
+              sx={{ bgcolor: BRAND_ORANGE, color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: BRAND_ORANGE_HOVER } }}
             >
               {saving ? "Saving..." : "Save Changes"}
             </Button>
@@ -1320,7 +1322,7 @@ export default function BusinessProfile() {
                 setToastMsg("Operating location updated!");
                 setEditLocationOpen(false);
               }}
-              sx={{ bgcolor: PRIMARY, color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: PRIMARY_DARK } }}
+              sx={{ bgcolor: BRAND_ORANGE, color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: BRAND_ORANGE_HOVER } }}
             >
               Save Location
             </Button>
@@ -1387,7 +1389,7 @@ export default function BusinessProfile() {
                 setToastMsg("Payout account details updated!");
                 setEditPayoutOpen(false);
               }}
-              sx={{ bgcolor: PRIMARY, color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: PRIMARY_DARK } }}
+              sx={{ bgcolor: BRAND_ORANGE, color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: BRAND_ORANGE_HOVER } }}
             >
               Update Account
             </Button>
@@ -1488,7 +1490,7 @@ export default function BusinessProfile() {
               setToastMsg("Password updated successfully!");
               setSecurityModalOpen(false);
             }}
-            sx={{ bgcolor: PRIMARY, color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: PRIMARY_DARK } }}
+            sx={{ bgcolor: BRAND_ORANGE, color: "#fff", fontWeight: 800, borderRadius: "12px", py: 1.2, "&:hover": { bgcolor: BRAND_ORANGE_HOVER } }}
           >
             Update Password
           </Button>

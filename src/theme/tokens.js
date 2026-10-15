@@ -1,70 +1,85 @@
 /**
  * Trikonekt Business Design Tokens
- * Centralized design system for premium modern B2B/B2C merchant platform.
+ * Premium Unified Design System (Matching Visual Reference Specifications)
  */
 
 export const T = {
-  // Brand Palette (Exact Reference Specifications)
-  primary: '#064E3B',        // Deep forest emerald green (Header & Brand)
-  primaryDark: '#04382A',    // Deepest green
-  primaryHover: '#04382A',
-  primaryLight: '#ECFDF5',   // Soft mint surface
-  primaryAccent: '#10B981',  // Bright emerald highlight
-  primaryGradient: 'linear-gradient(180deg, #064E3B 0%, #032E23 100%)',
-  primaryGradientSubtle: 'linear-gradient(135deg, rgba(6,78,59,0.06) 0%, rgba(4,56,42,0.02) 100%)',
+  // Primary Brand Colors
+  forestGreen: '#064E3B',       // Primary Forest Green
+  darkForestGreen: '#043C2E',   // Dark Forest Green (App header gradient start)
+  deepEmerald: '#022C22',       // Deep Emerald (Banner gradient start)
+  lightGreen: '#0F7A5B',        // Primary Light Green (Link text & accents)
+  emeraldAccent: '#10B981',     // Emerald Accent
 
-  // Highlight Orange (Scanner action & key promotional CTAs)
-  orange: '#FF6508',
-  orangeDark: '#EA580C',
-  orangeHover: '#EA580C',
-  orangeLight: '#FFF3E8',
-  orangeGradient: 'linear-gradient(135deg, #FF6508 0%, #EA580C 100%)',
+  // Primary aliases for compatibility
+  primary: '#064E3B',
+  primaryDark: '#043C2E',
+  primaryDeep: '#022C22',
+  primaryLight: '#0F7A5B',
+  primaryAccent: '#10B981',
 
-  // Neutrals Canvas
-  bg: '#F8FAFC',             // Very light cool gray background
-  surface: '#FFFFFF',        // Pure white card background
-  surfaceAlt: '#F1F5F9',     // Secondary surface
-  surfaceHover: '#F8FAFC',
-  border: '#E2E8F0',         // Clean subtle border
-  borderHover: '#CBD5E1',
-  borderFocus: '#064E3B',
+  // Brand Orange (CTAs, Scanner, Action buttons)
+  orange: '#FF6B00',
+  brandOrange: '#FF6B00',
+  orangeHover: '#E85D04',
+  orangeLight: '#FFF0E5',
+
+  // Gradients
+  headerGradient: 'linear-gradient(180deg, #043C2E 0%, #064E3B 100%)',
+  bannerGradient: 'linear-gradient(135deg, #022C22 0%, #064E3B 100%)',
+  orangeGradient: 'linear-gradient(135deg, #FF6B00 0%, #E85D04 100%)',
+
+  // Backgrounds & Surfaces
+  bg: '#F4F7F6',                // Main App Background
+  surface: '#FFFFFF',           // Primary Surface
+  surfaceSecondary: '#F8FAF9',  // Secondary Surface
+  surfaceSoftGreen: '#EAF5F0',  // Soft Green Surface
+  surfaceWarm: '#FFF8ED',       // Warm Surface (Wallet balance card)
+  border: '#E2E8E5',            // Border
+  borderStrong: '#CBD5D0',      // Strong Border
+  overlay: 'rgba(2, 44, 34, 0.55)',
+
+  // Legacy aliases
+  surfaceAlt: '#F8FAF9',
+  borderHover: '#CBD5D0',
+  borderFocus: '#0F7A5B',
 
   // Typography
-  text: '#0F172A',           // Dark navy primary text
-  textSecondary: '#475569',  // Slate secondary text
-  textMuted: '#94A3B8',      // Muted captions
+  text: '#14231D',              // Primary Text
+  textSecondary: '#64746C',     // Secondary Text
+  textMuted: '#87938D',         // Muted Text
   textInverse: '#FFFFFF',
+  textOnDark: '#FFFFFF',
+  textOnOrange: '#FFFFFF',
+  linkText: '#0F7A5B',
 
-  // Semantic Status Colors (only genuine status)
-  success: '#159A65',
-  successBg: '#ECFDF5',
-  successBorder: '#A7F3D0',
-  successText: '#065F46',
+  // Semantic Status Colors
+  success: '#15803D',
+  successBg: '#DCFCE7',
+  successText: '#15803D',
+  successBorder: '#BBF7D0',
 
-  warning: '#F59E0B',
-  warningBg: '#FFFBEB',
+  warning: '#B45309',
+  warningBg: '#FEF3C7',
+  warningText: '#B45309',
   warningBorder: '#FDE68A',
-  warningText: '#92400E',
 
-  error: '#EF4444',
-  errorBg: '#FEF2F2',
+  error: '#DC2626',
+  errorBg: '#FEE2E2',
+  errorText: '#DC2626',
   errorBorder: '#FECACA',
-  errorText: '#991B1B',
 
-  blue: '#3B82F6',
-  blueBg: '#EFF6FF',
-  purple: '#8B5CF6',
-  purpleBg: '#F5F3FF',
+  info: '#2563EB',
+  infoBg: '#DBEAFE',
+  infoText: '#2563EB',
+  infoBorder: '#BFDBFE',
 
-  // Channel Tags
-  b2b: '#0B8063',
-  b2bBg: '#E6F5F0',
-  b2c: '#3B82F6',
-  b2cBg: '#EFF6FF',
-  both: '#159A65',
-  bothBg: '#ECFDF5',
+  inactive: '#64746C',
+  inactiveBg: '#F1F5F3',
+  inactiveText: '#64746C',
+  inactiveBorder: '#E2E8E5',
 
-  // Radius Scale (16px standard card radius)
+  // Radii
   radiusSm: '8px',
   radiusMd: '12px',
   radiusLg: '16px',
@@ -72,103 +87,98 @@ export const T = {
   radiusXl: '20px',
   radiusFull: '9999px',
 
-  // Elevation Shadows (Restrained, subtle, no heavy glow)
-  shadowSm: '0 1px 3px rgba(0, 0, 0, 0.05)',
-  shadowCard: '0 1px 3px rgba(0, 0, 0, 0.05)',
-  shadowMd: '0 4px 12px rgba(0, 0, 0, 0.06)',
-  shadowLg: '0 8px 24px rgba(0, 0, 0, 0.08)',
-  shadowModal: '0 20px 48px rgba(15, 23, 42, 0.16)',
+  // Shadows
+  shadowCard: '0 2px 10px rgba(20, 35, 29, 0.04)',
+  shadowHover: '0 4px 14px rgba(20, 35, 29, 0.08)',
+  shadowElevated: '0 4px 18px rgba(0, 0, 0, 0.08)',
 
-  // Spacing & Layout
-  sidebarWidth: 256,
+  // Dimensions
   topBarHeight: 68,
   mobileNavHeight: 64,
   maxContentWidth: 1400,
-
-  // Assets
-  assets: {
-    bgWarmIvory: '/assets/backgrounds/merchant-home-warm-ivory.svg',
-    bgSoftGradient: '/assets/backgrounds/merchant-home-soft-gradient.svg',
-    patternCommerce: '/assets/patterns/commerce-line-pattern.svg',
-    bannerPrime: '/assets/banners/prime-promotion-background.svg',
-    bannerDeals: '/assets/banners/special-deals-background.svg',
-    bannerAds: '/assets/banners/ads-campaign-background.svg',
-  },
 };
 
-// Reusable standard styles
+// Reusable Shared Component Styles
 export const cardSx = {
-  bgcolor: '#FFFFFF',
+  bgcolor: T.surface,
   borderRadius: '16px',
-  border: '1px solid #E2E8F0',
-  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+  border: `1px solid ${T.border}`,
+  boxShadow: T.shadowCard,
+  p: 2,
   transition: 'all 0.15s ease-in-out',
-  overflow: 'hidden',
 };
 
 export const cardHoverSx = {
   ...cardSx,
   '&:hover': {
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.06)',
-    borderColor: '#CBD5E1',
+    boxShadow: T.shadowHover,
+    borderColor: T.borderStrong,
     transform: 'translateY(-1px)',
   },
 };
 
-export const inputSx = {
-  '& .MuiOutlinedInput-root': {
-    borderRadius: T.radiusSm,
-    bgcolor: T.surface,
-    fontSize: '0.9rem',
-    color: T.text,
-    '& fieldset': { borderColor: T.border },
-    '&:hover fieldset': { borderColor: T.borderHover },
-    '&.Mui-focused fieldset': { borderColor: T.primary, borderWidth: 1.5 },
-  },
-  '& .MuiInputLabel-root': { color: T.textSecondary, '&.Mui-focused': { color: T.primary } },
-};
-
 export const primaryBtnSx = {
-  bgcolor: T.primary,
+  bgcolor: T.orange,
   color: '#FFFFFF',
-  borderRadius: T.radiusSm,
+  borderRadius: '12px',
   textTransform: 'none',
-  fontWeight: 700,
+  fontWeight: 600,
+  minHeight: '44px',
   px: 2.5,
-  py: 1.1,
   boxShadow: 'none',
   '&:hover': {
-    bgcolor: T.primaryHover,
-    boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)',
+    bgcolor: T.orangeHover,
+    boxShadow: '0 4px 12px rgba(255, 107, 0, 0.25)',
   },
+  '&:active': { transform: 'scale(0.98)' },
 };
 
 export const secondaryBtnSx = {
   bgcolor: T.surface,
-  color: T.text,
-  border: `1px solid ${T.border}`,
-  borderRadius: T.radiusSm,
+  color: T.forestGreen,
+  border: `1px solid ${T.forestGreen}`,
+  borderRadius: '12px',
   textTransform: 'none',
   fontWeight: 600,
+  minHeight: '44px',
   px: 2.2,
-  py: 1,
   boxShadow: 'none',
   '&:hover': {
-    bgcolor: T.surfaceAlt,
-    borderColor: T.borderHover,
+    bgcolor: T.surfaceSoftGreen,
+    borderColor: T.darkForestGreen,
+  },
+  '&:active': { transform: 'scale(0.98)' },
+};
+
+export const searchInputSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    bgcolor: T.surface,
+    minHeight: '44px',
+    fontSize: '0.88rem',
+    color: T.text,
+    '& fieldset': { borderColor: T.border },
+    '&:hover fieldset': { borderColor: T.borderStrong },
+    '&.Mui-focused fieldset': { borderColor: T.lightGreen, borderWidth: 1.5 },
+  },
+  '& .MuiInputBase-input::placeholder': {
+    color: T.textMuted,
+    opacity: 1,
   },
 };
 
-export const pillBadgeSx = (bg, color, borderColor) => ({
-  bgcolor: bg || T.surfaceAlt,
-  color: color || T.textSecondary,
-  border: borderColor ? `1px solid ${borderColor}` : 'none',
-  borderRadius: T.radiusFull,
-  fontWeight: 700,
-  fontSize: '0.75rem',
+export const chipFilterSx = (isSelected) => ({
+  height: '34px',
   px: 1.25,
-  py: 0.4,
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 0.5,
+  borderRadius: '9999px',
+  fontWeight: isSelected ? 700 : 500,
+  fontSize: '0.78rem',
+  bgcolor: isSelected ? T.forestGreen : T.surface,
+  color: isSelected ? '#FFFFFF' : T.textSecondary,
+  border: `1px solid ${isSelected ? T.forestGreen : T.border}`,
+  cursor: 'pointer',
+  transition: 'all 0.15s ease',
+  '&:hover': {
+    bgcolor: isSelected ? T.darkForestGreen : T.surfaceSecondary,
+  },
 });

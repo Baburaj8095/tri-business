@@ -728,34 +728,35 @@ export default function MerchantOrdersPage() {
           </Box>
         ) : activeTabOrders.length === 0 ? (
           <Card
+            elevation={0}
             sx={{
-              p: 5,
-              borderRadius: T.radiusXl,
-              border: `1px solid ${T.border}`,
-              bgcolor: T.surface,
+              p: { xs: 4, sm: 6 },
+              borderRadius: '16px',
+              border: '1px solid #E2E8E5',
+              bgcolor: '#ffffff',
               textAlign: 'center',
-              boxShadow: T.shadowSm,
+              boxShadow: '0 2px 10px rgba(20, 35, 29, 0.04)',
             }}
           >
             <Box
               sx={{
-                width: 56,
-                height: 56,
+                width: 64,
+                height: 64,
                 borderRadius: '50%',
-                bgcolor: T.primaryLight,
-                color: T.primary,
+                bgcolor: '#EAF5F0',
+                color: '#064E3B',
                 display: 'grid',
                 placeItems: 'center',
                 mx: 'auto',
-                mb: 1.5,
+                mb: 2,
               }}
             >
-              <OrdersIcon sx={{ fontSize: 28 }} />
+              <OrdersIcon sx={{ fontSize: 32 }} />
             </Box>
-            <Typography sx={{ color: T.text, fontWeight: 900, fontSize: '1.05rem', mb: 0.5 }}>
+            <Typography sx={{ color: '#14231D', fontWeight: 700, fontSize: '1.2rem', mb: 0.5 }}>
               No {['New', 'Active', 'Fulfilled', 'Cancelled'][statusTab]} Orders
             </Typography>
-            <Typography sx={{ color: T.textSecondary, fontSize: '0.8rem', maxWidth: 320, mx: 'auto', mb: 2 }}>
+            <Typography sx={{ color: '#64746C', fontSize: '0.85rem', maxWidth: 360, mx: 'auto', mb: 2.5, lineHeight: 1.5 }}>
               Authoritative live orders for this outlet will appear here automatically when received.
             </Typography>
             <Button
@@ -766,13 +767,15 @@ export default function MerchantOrdersPage() {
                 else if (selectedShopId) fetchOnlineOrders(selectedShopId);
               }}
               sx={{
-                borderColor: T.primary,
-                color: T.primary,
-                fontWeight: 800,
-                borderRadius: T.radiusSm,
+                borderColor: '#064E3B',
+                color: '#064E3B',
+                fontWeight: 600,
+                borderRadius: '12px',
+                minHeight: '40px',
+                px: 2.5,
                 textTransform: 'none',
-                fontSize: '0.78rem',
-                '&:hover': { bgcolor: T.primaryLight },
+                fontSize: '0.84rem',
+                '&:hover': { bgcolor: '#EAF5F0', borderColor: '#043C2E' },
               }}
             >
               ↻ Refresh Orders

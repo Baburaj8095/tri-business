@@ -274,10 +274,10 @@ public class AdminService {
         }
 
         // Validate sponsor
-        SponsorInfo sponsor = sponsorService.verifySponsor(req.getSponsorId());
+        SponsorInfo sponsor = sponsorService.verifyCaptainProvisioningSponsor(req.getSponsorId());
         if (!sponsor.isValid()) {
             throw new RuntimeException("Invalid or inactive sponsor ID: " + req.getSponsorId() +
-                ". Sponsor must be an active Consumer, Pincode Partner (TRPN), Captain (CB), or root sponsor (9999999999).");
+                ". Sponsor must be an active Captain (CB), Pincode Partner (TRPN), or platform root sponsor (9999999999 / ROOT).");
         }
 
         // Determine initial password

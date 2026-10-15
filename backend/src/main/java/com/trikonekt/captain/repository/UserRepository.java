@@ -85,9 +85,9 @@ public class UserRepository {
     }
 
     /**
-     * Searches for a sponsor by username or prefixed_id (case-insensitive).
-     * Returns TRPN (agency_pincode) or Captain (agency_sub_franchise) sponsors,
-     * plus admins (is_superuser=true or is_staff=true).
+     * Searches for a sponsor by username, phone, or prefixed_id (case-insensitive).
+     * Enforces Captain (agency_sub_franchise) or TRPN (agency_pincode) roles.
+     * Prevents non-captain personas (consumer, business) with the same phone number from matching.
      */
     public Optional<Map<String, Object>> findSponsor(String sponsorId) {
         if (sponsorId == null || sponsorId.isBlank()) {
@@ -105,11 +105,15 @@ public class UserRepository {
             "WHERE (u.phone = ? OR u.phone = ? OR u.phone = ? OR u.phone = ? " +
             "    OR UPPER(u.username) = UPPER(?) OR UPPER(u.prefixed_id) = UPPER(?) " +
             "    OR UPPER(u.username) = UPPER(?) OR UPPER(u.username) = UPPER(?) " +
+            "    OR UPPER(u.prefixed_id) = UPPER(?) OR UPPER(u.prefixed_id) = UPPER(?) " +
             "    OR (LENGTH(?) >= 10 AND u.phone LIKE ?)) " +
             "AND (u.is_active = true OR u.is_active IS NULL OR u.account_active = true) " +
+            "AND u.category IN ('agency_sub_franchise', 'agency_pincode') " +
+            "ORDER BY CASE WHEN u.category = 'agency_sub_franchise' THEN 0 ELSE 1 END, u.id DESC " +
             "LIMIT 1",
             clean, phone10, "+91" + phone10, "91" + phone10,
             clean, clean, "CB" + clean, "CB" + phone10,
+            "CB-" + clean, "CB-" + phone10,
             phone10, "%" + phone10
         );
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));

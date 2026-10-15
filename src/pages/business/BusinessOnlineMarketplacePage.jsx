@@ -834,8 +834,8 @@ export default function BusinessOnlineMarketplacePage() {
                   </Button>
                 </Stack>
                 <Grid container spacing={1.5}>
-                  {allAvailableCategories.slice(0, 4).map((popCat) => (
-                    <Grid item xs={3} key={popCat.id}>
+                  {allAvailableCategories.slice(0, 6).map((popCat) => (
+                    <Grid item xs={4} sm={2} key={popCat.id}>
                       <Box
                         onClick={() => handleSelectCategory(popCat.label)}
                         sx={{
@@ -969,7 +969,7 @@ export default function BusinessOnlineMarketplacePage() {
                             <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
                               Wholesale B2B
                             </Typography>
-                            <Typography sx={{ fontSize: '0.62rem', fontWeight: 800, color: '#ea580c', bgcolor: '#fff7ed', border: '1px solid #fed7aa', px: 0.75, py: 0.1, borderRadius: '4px' }}>
+                            <Typography sx={{ fontSize: '0.62rem', fontWeight: 800, color: '#FF6B00', bgcolor: '#FFF0E5', border: '1px solid #FFD8BE', px: 0.75, py: 0.1, borderRadius: '4px' }}>
                               Verified
                             </Typography>
                           </Stack>

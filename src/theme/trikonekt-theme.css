@@ -1,70 +1,103 @@
 :root {
-  /* Trikonekt Business Reference Theme */
-  --tri-brand: #064E3B;
-  --tri-brand-hover: #04382A;
-  --tri-brand-soft: #ECFDF5;
-  --tri-brand-accent: #10B981;
-  --tri-brand-border: #A7F3D0;
-  --tri-cta: #FF6508;
-  --tri-cta-hover: #EA580C;
-  --tri-ink: #0F172A;
-  --tri-muted: #475569;
-  --tri-subtle: #94A3B8;
-  --tri-page: #F8FAFC;
+  /* Trikonekt Business — Exact Brand Color Palette */
+  --tri-forest-green: #064E3B;
+  --tri-dark-forest: #043C2E;
+  --tri-deep-emerald: #022C22;
+  --tri-light-green: #0F7A5B;
+  --tri-emerald-accent: #10B981;
+  --tri-brand-orange: #FF6B00;
+  --tri-orange-hover: #E85D04;
+  --tri-orange-light: #FFF0E5;
+
+  /* Background and Surfaces */
+  --tri-app-bg: #F4F7F6;
   --tri-surface: #FFFFFF;
-  --tri-border: #E2E8F0;
-  --tri-success: #159A65;
-  --tri-success-soft: #ECFDF5;
-  --tri-info: #3B82F6;
-  --tri-info-soft: #EFF6FF;
-  --tri-warning: #F59E0B;
-  --tri-warning-soft: #FFFBEB;
-  --tri-danger: #EF4444;
-  --tri-danger-soft: #FEF2F2;
+  --tri-surface-sec: #F8FAF9;
+  --tri-surface-soft: #EAF5F0;
+  --tri-surface-warm: #FFF8ED;
+  --tri-border: #E2E8E5;
+  --tri-border-strong: #CBD5D0;
+  --tri-overlay: rgba(2, 44, 34, 0.55);
+
+  /* Typography */
+  --tri-text-primary: #14231D;
+  --tri-text-secondary: #64746C;
+  --tri-text-muted: #87938D;
+  --tri-link: #0F7A5B;
+
+  /* Semantic */
+  --tri-success: #15803D;
+  --tri-success-bg: #DCFCE7;
+  --tri-warning: #B45309;
+  --tri-warning-bg: #FEF3C7;
+  --tri-error: #DC2626;
+  --tri-error-bg: #FEE2E2;
+  --tri-info: #2563EB;
+  --tri-info-bg: #DBEAFE;
+  --tri-inactive-bg: #F1F5F3;
+  --tri-inactive-text: #64746C;
+
+  /* Radii & Shadows */
   --tri-radius-card: 16px;
   --tri-radius-control: 12px;
-  --tri-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05);
-  --tri-shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.06);
-  --tri-space-1: 4px;
-  --tri-space-2: 8px;
-  --tri-space-3: 12px;
-  --tri-space-4: 16px;
-  --tri-space-5: 20px;
-  --tri-space-6: 24px;
+  --tri-shadow-card: 0 2px 10px rgba(20, 35, 29, 0.04);
+  --tri-shadow-hover: 0 4px 14px rgba(20, 35, 29, 0.08);
 }
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
+
 html, body {
-  background: var(--tri-page);
-  color: var(--tri-ink);
+  background-color: var(--tri-app-bg);
+  color: var(--tri-text-primary);
   margin: 0;
   padding: 0;
   overflow-x: hidden;
   max-width: 100vw;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
-.tri-page-background {
-  background-color: var(--tri-page);
-}
+
 .tri-card {
   background: var(--tri-surface);
   border: 1px solid var(--tri-border);
   border-radius: var(--tri-radius-card);
   box-shadow: var(--tri-shadow-card);
+  transition: all 0.15s ease-in-out;
 }
-.tri-card--full { grid-column: 1 / -1; }
-.tri-dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+
+.tri-card:hover {
+  border-color: var(--tri-border-strong);
+  box-shadow: var(--tri-shadow-hover);
 }
-.tri-dashboard-grid > * { min-width: 0; }
-@media (max-width: 360px) {
-  .tri-dashboard-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+
+.tri-btn-primary {
+  background-color: var(--tri-brand-orange);
+  color: #FFFFFF;
+  border-radius: var(--tri-radius-control);
+  min-height: 44px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
 }
-@media (min-width: 768px) {
-  .tri-dashboard-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+
+.tri-btn-primary:hover {
+  background-color: var(--tri-orange-hover);
 }
-@media (min-width: 1200px) {
-  .tri-dashboard-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.tri-btn-secondary {
+  background-color: var(--tri-surface);
+  color: var(--tri-forest-green);
+  border: 1px solid var(--tri-forest-green);
+  border-radius: var(--tri-radius-control);
+  min-height: 44px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tri-btn-secondary:hover {
+  background-color: var(--tri-surface-soft);
 }

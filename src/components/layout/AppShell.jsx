@@ -598,42 +598,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                   <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexShrink: 0 }}>
                     <IconButton
                       aria-label="Notifications"
+                      onClick={() => navigate('/business/notifications')}
                       sx={{ color: '#ffffff', p: 0.75, '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}
                     >
                       <Badge color="error" variant="dot">
                         <BellIcon sx={{ fontSize: 22 }} />
                       </Badge>
-                    </IconButton>
-
-                    <IconButton
-                      aria-label="Cart"
-                      onClick={() => navigate('/business/online-marketplace/cart')}
-                      sx={{ color: '#ffffff', p: 0.75, '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}
-                    >
-                      <Badge
-                        badgeContent={cartCount > 0 ? cartCount : 3}
-                        sx={{
-                          '& .MuiBadge-badge': {
-                            bgcolor: '#EA580C',
-                            color: '#ffffff',
-                            fontWeight: 900,
-                            fontSize: '0.62rem',
-                            minWidth: 16,
-                            height: 16,
-                            px: 0.4
-                          }
-                        }}
-                      >
-                        <CartIcon sx={{ fontSize: 22 }} />
-                      </Badge>
-                    </IconButton>
-
-                    <IconButton
-                      aria-label="Profile"
-                      onClick={() => navigate('/business/profile')}
-                      sx={{ color: '#ffffff', p: 0.75, '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}
-                    >
-                      <WalletIcon sx={{ fontSize: 22 }} />
                     </IconButton>
                   </Stack>
                 </Stack>
@@ -705,7 +675,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
             width: '100%',
             overflowX: 'hidden',
             mx: 'auto',
-            bgcolor: '#F7F9FC',
+            bgcolor: '#F4F7F6',
           }}
         >
           {children}
@@ -875,20 +845,20 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
         }}
       >
         <Box sx={{ overflowY: 'auto', flex: 1, bgcolor: '#ffffff' }}>
-          {/* Drawer Top Profile Banner with Wavy Gradient */}
+          {/* Drawer Top Profile Banner with Forest Green Gradient */}
           <Box
             sx={{
               p: 2.5,
               pb: 4.5,
-              background: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
+              background: 'linear-gradient(180deg, #043C2E 0%, #064E3B 100%)',
               color: '#ffffff',
               position: 'relative',
               overflow: 'hidden',
             }}
           >
             {/* Luminous background abstract accents */}
-            <Box sx={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.12)', pointerEvents: 'none' }} />
-            <Box sx={{ position: 'absolute', bottom: -20, left: 60, width: 100, height: 100, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.08)', pointerEvents: 'none' }} />
+            <Box sx={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
+            <Box sx={{ position: 'absolute', bottom: -20, left: 60, width: 100, height: 100, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
 
             {/* Profile Row */}
             <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ position: 'relative' }}>
@@ -899,12 +869,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                     sx={{
                       width: 52,
                       height: 52,
-                      bgcolor: '#C2410C',
+                      bgcolor: '#022C22',
                       color: '#ffffff',
                       fontWeight: 900,
                       fontSize: '1.2rem',
                       border: '2.5px solid #ffffff',
-                      boxShadow: '0 4px 14px rgba(0,0,0,0.15)'
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.25)'
                     }}
                   >
                     {initials}
@@ -1056,15 +1026,15 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                   startIcon={<AddIcon sx={{ fontSize: 18 }} />}
                   sx={{
                     flex: 1,
-                    height: 40,
-                    bgcolor: '#EA580C',
+                    minHeight: '42px',
+                    bgcolor: '#FF6B00',
                     color: '#ffffff',
-                    fontSize: '0.8rem',
-                    fontWeight: 800,
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
                     textTransform: 'none',
-                    borderRadius: '11px',
-                    boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)',
-                    '&:hover': { bgcolor: '#C2410C', boxShadow: 'none' },
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(255, 107, 0, 0.25)',
+                    '&:hover': { bgcolor: '#E85D04', boxShadow: 'none' },
                     '&:active': { transform: 'scale(0.98)' }
                   }}
                 >
@@ -1076,15 +1046,15 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                   startIcon={<ArrowOutwardIcon sx={{ fontSize: 17 }} />}
                   sx={{
                     flex: 1,
-                    height: 40,
-                    borderColor: '#cbd5e1',
+                    minHeight: '42px',
+                    borderColor: '#064E3B',
                     bgcolor: '#ffffff',
-                    color: '#0f172a',
-                    fontSize: '0.8rem',
-                    fontWeight: 800,
+                    color: '#064E3B',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
                     textTransform: 'none',
-                    borderRadius: '11px',
-                    '&:hover': { borderColor: '#94a3b8', bgcolor: '#f8fafc' },
+                    borderRadius: '12px',
+                    '&:hover': { borderColor: '#043C2E', bgcolor: '#EAF5F0' },
                     '&:active': { transform: 'scale(0.98)' }
                   }}
                 >

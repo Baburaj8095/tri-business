@@ -580,13 +580,10 @@ export default function BusinessShops() {
     <AppShell activeTab="/business/shops" title="My Shops">
       <Container maxWidth="lg" sx={{ py: 2 }}>
         {/* Top Header */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ mb: 2.5 }}>
           <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography variant="h5" sx={{ fontWeight: 900, color: T.text, lineHeight: 1.2, letterSpacing: '-0.3px', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+            <Typography sx={{ fontWeight: 700, color: '#14231D', lineHeight: 1.25, fontSize: { xs: '1.25rem', sm: '1.35rem' } }}>
               Store Management
-            </Typography>
-            <Typography variant="body2" sx={{ color: T.textSecondary, fontWeight: 500, mt: 0.25, fontSize: { xs: '0.78rem', sm: '0.85rem' } }}>
-              Configure your retail storefronts, timings, and delivery radius
             </Typography>
           </Box>
           <Button
@@ -594,22 +591,19 @@ export default function BusinessShops() {
             startIcon={<AddIcon sx={{ fontSize: 18 }} />}
             onClick={() => navigate('/registration-wizard')}
             sx={{
-              bgcolor: '#EA580C',
-              background: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
+              bgcolor: '#FF6B00',
               color: '#ffffff',
               borderRadius: '12px',
               textTransform: 'none',
-              fontWeight: 800,
+              fontWeight: 600,
               fontSize: '0.84rem',
-              height: '40px',
-              px: { xs: 2, sm: 3 },
+              minHeight: '40px',
+              px: { xs: 2, sm: 2.5 },
+              boxShadow: 'none',
               whiteSpace: 'nowrap',
               flexShrink: 0,
-              boxShadow: '0 4px 14px rgba(234, 88, 12, 0.28)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              '&:hover': { background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)', boxShadow: '0 6px 18px rgba(234, 88, 12, 0.35)' },
-              '&:active': { transform: 'scale(0.97)' }
+              '&:hover': { bgcolor: '#E85D04' },
+              '&:active': { transform: 'scale(0.98)' }
             }}
           >
             + Add Store
@@ -1251,18 +1245,18 @@ export default function BusinessShops() {
                     label={pill.label}
                     onClick={() => setModeFilter(pill.id)}
                     sx={{
-                      fontWeight: 800,
+                      fontWeight: isSelected ? 700 : 500,
                       fontSize: '0.78rem',
-                      height: 32,
-                      px: 0.5,
-                      borderRadius: '20px',
+                      height: 34,
+                      px: 0.75,
+                      borderRadius: '9999px',
                       cursor: 'pointer',
-                      bgcolor: isSelected ? '#FF6508' : '#ffffff',
-                      color: isSelected ? '#ffffff' : '#475569',
-                      border: `1.5px solid ${isSelected ? '#FF6508' : '#e2e8f0'}`,
-                      boxShadow: isSelected ? '0 2px 8px rgba(255, 101, 8, 0.25)' : 'none',
+                      bgcolor: isSelected ? '#064E3B' : '#ffffff',
+                      color: isSelected ? '#ffffff' : '#64746C',
+                      border: `1px solid ${isSelected ? '#064E3B' : '#E2E8E5'}`,
+                      boxShadow: 'none',
                       '&:hover': {
-                        bgcolor: isSelected ? '#E9570A' : '#f8fafc',
+                        bgcolor: isSelected ? '#043C2E' : '#F8FAF9',
                       },
                     }}
                   />
@@ -1292,26 +1286,25 @@ export default function BusinessShops() {
             >
               <Box
                 sx={{
-                  width: 76,
-                  height: 76,
+                  width: 72,
+                  height: 72,
                   borderRadius: '50%',
-                  bgcolor: '#FFF7ED',
-                  color: '#EA580C',
-                  border: '2px solid #FED7AA',
+                  bgcolor: '#EAF5F0',
+                  color: '#064E3B',
+                  border: '1px solid #BBF7D0',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   mx: 'auto',
-                  mb: 2.5,
-                  boxShadow: '0 4px 12px rgba(234, 88, 12, 0.15)',
+                  mb: 2,
                 }}
               >
-                <StoreIcon sx={{ fontSize: 38 }} />
+                <StoreIcon sx={{ fontSize: 36 }} />
               </Box>
-              <Typography sx={{ color: '#0f172a', fontWeight: 900, fontSize: '1.3rem', mb: 1, letterSpacing: '-0.3px' }}>
+              <Typography sx={{ color: '#14231D', fontWeight: 700, fontSize: '1.2rem', mb: 1 }}>
                 {shopSearch || modeFilter !== 'ALL' ? 'No Matching Stores' : 'No Stores Registered Yet'}
               </Typography>
-              <Typography sx={{ color: '#64748b', fontSize: '0.88rem', fontWeight: 500, lineHeight: 1.5, maxWidth: 360, mx: 'auto', mb: 3.5 }}>
+              <Typography sx={{ color: '#64746C', fontSize: '0.85rem', fontWeight: 400, lineHeight: 1.5, maxWidth: 360, mx: 'auto', mb: 3 }}>
                 {shopSearch || modeFilter !== 'ALL'
                   ? 'Try clearing your search query or switching filters to see all registered outlets.'
                   : 'Register your retail storefront to start accepting online orders, manage inventory and reach more customers.'}
@@ -1321,16 +1314,16 @@ export default function BusinessShops() {
                 startIcon={<AddIcon />}
                 onClick={() => navigate('/registration-wizard')}
                 sx={{
-                  bgcolor: '#EA580C',
+                  bgcolor: '#FF6B00',
                   color: '#ffffff',
-                  borderRadius: '14px',
+                  borderRadius: '12px',
                   textTransform: 'none',
-                  fontWeight: 900,
-                  fontSize: '0.92rem',
-                  px: 4,
-                  py: 1.3,
-                  boxShadow: '0 4px 14px rgba(234, 88, 12, 0.25)',
-                  '&:hover': { bgcolor: '#C2410C' },
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  px: 3.5,
+                  py: 1.1,
+                  boxShadow: 'none',
+                  '&:hover': { bgcolor: '#E85D04' },
                 }}
               >
                 Add Your First Store
@@ -1571,13 +1564,12 @@ export default function BusinessShops() {
                             borderRadius: '10px',
                             textTransform: 'none',
                             fontSize: '0.8rem',
-                            fontWeight: 800,
-                            bgcolor: '#EA580C',
-                            background: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
+                            fontWeight: 700,
+                            bgcolor: '#FF6B00',
                             color: '#ffffff',
-                            boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)',
+                            boxShadow: 'none',
                             whiteSpace: 'nowrap',
-                            '&:hover': { background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)', boxShadow: '0 4px 12px rgba(234, 88, 12, 0.35)' },
+                            '&:hover': { bgcolor: '#E85D04' },
                             '&:active': { transform: 'scale(0.98)' }
                           }}
                         >

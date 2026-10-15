@@ -37,11 +37,11 @@ public class RegisterService {
             throw new RuntimeException("Captain ID " + username + " is already registered.");
         }
 
-        // Verify sponsor (best-effort — warning logged if invalid)
-        SponsorInfo sponsor = sponsorService.verifySponsor(req.getSponsorId());
+        // Verify sponsor
+        SponsorInfo sponsor = sponsorService.verifyCaptainProvisioningSponsor(req.getSponsorId());
         if (!sponsor.isValid()) {
             throw new RuntimeException("Invalid sponsor ID: " + req.getSponsorId() +
-                ". Sponsor must be an active Consumer, Pincode Partner (TRPN), Captain (CB), or root sponsor (9999999999).");
+                ". Sponsor must be an active Captain (CB), Pincode Partner (TRPN), or root sponsor (9999999999 / ROOT).");
         }
 
         // Hash password — stored as Django BCryptPasswordHasher format: "bcrypt$<bcrypt_hash>"
@@ -133,7 +133,7 @@ public class RegisterService {
         SponsorInfo sponsor = sponsorService.verifySponsor(req.getSponsorId());
         if (!sponsor.isValid()) {
             throw new RuntimeException("Invalid sponsor ID: " + req.getSponsorId() +
-                ". Sponsor must be an active Consumer, Pincode Partner (TRPN), Captain (CB), or root sponsor (9999999999).");
+                ". Merchant sponsor must be an active registered Captain (CB) or Pincode Partner (TRPN).");
         }
 
         // Hash password — stored as Django BCryptPasswordHasher format: "bcrypt$<bcrypt_hash>"

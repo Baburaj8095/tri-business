@@ -241,7 +241,7 @@ export default function BusinessDashboard() {
                   onClick={() => navigate("/business/packages")}
                   endIcon={<ChevronRightIcon sx={{ fontSize: 16 }} />}
                   sx={{
-                    bgcolor: "#FF6508",
+                    bgcolor: "#FF6B00",
                     color: "#FFFFFF",
                     fontWeight: 800,
                     fontSize: "0.82rem",
@@ -249,8 +249,8 @@ export default function BusinessDashboard() {
                     textTransform: "none",
                     px: 2.75,
                     py: 0.85,
-                    boxShadow: "0 4px 14px rgba(255, 101, 8, 0.4)",
-                    "&:hover": { bgcolor: "#EA580C" },
+                    boxShadow: "0 4px 14px rgba(255, 107, 0, 0.35)",
+                    "&:hover": { bgcolor: "#E85D04" },
                   }}
                 >
                   Upgrade to Prime →
@@ -341,10 +341,10 @@ export default function BusinessDashboard() {
               sx={{
                 cursor: "pointer",
                 p: { xs: 1.75, sm: 2 },
-                borderRadius: "18px",
+                borderRadius: "16px",
                 bgcolor: "#F0FDF4",
                 border: "1px solid #BBF7D0",
-                boxShadow: "0 1px 3px rgba(16, 185, 129, 0.08)",
+                boxShadow: "0 2px 10px rgba(20, 35, 29, 0.04)",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
@@ -359,7 +359,7 @@ export default function BusinessDashboard() {
                   height: 36,
                   borderRadius: "10px",
                   bgcolor: "#DCFCE7",
-                  color: "#16A34A",
+                  color: "#15803D",
                   display: "grid",
                   placeItems: "center",
                   mb: 0.5,
@@ -368,15 +368,15 @@ export default function BusinessDashboard() {
                 <ShopsIcon sx={{ fontSize: 20 }} />
               </Box>
               <Box>
-                <Typography sx={{ fontSize: { xs: "0.8rem", sm: "0.85rem" }, fontWeight: 700, color: "#475569" }}>
+                <Typography sx={{ fontSize: { xs: "0.8rem", sm: "0.85rem" }, fontWeight: 700, color: "#64746C" }}>
                   Active Shops
                 </Typography>
-                <Typography sx={{ fontSize: { xs: "1.75rem", sm: "2rem" }, fontWeight: 900, color: "#0F172A", lineHeight: 1.1, my: 0.35 }}>
-                  {loading ? <Skeleton width={32} /> : (activeShopsCount > 0 ? activeShopsCount : 3)}
+                <Typography sx={{ fontSize: { xs: "1.75rem", sm: "2rem" }, fontWeight: 900, color: "#14231D", lineHeight: 1.1, my: 0.35 }}>
+                  {loading ? <Skeleton width={32} /> : activeShopsCount}
                 </Typography>
               </Box>
-              <Typography sx={{ fontSize: "0.72rem", color: "#16A34A", fontWeight: 700 }}>
-                ↑ +1 this month
+              <Typography sx={{ fontSize: "0.72rem", color: "#15803D", fontWeight: 700 }}>
+                {activeShopsCount > 0 ? `${activeShopsCount} registered` : "No active shops"}
               </Typography>
             </Card>
 
@@ -386,10 +386,10 @@ export default function BusinessDashboard() {
               sx={{
                 cursor: "pointer",
                 p: { xs: 1.75, sm: 2 },
-                borderRadius: "18px",
+                borderRadius: "16px",
                 bgcolor: "#EFF6FF",
                 border: "1px solid #BFDBFE",
-                boxShadow: "0 1px 3px rgba(59, 130, 246, 0.08)",
+                boxShadow: "0 2px 10px rgba(20, 35, 29, 0.04)",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
@@ -413,22 +413,17 @@ export default function BusinessDashboard() {
                 <OrdersIcon sx={{ fontSize: 20 }} />
               </Box>
               <Box>
-                <Typography sx={{ fontSize: { xs: "0.8rem", sm: "0.85rem" }, fontWeight: 700, color: "#475569" }}>
+                <Typography sx={{ fontSize: { xs: "0.8rem", sm: "0.85rem" }, fontWeight: 700, color: "#64746C" }}>
                   New Orders
                 </Typography>
-                <Typography sx={{ fontSize: { xs: "1.75rem", sm: "2rem" }, fontWeight: 900, color: "#0F172A", lineHeight: 1.1, my: 0.35 }}>
-                  {loading ? <Skeleton width={32} /> : (pendingPaymentsCount > 0 ? pendingPaymentsCount : 12)}
+                <Typography sx={{ fontSize: { xs: "1.75rem", sm: "2rem" }, fontWeight: 900, color: "#14231D", lineHeight: 1.1, my: 0.35 }}>
+                  {loading ? <Skeleton width={32} /> : pendingPaymentsCount}
                 </Typography>
               </Box>
               <Stack direction="row" alignItems="center" spacing={0.75}>
                 <Typography sx={{ fontSize: "0.72rem", color: "#2563EB", fontWeight: 700 }}>
-                  ↑ +20%
+                  {pendingPaymentsCount > 0 ? `${pendingPaymentsCount} pending` : "No pending orders"}
                 </Typography>
-                <Box sx={{ display: "flex", gap: 0.3, alignItems: "flex-end", height: 11 }}>
-                  <Box sx={{ width: 2.5, height: 4, bgcolor: "#93C5FD", borderRadius: 0.5 }} />
-                  <Box sx={{ width: 2.5, height: 7, bgcolor: "#60A5FA", borderRadius: 0.5 }} />
-                  <Box sx={{ width: 2.5, height: 11, bgcolor: "#2563EB", borderRadius: 0.5 }} />
-                </Box>
               </Stack>
             </Card>
 
@@ -438,10 +433,10 @@ export default function BusinessDashboard() {
               sx={{
                 cursor: "pointer",
                 p: { xs: 1.75, sm: 2 },
-                borderRadius: "18px",
-                bgcolor: "#FFFBEB",
-                border: "1px solid #FDE68A",
-                boxShadow: "0 1px 3px rgba(245, 158, 11, 0.08)",
+                borderRadius: "16px",
+                bgcolor: "#FFF8ED",
+                border: "1px solid #E2E8E5",
+                boxShadow: "0 2px 10px rgba(20, 35, 29, 0.04)",
                 gridColumn: { xs: "span 2", sm: "span 1" },
                 minHeight: { xs: 130, sm: 140 },
                 display: "flex",
@@ -458,7 +453,7 @@ export default function BusinessDashboard() {
                     height: 36,
                     borderRadius: "10px",
                     bgcolor: "#FEF3C7",
-                    color: "#D97706",
+                    color: "#B45309",
                     display: "grid",
                     placeItems: "center",
                     flexShrink: 0,
@@ -466,7 +461,7 @@ export default function BusinessDashboard() {
                 >
                   <WalletIcon sx={{ fontSize: 20 }} />
                 </Box>
-                <Typography sx={{ fontSize: { xs: "0.8rem", sm: "0.85rem" }, fontWeight: 700, color: "#475569" }}>
+                <Typography sx={{ fontSize: { xs: "0.8rem", sm: "0.85rem" }, fontWeight: 700, color: "#64746C" }}>
                   Wallet Balance
                 </Typography>
               </Box>
@@ -475,15 +470,15 @@ export default function BusinessDashboard() {
                 sx={{
                   fontSize: { xs: "1.75rem", sm: "2rem" },
                   fontWeight: 900,
-                  color: "#0F172A",
+                  color: "#14231D",
                   lineHeight: 1.1,
                   my: 0.35,
                 }}
               >
-                {loading ? <Skeleton width={80} /> : (walletBalance > 0 ? `₹${walletBalance.toLocaleString("en-IN")}` : "₹8,450")}
+                {loading ? <Skeleton width={80} /> : `₹${Number(walletBalance || 0).toLocaleString("en-IN")}`}
               </Typography>
 
-              <Typography sx={{ fontSize: "0.72rem", color: "#D97706", fontWeight: 700 }}>
+              <Typography sx={{ fontSize: "0.72rem", color: "#B45309", fontWeight: 700 }}>
                 ⚡ Instant Payout
               </Typography>
             </Card>
