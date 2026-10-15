@@ -6,16 +6,22 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 export default function SplashScreen() {
   const navigate = useNavigate();
 
+  const getDestination = () => {
+    if (localStorage.getItem('token_business')) return '/business-dashboard';
+    if (localStorage.getItem('token_captain')) return '/captain/home';
+    return '/login';
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigate('/login', { replace: true });
-    }, 1800);
+      navigate(getDestination(), { replace: true });
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, [navigate]);
 
   const handleSkip = () => {
-    navigate('/login', { replace: true });
+    navigate(getDestination(), { replace: true });
   };
 
   return (

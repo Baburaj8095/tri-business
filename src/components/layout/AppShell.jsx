@@ -187,12 +187,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
 
   const isCurrentActive = (path) => {
     if (path === '/business-dashboard') {
-      return location.pathname === '/business-dashboard' || location.pathname === '/';
+      return ['/business-dashboard', '/', '/merchant', '/v2/business-dashboard'].includes(location.pathname);
     }
     return location.pathname.startsWith(path);
   };
 
-  const isHome = location.pathname === '/business-dashboard' || location.pathname === '/';
+  const isHome = ['/business-dashboard', '/', '/merchant', '/v2/business-dashboard'].includes(location.pathname);
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: T.bg, fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
