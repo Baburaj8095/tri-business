@@ -141,7 +141,7 @@ export default function BusinessB2BCartPage() {
 
   return (
     <AppShell activeTab="/business/online-marketplace" title="Cart & Checkout">
-      <Container maxWidth="sm" sx={{ pt: 1, pb: 12 }}>
+      <Container maxWidth="lg" sx={{ pt: { xs: 1, md: 3 }, pb: { xs: 12, md: 6 }, px: { xs: 1.5, sm: 2.5, md: 3 } }}>
         
         {/* Top Header Row */}
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2.5 }}>
@@ -220,7 +220,8 @@ export default function BusinessB2BCartPage() {
             </Button>
           </Card>
         ) : (
-          <Stack spacing={2}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.6fr 1fr' }, gap: { xs: 2, md: 3 }, alignItems: 'start' }}>
+            <Stack spacing={2}>
             
             {/* Delivery Guarantee Card */}
             <Card
@@ -390,8 +391,10 @@ export default function BusinessB2BCartPage() {
                 }}
               />
             </Card>
+          </Stack>
 
-            {/* Bill Summary */}
+          {/* Right Column: Sticky Bill Summary & Desktop Checkout CTA */}
+          <Box sx={{ position: { xs: 'static', md: 'sticky' }, top: { md: 88 } }}>
             <Card
               elevation={0}
               sx={{
@@ -440,27 +443,52 @@ export default function BusinessB2BCartPage() {
                   </Typography>
                 </Stack>
               </Stack>
+
+              {/* Desktop Direct Checkout Button */}
+              <Button
+                variant="contained"
+                disabled={loading}
+                onClick={placeOrder}
+                fullWidth
+                sx={{
+                  display: { xs: 'none', md: 'flex' },
+                  mt: 2.5,
+                  bgcolor: PRIMARY,
+                  color: '#ffffff',
+                  fontWeight: 900,
+                  fontSize: '0.95rem',
+                  borderRadius: '14px',
+                  height: '48px',
+                  textTransform: 'none',
+                  boxShadow: '0 4px 14px rgba(4, 120, 87, 0.3)',
+                  '&:hover': { bgcolor: PRIMARY_DARK },
+                  '&:active': { transform: 'scale(0.98)' },
+                }}
+              >
+                {loading ? <CircularProgress size={22} color="inherit" /> : 'Place B2B Order'}
+              </Button>
             </Card>
+          </Box>
+        </Box>
+      )}
 
-          </Stack>
-        )}
-
-        {/* Sticky Mobile Checkout Footer Dock */}
-        {items.length > 0 && (
-          <Box
-            sx={{
-              position: 'fixed',
-              bottom: { xs: 64, lg: 0 },
-              left: 0,
-              right: 0,
-              bgcolor: '#ffffff',
-              borderTop: '1px solid #e2e8f0',
-              py: 1.5,
-              px: { xs: 2, sm: 4 },
-              zIndex: 1000,
-              boxShadow: '0 -4px 16px rgba(0,0,0,0.06)',
-            }}
-          >
+      {/* Sticky Mobile Checkout Footer Dock (Mobile Only) */}
+      {items.length > 0 && (
+        <Box
+          sx={{
+            display: { xs: 'block', md: 'none' },
+            position: 'fixed',
+            bottom: 64,
+            left: 0,
+            right: 0,
+            bgcolor: '#ffffff',
+            borderTop: '1px solid #e2e8f0',
+            py: 1.5,
+            px: { xs: 2, sm: 4 },
+            zIndex: 1000,
+            boxShadow: '0 -4px 16px rgba(0,0,0,0.06)',
+          }}
+        >
             <Container maxWidth="sm" sx={{ p: '0 !important' }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
                 <Box>

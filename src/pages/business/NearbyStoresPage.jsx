@@ -28,6 +28,8 @@ import {
   PhotoLibraryOutlined as GalleryIcon,
   TuneRounded as FilterIcon,
   QrCodeScanner as QrIcon,
+  ArrowBackRounded as BackIcon,
+  MapRounded as MapIcon,
 } from '@mui/icons-material';
 import AppShell from '../../components/layout/AppShell';
 import { T, cardHoverSx } from '../../theme/tokens';
@@ -143,80 +145,59 @@ export default function NearbyStoresPage() {
 
   return (
     <AppShell activeTab="/business/nearby-stores">
-      <Container maxWidth="md" sx={{ pt: { xs: 2, sm: 3 }, pb: 4, px: { xs: 2, sm: 2.5 } }}>
-        
-        {/* ══════════════════════════════════════════════════════════════════════════
-            1. TITLE & VIEW SWITCHER PILL (Map / List)
-           ══════════════════════════════════════════════════════════════════════════ */}
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          spacing={1.5}
-          sx={{ mb: 2 }}
-        >
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography sx={{ fontWeight: 700, fontSize: { xs: '1.25rem', sm: '1.35rem' }, color: '#14231D', letterSpacing: '-0.01em', lineHeight: 1.25 }}>
-              Nearby Stores
-            </Typography>
-          </Box>
+      {/* SCREEN 5 STICKY TOP HEADER */}
+      <Box
+        className="tri-sticky-header"
+        sx={{
+          position: 'sticky',
+          top: { xs: 0, md: 68 },
+          zIndex: 990,
+          bgcolor: '#ffffff',
+          borderBottom: '1px solid #e2e8f0',
+          px: { xs: 1.5, sm: 2.5, md: 3 },
+          py: 1,
+          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+        }}
+      >
+        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.25}>
+          <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
+            <IconButton
+              size="small"
+              onClick={() => navigate('/business-dashboard')}
+              sx={{ bgcolor: '#f8fafc', color: '#0f172a', p: 0.8, '&:hover': { bgcolor: '#f1f5f9' }, flexShrink: 0 }}
+              title="Back to Dashboard"
+            >
+              <BackIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography sx={{ fontWeight: 900, fontSize: { xs: '0.96rem', sm: '1.1rem' }, color: '#0f172a', lineHeight: 1.2 }} noWrap>
+                Nearby Stores
+              </Typography>
+              <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }} noWrap>
+                Around Bangalore
+              </Typography>
+            </Box>
+          </Stack>
 
-          {/* Map / List Segmented Toggle Pill */}
-          <Box
+          {/* Map / List toggle */}
+          <IconButton
+            size="small"
+            onClick={() => setViewMode(viewMode === 'map' ? 'list' : 'map')}
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              bgcolor: '#ffffff',
-              border: '1px solid #E2E8E5',
-              borderRadius: '999px',
-              p: 0.35,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-              flexShrink: 0,
+              bgcolor: viewMode === 'map' ? '#ecfdf5' : '#f8fafc',
+              border: `1px solid ${viewMode === 'map' ? '#a7f3d0' : '#e2e8f0'}`,
+              color: viewMode === 'map' ? '#064E3B' : '#64748b',
+              p: 0.8,
+              borderRadius: '10px',
             }}
+            title={viewMode === 'map' ? 'Switch to List' : 'Switch to Map'}
           >
-            <Button
-              size="small"
-              onClick={() => setViewMode('map')}
-              startIcon={<LocationIcon sx={{ fontSize: 16 }} />}
-              sx={{
-                borderRadius: '999px',
-                px: 1.4,
-                py: 0.45,
-                fontSize: '0.78rem',
-                fontWeight: viewMode === 'map' ? 700 : 500,
-                textTransform: 'none',
-                bgcolor: viewMode === 'map' ? '#064E3B' : 'transparent',
-                color: viewMode === 'map' ? '#ffffff' : '#64746C',
-                minWidth: 0,
-                boxShadow: 'none',
-                '&:hover': { bgcolor: viewMode === 'map' ? '#043C2E' : '#F8FAF9' },
-              }}
-            >
-              Map
-            </Button>
-
-            <Button
-              size="small"
-              onClick={() => setViewMode('list')}
-              startIcon={<ListIcon sx={{ fontSize: 16 }} />}
-              sx={{
-                borderRadius: '999px',
-                px: 1.4,
-                py: 0.45,
-                fontSize: '0.78rem',
-                fontWeight: viewMode === 'list' ? 700 : 500,
-                textTransform: 'none',
-                bgcolor: viewMode === 'list' ? '#064E3B' : 'transparent',
-                color: viewMode === 'list' ? '#ffffff' : '#64746C',
-                minWidth: 0,
-                boxShadow: 'none',
-                '&:hover': { bgcolor: viewMode === 'list' ? '#043C2E' : '#F8FAF9' },
-              }}
-            >
-              List
-            </Button>
-          </Box>
+            {viewMode === 'map' ? <ListIcon sx={{ fontSize: 20 }} /> : <MapIcon sx={{ fontSize: 20 }} />}
+          </IconButton>
         </Stack>
+      </Box>
+
+      <Container maxWidth="lg" sx={{ pt: 1.5, pb: 4, px: { xs: 1.5, sm: 2.5, md: 3 } }}>
 
         {/* ══════════════════════════════════════════════════════════════════════════
             2. SEARCH BAR WITH FILTER BUTTON
@@ -320,7 +301,131 @@ export default function NearbyStoresPage() {
         </Box>
 
         {/* ══════════════════════════════════════════════════════════════════════════
-            4. STORE CARDS LIST OR EMPTY STATE
+            4. MAP PREVIEW AREA (Screen 5 Reference)
+           ══════════════════════════════════════════════════════════════════════════ */}
+        <Box
+          sx={{
+            position: 'relative',
+            height: { xs: 150, sm: 180 },
+            borderRadius: '16px',
+            bgcolor: '#e2e8f0',
+            overflow: 'hidden',
+            mb: 2.5,
+            border: '1px solid #cbd5e1',
+            background: 'radial-gradient(circle at 50% 50%, #f1f5f9 20%, #e2e8f0 100%)',
+            boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.06)',
+          }}
+        >
+          {/* Subtle map road lines */}
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: 'linear-gradient(45deg, #e2e8f0 25%, transparent 25%), linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2e8f0 75%), linear-gradient(-45deg, transparent 75%, #e2e8f0 75%)',
+              backgroundSize: '30px 30px',
+              backgroundPosition: '0 0, 0 15px, 15px -15px, -15px 0px',
+              opacity: 0.6,
+            }}
+          />
+
+          {/* Location Markers */}
+          {/* You Are Here Pin */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '40%',
+              left: '42%',
+              transform: 'translate(-50%, -50%)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <Box
+              sx={{
+                bgcolor: '#FF6B00',
+                color: '#ffffff',
+                px: 1,
+                py: 0.25,
+                borderRadius: '999px',
+                fontSize: '0.62rem',
+                fontWeight: 800,
+                boxShadow: '0 2px 6px rgba(255, 107, 0, 0.4)',
+                whiteSpace: 'nowrap',
+                mb: 0.25,
+              }}
+            >
+              You are here
+            </Box>
+            <Box
+              sx={{
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                bgcolor: '#FF6B00',
+                border: '2.5px solid #ffffff',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+              }}
+            />
+          </Box>
+
+          {/* Koramangala Pin */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '55%',
+              left: '70%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#2563EB', border: '2px solid #fff' }} />
+            <Typography sx={{ fontSize: '0.62rem', color: '#1e3a8a', fontWeight: 700, mt: 0.25 }}>
+              Koramangala
+            </Typography>
+          </Box>
+
+          {/* HSR Layout Pin */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '25%',
+              left: '78%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#10B981', border: '2px solid #fff' }} />
+            <Typography sx={{ fontSize: '0.62rem', color: '#064E3B', fontWeight: 700, mt: 0.25 }}>
+              HSR Layout
+            </Typography>
+          </Box>
+
+          {/* BTM Layout Label */}
+          <Box sx={{ position: 'absolute', bottom: 12, left: 20 }}>
+            <Typography sx={{ fontSize: '0.64rem', color: '#64748b', fontWeight: 700 }}>
+              BTM Layout
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Section Header */}
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: '0.94rem', color: '#0f172a' }}>
+            Nearby Stores
+          </Typography>
+          <Button
+            size="small"
+            sx={{ color: '#064E3B', fontWeight: 800, fontSize: '0.74rem', textTransform: 'none', p: 0 }}
+          >
+            View All →
+          </Button>
+        </Stack>
+
+        {/* ══════════════════════════════════════════════════════════════════════════
+            5. STORE CARDS LIST OR EMPTY STATE
            ══════════════════════════════════════════════════════════════════════════ */}
         {loading ? (
           <Box sx={{ textAlign: 'center', py: 10 }}>
@@ -382,7 +487,7 @@ export default function NearbyStoresPage() {
             </Button>
           </Card>
         ) : (
-          <Stack spacing={1.5}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
             {filteredStores.map((store) => (
               <Card
                 key={store.id}
@@ -503,7 +608,7 @@ export default function NearbyStoresPage() {
                 </Stack>
               </Card>
             ))}
-          </Stack>
+          </Box>
         )}
 
       </Container>

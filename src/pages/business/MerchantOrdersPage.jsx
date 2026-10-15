@@ -493,10 +493,10 @@ export default function MerchantOrdersPage() {
 
   return (
     <AppShell activeTab="/business/orders" title="Orders & Deliveries">
-      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3 }, px: { xs: 2, sm: 3 } }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 1.5, sm: 2.5 }, px: { xs: 1.25, sm: 2.5 } }}>
 
-        {/* 1. Header Bar with Outlet Subtitle & Filter Button */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+        {/* 1. Header Bar on Desktop (Hidden on mobile to avoid duplicate sticky header) */}
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, display: { xs: 'none', md: 'flex' } }}>
           <Box>
             <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.25rem', sm: '1.4rem' }, color: T.text, letterSpacing: '-0.3px' }}>
               Orders & Deliveries
@@ -522,14 +522,52 @@ export default function MerchantOrdersPage() {
 
         {/* Unauthenticated Alert if No Token */}
         {!token && (
-          <Alert severity="warning" sx={{ mb: 2.5, borderRadius: T.radiusMd, fontWeight: 700 }}>
+          <Alert severity="warning" sx={{ mb: 2, borderRadius: T.radiusMd, fontWeight: 700 }}>
             Please sign in with your merchant credentials to receive and fulfill orders.
           </Alert>
         )}
 
-        {/* Feedback alerts */}
-        {error && <Alert severity="error" sx={{ mb: 2.5, borderRadius: T.radiusMd, fontWeight: 700 }}>{error}</Alert>}
-        {success && <Alert severity="success" sx={{ mb: 2.5, borderRadius: T.radiusMd, fontWeight: 700 }}>{success}</Alert>}
+        {/* Screen 9 Error State Card */}
+        {error && (
+          <Card
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: '16px',
+              border: '1.5px solid #fecaca',
+              bgcolor: '#fff5f5',
+              textAlign: 'center',
+              my: 2.5,
+            }}
+          >
+            <Box sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: '#fee2e2', color: '#dc2626', display: 'grid', placeItems: 'center', mx: 'auto', mb: 1.5 }}>
+              <CancelIcon sx={{ fontSize: 26 }} />
+            </Box>
+            <Typography sx={{ fontWeight: 800, color: '#991b1b', fontSize: '0.96rem', mb: 0.5 }}>
+              Unable to load B2B wholesale orders from server.
+            </Typography>
+            <Typography sx={{ fontSize: '0.8rem', color: '#7f1d1d', mb: 2 }}>
+              Please check your internet connection and try again.
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={refreshData}
+              sx={{ bgcolor: '#064E3B', color: '#ffffff', fontWeight: 800, borderRadius: '999px', px: 3, textTransform: 'none', '&:hover': { bgcolor: '#043C2E' } }}
+            >
+              Retry
+            </Button>
+            <Box sx={{ mt: 1.75 }}>
+              <Typography
+                onClick={() => alert('Support helpline: support@trikonekt.com')}
+                sx={{ fontSize: '0.78rem', color: '#475569', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
+              >
+                🎧 Contact Support
+              </Typography>
+            </Box>
+          </Card>
+        )}
+
+        {success && <Alert severity="success" sx={{ mb: 2, borderRadius: T.radiusMd, fontWeight: 700 }}>{success}</Alert>}
 
         {/* 2. Channel Mode Pill Selector (B2C Online / B2B Wholesale / Offline Counter) */}
         <Box sx={{ mb: 2, bgcolor: '#FFFFFF', p: 0.5, borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex' }}>
@@ -731,58 +769,55 @@ export default function MerchantOrdersPage() {
             elevation={0}
             sx={{
               p: { xs: 4, sm: 6 },
-              borderRadius: '16px',
+              borderRadius: '20px',
               border: '1px solid #E2E8E5',
               bgcolor: '#ffffff',
               textAlign: 'center',
               boxShadow: '0 2px 10px rgba(20, 35, 29, 0.04)',
+              my: 2,
             }}
           >
             <Box
               sx={{
-                width: 64,
-                height: 64,
+                width: 72,
+                height: 72,
                 borderRadius: '50%',
-                bgcolor: '#EAF5F0',
-                color: '#064E3B',
+                bgcolor: '#f1f5f9',
                 display: 'grid',
                 placeItems: 'center',
                 mx: 'auto',
                 mb: 2,
               }}
             >
-              <OrdersIcon sx={{ fontSize: 32 }} />
+              <OrdersIcon sx={{ fontSize: 36, color: '#94a3b8' }} />
             </Box>
-            <Typography sx={{ color: '#14231D', fontWeight: 700, fontSize: '1.2rem', mb: 0.5 }}>
-              No {['New', 'Active', 'Fulfilled', 'Cancelled'][statusTab]} Orders
+            <Typography sx={{ color: '#0f172a', fontWeight: 900, fontSize: '1.25rem', mb: 0.75 }}>
+              No Orders Yet
             </Typography>
-            <Typography sx={{ color: '#64746C', fontSize: '0.85rem', maxWidth: 360, mx: 'auto', mb: 2.5, lineHeight: 1.5 }}>
-              Authoritative live orders for this outlet will appear here automatically when received.
+            <Typography sx={{ color: '#64748b', fontSize: '0.85rem', maxWidth: 360, mx: 'auto', mb: 2.75, lineHeight: 1.5 }}>
+              Your wholesale orders from suppliers will appear here.
             </Typography>
             <Button
-              variant="outlined"
-              size="small"
-              onClick={() => {
-                if (channelMode === 'B2B') fetchB2bOrders();
-                else if (selectedShopId) fetchOnlineOrders(selectedShopId);
-              }}
+              variant="contained"
+              onClick={() => navigate('/business/online-marketplace')}
               sx={{
-                borderColor: '#064E3B',
-                color: '#064E3B',
-                fontWeight: 600,
-                borderRadius: '12px',
-                minHeight: '40px',
-                px: 2.5,
+                bgcolor: '#064E3B',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.86rem',
+                borderRadius: '999px',
+                px: 3.5,
+                py: 0.9,
                 textTransform: 'none',
-                fontSize: '0.84rem',
-                '&:hover': { bgcolor: '#EAF5F0', borderColor: '#043C2E' },
+                boxShadow: '0 4px 14px rgba(6,78,59,0.2)',
+                '&:hover': { bgcolor: '#043C2E' },
               }}
             >
-              ↻ Refresh Orders
+              Browse Products →
             </Button>
           </Card>
         ) : (
-          <Stack spacing={2}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
             {activeTabOrders.map((order) => (
               <ModernOrderCard
                 key={order.id}
@@ -793,7 +828,7 @@ export default function MerchantOrdersPage() {
                 isB2B={channelMode === 'B2B'}
               />
             ))}
-          </Stack>
+          </Box>
         )}
 
         {/* 6. Filter Drawer */}

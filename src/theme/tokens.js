@@ -94,6 +94,7 @@ export const T = {
 
   // Dimensions
   topBarHeight: 68,
+  sidebarWidth: 260,
   mobileNavHeight: 64,
   maxContentWidth: 1400,
 };

@@ -66,7 +66,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up('lg')); // >= 1200px
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md')); // >= 900px for desktop & laptop layout
 
   const shouldHideHeader = hideHeader;
 
@@ -177,7 +177,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
         <Box
           component="aside"
           sx={{
-            width: T.sidebarWidth,
+            width: { md: 230, lg: T.sidebarWidth || 260 },
             flexShrink: 0,
             bgcolor: T.surface,
             borderRight: `1px solid ${T.border}`,
@@ -315,7 +315,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               zIndex: 1000,
               bgcolor: T.surface,
               borderBottom: `1px solid ${T.border}`,
-              px: 4,
+              px: { md: 2, lg: 3.5 },
               height: T.topBarHeight,
               display: 'flex',
               alignItems: 'center',
@@ -332,7 +332,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                 borderRadius: T.radiusFull,
                 px: 2,
                 py: 0.65,
-                width: { md: 360, lg: 440 },
+                width: { md: 280, lg: 420 },
                 border: `1px solid ${T.border}`,
                 transition: 'all 0.2s ease',
                 '&:focus-within': {
@@ -369,7 +369,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                   display: 'flex',
                   alignItems: 'center',
                   gap: 0.75,
-                  maxWidth: 320,
+                  maxWidth: { md: 220, lg: 320 },
                   transition: 'all 0.2s',
                   '&:hover': {
                     borderColor: T.primary,
@@ -436,56 +436,64 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
           </Box>
         )}
 
-        {/* ─── MOBILE FIXED TOP HEADER (Context-Aware: Orders vs Home) ─── */}
+        {/* ─── MOBILE STICKY TOP HEADER (Non-covering, context-aware) ─── */}
         {!isDesktop && !shouldHideHeader && (
           (() => {
-            const isOrdersPage = location.pathname.startsWith('/business/orders') || activeTab === '/business/orders';
+            const isHomeRoute = ['/business-dashboard', '/', '/merchant', '/v2/business-dashboard'].includes(location.pathname);
+            const isMarketplace = location.pathname.startsWith('/business/online-marketplace') || activeTab === '/business/online-marketplace';
+            const isNearby = location.pathname.startsWith('/business/nearby-stores') || activeTab === '/business/nearby-stores';
+            const isOrdersPage = location.pathname.startsWith('/business/orders') || location.pathname.startsWith('/business/b2b-orders') || activeTab === '/business/orders';
 
+            // Dedicated pages manage their own contextual sticky headers (Screens 2, 3, 5, 7)
+            if (isMarketplace || isNearby) {
+              return null;
+            }
+
+            // Screen 4: Orders & Deliveries Mobile Sticky Header
             if (isOrdersPage) {
               return (
                 <Box
                   component="header"
+                  className="tri-sticky-header"
                   sx={{
-                    position: 'fixed',
+                    position: 'sticky',
                     top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '62px',
-                    zIndex: 1100,
+                    zIndex: 1000,
                     bgcolor: '#ffffff',
                     borderBottom: '1px solid #e2e8f0',
                     boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
-                    px: 2,
+                    px: { xs: 1.5, sm: 2 },
+                    py: 1,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                   }}
                 >
-                  <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0 }}>
+                  <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
                     <IconButton
                       onClick={() => navigate('/business-dashboard')}
-                      sx={{ bgcolor: '#f8fafc', color: '#0f172a', p: 1, '&:hover': { bgcolor: '#f1f5f9' } }}
+                      sx={{ bgcolor: '#f8fafc', color: '#0f172a', p: 0.9, '&:hover': { bgcolor: '#f1f5f9' }, flexShrink: 0 }}
                     >
                       <BackIcon sx={{ fontSize: 20 }} />
                     </IconButton>
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: '#0f172a', lineHeight: 1.2 }} noWrap>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography sx={{ fontWeight: 900, fontSize: { xs: '0.94rem', sm: '1.05rem' }, color: '#0f172a', lineHeight: 1.2 }} noWrap>
                         Orders & Deliveries
                       </Typography>
                       <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }} noWrap>
-                        {activeShop?.shop_name || displayName} • {profile?.service_mode || 'Online B2C'}
+                        {displayName} • Online B2B
                       </Typography>
                     </Box>
                   </Stack>
 
-                  <Stack direction="row" alignItems="center" spacing={1}>
+                  <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexShrink: 0 }}>
                     <IconButton
                       aria-label="Cart"
                       onClick={() => navigate('/business/online-marketplace/cart')}
                       sx={{ color: '#0f172a', p: 0.8 }}
                     >
                       <Badge badgeContent={cartCount} color="success" max={99}>
-                        <CartIcon sx={{ fontSize: 22 }} />
+                        <CartIcon sx={{ fontSize: 21 }} />
                       </Badge>
                     </IconButton>
                     <IconButton
@@ -493,165 +501,227 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                       title="Switch Store"
                       sx={{ bgcolor: '#FFF7ED', color: '#EA580C', p: 0.8, '&:hover': { bgcolor: '#FFEDD5' } }}
                     >
-                      <NearbyIcon sx={{ fontSize: 20 }} />
+                      <NearbyIcon sx={{ fontSize: 19 }} />
                     </IconButton>
                   </Stack>
                 </Box>
               );
             }
 
-            // Default Home Dashboard Header
-            // Reference-Matched Business Header
-            return (
-              <Box
-                component="header"
-                sx={{
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '116px',
-                  zIndex: 1100,
-                  background: 'linear-gradient(180deg, #064E3B 0%, #032E23 100%)',
-                  color: '#ffffff',
-                  boxShadow: '0 4px 16px rgba(4, 56, 42, 0.25)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  px: 2,
-                  py: 1.25,
-                }}
-              >
-                {/* Top Row: Merchant Profile Info & Action Icons */}
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
-                    <Box sx={{ position: 'relative' }}>
-                      <Avatar
-                        onClick={() => setMobileDrawerOpen(true)}
-                        sx={{
-                          width: 42,
-                          height: 42,
-                          bgcolor: '#043427',
-                          color: '#ffffff',
-                          fontWeight: 900,
-                          fontSize: '0.95rem',
-                          border: '2px solid rgba(255,255,255,0.92)',
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-                          '&:hover': { transform: 'scale(1.05)' },
-                          transition: 'transform 0.15s ease'
-                        }}
+            // Screen 1: Home Dashboard Mobile Sticky Header
+            if (isHomeRoute) {
+              return (
+                <Box
+                  component="header"
+                  className="tri-sticky-header-dark"
+                  sx={{
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1000,
+                    background: 'linear-gradient(180deg, #064E3B 0%, #032E23 100%)',
+                    color: '#ffffff',
+                    boxShadow: '0 4px 16px rgba(4, 56, 42, 0.25)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    px: { xs: 1.25, sm: 2 },
+                    py: 1.2,
+                    gap: 1.25,
+                  }}
+                >
+                  {/* Top Row: Merchant Profile Info & Action Icons */}
+                  <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Stack direction="row" alignItems="center" spacing={1.2} sx={{ minWidth: 0, flex: 1 }}>
+                      <Box sx={{ position: 'relative', flexShrink: 0 }}>
+                        <Avatar
+                          onClick={() => setMobileDrawerOpen(true)}
+                          sx={{
+                            width: { xs: 38, sm: 42 },
+                            height: { xs: 38, sm: 42 },
+                            bgcolor: '#043427',
+                            color: '#ffffff',
+                            fontWeight: 900,
+                            fontSize: '0.92rem',
+                            border: '2px solid rgba(255,255,255,0.92)',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+                            '&:hover': { transform: 'scale(1.05)' },
+                            transition: 'transform 0.15s ease'
+                          }}
+                        >
+                          {initials}
+                        </Avatar>
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            bottom: -2,
+                            right: -2,
+                            width: 16,
+                            height: 16,
+                            borderRadius: '50%',
+                            bgcolor: '#F59E0B',
+                            color: '#ffffff',
+                            display: 'grid',
+                            placeItems: 'center',
+                            border: '1.5px solid #064E3B',
+                            boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+                          }}
+                        >
+                          <Typography sx={{ fontSize: '9px', lineHeight: 1 }}>👑</Typography>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography sx={{ fontSize: '0.66rem', fontWeight: 500, color: 'rgba(255,255,255,0.75)', lineHeight: 1 }}>
+                          {getGreeting()}
+                        </Typography>
+                        <Stack direction="row" alignItems="center" spacing={0.6} sx={{ mt: 0.25 }}>
+                          <Typography sx={{ fontSize: { xs: '0.92rem', sm: '1rem' }, fontWeight: 900, color: '#ffffff', lineHeight: 1.2 }} noWrap>
+                            {displayName}
+                          </Typography>
+                          <Box
+                            sx={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 0.4,
+                              bgcolor: 'rgba(16, 185, 129, 0.22)',
+                              color: '#34D399',
+                              border: '1px solid rgba(16, 185, 129, 0.4)',
+                              borderRadius: '9999px',
+                              px: 0.8,
+                              py: 0.15,
+                              fontSize: '0.58rem',
+                              fontWeight: 800,
+                              letterSpacing: '0.3px',
+                              flexShrink: 0,
+                            }}
+                          >
+                            <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#34D399' }} />
+                            ONLINE
+                          </Box>
+                        </Stack>
+                      </Box>
+                    </Stack>
+
+                    <Stack direction="row" alignItems="center" spacing={0.25} sx={{ flexShrink: 0 }}>
+                      <IconButton
+                        aria-label="Notifications"
+                        onClick={() => navigate('/business/notifications')}
+                        sx={{ color: '#ffffff', p: 0.7, '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}
                       >
-                        {initials}
-                      </Avatar>
+                        <Badge color="error" variant="dot">
+                          <BellIcon sx={{ fontSize: 21 }} />
+                        </Badge>
+                      </IconButton>
+                      <IconButton
+                        aria-label="Cart"
+                        onClick={() => navigate('/business/online-marketplace/cart')}
+                        sx={{ color: '#ffffff', p: 0.7, '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}
+                      >
+                        <Badge badgeContent={cartCount} sx={{ '& .MuiBadge-badge': { bgcolor: '#EA580C', color: '#fff', fontWeight: 800 } }} max={99}>
+                          <CartIcon sx={{ fontSize: 21 }} />
+                        </Badge>
+                      </IconButton>
+                    </Stack>
+                  </Stack>
+
+                  {/* Bottom Row: Operating Store / Outlet Selector Card */}
+                  <Box
+                    onClick={() => setStoreModalOpen(true)}
+                    sx={{
+                      minHeight: '40px',
+                      px: 1.25,
+                      py: 0.5,
+                      bgcolor: 'rgba(0,0,0,0.22)',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(255,255,255,0.14)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      '&:hover': { bgcolor: 'rgba(0,0,0,0.32)' }
+                    }}
+                  >
+                    <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0, flex: 1 }}>
                       <Box
                         sx={{
-                          position: 'absolute',
-                          bottom: -2,
-                          right: -2,
-                          width: 17,
-                          height: 17,
-                          borderRadius: '50%',
-                          bgcolor: '#F59E0B',
+                          width: 26,
+                          height: 26,
+                          borderRadius: '8px',
+                          bgcolor: '#10B981',
                           color: '#ffffff',
                           display: 'grid',
                           placeItems: 'center',
-                          border: '1.5px solid #064E3B',
-                          boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+                          flexShrink: 0,
+                          boxShadow: '0 2px 6px rgba(16, 185, 129, 0.35)'
                         }}
                       >
-                        <Typography sx={{ fontSize: '9px', lineHeight: 1 }}>👑</Typography>
+                        <StoreIcon sx={{ fontSize: 16 }} />
                       </Box>
-                    </Box>
-
-                    <Box sx={{ minWidth: 0, flex: 1 }}>
-                      <Typography sx={{ fontSize: '0.68rem', fontWeight: 500, color: 'rgba(255,255,255,0.75)', lineHeight: 1 }}>
-                        {getGreeting()}
-                      </Typography>
-                      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.25 }}>
-                        <Typography sx={{ fontSize: '1rem', fontWeight: 900, color: '#ffffff', lineHeight: 1.2 }} noWrap>
-                          {displayName}
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography sx={{ fontSize: '0.60rem', fontWeight: 600, color: 'rgba(255,255,255,0.7)', lineHeight: 1 }} noWrap>
+                          Operating Store / Outlet
                         </Typography>
-                        <Box
-                          sx={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 0.5,
-                            bgcolor: 'rgba(16, 185, 129, 0.22)',
-                            color: '#34D399',
-                            border: '1px solid rgba(16, 185, 129, 0.4)',
-                            borderRadius: '9999px',
-                            px: 1,
-                            py: 0.2,
-                            fontSize: '0.62rem',
-                            fontWeight: 800,
-                            letterSpacing: '0.4px',
-                          }}
-                        >
-                          <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#34D399' }} />
-                          ONLINE
-                        </Box>
-                      </Stack>
-                    </Box>
-                  </Stack>
+                        <Typography sx={{ fontSize: { xs: '0.78rem', sm: '0.82rem' }, fontWeight: 800, color: '#ffffff', lineHeight: 1.25, mt: 0.15 }} noWrap>
+                          📍 {activeShop ? `${activeShop.shop_name}${activeShop.city ? `, ${activeShop.city}` : ''}` : `Tri shop, Bangalore`}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                    <ArrowDownIcon sx={{ fontSize: 18, color: 'rgba(255,255,255,0.85)', flexShrink: 0, ml: 0.5 }} />
+                  </Box>
+                </Box>
+              );
+            }
 
-                  <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexShrink: 0 }}>
-                    <IconButton
-                      aria-label="Notifications"
-                      onClick={() => navigate('/business/notifications')}
-                      sx={{ color: '#ffffff', p: 0.75, '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}
-                    >
-                      <Badge color="error" variant="dot">
-                        <BellIcon sx={{ fontSize: 22 }} />
-                      </Badge>
-                    </IconButton>
-                  </Stack>
+            // Standard General Header for Other Secondary Pages
+            return (
+              <Box
+                component="header"
+                className="tri-sticky-header"
+                sx={{
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 1000,
+                  bgcolor: '#ffffff',
+                  borderBottom: '1px solid #e2e8f0',
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+                  px: { xs: 1.5, sm: 2 },
+                  py: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
+                  <IconButton
+                    onClick={() => navigate(-1)}
+                    sx={{ bgcolor: '#f8fafc', color: '#0f172a', p: 0.8, '&:hover': { bgcolor: '#f1f5f9' }, flexShrink: 0 }}
+                  >
+                    <BackIcon sx={{ fontSize: 20 }} />
+                  </IconButton>
+                  <Typography sx={{ fontWeight: 900, fontSize: { xs: '0.94rem', sm: '1.05rem' }, color: '#0f172a', lineHeight: 1.2 }} noWrap>
+                    {title || 'Trikonekt Business'}
+                  </Typography>
                 </Stack>
 
-                {/* Bottom Row: Operating Store / Outlet Selector Card */}
-                <Box
-                  onClick={() => setStoreModalOpen(true)}
-                  sx={{
-                    height: '44px',
-                    px: 1.25,
-                    bgcolor: 'rgba(0,0,0,0.22)',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(255,255,255,0.14)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    '&:hover': { bgcolor: 'rgba(0,0,0,0.32)' }
-                  }}
-                >
-                  <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
-                    <Box
-                      sx={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: '8px',
-                        bgcolor: '#10B981',
-                        color: '#ffffff',
-                        display: 'grid',
-                        placeItems: 'center',
-                        flexShrink: 0,
-                        boxShadow: '0 2px 6px rgba(16, 185, 129, 0.35)'
-                      }}
-                    >
-                      <StoreIcon sx={{ fontSize: 17 }} />
-                    </Box>
-                    <Box sx={{ minWidth: 0, flex: 1 }}>
-                      <Typography sx={{ fontSize: '0.62rem', fontWeight: 600, color: 'rgba(255,255,255,0.7)', lineHeight: 1 }} noWrap>
-                        Operating Store / Outlet
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#ffffff', lineHeight: 1.25, mt: 0.15 }} noWrap>
-                        📍 {activeShop ? `${activeShop.shop_name}${activeShop.city ? `, ${activeShop.city}` : ''}` : `Tri shop, Bangalore`}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                  <ArrowDownIcon sx={{ fontSize: 20, color: 'rgba(255,255,255,0.85)', flexShrink: 0, ml: 1 }} />
-                </Box>
+                <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexShrink: 0 }}>
+                  <IconButton
+                    aria-label="Cart"
+                    onClick={() => navigate('/business/online-marketplace/cart')}
+                    sx={{ color: '#0f172a', p: 0.8 }}
+                  >
+                    <Badge badgeContent={cartCount} color="success" max={99}>
+                      <CartIcon sx={{ fontSize: 21 }} />
+                    </Badge>
+                  </IconButton>
+                  <IconButton
+                    onClick={() => setStoreModalOpen(true)}
+                    title="Switch Store"
+                    sx={{ bgcolor: '#FFF7ED', color: '#EA580C', p: 0.8, '&:hover': { bgcolor: '#FFEDD5' } }}
+                  >
+                    <NearbyIcon sx={{ fontSize: 19 }} />
+                  </IconButton>
+                </Stack>
               </Box>
             );
           })()
@@ -662,15 +732,9 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
           component="main"
           sx={{
             flex: 1,
-            pt: {
-              xs: shouldHideHeader
-                ? '0px'
-                : (location.pathname.startsWith('/business/orders') || activeTab === '/business/orders')
-                  ? '72px'
-                  : '110px',
-              lg: '24px'
-            },
-            pb: { xs: '96px', lg: '40px' },
+            pt: { xs: 0, md: '20px' },
+            pb: { xs: '84px', md: '40px' },
+            px: { xs: 0, md: '20px', lg: '32px' },
             maxWidth: T.maxContentWidth,
             width: '100%',
             overflowX: 'hidden',

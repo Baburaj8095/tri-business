@@ -101,3 +101,218 @@ html, body {
 .tri-btn-secondary:hover {
   background-color: var(--tri-surface-soft);
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   UNIVERSAL RESPONSIVE BREAKPOINTS & MOBILE OPTIMIZATIONS
+   Breakpoint 1: < 360px (Compact, flexible, no clipped labels)
+   Breakpoint 2: 360px - 389px (Mobile-first, 2-col product grid)
+   Breakpoint 3: 390px - 430px (Standard mobile spacing & 2-col grid)
+   Breakpoint 4: 431px - 767px (Wider cards, adaptive grids)
+   Breakpoint 5: >= 768px (Tablet & Desktop expanded multi-column)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Sticky Header Prevention of Covering Content */
+.tri-sticky-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+  background-color: #FFFFFF;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.tri-sticky-header-dark {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+  background: linear-gradient(180deg, #064E3B 0%, #032E23 100%);
+  box-shadow: 0 4px 16px rgba(4, 56, 42, 0.25);
+}
+
+/* Universal Flexible Control & No-Clipped Text */
+.tri-no-clip {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  min-width: 0 !important;
+}
+
+.tri-flex-shrink-0 {
+  flex-shrink: 0 !important;
+}
+
+.tri-flex-flexible {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+/* Responsive Product Grid */
+.tri-responsive-product-grid {
+  display: grid !important;
+  width: 100% !important;
+}
+
+/* Breakpoint 1: Under 360px */
+@media (max-width: 359.98px) {
+  .tri-responsive-container {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  .tri-responsive-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+  .tri-compact-p {
+    padding: 6px !important;
+  }
+  .tri-compact-text {
+    font-size: 0.75rem !important;
+  }
+  .tri-compact-btn {
+    padding: 3px 6px !important;
+    min-width: 0 !important;
+    font-size: 0.68rem !important;
+  }
+  .tri-banner-aspect {
+    aspect-ratio: 1024 / 420 !important;
+  }
+}
+
+/* Breakpoint 2: 360px - 389px */
+@media (min-width: 360px) and (max-width: 389.98px) {
+  .tri-responsive-container {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+  .tri-responsive-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+  .tri-compact-p {
+    padding: 8px !important;
+  }
+  .tri-banner-aspect {
+    aspect-ratio: 1024 / 400 !important;
+  }
+}
+
+/* Breakpoint 3: 390px - 430px (Standard Mobile) */
+@media (min-width: 390px) and (max-width: 430.98px) {
+  .tri-responsive-container {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+  .tri-responsive-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+  .tri-compact-p {
+    padding: 10px !important;
+  }
+  .tri-banner-aspect {
+    aspect-ratio: 1024 / 380 !important;
+  }
+}
+
+/* Breakpoint 4: 431px - 767px (Large Mobile & Phablet) */
+@media (min-width: 431px) and (max-width: 767.98px) {
+  .tri-responsive-container {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+  .tri-responsive-product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)) !important;
+    gap: 14px !important;
+  }
+  .tri-compact-p {
+    padding: 12px !important;
+  }
+  .tri-banner-aspect {
+    aspect-ratio: 1024 / 360 !important;
+  }
+}
+
+/* Breakpoint 5: 768px - 1023px (Tablet) */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .tri-responsive-container {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+  .tri-responsive-product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)) !important;
+    gap: 14px !important;
+  }
+  .tri-compact-p {
+    padding: 12px !important;
+  }
+  .tri-banner-aspect {
+    aspect-ratio: 1024 / 320 !important;
+  }
+}
+
+/* Breakpoint 6: 1024px - 1439px (Standard Desktop & Laptop) */
+@media (min-width: 1024px) and (max-width: 1439.98px) {
+  .tri-responsive-container {
+    padding-left: 28px !important;
+    padding-right: 28px !important;
+    max-width: 1300px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  .tri-responsive-product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)) !important;
+    gap: 18px !important;
+  }
+  .tri-compact-p {
+    padding: 16px !important;
+  }
+  .tri-banner-aspect {
+    aspect-ratio: 1024 / 280 !important;
+    max-height: 280px !important;
+  }
+}
+
+/* Breakpoint 7: 1440px and above (Wide Ultra-HD Desktop) */
+@media (min-width: 1440px) {
+  .tri-responsive-container {
+    padding-left: 32px !important;
+    padding-right: 32px !important;
+    max-width: 1400px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  .tri-responsive-product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(225px, 1fr)) !important;
+    gap: 20px !important;
+  }
+  .tri-compact-p {
+    padding: 18px !important;
+  }
+  .tri-banner-aspect {
+    aspect-ratio: 1024 / 240 !important;
+    max-height: 300px !important;
+  }
+}
+
+/* Desktop Multi-column Grid Utilities */
+@media (min-width: 900px) {
+  .tri-desktop-grid-2 {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 20px !important;
+  }
+  .tri-desktop-grid-3 {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 20px !important;
+  }
+  .tri-desktop-grid-4 {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+  }
+  .tri-desktop-grid-6 {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+  }
+}

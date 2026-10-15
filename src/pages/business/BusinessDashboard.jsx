@@ -173,7 +173,8 @@ export default function BusinessDashboard() {
               border: "1px solid #E2E8E5",
               cursor: "pointer",
               bgcolor: "#022C22",
-              aspectRatio: { xs: "1024 / 375", sm: "1024 / 350" },
+              aspectRatio: { xs: "1024 / 375", sm: "1024 / 350", md: "1024 / 280", lg: "1024 / 240" },
+              maxHeight: { md: 260, lg: 300 },
               width: "100%",
               transition: "transform 0.15s ease",
               "&:active": { transform: "scale(0.99)" },
@@ -436,17 +437,18 @@ export default function BusinessDashboard() {
             </Button>
           </Stack>
 
-          {/* Carousel container with touch scrolling and snap alignment */}
+          {/* Carousel container on mobile / Multi-column Grid on Desktop */}
           <Box
             ref={quickActionsRef}
             onScroll={handleQuickActionsScroll}
             sx={{
-              display: "flex",
-              gap: { xs: 1.25, sm: 1.5 },
-              overflowX: "auto",
+              display: { xs: "flex", md: "grid" },
+              gridTemplateColumns: { md: "repeat(3, 1fr)", lg: "repeat(6, 1fr)" },
+              gap: { xs: 1.25, sm: 1.5, md: 1.75 },
+              overflowX: { xs: "auto", md: "visible" },
               py: 0.5,
               px: 0.25,
-              scrollSnapType: "x mandatory",
+              scrollSnapType: { xs: "x mandatory", md: "none" },
               WebkitOverflowScrolling: "touch",
               "&::-webkit-scrollbar": { display: "none" },
               scrollbarWidth: "none",
@@ -509,8 +511,8 @@ export default function BusinessDashboard() {
                 onClick={() => navigate(action.path)}
                 sx={{
                   cursor: "pointer",
-                  flex: "0 0 auto",
-                  width: { xs: 184, sm: 196 },
+                  flex: { xs: "0 0 auto", md: "1 1 auto" },
+                  width: { xs: 184, sm: 196, md: "auto" },
                   p: { xs: 1.5, sm: 1.75 },
                   borderRadius: "16px",
                   bgcolor: "#FFFFFF",
