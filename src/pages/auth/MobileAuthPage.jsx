@@ -67,9 +67,9 @@ export default function MobileAuthPage() {
     if (e) e.preventDefault();
     setError('');
 
-    const clean = identifier.trim();
-    if (!clean) {
-      setError(userRole === 'CAPTAIN' ? 'Please enter your 10-digit mobile or Captain ID' : 'Please enter your 10-digit mobile number');
+    const cleanPhone = identifier.replace(/\D/g, '').slice(-10);
+    if (cleanPhone.length !== 10) {
+      setError('Please enter a valid 10-digit mobile number');
       return;
     }
     if (!password) {
@@ -80,39 +80,15 @@ export default function MobileAuthPage() {
     setLoading(true);
 
     try {
-      const cleanPhone = clean.replace(/\D/g, '').slice(-10);
-      const is10DigitPhone = cleanPhone.length === 10;
+      const res = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: cleanPhone, password, portal: userRole }),
+      });
 
-      // Candidate identifiers to try sequentially (supporting raw phone, CB, ONB2C, ONB2B, NSB2C, NSB2B)
-      const candidateIdentifiers = is10DigitPhone
-        ? (userRole === 'CAPTAIN' 
-            ? [cleanPhone, `CB${cleanPhone}`, `CB-${cleanPhone}`, clean] 
-            : [cleanPhone, `ONB2C${cleanPhone}`, `ONB2B${cleanPhone}`, `NSB2C${cleanPhone}`, `NSB2B${cleanPhone}`, `ONB2C_${cleanPhone}`, `ONB2B_${cleanPhone}`, `NSB2C_${cleanPhone}`, `NSB2B_${cleanPhone}`, `CB${cleanPhone}`, clean])
-        : [clean, clean.replace(/-/g, '')];
-
-      let res = null;
-      let targetIdentifier = clean;
-
-      for (const candidate of candidateIdentifiers) {
-        try {
-          const attemptRes = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ identifier: candidate, password }),
-          });
-
-          if (attemptRes.ok) {
-            res = attemptRes;
-            targetIdentifier = candidate;
-            break;
-          }
-        } catch {
-          // Continue to next candidate
-        }
-      }
-
-      if (!res || !res.ok) {
-        throw new Error('Invalid mobile number or password. Please verify your credentials.');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || errData.detail || 'Invalid mobile number or password.');
       }
 
       const data = await res.json();
@@ -461,7 +437,7 @@ export default function MobileAuthPage() {
                   {/* Identifier Input */}
                   <Box>
                     <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#102033', mb: 0.75 }}>
-                      {userRole === 'CAPTAIN' ? 'Mobile Number or Captain ID' : 'Mobile Number or Merchant ID'}
+                      10-Digit Mobile Number
                     </Typography>
                     <Box
                       sx={{
@@ -486,9 +462,10 @@ export default function MobileAuthPage() {
                       <TextField
                         fullWidth
                         variant="standard"
-                        placeholder="Enter mobile number or ID"
+                        placeholder="Enter 10-digit mobile number"
                         value={identifier}
-                        onChange={(e) => setIdentifier(e.target.value)}
+                        onChange={(e) => setIdentifier(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        inputProps={{ inputMode: 'numeric', maxLength: 10 }}
                         InputProps={{
                           disableUnderline: true,
                           sx: { fontSize: '0.92rem', fontWeight: 600, color: '#0f172a' },

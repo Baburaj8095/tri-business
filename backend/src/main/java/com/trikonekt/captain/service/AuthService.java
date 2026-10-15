@@ -23,51 +23,64 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest req) {
         if (req.getIdentifier() == null || req.getIdentifier().isBlank()) {
-            throw new RuntimeException("Captain ID or phone number is required.");
+            throw new RuntimeException("Mobile number is required.");
         }
         if (req.getPassword() == null || req.getPassword().isBlank()) {
             throw new RuntimeException("Password is required.");
         }
 
-        String identifier = req.getIdentifier().trim().toUpperCase();
-        Optional<Map<String, Object>> userOpt;
+        String raw = req.getIdentifier().trim();
+        final String digits = raw.replaceAll("\\D", "");
+        final String cleanPhone = digits.length() >= 10 ? digits.substring(digits.length() - 10) : digits;
+        final boolean is10DigitPhone = cleanPhone.length() == 10;
 
-        // Resolve identifier: 10 digits → find by phone, then try CB/ON/NS prefixes
-        if (identifier.matches("\\d{10}")) {
-            userOpt = userRepository.findByPhone(identifier);
-            if (userOpt.isEmpty()) {
-                userOpt = userRepository.findByUsername("CB" + identifier);
+        String portal = req.getPortal() != null && !req.getPortal().isBlank()
+            ? req.getPortal().trim().toUpperCase()
+            : (req.getRole() != null ? req.getRole().trim().toUpperCase() : "");
+
+        Optional<Map<String, Object>> userOpt = Optional.empty();
+
+        if ("CAPTAIN".equals(portal)) {
+            if (is10DigitPhone) {
+                userOpt = userRepository.findCaptainByPhone(cleanPhone);
+                if (userOpt.isEmpty()) {
+                    throw new RuntimeException("No Captain account registered with mobile number " + cleanPhone + ". Please ensure your Captain account is provisioned.");
+                }
+            } else {
+                userOpt = userRepository.findByUsername(raw.toUpperCase());
+                if (userOpt.isEmpty() && raw.contains("-")) {
+                    userOpt = userRepository.findByUsername(raw.replace("-", "").toUpperCase());
+                }
             }
-            if (userOpt.isEmpty()) {
-                userOpt = userRepository.findByUsername("ONB2C" + identifier);
-            }
-            if (userOpt.isEmpty()) {
-                userOpt = userRepository.findByUsername("ONB2B" + identifier);
-            }
-            if (userOpt.isEmpty()) {
-                userOpt = userRepository.findByUsername("NSB2C" + identifier);
-            }
-            if (userOpt.isEmpty()) {
-                userOpt = userRepository.findByUsername("NSB2B" + identifier);
+        } else if ("MERCHANT".equals(portal) || "BUSINESS".equals(portal)) {
+            if (is10DigitPhone) {
+                userOpt = userRepository.findMerchantByPhone(cleanPhone);
+                if (userOpt.isEmpty()) {
+                    throw new RuntimeException("No Merchant account registered with mobile number " + cleanPhone + ". Please register your store first.");
+                }
+            } else {
+                userOpt = userRepository.findByUsername(raw.toUpperCase());
+                if (userOpt.isEmpty() && raw.contains("-")) {
+                    userOpt = userRepository.findByUsername(raw.replace("-", "").toUpperCase());
+                }
             }
         } else {
-            // Any alphanumeric user ID (CB9689570448, CB-9689570448, NSB2B..., etc.)
-            userOpt = userRepository.findByUsername(identifier);
-            if (userOpt.isEmpty() && identifier.contains("-")) {
-                userOpt = userRepository.findByUsername(identifier.replace("-", ""));
-            }
-            if (userOpt.isEmpty()) {
-                // If user entered prefix with a phone, extract digits and try by phone
-                String digitsOnly = identifier.replaceAll("\\D", "");
-                if (digitsOnly.length() >= 10) {
-                    String phone10 = digitsOnly.substring(digitsOnly.length() - 10);
-                    userOpt = userRepository.findByPhone(phone10);
+            // General login by mobile number (checks Captain first, then Merchant)
+            if (is10DigitPhone) {
+                userOpt = userRepository.findCaptainByPhone(cleanPhone);
+                if (userOpt.isEmpty()) {
+                    userOpt = userRepository.findMerchantByPhone(cleanPhone);
+                }
+            } else {
+                userOpt = userRepository.findByUsername(raw.toUpperCase());
+                if (userOpt.isEmpty() && raw.contains("-")) {
+                    userOpt = userRepository.findByUsername(raw.replace("-", "").toUpperCase());
                 }
             }
         }
 
         Map<String, Object> user = userOpt.orElseThrow(() ->
-            new RuntimeException("No account found for: " + req.getIdentifier())
+            new RuntimeException("No Captain or Merchant account found for: " + (is10DigitPhone ? cleanPhone : raw))
         );
 
         // Ensure this is a Captain or Business account

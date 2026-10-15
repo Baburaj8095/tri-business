@@ -46,56 +46,33 @@ const inputSx = (hasError) => ({
 
 const UnifiedLogin = () => {
   const navigate = useNavigate();
-  const [identifier, setIdentifier] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Account Type and Channel Selector for Mobile Login
-  const [loginMode, setLoginMode] = useState('PHONE'); // 'PHONE' | 'CUSTOM_ID'
-  const [accountType, setAccountType] = useState('B2B'); // 'B2B' | 'B2C'
-  const [serviceCategory, setServiceCategory] = useState('ONLINE'); // 'ONLINE' | 'OFFLINE'
-
-  const isPhoneNumber = /^\d{10}$/.test(identifier.trim());
-  const derivedPrefix = `${serviceCategory === 'ONLINE' ? 'ON' : 'NS'}${accountType}`;
-  const targetUsername = loginMode === 'PHONE' && isPhoneNumber ? `${derivedPrefix}${identifier.trim()}` : identifier.trim();
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!identifier.trim()) { 
-      setError(loginMode === 'PHONE' ? 'Enter your 10-digit mobile number' : 'Enter your User ID'); 
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) { 
+      setError('Please enter a valid 10-digit mobile number'); 
       return; 
     }
-    if (!password) { setError('Enter your password'); return; }
-
-    let finalIdentifier = identifier.trim();
-    if (loginMode === 'PHONE' && /^\d{10}$/.test(finalIdentifier)) {
-      finalIdentifier = `${derivedPrefix}${finalIdentifier}`;
+    if (!password) { 
+      setError('Please enter your password'); 
+      return; 
     }
 
     setLoading(true);
     try {
-      let res = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
+      const res = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: finalIdentifier, password }),
+        body: JSON.stringify({ identifier: cleanPhone, password, portal: 'CAPTAIN' }),
       });
-
-      // If initial attempt with prefix failed and user entered phone number, try raw phone number fallback
-      if (!res.ok && finalIdentifier !== identifier.trim()) {
-        const fallbackRes = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier: identifier.trim(), password }),
-        });
-        if (fallbackRes.ok) {
-          res = fallbackRes;
-          finalIdentifier = identifier.trim();
-        }
-      }
 
       if (res.ok) {
         const data = await res.json();
@@ -105,20 +82,21 @@ const UnifiedLogin = () => {
         if (role === 'agency' || category === 'agency_sub_franchise') {
           localStorage.setItem('token_captain', data.access);
           localStorage.setItem('refresh_captain', data.refresh);
-          localStorage.setItem('username_captain', data.username || finalIdentifier);
-          localStorage.setItem('fullname_captain', data.fullName || '');
+          localStorage.setItem('username_captain', data.username || `CB${cleanPhone}`);
+          localStorage.setItem('fullname_captain', data.fullName || 'Captain Partner');
+          if (data.pincode) localStorage.setItem('pincode_captain', data.pincode);
           navigate('/captain/home');
         } else {
           localStorage.setItem('token_business', data.access);
           localStorage.setItem('refresh_business', data.refresh);
-          localStorage.setItem('username_business', data.username || finalIdentifier);
+          localStorage.setItem('username_business', data.username || cleanPhone);
           localStorage.setItem('fullname_business', data.fullName || '');
-          localStorage.setItem('service_mode_business', data.serviceMode || serviceCategory || 'OFFLINE');
+          localStorage.setItem('service_mode_business', data.serviceMode || 'OFFLINE');
           navigate('/business-dashboard');
         }
       } else {
         const err = await res.json().catch(() => ({}));
-        setError(err.message || err.detail || 'Invalid credentials. Please check your credentials and account type.');
+        setError(err.message || err.detail || 'Invalid mobile number or password.');
       }
     } catch {
       setError('Unable to connect to the server. Please try again.');
@@ -185,10 +163,10 @@ const UnifiedLogin = () => {
               </Box>
             </motion.div>
             <Typography variant="h5" sx={{ color: '#fff', fontWeight: 900, letterSpacing: '-0.5px' }}>
-              Trikonekt Business Login
+              Captain & Merchant Login
             </Typography>
             <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', mt: 0.5, fontSize: '0.9rem' }}>
-              Sign into your wholesale or retail merchant account
+              Sign in with your 10-digit registered mobile number
             </Typography>
           </Box>
 
@@ -215,158 +193,30 @@ const UnifiedLogin = () => {
               </Alert>
             )}
 
-            {/* Mode Selector Tabs: Mobile vs User ID */}
-            <Stack direction="row" spacing={1} sx={{ mb: 2.5, bgcolor: 'rgba(0,0,0,0.2)', p: 0.5, borderRadius: '12px' }}>
-              <Button
-                fullWidth
-                size="small"
-                onClick={() => setLoginMode('PHONE')}
-                sx={{
-                  borderRadius: '10px',
-                  textTransform: 'none',
-                  fontWeight: 800,
-                  fontSize: '0.8rem',
-                  py: 0.8,
-                  bgcolor: loginMode === 'PHONE' ? '#228B22' : 'transparent',
-                  color: loginMode === 'PHONE' ? '#fff' : 'rgba(255,255,255,0.6)',
-                  '&:hover': { bgcolor: loginMode === 'PHONE' ? '#1B4D3E' : 'rgba(255,255,255,0.05)' },
-                }}
-              >
-                Mobile Number
-              </Button>
-              <Button
-                fullWidth
-                size="small"
-                onClick={() => setLoginMode('CUSTOM_ID')}
-                sx={{
-                  borderRadius: '10px',
-                  textTransform: 'none',
-                  fontWeight: 800,
-                  fontSize: '0.8rem',
-                  py: 0.8,
-                  bgcolor: loginMode === 'CUSTOM_ID' ? '#228B22' : 'transparent',
-                  color: loginMode === 'CUSTOM_ID' ? '#fff' : 'rgba(255,255,255,0.6)',
-                  '&:hover': { bgcolor: loginMode === 'CUSTOM_ID' ? '#1B4D3E' : 'rgba(255,255,255,0.05)' },
-                }}
-              >
-                User ID / Captain
-              </Button>
-            </Stack>
-
-            <Stack spacing={2}>
-              {/* Account Category & Channel Selector (when in PHONE mode) */}
-              {loginMode === 'PHONE' && (
-                <Box sx={{ bgcolor: 'rgba(255,255,255,0.04)', p: 1.75, borderRadius: '14px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  {/* Business Type */}
-                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)', mb: 1, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    1. Select Account Type
-                  </Typography>
-                  <Stack direction="row" spacing={1} sx={{ mb: 1.5 }}>
-                    <Chip
-                      clickable
-                      icon={<Business sx={{ fontSize: '16px !important', color: accountType === 'B2B' ? '#fff !important' : 'inherit' }} />}
-                      label="B2B Wholesale"
-                      onClick={() => setAccountType('B2B')}
-                      sx={{
-                        flex: 1,
-                        fontWeight: 800,
-                        fontSize: '0.75rem',
-                        py: 2,
-                        bgcolor: accountType === 'B2B' ? '#228B22' : 'rgba(255,255,255,0.08)',
-                        color: accountType === 'B2B' ? '#fff' : 'rgba(255,255,255,0.7)',
-                        border: `1.5px solid ${accountType === 'B2B' ? '#10b981' : 'transparent'}`,
-                      }}
-                    />
-                    <Chip
-                      clickable
-                      icon={<Storefront sx={{ fontSize: '16px !important', color: accountType === 'B2C' ? '#fff !important' : 'inherit' }} />}
-                      label="B2C Retail"
-                      onClick={() => setAccountType('B2C')}
-                      sx={{
-                        flex: 1,
-                        fontWeight: 800,
-                        fontSize: '0.75rem',
-                        py: 2,
-                        bgcolor: accountType === 'B2C' ? '#228B22' : 'rgba(255,255,255,0.08)',
-                        color: accountType === 'B2C' ? '#fff' : 'rgba(255,255,255,0.7)',
-                        border: `1.5px solid ${accountType === 'B2C' ? '#10b981' : 'transparent'}`,
-                      }}
-                    />
-                  </Stack>
-
-                  {/* Channel Mode */}
-                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)', mb: 1, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    2. Select Sales Channel
-                  </Typography>
-                  <Stack direction="row" spacing={1}>
-                    <Chip
-                      clickable
-                      icon={<Language sx={{ fontSize: '16px !important', color: serviceCategory === 'ONLINE' ? '#fff !important' : 'inherit' }} />}
-                      label="Online Delivery"
-                      onClick={() => setServiceCategory('ONLINE')}
-                      sx={{
-                        flex: 1,
-                        fontWeight: 800,
-                        fontSize: '0.75rem',
-                        py: 2,
-                        bgcolor: serviceCategory === 'ONLINE' ? '#1B4D3E' : 'rgba(255,255,255,0.08)',
-                        color: serviceCategory === 'ONLINE' ? '#fff' : 'rgba(255,255,255,0.7)',
-                        border: `1.5px solid ${serviceCategory === 'ONLINE' ? '#10b981' : 'transparent'}`,
-                      }}
-                    />
-                    <Chip
-                      clickable
-                      icon={<LocationOn sx={{ fontSize: '16px !important', color: serviceCategory === 'OFFLINE' ? '#fff !important' : 'inherit' }} />}
-                      label="Nearby Store"
-                      onClick={() => setServiceCategory('OFFLINE')}
-                      sx={{
-                        flex: 1,
-                        fontWeight: 800,
-                        fontSize: '0.75rem',
-                        py: 2,
-                        bgcolor: serviceCategory === 'OFFLINE' ? '#1B4D3E' : 'rgba(255,255,255,0.08)',
-                        color: serviceCategory === 'OFFLINE' ? '#fff' : 'rgba(255,255,255,0.7)',
-                        border: `1.5px solid ${serviceCategory === 'OFFLINE' ? '#10b981' : 'transparent'}`,
-                      }}
-                    />
-                  </Stack>
-                </Box>
-              )}
-
-              {/* Identifier */}
+            <Stack spacing={2.5}>
+              {/* Mobile Number Only */}
               <Box>
-                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.6)', mb: 0.75, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  {loginMode === 'PHONE' ? 'Mobile Number' : 'User ID'}
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.7)', mb: 0.75, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  10-Digit Mobile Number
                 </Typography>
                 <TextField
                   fullWidth
-                  placeholder={loginMode === 'PHONE' ? 'Enter 10-digit mobile number' : 'Enter User ID (e.g. CB...)'}
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
+                  placeholder="Enter 10-digit mobile number"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  inputProps={{ inputMode: 'numeric', maxLength: 10 }}
                   sx={inputSx(!!error)}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        {loginMode === 'PHONE' ? <Phone fontSize="small" /> : <Person fontSize="small" />}
+                        <Phone fontSize="small" sx={{ mr: 0.5, color: 'rgba(255,255,255,0.6)' }} />
+                        <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: '0.92rem', pr: 1, borderRight: '1.5px solid rgba(255,255,255,0.2)' }}>
+                          +91
+                        </Typography>
                       </InputAdornment>
                     ),
                   }}
                 />
-                {loginMode === 'PHONE' && identifier.trim().length > 0 && (
-                  <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Chip
-                      size="small"
-                      label={`Logging in as: ${targetUsername}`}
-                      sx={{
-                        bgcolor: isPhoneNumber ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.08)',
-                        color: isPhoneNumber ? '#10b981' : 'rgba(255,255,255,0.6)',
-                        border: `1px solid ${isPhoneNumber ? 'rgba(16, 185, 129, 0.3)' : 'transparent'}`,
-                        fontWeight: 700,
-                        fontSize: '0.72rem',
-                      }}
-                    />
-                  </Box>
-                )}
               </Box>
 
               {/* Password */}

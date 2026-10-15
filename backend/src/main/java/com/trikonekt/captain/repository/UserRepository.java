@@ -33,15 +33,68 @@ public class UserRepository {
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }
 
-    public Optional<Map<String, Object>> findByPhone(String phone) {
+    public Optional<Map<String, Object>> findCaptainByPhone(String phone) {
+        if (phone == null || phone.isBlank()) return Optional.empty();
+        String cleanDigits = phone.replaceAll("\\D", "");
+        String phone10 = cleanDigits.length() >= 10 ? cleanDigits.substring(cleanDigits.length() - 10) : cleanDigits;
+
         List<Map<String, Object>> rows = jdbc.queryForList(
             "SELECT u.id, u.username, u.password, u.email, u.full_name, u.phone, u.pincode, " +
-            "u.sponsor_id, u.prefixed_id, u.prefix_code, u.role, u.category, u.is_active, " +
-            "COALESCE(mp.service_mode, 'OFFLINE') AS service_mode " +
+            "       u.sponsor_id, u.prefixed_id, u.prefix_code, u.role, u.category, u.is_active, " +
+            "       'OFFLINE' AS service_mode " +
+            "FROM accounts_customuser u " +
+            "WHERE (u.phone = ? OR u.phone = ? OR u.phone = ? " +
+            "       OR UPPER(u.username) = UPPER(?) OR UPPER(u.username) = UPPER(?) " +
+            "       OR UPPER(u.prefixed_id) = UPPER(?) OR UPPER(u.prefixed_id) = UPPER(?)) " +
+            "  AND u.category = 'agency_sub_franchise' " +
+            "ORDER BY u.id DESC LIMIT 1",
+            phone10, "+91" + phone10, "91" + phone10,
+            "CB" + phone10, phone10,
+            "CB-" + phone10, "CB" + phone10
+        );
+        return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
+    }
+
+    public Optional<Map<String, Object>> findMerchantByPhone(String phone) {
+        if (phone == null || phone.isBlank()) return Optional.empty();
+        String cleanDigits = phone.replaceAll("\\D", "");
+        String phone10 = cleanDigits.length() >= 10 ? cleanDigits.substring(cleanDigits.length() - 10) : cleanDigits;
+
+        List<Map<String, Object>> rows = jdbc.queryForList(
+            "SELECT u.id, u.username, u.password, u.email, u.full_name, u.phone, u.pincode, " +
+            "       u.sponsor_id, u.prefixed_id, u.prefix_code, u.role, u.category, u.is_active, " +
+            "       COALESCE(mp.service_mode, 'OFFLINE') AS service_mode " +
             "FROM accounts_customuser u " +
             "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
-            "WHERE u.phone = ? LIMIT 1",
-            phone
+            "WHERE (u.phone = ? OR u.phone = ? OR u.phone = ? " +
+            "       OR u.username LIKE ? OR u.prefixed_id LIKE ? OR u.username = ?) " +
+            "  AND (u.category = 'business' OR u.category = 'merchant') " +
+            "ORDER BY u.id DESC LIMIT 1",
+            phone10, "+91" + phone10, "91" + phone10,
+            "%" + phone10, "%" + phone10, phone10
+        );
+        return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
+    }
+
+    public Optional<Map<String, Object>> findByPhone(String phone) {
+        if (phone == null || phone.isBlank()) return Optional.empty();
+        String cleanDigits = phone.replaceAll("\\D", "");
+        String phone10 = cleanDigits.length() >= 10 ? cleanDigits.substring(cleanDigits.length() - 10) : cleanDigits;
+
+        List<Map<String, Object>> rows = jdbc.queryForList(
+            "SELECT u.id, u.username, u.password, u.email, u.full_name, u.phone, u.pincode, " +
+            "       u.sponsor_id, u.prefixed_id, u.prefix_code, u.role, u.category, u.is_active, " +
+            "       COALESCE(mp.service_mode, 'OFFLINE') AS service_mode " +
+            "FROM accounts_customuser u " +
+            "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
+            "WHERE (u.phone = ? OR u.phone = ? OR u.phone = ? OR u.phone = ?) " +
+            "  AND (u.category = 'agency_sub_franchise' OR u.category = 'business' OR u.category = 'merchant') " +
+            "ORDER BY CASE " +
+            "    WHEN u.category = 'agency_sub_franchise' THEN 0 " +
+            "    WHEN u.category IN ('business', 'merchant') THEN 1 " +
+            "    ELSE 2 " +
+            "END, u.id DESC LIMIT 1",
+            phone, phone10, "+91" + phone10, "91" + phone10
         );
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }
