@@ -171,7 +171,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
   const isHome = ['/business-dashboard', '/', '/merchant', '/v2/business-dashboard'].includes(location.pathname);
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: T.bg, fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', maxWidth: '100vw', overflowX: 'hidden', bgcolor: T.bg, fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
       {/* ─── DESKTOP SIDEBAR NAVIGATION (Images 1 & Web Mockups) ─── */}
       {isDesktop && (
         <Box
@@ -304,7 +304,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
       )}
 
       {/* ─── MAIN CONTENT VIEWPORT ─── */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, maxWidth: '100vw', overflowX: 'hidden' }}>
         {/* ─── DESKTOP TOP BAR (Only on Desktop) ─── */}
         {isDesktop && (
           <Box
@@ -595,7 +595,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                     </Box>
                   </Stack>
 
-                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexShrink: 0 }}>
                     <IconButton
                       aria-label="Notifications"
                       sx={{ color: '#ffffff', p: 0.75, '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' } }}
@@ -700,9 +700,10 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                   : '110px',
               lg: '24px'
             },
-            pb: { xs: '84px', lg: '40px' },
+            pb: { xs: '96px', lg: '40px' },
             maxWidth: T.maxContentWidth,
             width: '100%',
+            overflowX: 'hidden',
             mx: 'auto',
             bgcolor: '#F7F9FC',
           }}
