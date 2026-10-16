@@ -4,7 +4,6 @@ import {
   Box,
   Typography,
   Container,
-  Grid,
   Card,
   CardContent,
   Button,
@@ -12,26 +11,26 @@ import {
   Chip,
   IconButton,
   Alert,
-  LinearProgress,
   Dialog,
   DialogContent,
   DialogActions,
   Divider,
-  alpha,
   CircularProgress,
 } from '@mui/material';
 import {
   ArrowBack,
   WorkspacePremium,
   CheckCircle,
-  Lock,
-  Bolt,
   CreditCard,
   Receipt,
   Print,
-  InfoOutlined,
   Close,
   VerifiedUser,
+  QrCode2,
+  Storefront,
+  LocalShipping,
+  Bolt,
+  Savings,
 } from '@mui/icons-material';
 import AppShell from '../../components/layout/AppShell';
 import {
@@ -42,15 +41,13 @@ import {
 
 const PRIMARY = '#FF6508';
 const PRIMARY_DARK = '#E9570A';
-const ACCENT = '#FF6508';
-const BG = '#F4F7FB';
+const BG = '#F8FAFC';
 
 export default function PackagesPage() {
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState('PRIME_PLANS'); // 'ALL_DEALS' | 'MY_DEALS' | 'PRIME_PLANS'
   const [subDetails, setSubDetails] = useState(getSubscriptionDetails());
-  const [loadingPlan, setLoadingPlan] = useState(null); // '750' | '99' | null
+  const [loading, setLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState(null);
   const [activeInvoiceModal, setActiveInvoiceModal] = useState(null);
 
@@ -62,234 +59,80 @@ export default function PackagesPage() {
     refreshDetails();
   }, []);
 
-  const has999 = subDetails.plan === PLAN_TYPES.SUBSCRIPTION_999 || subDetails.plan === PLAN_TYPES.SUBSCRIPTION_750;
-  const has99 = subDetails.plan === PLAN_TYPES.SUBSCRIPTION_99;
-  const isFree = subDetails.plan === PLAN_TYPES.FREE;
-
-  const handleSubscribe999 = () => {
-    if (has99) {
-      setToastMsg('You have committed to the ₹99 Monthly Plan. You cannot switch to the ₹999 Yearly Package until the tenure completes.');
-      return;
-    }
-    if (has999 && !subDetails.isExpired) {
-      setToastMsg('You already have an active ₹999 Yearly Membership.');
-      return;
-    }
-
-    setLoadingPlan('999');
-    setTimeout(() => {
-      const res = activateMerchantSubscription(PLAN_TYPES.SUBSCRIPTION_999);
-      setLoadingPlan(null);
-      refreshDetails();
-      setToastMsg(res.message);
-      // Auto open invoice preview
-      setActiveInvoiceModal({
-        plan: 'SUBSCRIPTION_999',
-        planName: '₹999 Yearly Member Plan (Like OLX VIP)',
-        amount: 999,
-        gst: 152.39,
-        baseAmount: 846.61,
-        validity: '365 Days',
-        receiptNo: `TRI-SUB-${Date.now().toString().slice(-6)}`,
-        date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
-      });
-    }, 900);
-  };
+  const isMemberActive = subDetails.isPrime;
 
   const handleSubscribe99 = () => {
-    if (has999) {
-      setToastMsg('You have activated the ₹999 Yearly Membership. The ₹99 Monthly Plan is not applicable for your account.');
-      return;
-    }
-    if (has99 && !subDetails.isExpired && subDetails.daysLeft > 3) {
-      setToastMsg(`Month ${subDetails.tenureMonths} of 12 is active (${subDetails.daysLeft} days remaining). You can renew near expiry.`);
-      return;
-    }
-
-    setLoadingPlan('99');
+    setLoading(true);
     setTimeout(() => {
       const res = activateMerchantSubscription(PLAN_TYPES.SUBSCRIPTION_99);
-      setLoadingPlan(null);
+      setLoading(false);
       refreshDetails();
-      setToastMsg(res.message);
+      setToastMsg('₹99 Monthly Merchant Pro Membership activated successfully!');
       setActiveInvoiceModal({
         plan: 'SUBSCRIPTION_99',
-        planName: `₹99 Monthly Member Plan (Month ${res.tenureMonths} of 12)`,
+        planName: 'Trikonekt Merchant Pro (Monthly Subscription)',
         amount: 99,
         gst: 15.10,
         baseAmount: 83.90,
         validity: '30 Days',
-        receiptNo: `TRI-SUB-${Date.now().toString().slice(-6)}`,
+        receiptNo: `TRI-PRO-${Date.now().toString().slice(-6)}`,
         date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
       });
-    }, 900);
+    }, 700);
   };
 
-  const openExistingInvoice = (planType) => {
-    const isYearly = planType === PLAN_TYPES.SUBSCRIPTION_999 || planType === PLAN_TYPES.SUBSCRIPTION_750;
+  const openExistingInvoice = () => {
     setActiveInvoiceModal({
-      plan: planType,
-      planName: isYearly ? '₹999 Yearly Member Plan (Like OLX VIP)' : `₹99 Monthly Member Plan (Month ${subDetails.tenureMonths || 1} of 12)`,
-      amount: isYearly ? 999 : 99,
-      gst: isYearly ? 152.39 : 15.10,
-      baseAmount: isYearly ? 846.61 : 83.90,
-      validity: isYearly ? '365 Days' : '30 Days',
-      receiptNo: `TRI-SUB-INV-${isYearly ? '999' : '99'}`,
-      date: subDetails.startedAt ? new Date(subDetails.startedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Active',
+      plan: 'SUBSCRIPTION_99',
+      planName: 'Trikonekt Merchant Pro (Monthly Subscription)',
+      amount: 99,
+      gst: 15.10,
+      baseAmount: 83.90,
+      validity: '30 Days',
+      receiptNo: `TRI-PRO-INV-99`,
+      date: subDetails.startedAt
+        ? new Date(subDetails.startedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+        : 'Active',
     });
   };
 
   return (
-    <AppShell activeTab="/business-dashboard" title="Merchant Packages">
+    <AppShell activeTab="/business-dashboard" title="Merchant Membership">
       <Box sx={{ minHeight: '100vh', bgcolor: BG, pb: 12 }}>
-        {/* Sticky Header */}
+        {/* Sticky Top Header */}
         <Box
           sx={{
             position: 'sticky',
             top: 0,
             zIndex: 30,
             bgcolor: '#ffffff',
-            borderBottom: '1px solid #e2e8f0',
+            borderBottom: '1px solid #E2E8F0',
             px: { xs: 2, sm: 3 },
-            py: 1.75,
-            boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+            py: 1.5,
           }}
         >
-          <Container maxWidth="lg" sx={{ px: { xs: 0, sm: 2 } }}>
+          <Container maxWidth="md" sx={{ px: 0 }}>
             <Stack direction="row" alignItems="center" spacing={1.5}>
-              <IconButton
-                onClick={() => navigate(-1)}
-                sx={{
-                  bgcolor: '#f1f5f9',
-                  color: '#334155',
-                  width: 38,
-                  height: 38,
-                  '&:hover': { bgcolor: '#e2e8f0' },
-                }}
-                aria-label="Go back"
-              >
-                <ArrowBack sx={{ fontSize: 20 }} />
+              <IconButton onClick={() => navigate('/business-dashboard')} size="small" sx={{ bgcolor: '#F1F5F9' }}>
+                <ArrowBack sx={{ fontSize: 18 }} />
               </IconButton>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography
-                  sx={{
-                    fontSize: { xs: '1.05rem', sm: '1.25rem' },
-                    fontWeight: 900,
-                    color: '#0f172a',
-                    lineHeight: 1.2,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                  }}
-                >
-                  <WorkspacePremium sx={{ color: '#d97706', fontSize: 22 }} />
-                  Become a Member
+              <Box>
+                <Typography sx={{ fontWeight: 900, fontSize: '1.05rem', color: '#0F172A', lineHeight: 1.2 }}>
+                  Merchant Membership
                 </Typography>
-                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.25 }}>
-                  Merchant Deals & Prime Plans • Boost visibility and drive sales
+                <Typography sx={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>
+                  ₹99/Month • One Plan, Complete Access
                 </Typography>
               </Box>
             </Stack>
           </Container>
         </Box>
 
-        {/* Main Content */}
-        <Container maxWidth="md" sx={{ mt: 2.5, px: { xs: 2, sm: 3 } }}>
-          {/* 1. SCREEN 3 HERO BANNER */}
-          <Card
-            sx={{
-              mb: 2.5,
-              borderRadius: '18px',
-              background: "url('/assets/banners/special-deals-background.svg') center/cover no-repeat, linear-gradient(135deg, #FF6508 0%, #E9570A 100%)",
-              color: '#ffffff',
-              p: { xs: 2.25, sm: 3 },
-              boxShadow: '0 6px 20px rgba(255, 101, 8, 0.22)',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
-            <Box sx={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.1)', pointerEvents: 'none' }} />
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
-              <Box sx={{ pr: 1.5, zIndex: 1 }}>
-                <Chip
-                  label="PROMOTION & REACH"
-                  size="small"
-                  sx={{ bgcolor: 'rgba(255,255,255,0.22)', color: '#ffffff', fontWeight: 800, fontSize: '0.62rem', height: 20, mb: 0.75 }}
-                />
-                <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.05rem', sm: '1.25rem' }, lineHeight: 1.25, mb: 0.5 }}>
-                  Run Deals, Get More Orders
-                </Typography>
-                <Typography sx={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.9)', mb: 1.5 }}>
-                  Increase store visibility with targeted promotions and exclusive Prime member perks.
-                </Typography>
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={() => setActiveTab('PRIME_PLANS')}
-                  sx={{
-                    bgcolor: '#ffffff',
-                    color: '#E9570A',
-                    fontWeight: 800,
-                    fontSize: '0.75rem',
-                    borderRadius: '20px',
-                    textTransform: 'none',
-                    px: 2,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                    '&:hover': { bgcolor: '#f8fafc' },
-                  }}
-                >
-                  Explore Prime Plans →
-                </Button>
-              </Box>
-              <Box
-                sx={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: '50%',
-                  bgcolor: 'rgba(255,255,255,0.2)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  flexShrink: 0,
-                  zIndex: 1,
-                }}
-              >
-                <WorkspacePremium sx={{ fontSize: 36, color: '#ffffff' }} />
-              </Box>
-            </Stack>
-          </Card>
-
-          {/* 2. SCREEN 3 SEGMENTED TABS (All Deals, My Deals, Prime Plans) */}
-          <Stack direction="row" spacing={1} sx={{ mb: 2.5, overflowX: 'auto', pb: 0.5 }}>
-            {[
-              { id: 'PRIME_PLANS', label: 'Prime Plans' },
-              { id: 'ALL_DEALS', label: 'All Deals' },
-              { id: 'MY_DEALS', label: 'My Deals' },
-            ].map(tab => {
-              const active = activeTab === tab.id;
-              return (
-                <Chip
-                  key={tab.id}
-                  label={tab.label}
-                  clickable
-                  onClick={() => setActiveTab(tab.id)}
-                  sx={{
-                    fontWeight: 800,
-                    fontSize: '0.74rem',
-                    borderRadius: '20px',
-                    bgcolor: active ? PRIMARY : '#ffffff',
-                    color: active ? '#ffffff' : '#64748B',
-                    border: `1.5px solid ${active ? PRIMARY : '#E4EAF2'}`,
-                    '&:hover': { bgcolor: active ? PRIMARY_DARK : '#F1F5F9' },
-                  }}
-                />
-              );
-            })}
-          </Stack>
-
+        <Container maxWidth="sm" sx={{ pt: 3 }}>
           {/* Toast Alert */}
           {toastMsg && (
             <Alert
-              severity="info"
+              severity="success"
               onClose={() => setToastMsg(null)}
               sx={{ mb: 2.5, borderRadius: '14px', fontWeight: 700, fontSize: '0.82rem' }}
             >
@@ -297,491 +140,271 @@ export default function PackagesPage() {
             </Alert>
           )}
 
-          {/* Current Membership Status Banner */}
-          <Box
+          {/* Single High-Conversion Membership Card */}
+          <Card
+            elevation={0}
             sx={{
-              p: 2.5,
-              borderRadius: '20px',
+              borderRadius: '28px',
+              border: isMemberActive ? '2px solid #10B981' : '2px solid #FF6508',
+              bgcolor: '#ffffff',
+              boxShadow: isMemberActive
+                ? '0 12px 32px rgba(16, 185, 129, 0.12)'
+                : '0 12px 32px rgba(255, 101, 8, 0.14)',
+              overflow: 'hidden',
+              position: 'relative',
               mb: 3,
-              border: isFree ? '1.5px solid #cbd5e1' : '1.5px solid #10b981',
-              bgcolor: isFree ? '#ffffff' : '#f0fdf4',
-              boxShadow: '0 4px 14px rgba(15, 23, 42, 0.05)',
             }}
           >
-            <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={2}>
-              <Stack direction="row" spacing={2} alignItems="center">
+            {/* Top Gradient Crown Banner */}
+            <Box
+              sx={{
+                background: isMemberActive
+                  ? 'linear-gradient(135deg, #065f46 0%, #059669 60%, #10b981 100%)'
+                  : 'linear-gradient(135deg, #7c2d12 0%, #c2410c 50%, #FF6508 100%)',
+                color: '#ffffff',
+                p: { xs: 2.5, sm: 3 },
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <Box>
+                  <Chip
+                    icon={isMemberActive ? <VerifiedUser sx={{ fontSize: '14px !important', color: '#fff !important' }} /> : <Bolt sx={{ fontSize: '14px !important', color: '#fff !important' }} />}
+                    label={isMemberActive ? 'MEMBER ACTIVE' : 'ALL-IN-ONE MERCHANT PLAN'}
+                    size="small"
+                    sx={{
+                      bgcolor: 'rgba(255, 255, 255, 0.22)',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      fontSize: '0.68rem',
+                      height: 24,
+                      mb: 1.2,
+                    }}
+                  />
+                  <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1.15 }}>
+                    Trikonekt Merchant Pro
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.88)', mt: 0.5, fontWeight: 500 }}>
+                    Unlock store onboarding, standee QR, unlimited catalog & delivery
+                  </Typography>
+                </Box>
+
                 <Box
                   sx={{
-                    width: 50,
-                    height: 50,
+                    width: 52,
+                    height: 52,
                     borderRadius: '16px',
-                    bgcolor: isFree ? '#f1f5f9' : '#dcfce7',
-                    color: isFree ? '#64748b' : PRIMARY,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    bgcolor: 'rgba(255, 255, 255, 0.18)',
+                    display: 'grid',
+                    placeItems: 'center',
                     flexShrink: 0,
                   }}
                 >
-                  {isFree ? <Lock sx={{ fontSize: 26 }} /> : <VerifiedUser sx={{ fontSize: 28 }} />}
+                  <WorkspacePremium sx={{ fontSize: 32, color: '#ffffff' }} />
                 </Box>
-                <Box>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography sx={{ fontSize: '1rem', fontWeight: 900, color: '#0f172a' }}>
-                      {has999
-                        ? '₹999 Yearly Member Plan (Like OLX VIP)'
-                        : has99
-                        ? `₹99 Monthly Member (Month ${subDetails.tenureMonths || 1}/12)`
-                        : 'Free Merchant Plan (Onboarded)'}
-                    </Typography>
-                    <Chip
-                      size="small"
-                      label={isFree ? 'FREE' : 'MEMBER ACTIVE'}
-                      sx={{
-                        fontWeight: 900,
-                        fontSize: '0.65rem',
-                        bgcolor: isFree ? '#f1f5f9' : PRIMARY,
-                        color: isFree ? '#475569' : '#ffffff',
-                      }}
-                    />
-                  </Stack>
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.3 }}>
-                    {isFree
-                      ? 'Become a Member to add merchant shops, list unlimited products & place B2B wholesale orders.'
-                      : `${subDetails.daysLeft} days remaining • Verified VIP Member • Unlimited catalog & shop permissions`}
-                  </Typography>
-                </Box>
-              </Stack>
-
-              {!isFree && (
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={() => openExistingInvoice(subDetails.plan)}
-                  startIcon={<Receipt sx={{ fontSize: 16 }} />}
-                  sx={{
-                    borderRadius: '10px',
-                    textTransform: 'none',
-                    fontWeight: 800,
-                    fontSize: '0.75rem',
-                    borderColor: PRIMARY,
-                    color: PRIMARY,
-                    '&:hover': { bgcolor: alpha(PRIMARY, 0.05) },
-                  }}
-                >
-                  View Invoice
-                </Button>
-              )}
-            </Stack>
-
-            {/* Tenure tracker if on 99 track */}
-            {has99 && (
-              <Box sx={{ mt: 2, pt: 2, borderTop: '1px dashed #cbd5e1' }}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
-                  <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#0284c7', textTransform: 'uppercase' }}>
-                    12-Month Tenure Progress
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#0f172a' }}>
-                    Month {subDetails.tenureMonths || 1} of 12
-                  </Typography>
-                </Stack>
-                <LinearProgress
-                  variant="determinate"
-                  value={((subDetails.tenureMonths || 1) / 12) * 100}
-                  sx={{
-                    height: 8,
-                    borderRadius: 4,
-                    bgcolor: '#e0f2fe',
-                    '& .MuiLinearProgress-bar': { bgcolor: '#0284c7', borderRadius: 4 },
-                  }}
-                />
               </Box>
-            )}
-          </Box>
 
-          {/* Policy Guidance Alert */}
-          {isFree && (
-            <Box
-              sx={{
-                bgcolor: '#f0f9ff',
-                border: '1px solid #bae6fd',
-                borderRadius: '16px',
-                p: 2,
-                mb: 3,
-                display: 'flex',
-                gap: 1.5,
-                alignItems: 'flex-start',
-              }}
-            >
-              <InfoOutlined sx={{ color: '#0284c7', fontSize: 20, mt: 0.2, flexShrink: 0 }} />
-              <Box>
-                <Typography sx={{ fontSize: '0.78rem', fontWeight: 900, color: '#0369a1', textTransform: 'uppercase' }}>
-                  Membership Selection
+              {/* Price Row */}
+              <Box sx={{ mt: 2.5, display: 'flex', alignItems: 'baseline', gap: 1 }}>
+                <Typography sx={{ fontSize: { xs: '2.2rem', sm: '2.5rem' }, fontWeight: 900, lineHeight: 1 }}>
+                  ₹99
                 </Typography>
-                <Typography sx={{ fontSize: '0.72rem', color: '#0c4a6e', mt: 0.25, lineHeight: 1.45 }}>
-                  • <strong>₹999 Yearly Package (Recommended):</strong> Full 1-year unlimited access, verified seller badge like OLX VIP, priority listing & instant onboarding.<br />
-                  • <strong>₹99 Monthly Package:</strong> Flexible 12-month tenure (1st month + monthly renewals) for growing businesses.
+                <Typography sx={{ fontSize: '0.86rem', color: 'rgba(255, 255, 255, 0.85)', fontWeight: 700 }}>
+                  / month (incl. 18% GST)
                 </Typography>
               </Box>
             </Box>
-          )}
 
-          {/* Packages Grid */}
-          <Grid container spacing={3}>
-            {/* Package 1: ₹999 Yearly */}
-            <Grid item xs={12} md={6}>
-              <Card
-                sx={{
-                  borderRadius: '24px',
-                  border: has99 ? '2px solid #e2e8f0' : has999 ? '2px solid #10b981' : '2px solid #f59e0b',
-                  bgcolor: has99 ? '#f8fafc' : '#ffffff',
-                  boxShadow: '0 8px 24px rgba(15, 23, 42, 0.06)',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  opacity: has99 ? 0.7 : 1,
-                }}
-              >
-                {/* Top Badge */}
+            {/* Content & Feature Checklist */}
+            <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
+              {/* Active Plan Summary Banner */}
+              {isMemberActive ? (
                 <Box
                   sx={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    bgcolor: has99 ? '#64748b' : has999 ? '#10b981' : ACCENT,
-                    color: '#ffffff',
-                    fontSize: '0.65rem',
-                    fontWeight: 900,
-                    px: 1.75,
-                    py: 0.6,
-                    borderBottomLeftRadius: '16px',
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5,
+                    p: 2,
+                    borderRadius: '16px',
+                    bgcolor: '#ECFDF5',
+                    border: '1.5px solid #A7F3D0',
+                    mb: 3,
                   }}
                 >
-                  {has99 ? <><Lock sx={{ fontSize: 13 }} /> LOCKED • 99 TRACK CHOSEN</> : has999 ? <><CheckCircle sx={{ fontSize: 13 }} /> ACTIVE (1 YEAR)</> : 'RECOMMENDED • LIKE OLX VIP'}
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Box>
+                      <Typography sx={{ fontWeight: 800, fontSize: '0.86rem', color: '#065F46' }}>
+                        Your Membership is Active
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#047857', fontWeight: 600, mt: 0.2 }}>
+                        {subDetails.daysLeft} days remaining on your current cycle
+                      </Typography>
+                    </Box>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={openExistingInvoice}
+                      startIcon={<Receipt sx={{ fontSize: 15 }} />}
+                      sx={{
+                        borderRadius: '10px',
+                        borderColor: '#059669',
+                        color: '#065F46',
+                        fontWeight: 800,
+                        fontSize: '0.72rem',
+                        textTransform: 'none',
+                        '&:hover': { bgcolor: 'rgba(5, 150, 105, 0.08)' },
+                      }}
+                    >
+                      View Invoice
+                    </Button>
+                  </Stack>
                 </Box>
+              ) : null}
 
-                <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2.5, mt: 0.5 }}>
+              <Typography sx={{ fontWeight: 900, fontSize: '0.88rem', color: '#0F172A', mb: 1.8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                Included With Merchant Pro:
+              </Typography>
+
+              <Stack spacing={1.5} sx={{ mb: 3 }}>
+                {[
+                  {
+                    icon: <QrCode2 sx={{ fontSize: 18, color: '#FF6508' }} />,
+                    title: 'Official Merchant Standee QR Code',
+                    desc: 'Accept customer payments via UPI, Cards, Net Banking & TRI Coins with instant audio voice alerts',
+                  },
+                  {
+                    icon: <Storefront sx={{ fontSize: 18, color: '#10B981' }} />,
+                    title: 'Unlimited Products & Store Catalog',
+                    desc: 'Add unlimited items, categories, pricing, barcodes, and manage real-time inventory',
+                  },
+                  {
+                    icon: <CheckCircle sx={{ fontSize: 18, color: '#3B82F6' }} />,
+                    title: 'Near Store & Explore Directory Placement',
+                    desc: 'High-visibility placement on Tri-Shopping for local customers searching nearby pincodes',
+                  },
+                  {
+                    icon: <Savings sx={{ fontSize: 18, color: '#8B5CF6' }} />,
+                    title: '0% Platform Commission On Marketplace Orders',
+                    desc: 'Receive direct orders from local customers and keep 100% of your product margins',
+                  },
+                  {
+                    icon: <LocalShipping sx={{ fontSize: 18, color: '#0EA5E9' }} />,
+                    title: 'Tri-Sarathi On-Demand Delivery Dispatch',
+                    desc: 'Automated rider assignment and live courier tracking from your store to customer doorstep',
+                  },
+                ].map((feat, i) => (
+                  <Box key={i} sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
                     <Box
                       sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: '16px',
-                        bgcolor: '#fff7ed',
-                        color: ACCENT,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        width: 32,
+                        height: 32,
+                        borderRadius: '10px',
+                        bgcolor: '#F1F5F9',
+                        display: 'grid',
+                        placeItems: 'center',
+                        flexShrink: 0,
+                        mt: 0.2,
                       }}
                     >
-                      <WorkspacePremium sx={{ fontSize: 28 }} />
+                      {feat.icon}
                     </Box>
                     <Box>
-                      <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: ACCENT, textTransform: 'uppercase' }}>
-                        1 Year Validity (365 Days)
+                      <Typography sx={{ fontWeight: 800, fontSize: '0.84rem', color: '#0F172A', lineHeight: 1.2 }}>
+                        {feat.title}
                       </Typography>
-                      <Typography sx={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a' }}>
-                        ₹999 Yearly Member Plan
+                      <Typography sx={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 500, mt: 0.2, lineHeight: 1.35 }}>
+                        {feat.desc}
                       </Typography>
                     </Box>
-                  </Stack>
-
-                  {/* Price Row */}
-                  <Box sx={{ py: 2, borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', mb: 2.5 }}>
-                    <Stack direction="row" alignItems="baseline" spacing={0.75}>
-                      <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a' }}>
-                        ₹999
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748b' }}>
-                        / 1 Year (₹83/month)
-                      </Typography>
-                    </Stack>
-                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: PRIMARY, mt: 0.5 }}>
-                      ⭐ Become a Member • Unlimited Shops & Products (Like OLX VIP)
-                    </Typography>
                   </Box>
+                ))}
+              </Stack>
 
-                  {/* Benefits List */}
-                  <Stack spacing={1.5} sx={{ mb: 3, flexGrow: 1 }}>
-                    {[
-                      'Add & Manage Unlimited Merchant Shops',
-                      'Add Products to Inventory with Live Online Sync',
-                      'Verified Seller Member Badge on Store & Products',
-                      'Browse & Place Orders in B2B Wholesale Marketplace',
-                      'Priority Search Ranking & Direct Buyer Inquiries',
-                      'Full 1 Year Active Validity (365 Days)',
-                    ].map((item, i) => (
-                      <Stack key={i} direction="row" spacing={1.25} alignItems="flex-start">
-                        <CheckCircle sx={{ fontSize: 17, color: PRIMARY, mt: 0.2, flexShrink: 0 }} />
-                        <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: '#334155' }}>
-                          {item}
-                        </Typography>
-                      </Stack>
-                    ))}
-                  </Stack>
+              <Divider sx={{ my: 2.5 }} />
 
-                  {/* Action Button */}
-                  {has99 ? (
-                    <Button
-                      fullWidth
-                      disabled
-                      startIcon={<Lock />}
-                      sx={{
-                        py: 1.5,
-                        borderRadius: '16px',
-                        bgcolor: '#e2e8f0',
-                        color: '#64748b',
-                        fontWeight: 800,
-                        fontSize: '0.8rem',
-                        textTransform: 'none',
-                      }}
-                    >
-                      Locked (Committed to ₹99 Plan)
-                    </Button>
-                  ) : has999 && !subDetails.isExpired ? (
-                    <Stack spacing={1}>
-                      <Button
-                        fullWidth
-                        disabled
-                        startIcon={<CheckCircle />}
-                        sx={{
-                          py: 1.5,
-                          borderRadius: '16px',
-                          bgcolor: PRIMARY,
-                          color: '#ffffff',
-                          fontWeight: 800,
-                          fontSize: '0.8rem',
-                          textTransform: 'none',
-                        }}
-                      >
-                        VIP Membership Active (1 Year) ✓
-                      </Button>
-                      <Button
-                        fullWidth
-                        variant="outlined"
-                        onClick={() => openExistingInvoice(PLAN_TYPES.SUBSCRIPTION_999)}
-                        startIcon={<Receipt />}
-                        sx={{
-                          py: 1,
-                          borderRadius: '14px',
-                          fontWeight: 800,
-                          fontSize: '0.75rem',
-                          textTransform: 'none',
-                        }}
-                      >
-                        View & Print Tax Invoice (₹999)
-                      </Button>
-                    </Stack>
-                  ) : (
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      onClick={handleSubscribe999}
-                      disabled={loadingPlan !== null}
-                      startIcon={loadingPlan === '999' ? <CircularProgress size={16} color="inherit" /> : <Bolt />}
-                      sx={{
-                        py: 1.6,
-                        borderRadius: '16px',
-                        bgcolor: ACCENT,
-                        fontWeight: 900,
-                        fontSize: '0.88rem',
-                        textTransform: 'none',
-                        boxShadow: '0 4px 14px rgba(249, 115, 22, 0.3)',
-                        '&:hover': { bgcolor: '#ea580c' },
-                      }}
-                    >
-                      {loadingPlan === '999' ? 'Activating Annual VIP...' : 'Become a Member • ₹999 / Year →'}
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
+              {/* GST Tax Transparency Box */}
+              <Box sx={{ bgcolor: '#F8FAFC', borderRadius: '14px', p: 1.8, mb: 3, border: '1px solid #E2E8F0' }}>
+                <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.6 }}>
+                  <Typography sx={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600 }}>Base Plan Price (1 Month):</Typography>
+                  <Typography sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#0F172A' }}>₹83.90</Typography>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.6 }}>
+                  <Typography sx={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600 }}>GST @ 18% (CGST 9% + SGST 9%):</Typography>
+                  <Typography sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#0F172A' }}>₹15.10</Typography>
+                </Stack>
+                <Divider sx={{ my: 0.8 }} />
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography sx={{ fontSize: '0.82rem', fontWeight: 900, color: '#0F172A' }}>Total Payable:</Typography>
+                  <Typography sx={{ fontSize: '1rem', fontWeight: 900, color: PRIMARY }}>₹99.00</Typography>
+                </Stack>
+              </Box>
 
-            {/* Package 2: ₹99 Monthly */}
-            <Grid item xs={12} md={6}>
-              <Card
-                sx={{
-                  borderRadius: '24px',
-                  border: has999 ? '2px solid #e2e8f0' : has99 ? '2px solid #10b981' : '2px solid #0284c7',
-                  bgcolor: has999 ? '#f8fafc' : '#ffffff',
-                  boxShadow: '0 8px 24px rgba(15, 23, 42, 0.06)',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  opacity: has999 ? 0.7 : 1,
-                }}
-              >
-                {/* Top Badge */}
-                <Box
+              {/* Action Button */}
+              {isMemberActive ? (
+                <Stack direction="row" spacing={1.5}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={openExistingInvoice}
+                    startIcon={<Receipt />}
+                    sx={{
+                      py: 1.4,
+                      borderRadius: '16px',
+                      borderColor: '#CBD5E1',
+                      color: '#0F172A',
+                      fontWeight: 800,
+                      fontSize: '0.84rem',
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: '#F1F5F9', borderColor: '#94A3B8' },
+                    }}
+                  >
+                    View Tax Invoice
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={handleSubscribe99}
+                    disabled={loading}
+                    startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CreditCard />}
+                    sx={{
+                      py: 1.4,
+                      borderRadius: '16px',
+                      bgcolor: PRIMARY,
+                      fontWeight: 900,
+                      fontSize: '0.84rem',
+                      textTransform: 'none',
+                      boxShadow: '0 4px 14px rgba(255, 101, 8, 0.3)',
+                      '&:hover': { bgcolor: PRIMARY_DARK },
+                    }}
+                  >
+                    {loading ? 'Renewing...' : 'Extend +30 Days (₹99)'}
+                  </Button>
+                </Stack>
+              ) : (
+                <Button
+                  fullWidth
+                  variant="contained"
+                  onClick={handleSubscribe99}
+                  disabled={loading}
+                  startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <CreditCard />}
                   sx={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    bgcolor: has999 ? '#64748b' : has99 ? '#10b981' : '#0284c7',
+                    py: 1.6,
+                    borderRadius: '16px',
+                    bgcolor: PRIMARY,
                     color: '#ffffff',
-                    fontSize: '0.65rem',
                     fontWeight: 900,
-                    px: 1.75,
-                    py: 0.6,
-                    borderBottomLeftRadius: '16px',
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5,
+                    fontSize: '0.94rem',
+                    textTransform: 'none',
+                    boxShadow: '0 6px 18px rgba(255, 101, 8, 0.35)',
+                    '&:hover': { bgcolor: PRIMARY_DARK },
                   }}
                 >
-                  {has999 ? <><Lock sx={{ fontSize: 13 }} /> LOCKED • 999 YEARLY ACTIVE</> : has99 ? <><CheckCircle sx={{ fontSize: 13 }} /> ACTIVE (MONTH {subDetails.tenureMonths || 1}/12)</> : 'MONTHLY STARTER • 30 DAYS'}
-                </Box>
-
-                <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2.5, mt: 0.5 }}>
-                    <Box
-                      sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: '16px',
-                        bgcolor: '#e0f2fe',
-                        color: '#0284c7',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <CreditCard sx={{ fontSize: 28 }} />
-                    </Box>
-                    <Box>
-                      <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: '#0284c7', textTransform: 'uppercase' }}>
-                        30 Days Validity (Monthly Cycle)
-                      </Typography>
-                      <Typography sx={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a' }}>
-                        ₹99 Monthly Starter
-                      </Typography>
-                    </Box>
-                  </Stack>
-
-                  {/* Price Row */}
-                  <Box sx={{ py: 2, borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', mb: 2.5 }}>
-                    <Stack direction="row" alignItems="baseline" spacing={0.75}>
-                      <Typography sx={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a' }}>
-                        ₹99
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748b' }}>
-                        / 1 Month
-                      </Typography>
-                    </Stack>
-                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: PRIMARY, mt: 0.5 }}>
-                      ⭐ Flexible monthly plan for new store verification
-                    </Typography>
-                  </Box>
-
-                  {/* Benefits List */}
-                  <Stack spacing={1.5} sx={{ mb: 3, flexGrow: 1 }}>
-                    {[
-                      'Add & Manage Unlimited Merchant Shops',
-                      'Add Products to Inventory with Live Online Sync',
-                      'Browse & Place Orders in B2B Wholesale Marketplace',
-                      '30 Days Active Validity per monthly renewal',
-                      'Basic Merchant Verification & Store Profile',
-                      'Switch to Yearly anytime before renewal',
-                    ].map((item, i) => (
-                      <Stack key={i} direction="row" spacing={1.25} alignItems="flex-start">
-                        <CheckCircle sx={{ fontSize: 17, color: PRIMARY, mt: 0.2, flexShrink: 0 }} />
-                        <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: '#334155' }}>
-                          {item}
-                        </Typography>
-                      </Stack>
-                    ))}
-                  </Stack>
-
-                  {/* Action Button */}
-                  {has999 ? (
-                    <Button
-                      fullWidth
-                      disabled
-                      startIcon={<Lock />}
-                      sx={{
-                        py: 1.5,
-                        borderRadius: '16px',
-                        bgcolor: '#e2e8f0',
-                        color: '#64748b',
-                        fontWeight: 800,
-                        fontSize: '0.8rem',
-                        textTransform: 'none',
-                      }}
-                    >
-                      Locked (Yearly Plan Active)
-                    </Button>
-                  ) : has99 && !subDetails.isExpired ? (
-                    <Stack spacing={1}>
-                      <Button
-                        fullWidth
-                        disabled
-                        startIcon={<CheckCircle />}
-                        sx={{
-                          py: 1.5,
-                          borderRadius: '16px',
-                          bgcolor: PRIMARY,
-                          color: '#ffffff',
-                          fontWeight: 800,
-                          fontSize: '0.8rem',
-                          textTransform: 'none',
-                        }}
-                      >
-                        Month {subDetails.tenureMonths || 1}/12 Active ✓
-                      </Button>
-                      <Button
-                        fullWidth
-                        variant="outlined"
-                        onClick={() => openExistingInvoice(PLAN_TYPES.SUBSCRIPTION_99)}
-                        startIcon={<Receipt />}
-                        sx={{
-                          py: 1,
-                          borderRadius: '14px',
-                          fontWeight: 800,
-                          fontSize: '0.75rem',
-                          textTransform: 'none',
-                        }}
-                      >
-                        View & Print Tax Invoice (₹99)
-                      </Button>
-                    </Stack>
-                  ) : (
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      onClick={handleSubscribe99}
-                      disabled={loadingPlan !== null}
-                      startIcon={loadingPlan === '99' ? <CircularProgress size={16} color="inherit" /> : <CreditCard />}
-                      sx={{
-                        py: 1.6,
-                        borderRadius: '16px',
-                        bgcolor: '#0f172a',
-                        fontWeight: 900,
-                        fontSize: '0.88rem',
-                        textTransform: 'none',
-                        '&:hover': { bgcolor: '#1e293b' },
-                      }}
-                    >
-                      {loadingPlan === '99' ? 'Activating Month 1...' : has99 ? `Renew Month ${(subDetails.tenureMonths || 0) + 1} of 12 (₹99) →` : 'Subscribe Month 1 of 12 (₹99) →'}
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
+                  {loading ? 'Activating Membership...' : 'Activate Merchant Pro — ₹99/mo →'}
+                </Button>
+              )}
+            </CardContent>
+          </Card>
         </Container>
 
-        {/* Invoice Modal */}
+        {/* Tax Invoice Modal */}
         {activeInvoiceModal && (
           <Dialog
             open={Boolean(activeInvoiceModal)}
@@ -792,7 +415,7 @@ export default function PackagesPage() {
               sx: { borderRadius: '24px', overflow: 'hidden' },
             }}
           >
-            <Box sx={{ bgcolor: '#1B4D3E', color: '#fff', p: 2.5, position: 'relative' }}>
+            <Box sx={{ bgcolor: '#0F172A', color: '#fff', p: 2.5, position: 'relative' }}>
               <IconButton
                 onClick={() => setActiveInvoiceModal(null)}
                 sx={{ position: 'absolute', top: 12, right: 12, color: 'rgba(255,255,255,0.8)' }}
@@ -800,58 +423,58 @@ export default function PackagesPage() {
               >
                 <Close sx={{ fontSize: 18 }} />
               </IconButton>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#fef08a', textTransform: 'uppercase' }}>
+              <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#FDBA74', textTransform: 'uppercase' }}>
                 Tax Invoice & Payment Receipt
               </Typography>
-              <Typography sx={{ fontSize: '1.25rem', fontWeight: 900, mt: 0.5 }}>
-                Trikonekt Prime Subscription
+              <Typography sx={{ fontSize: '1.2rem', fontWeight: 900, mt: 0.5 }}>
+                Trikonekt Merchant Pro
               </Typography>
             </Box>
 
             <DialogContent sx={{ p: 2.5 }}>
-              <Stack spacing={1.5}>
+              <Stack spacing={1.4}>
                 <Stack direction="row" justifyContent="space-between">
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Receipt No:</Typography>
-                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>{activeInvoiceModal.receiptNo}</Typography>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>Receipt No:</Typography>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#0F172A' }}>{activeInvoiceModal.receiptNo}</Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Date:</Typography>
-                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>{activeInvoiceModal.date}</Typography>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>Date:</Typography>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#0F172A' }}>{activeInvoiceModal.date}</Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Plan Description:</Typography>
-                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>{activeInvoiceModal.planName}</Typography>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>Plan:</Typography>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#0F172A' }}>{activeInvoiceModal.planName}</Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Validity:</Typography>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>Validity:</Typography>
                   <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: PRIMARY }}>{activeInvoiceModal.validity}</Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Member Status:</Typography>
-                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 900, color: PRIMARY }}>Verified VIP Member ✓</Typography>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>Member Status:</Typography>
+                  <Typography sx={{ fontSize: '0.78rem', fontWeight: 900, color: '#10B981' }}>Verified Merchant Pro ✓</Typography>
                 </Stack>
 
                 <Divider sx={{ my: 1 }} />
 
                 <Stack direction="row" justifyContent="space-between">
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>Base Amount:</Typography>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748B' }}>Base Amount:</Typography>
                   <Typography sx={{ fontSize: '0.78rem', fontWeight: 600 }}>₹{activeInvoiceModal.baseAmount.toFixed(2)}</Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>18% GST (CGST 9% + SGST 9%):</Typography>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748B' }}>18% GST (CGST 9% + SGST 9%):</Typography>
                   <Typography sx={{ fontSize: '0.78rem', fontWeight: 600 }}>₹{activeInvoiceModal.gst.toFixed(2)}</Typography>
                 </Stack>
 
                 <Divider sx={{ my: 1 }} />
 
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#0f172a' }}>Total Paid:</Typography>
+                  <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#0F172A' }}>Total Paid:</Typography>
                   <Typography sx={{ fontSize: '1.25rem', fontWeight: 900, color: PRIMARY }}>₹{activeInvoiceModal.amount.toFixed(2)}</Typography>
                 </Stack>
               </Stack>
             </DialogContent>
 
-            <DialogActions sx={{ p: 2, bgcolor: '#f8fafc' }}>
+            <DialogActions sx={{ p: 2, bgcolor: '#F8FAFC' }}>
               <Button
                 variant="outlined"
                 startIcon={<Print />}

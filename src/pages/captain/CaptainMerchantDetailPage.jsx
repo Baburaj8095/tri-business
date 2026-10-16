@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box, Typography, Grid, Chip, IconButton, Button,
-  Divider, Stack,
+  Divider, Stack, CircularProgress, Alert,
 } from '@mui/material';
 import {
   ArrowBack as BackIcon,
@@ -22,15 +22,21 @@ import {
   ChevronRight as ChevronRightIcon,
   Description as DocIcon,
   Verified as VerifiedIcon,
+  CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
+import { getPublicShopDetail, approveCaptainShop } from '../../api/api';
 
 export default function CaptainMerchantDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
 
   const [activeTab, setActiveTab] = useState('Overview');
+  const [loading, setLoading] = useState(true);
+  const [approving, setApproving] = useState(false);
+  const [approvalMsg, setApprovalMsg] = useState('');
+  const [error, setError] = useState('');
 
-  const merchant = {
+  const [merchant, setMerchant] = useState({
     id: id || '1',
     name: 'Fresh Basket',
     status: 'Active',
@@ -49,14 +55,60 @@ export default function CaptainMerchantDetailPage() {
     ownerName: 'Ramesh Kumar',
     ownerPhone: '+91 98765 43210',
     image: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=300&auto=format&fit=crop&q=60',
+  });
+
+  useEffect(() => {
+    async function loadShop() {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const shop = await getPublicShopDetail(id);
+        if (shop) {
+          const isActive = shop.is_active !== false && shop.status === 'ACTIVE';
+          const fullAddress = [shop.address, shop.city, shop.pincode].filter(Boolean).join(', ');
+          setMerchant(prev => ({
+            ...prev,
+            id: String(shop.id || id),
+            name: shop.shop_name || prev.name,
+            status: isActive ? 'Active' : (shop.status || 'Pending'),
+            category: shop.category_name || shop.category || prev.category,
+            area: shop.city || shop.address || prev.area,
+            address: fullAddress || prev.address,
+            ownerPhone: shop.contact_number || prev.ownerPhone,
+            ownerName: shop.merchant_name || prev.ownerName,
+            image: shop.shop_image || prev.image,
+            distance: shop.pincode ? `PIN: ${shop.pincode}` : prev.distance,
+          }));
+        }
+      } catch (err) {
+        console.warn('[CaptainMerchantDetailPage] Failed to load live shop:', err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadShop();
+  }, [id]);
+
+  const handleApprove = async () => {
+    try {
+      setApproving(true);
+      setError('');
+      const res = await approveCaptainShop(id);
+      setMerchant(prev => ({ ...prev, status: 'Active' }));
+      setApprovalMsg(res?.message || 'Shop successfully verified and approved! Merchant Prime package activated.');
+    } catch (err) {
+      setError(err.message || 'Failed to approve shop');
+    } finally {
+      setApproving(false);
+    }
   };
 
   const handleCall = () => {
-    window.location.href = `tel:${merchant.ownerPhone.replace(/\s+/g, '')}`;
+    window.location.href = `tel:${(merchant.ownerPhone || '').replace(/\s+/g, '')}`;
   };
 
   const handleWhatsApp = () => {
-    window.open(`https://wa.me/${merchant.ownerPhone.replace(/\D/g, '')}`, '_blank');
+    window.open(`https://wa.me/${(merchant.ownerPhone || '').replace(/\D/g, '')}`, '_blank');
   };
 
   const handleShare = () => {
@@ -64,6 +116,7 @@ export default function CaptainMerchantDetailPage() {
       navigator.share({ title: merchant.name, text: `Check out ${merchant.name} on Trikonekt`, url: window.location.href });
     }
   };
+
 
   return (
     <Box sx={{ pb: 10 }}>
@@ -96,6 +149,18 @@ export default function CaptainMerchantDetailPage() {
         </Box>
       </Box>
 
+      {/* ── Alerts for Approval / Error ── */}
+      {approvalMsg && (
+        <Alert severity="success" sx={{ mx: 2, mt: 1.5, borderRadius: '12px', fontSize: '0.78rem' }}>
+          {approvalMsg}
+        </Alert>
+      )}
+      {error && (
+        <Alert severity="error" sx={{ mx: 2, mt: 1.5, borderRadius: '12px', fontSize: '0.78rem' }}>
+          {error}
+        </Alert>
+      )}
+
       {/* ── Merchant Store Header Profile (Matches Mockup Screen 4) ── */}
       <Box sx={{ p: 2, bgcolor: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
         <Box sx={{ display: 'flex', gap: 1.8, alignItems: 'center' }}>
@@ -121,8 +186,8 @@ export default function CaptainMerchantDetailPage() {
                 label={merchant.status}
                 size="small"
                 sx={{
-                  bgcolor: '#dcfce7',
-                  color: '#15803d',
+                  bgcolor: merchant.status === 'Active' ? '#dcfce7' : '#fef3c7',
+                  color: merchant.status === 'Active' ? '#15803d' : '#b45309',
                   fontWeight: 800,
                   fontSize: '0.68rem',
                   height: 20,
@@ -491,24 +556,46 @@ export default function CaptainMerchantDetailPage() {
             Follow Up
           </Button>
 
-          <Button
-            onClick={() => navigate('/captain/merchants')}
-            startIcon={<CartIcon sx={{ fontSize: 18 }} />}
-            sx={{
-              flex: 1.4,
-              bgcolor: '#EA580C',
-              color: '#ffffff',
-              borderRadius: '12px',
-              py: 1.2,
-              fontWeight: 800,
-              fontSize: '0.86rem',
-              textTransform: 'none',
-              boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)',
-              '&:hover': { bgcolor: '#C2410C' },
-            }}
-          >
-            View Orders
-          </Button>
+          {merchant.status !== 'Active' ? (
+            <Button
+              onClick={handleApprove}
+              disabled={approving}
+              startIcon={approving ? <CircularProgress size={16} sx={{ color: '#ffffff' }} /> : <CheckCircleIcon sx={{ fontSize: 18 }} />}
+              sx={{
+                flex: 1.6,
+                bgcolor: '#16a34a',
+                color: '#ffffff',
+                borderRadius: '12px',
+                py: 1.2,
+                fontWeight: 900,
+                fontSize: '0.86rem',
+                textTransform: 'none',
+                boxShadow: '0 4px 12px rgba(22, 163, 74, 0.25)',
+                '&:hover': { bgcolor: '#15803d' },
+              }}
+            >
+              {approving ? 'Activating...' : 'Approve & Activate Shop'}
+            </Button>
+          ) : (
+            <Button
+              onClick={() => navigate('/captain/merchants')}
+              startIcon={<CartIcon sx={{ fontSize: 18 }} />}
+              sx={{
+                flex: 1.4,
+                bgcolor: '#EA580C',
+                color: '#ffffff',
+                borderRadius: '12px',
+                py: 1.2,
+                fontWeight: 800,
+                fontSize: '0.86rem',
+                textTransform: 'none',
+                boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)',
+                '&:hover': { bgcolor: '#C2410C' },
+              }}
+            >
+              View Orders
+            </Button>
+          )}
         </Box>
       </Box>
 

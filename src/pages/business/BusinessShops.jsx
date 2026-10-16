@@ -44,6 +44,7 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import StarIcon from "@mui/icons-material/Star";
 import { LuX } from "react-icons/lu";
 import PrimeMembershipModal from "../../components/business/PrimeMembershipModal";
+import MerchantStandeeCard from "../../components/business/MerchantStandeeCard";
 import { isMerchantPrime } from "../../utils/membershipHelper";
 
 import {
@@ -1745,121 +1746,27 @@ export default function BusinessShops() {
         </Stack>
       </Drawer>
 
-      {/* ── Official Merchant QR Standee Modal ── */}
+      {/* ── Official Merchant QR Standee Modal (Revamped Acrylic Design) ── */}
       <Dialog
         open={Boolean(qrModalShop)}
         onClose={() => setQrModalShop(null)}
         maxWidth="xs"
         fullWidth
-        PaperProps={{ sx: { borderRadius: '24px', p: 1 } }}
+        PaperProps={{
+          sx: {
+            borderRadius: '28px',
+            p: { xs: 1.5, sm: 2 },
+            bgcolor: '#FFFDF9',
+            boxShadow: '0 24px 48px -12px rgba(15, 23, 42, 0.25)',
+          },
+        }}
       >
         {qrModalShop && (
-          <Box sx={{ p: 2 }}>
-            {/* Printable Standee Card */}
-            <Box 
-              id="printable-merchant-qr-standee"
-              sx={{
-                p: 3,
-                borderRadius: '20px',
-                bgcolor: '#ffffff',
-                border: '2px solid #00B6E3',
-                boxShadow: '0 8px 30px rgba(0, 182, 227, 0.12)',
-                textAlign: 'center',
-                position: 'relative',
-              }}
-            >
-              {/* Brand Banner */}
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ 
-                  display: 'inline-block',
-                  bgcolor: '#00B6E3', 
-                  color: 'white', 
-                  px: 2, 
-                  py: 0.5, 
-                  borderRadius: '999px',
-                  fontSize: '0.75rem',
-                  fontWeight: 900,
-                  letterSpacing: 1,
-                  textTransform: 'uppercase',
-                  mb: 1
-                }}>
-                  TRIKONEKT • SCAN &amp; PAY
-                </Box>
-                <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>
-                  {qrModalShop.shop_name}
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, display: 'block' }}>
-                  {qrModalShop.address || qrModalShop.city} • PIN: {qrModalShop.pincode || '—'}
-                </Typography>
-              </Box>
-
-              {/* QR Code Container */}
-              <Box sx={{ 
-                p: 2, 
-                bgcolor: '#f8fafc', 
-                borderRadius: '16px', 
-                border: '1px solid #e2e8f0',
-                display: 'inline-block',
-                my: 1
-              }}>
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(`https://trikonekt.com/near-store/${qrModalShop.id}/pay`)}`}
-                  alt={`${qrModalShop.shop_name} Official QR`}
-                  style={{ width: 220, height: 220, display: 'block', borderRadius: 8 }}
-                />
-              </Box>
-
-              {/* Verification & Perks Badge */}
-              <Box sx={{ mt: 2, p: 1.5, bgcolor: '#FFF7ED', borderRadius: '12px', border: '1px solid #FED7AA' }}>
-                <Typography sx={{ color: '#EA580C', fontWeight: 800, fontSize: '0.78rem' }}>
-                  ✓ Verified Trikonekt Merchant Standee
-                </Typography>
-                <Typography sx={{ color: '#C2410C', fontSize: '0.7rem', fontWeight: 600, mt: 0.25 }}>
-                  Accepts UPI, Cards, Net Banking &amp; TRI Coins Cashback
-                </Typography>
-              </Box>
-
-              <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.68rem', display: 'block', mt: 2 }}>
-                Official Store ID: #{qrModalShop.id} • Scan with Tri Shopping or any UPI app
-              </Typography>
-            </Box>
-
-            {/* Action Buttons */}
-            <Stack direction="row" spacing={1.5} sx={{ mt: 2.5 }}>
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<PrintIcon />}
-                onClick={() => window.print()}
-                sx={{
-                  borderRadius: '12px',
-                  bgcolor: '#0f172a',
-                  fontWeight: 800,
-                  py: 1,
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#1e293b' }
-                }}
-              >
-                Print Standee
-              </Button>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => setQrModalShop(null)}
-                sx={{
-                  borderRadius: '12px',
-                  borderColor: '#e2e8f0',
-                  color: '#64748b',
-                  fontWeight: 800,
-                  py: 1,
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#f8fafc' }
-                }}
-              >
-                Close
-              </Button>
-            </Stack>
-          </Box>
+          <MerchantStandeeCard
+            shop={qrModalShop}
+            onClose={() => setQrModalShop(null)}
+            showActions={true}
+          />
         )}
       </Dialog>
 
