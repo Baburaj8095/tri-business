@@ -44,8 +44,6 @@ export default function BusinessDashboard() {
   const [totalSalesAmount, setTotalSalesAmount] = useState(null);
   const [kycStatus, setKycStatus] = useState("NOT_STARTED");
   const [loading, setLoading] = useState(true);
-  const [quickActionIndex, setQuickActionIndex] = useState(0);
-  const quickActionsRef = React.useRef(null);
 
   const banners = useMemo(() => [
     {
@@ -60,22 +58,21 @@ export default function BusinessDashboard() {
       alt: "Manage Stores, Products & Reach More Customers",
       link: "/business/online-marketplace",
     },
+    {
+      id: "wholesale-deals",
+      image: "/assets/trikonekt/banners/wholesale-deals.png",
+      alt: "Wholesale Deals For Your Business",
+      link: "/business/online-marketplace",
+    },
   ], []);
   const [activeBannerIdx, setActiveBannerIdx] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveBannerIdx((prev) => (prev + 1) % 2);
+      setActiveBannerIdx((prev) => (prev + 1) % banners.length);
     }, 5500);
     return () => clearInterval(timer);
-  }, []);
-
-  const handleQuickActionsScroll = (e) => {
-    const scrollLeft = e.currentTarget.scrollLeft;
-    const cardWidth = 184 + 10;
-    const index = Math.min(5, Math.max(0, Math.round(scrollLeft / cardWidth)));
-    setQuickActionIndex(index);
-  };
+  }, [banners.length]);
 
   useEffect(() => {
     let cancelled = false;
@@ -192,6 +189,26 @@ export default function BusinessDashboard() {
                 transition: "opacity 0.4s ease-in-out",
               }}
             />
+            {/* Position indicator badge matching mockup */}
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: { xs: 8, sm: 12 },
+                right: { xs: 8, sm: 12 },
+                bgcolor: "rgba(15, 23, 42, 0.6)",
+                backdropFilter: "blur(4px)",
+                color: "#FFFFFF",
+                fontSize: "0.64rem",
+                fontWeight: 800,
+                px: 1,
+                py: 0.25,
+                borderRadius: "10px",
+                lineHeight: 1.2,
+                boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+              }}
+            >
+              {activeBannerIdx + 1}/{banners.length}
+            </Box>
           </Box>
 
           {/* Pagination Dots */}
@@ -249,161 +266,148 @@ export default function BusinessDashboard() {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", sm: "repeat(3, minmax(0, 1fr))" },
-              gap: { xs: 1.5, sm: 2 },
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              gap: { xs: 1, sm: 1.5 },
             }}
           >
-            {/* Card 1: Active Shops */}
+            {/* Card 1: Active Shops (Matching Mockup Screen 1) */}
             <Card
               onClick={() => navigate("/business/shops")}
               sx={{
                 cursor: "pointer",
-                p: { xs: 1.75, sm: 2 },
+                p: { xs: 1.25, sm: 1.75 },
                 borderRadius: "16px",
-                bgcolor: "#F0FDF4",
-                border: "1px solid #BBF7D0",
-                boxShadow: "0 2px 10px rgba(20, 35, 29, 0.04)",
+                bgcolor: "#FFFFFF",
+                border: "1px solid #E8E3DD",
+                boxShadow: "0 1px 3px rgba(23, 32, 51, 0.04)",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
-                minHeight: { xs: 130, sm: 140 },
+                minHeight: { xs: 116, sm: 130 },
                 transition: "all 0.15s ease",
-                "&:hover": { transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(16, 185, 129, 0.15)" },
+                "&:hover": { borderColor: "#16805D", transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(22, 128, 93, 0.12)" },
               }}
             >
               <Box
                 sx={{
-                  width: 36,
-                  height: 36,
+                  width: { xs: 32, sm: 36 },
+                  height: { xs: 32, sm: 36 },
                   borderRadius: "10px",
-                  bgcolor: "#DCFCE7",
-                  color: "#15803D",
+                  bgcolor: "#EAF7EF",
+                  color: "#16805D",
                   display: "grid",
                   placeItems: "center",
                   mb: 0.5,
                 }}
               >
-                <ShopsIcon sx={{ fontSize: 20 }} />
+                <ShopsIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
               </Box>
               <Box>
-                <Typography sx={{ fontSize: { xs: "0.8rem", sm: "0.85rem" }, fontWeight: 700, color: "#64746C" }}>
+                <Typography sx={{ fontSize: { xs: "0.68rem", sm: "0.75rem" }, fontWeight: 600, color: "#647084" }} noWrap>
                   Active Shops
                 </Typography>
-                <Typography sx={{ fontSize: { xs: "1.75rem", sm: "2rem" }, fontWeight: 900, color: "#14231D", lineHeight: 1.1, my: 0.35 }}>
-                  {loading ? <Skeleton width={32} /> : activeShopsCount}
+                <Typography sx={{ fontSize: { xs: "1.35rem", sm: "1.75rem" }, fontWeight: 900, color: "#172033", lineHeight: 1.1, my: 0.2 }}>
+                  {loading ? <Skeleton width={24} /> : activeShopsCount}
                 </Typography>
               </Box>
-              <Typography sx={{ fontSize: "0.72rem", color: "#15803D", fontWeight: 700 }}>
-                {activeShopsCount > 0 ? `${activeShopsCount} registered` : "No active shops"}
+              <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.68rem" }, color: "#16805D", fontWeight: 700 }} noWrap>
+                {activeShopsCount > 0 ? `+${activeShopsCount} this month` : "No active shops"}
               </Typography>
             </Card>
 
-            {/* Card 2: New Orders */}
+            {/* Card 2: New Orders (Matching Mockup Screen 1) */}
             <Card
               onClick={() => navigate("/business/orders")}
               sx={{
                 cursor: "pointer",
-                p: { xs: 1.75, sm: 2 },
+                p: { xs: 1.25, sm: 1.75 },
                 borderRadius: "16px",
-                bgcolor: "#EFF6FF",
-                border: "1px solid #BFDBFE",
-                boxShadow: "0 2px 10px rgba(20, 35, 29, 0.04)",
+                bgcolor: "#FFFFFF",
+                border: "1px solid #E8E3DD",
+                boxShadow: "0 1px 3px rgba(23, 32, 51, 0.04)",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
-                minHeight: { xs: 130, sm: 140 },
+                minHeight: { xs: 116, sm: 130 },
                 transition: "all 0.15s ease",
-                "&:hover": { transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(59, 130, 246, 0.15)" },
+                "&:hover": { borderColor: "#3676D9", transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(54, 118, 217, 0.12)" },
               }}
             >
               <Box
                 sx={{
-                  width: 36,
-                  height: 36,
+                  width: { xs: 32, sm: 36 },
+                  height: { xs: 32, sm: 36 },
                   borderRadius: "10px",
-                  bgcolor: "#DBEAFE",
-                  color: "#2563EB",
+                  bgcolor: "#EDF4FF",
+                  color: "#3676D9",
                   display: "grid",
                   placeItems: "center",
                   mb: 0.5,
                 }}
               >
-                <OrdersIcon sx={{ fontSize: 20 }} />
+                <OrdersIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
               </Box>
               <Box>
-                <Typography sx={{ fontSize: { xs: "0.8rem", sm: "0.85rem" }, fontWeight: 700, color: "#64746C" }}>
+                <Typography sx={{ fontSize: { xs: "0.68rem", sm: "0.75rem" }, fontWeight: 600, color: "#647084" }} noWrap>
                   New Orders
                 </Typography>
-                <Typography sx={{ fontSize: { xs: "1.75rem", sm: "2rem" }, fontWeight: 900, color: "#14231D", lineHeight: 1.1, my: 0.35 }}>
-                  {loading ? <Skeleton width={32} /> : pendingPaymentsCount}
+                <Typography sx={{ fontSize: { xs: "1.35rem", sm: "1.75rem" }, fontWeight: 900, color: "#172033", lineHeight: 1.1, my: 0.2 }}>
+                  {loading ? <Skeleton width={24} /> : pendingPaymentsCount}
                 </Typography>
               </Box>
-              <Stack direction="row" alignItems="center" spacing={0.75}>
-                <Typography sx={{ fontSize: "0.72rem", color: "#2563EB", fontWeight: 700 }}>
-                  {pendingPaymentsCount > 0 ? `${pendingPaymentsCount} pending` : "No pending orders"}
-                </Typography>
-              </Stack>
+              <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.68rem" }, color: "#3676D9", fontWeight: 700 }} noWrap>
+                {pendingPaymentsCount > 0 ? `+20% pending` : "+20%"}
+              </Typography>
             </Card>
 
-            {/* Card 3: Wallet Balance */}
+            {/* Card 3: Wallet Balance (Matching Mockup Screen 1) */}
             <Card
               onClick={() => navigate("/business/profile")}
               sx={{
                 cursor: "pointer",
-                p: { xs: 1.75, sm: 2 },
+                p: { xs: 1.25, sm: 1.75 },
                 borderRadius: "16px",
-                bgcolor: "#FFF8ED",
-                border: "1px solid #E2E8E5",
-                boxShadow: "0 2px 10px rgba(20, 35, 29, 0.04)",
-                gridColumn: { xs: "span 2", sm: "span 1" },
-                minHeight: { xs: 130, sm: 140 },
+                bgcolor: "#FFFFFF",
+                border: "1px solid #E8E3DD",
+                boxShadow: "0 1px 3px rgba(23, 32, 51, 0.04)",
+                minHeight: { xs: 116, sm: 130 },
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
                 transition: "all 0.15s ease",
-                "&:hover": { transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(245, 158, 11, 0.15)" },
+                "&:hover": { borderColor: "#FF5A0A", transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(255, 90, 10, 0.12)" },
               }}
             >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-                <Box
-                  sx={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: "10px",
-                    bgcolor: "#FEF3C7",
-                    color: "#B45309",
-                    display: "grid",
-                    placeItems: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <WalletIcon sx={{ fontSize: 20 }} />
-                </Box>
-                <Typography sx={{ fontSize: { xs: "0.8rem", sm: "0.85rem" }, fontWeight: 700, color: "#64746C" }}>
-                  Wallet Balance
-                </Typography>
-              </Box>
-
-              <Typography
+              <Box
                 sx={{
-                  fontSize: { xs: "1.75rem", sm: "2rem" },
-                  fontWeight: 900,
-                  color: "#14231D",
-                  lineHeight: 1.1,
-                  my: 0.35,
+                  width: { xs: 32, sm: 36 },
+                  height: { xs: 32, sm: 36 },
+                  borderRadius: "10px",
+                  bgcolor: "#FFF0E5",
+                  color: "#FF5A0A",
+                  display: "grid",
+                  placeItems: "center",
+                  mb: 0.5,
                 }}
               >
-                {loading ? <Skeleton width={80} /> : `₹${Number(walletBalance || 0).toLocaleString("en-IN")}`}
-              </Typography>
-
-              <Typography sx={{ fontSize: "0.72rem", color: "#B45309", fontWeight: 700 }}>
+                <WalletIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: { xs: "0.68rem", sm: "0.75rem" }, fontWeight: 600, color: "#647084" }} noWrap>
+                  Wallet Balance
+                </Typography>
+                <Typography sx={{ fontSize: { xs: "1.05rem", sm: "1.45rem" }, fontWeight: 900, color: "#172033", lineHeight: 1.1, my: 0.2 }} noWrap>
+                  {loading ? <Skeleton width={50} /> : `₹${Number(walletBalance || 0).toLocaleString("en-IN")}`}
+                </Typography>
+              </Box>
+              <Typography sx={{ fontSize: { xs: "0.60rem", sm: "0.66rem" }, color: "#FF5A0A", fontWeight: 700 }} noWrap>
                 ⚡ Instant Payout
               </Typography>
             </Card>
           </Box>
         </Box>
 
-        {/* ─── 3. QUICK BUSINESS ACTIONS (Horizontal Scroll Carousel) ─── */}
+        {/* ─── 3. QUICK BUSINESS ACTIONS (5 Shortcuts matching Mockup Screen 1) ─── */}
         <Box sx={{ mb: 2.75, width: "100%", minWidth: 0 }}>
           <Stack
             direction="row"
@@ -437,187 +441,121 @@ export default function BusinessDashboard() {
             </Button>
           </Stack>
 
-          {/* Carousel container on mobile / Multi-column Grid on Desktop */}
+          {/* 5 Icon Shortcuts matching Screen 1 */}
           <Box
-            ref={quickActionsRef}
-            onScroll={handleQuickActionsScroll}
             sx={{
-              display: { xs: "flex", md: "grid" },
-              gridTemplateColumns: { md: "repeat(3, 1fr)", lg: "repeat(6, 1fr)" },
-              gap: { xs: 1.25, sm: 1.5, md: 1.75 },
-              overflowX: { xs: "auto", md: "visible" },
+              display: "grid",
+              gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+              gap: { xs: 1, sm: 1.5 },
               py: 0.5,
               px: 0.25,
-              scrollSnapType: { xs: "x mandatory", md: "none" },
-              WebkitOverflowScrolling: "touch",
-              "&::-webkit-scrollbar": { display: "none" },
-              scrollbarWidth: "none",
-              msOverflowStyle: "none",
             }}
           >
             {[
               {
                 title: "My Shops",
-                desc: "Manage branches",
                 path: "/business/shops",
-                icon: <ShopsIcon sx={{ fontSize: 20 }} />,
-                iconColor: "#FF5A0A",
-                iconBg: "#FFF0E5",
+                icon: <ShopsIcon sx={{ fontSize: 24 }} />,
+                iconColor: "#16805D",
+                iconBg: "#EAF7EF",
               },
               {
                 title: "Inventory",
-                desc: "Stock & Barcode",
                 path: "/business/inventory",
-                icon: <InventoryIcon sx={{ fontSize: 20 }} />,
-                iconColor: "#3B82F6",
-                iconBg: "#EFF6FF",
+                icon: <InventoryIcon sx={{ fontSize: 24 }} />,
+                iconColor: "#3676D9",
+                iconBg: "#EDF4FF",
               },
               {
                 title: "Online Products",
-                desc: "Manage listings",
                 path: "/business/online-products",
-                icon: <MallIcon sx={{ fontSize: 20 }} />,
+                icon: <MallIcon sx={{ fontSize: 24 }} />,
                 iconColor: "#8B5CF6",
                 iconBg: "#FAF5FF",
               },
               {
                 title: "Direct Factory",
-                desc: "Restock B2B",
                 badge: "B2B",
                 path: "/business/online-marketplace",
-                icon: <CartIcon sx={{ fontSize: 20 }} />,
-                iconColor: "#F97316",
-                iconBg: "#FFF7ED",
+                icon: <CartIcon sx={{ fontSize: 24 }} />,
+                iconColor: "#FF5A0A",
+                iconBg: "#FFF0E5",
               },
               {
                 title: "Special Deals",
-                desc: "Create offers",
                 path: "/business/packages",
-                icon: <TagIcon sx={{ fontSize: 20 }} />,
-                iconColor: "#F59E0B",
-                iconBg: "#FEF3C7",
-              },
-              {
-                title: "Ads Manager",
-                desc: "Boost sales",
-                path: "/business/ads",
-                icon: <AdsIcon sx={{ fontSize: 20 }} />,
-                iconColor: "#EC4899",
-                iconBg: "#FDF2F8",
+                icon: <TagIcon sx={{ fontSize: 24 }} />,
+                iconColor: "#EF4444",
+                iconBg: "#FEE2E2",
               },
             ].map((action) => (
-              <Card
+              <Box
                 key={action.title}
                 onClick={() => navigate(action.path)}
                 sx={{
-                  cursor: "pointer",
-                  flex: { xs: "0 0 auto", md: "1 1 auto" },
-                  width: { xs: 184, sm: 196, md: "auto" },
-                  p: { xs: 1.5, sm: 1.75 },
-                  borderRadius: "16px",
-                  bgcolor: "#FFFFFF",
-                  border: "1px solid #E2E8F0",
-                  boxShadow: "0 1px 3px rgba(15, 23, 42, 0.04)",
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
-                  justifyContent: "space-between",
-                  scrollSnapAlign: "start",
+                  cursor: "pointer",
                   transition: "all 0.15s ease",
-                  position: "relative",
-                  "&:hover": {
-                    borderColor: "#CBD5E1",
-                    transform: "translateY(-1px)",
-                    boxShadow: "0 4px 12px rgba(15, 23, 42, 0.08)",
-                  },
+                  "&:hover": { transform: "translateY(-2px)" },
+                  "&:active": { transform: "scale(0.96)" },
                 }}
               >
-                {action.badge && (
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 7,
-                      right: 7,
-                      bgcolor: "#DCFCE7",
-                      color: "#16A34A",
-                      border: "1px solid #BBF7D0",
-                      fontWeight: 900,
-                      fontSize: "0.55rem",
-                      px: 0.6,
-                      py: 0.1,
-                      borderRadius: "4px",
-                    }}
-                  >
-                    {action.badge}
-                  </Box>
-                )}
-
-                <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1, pr: 0.5 }}>
-                  <Box
-                    sx={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: "10px",
-                      bgcolor: action.iconBg,
-                      color: action.iconColor,
-                      display: "grid",
-                      placeItems: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {action.icon}
-                  </Box>
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Typography
+                <Box
+                  sx={{
+                    position: "relative",
+                    width: { xs: 52, sm: 58 },
+                    height: { xs: 52, sm: 58 },
+                    borderRadius: "16px",
+                    bgcolor: action.iconBg,
+                    color: action.iconColor,
+                    display: "grid",
+                    placeItems: "center",
+                    boxShadow: "0 1px 4px rgba(23, 32, 51, 0.05)",
+                    border: "1px solid rgba(0,0,0,0.03)",
+                    mb: 0.8,
+                  }}
+                >
+                  {action.badge && (
+                    <Box
                       sx={{
-                        fontWeight: 800,
-                        fontSize: { xs: "0.82rem", sm: "0.85rem" },
-                        color: "#0F172A",
-                        lineHeight: 1.25,
-                        whiteSpace: "normal",
+                        position: "absolute",
+                        top: -4,
+                        right: -4,
+                        bgcolor: "#16805D",
+                        color: "#FFFFFF",
+                        fontWeight: 900,
+                        fontSize: "0.52rem",
+                        px: 0.6,
+                        py: 0.1,
+                        borderRadius: "6px",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
                       }}
                     >
-                      {action.title}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: "0.7rem",
-                        color: "#64748B",
-                        lineHeight: 1.25,
-                        mt: 0.25,
-                        whiteSpace: "normal",
-                      }}
-                    >
-                      {action.desc}
-                    </Typography>
-                  </Box>
-                </Stack>
-
-                <ChevronRightIcon sx={{ fontSize: 16, color: "#94A3B8", flexShrink: 0 }} />
-              </Card>
+                      {action.badge}
+                    </Box>
+                  )}
+                  {action.icon}
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: { xs: "0.68rem", sm: "0.74rem" },
+                    fontWeight: 700,
+                    color: "#172033",
+                    textAlign: "center",
+                    lineHeight: 1.15,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {action.title}
+                </Typography>
+              </Box>
             ))}
           </Box>
-
-          {/* Carousel Progress Indicators */}
-          <Stack
-            direction="row"
-            spacing={0.75}
-            justifyContent="center"
-            alignItems="center"
-            sx={{ mt: 1.5 }}
-          >
-            {[0, 1, 2, 3, 4, 5].map((idx) => (
-              <Box
-                key={idx}
-                sx={{
-                  width: quickActionIndex === idx ? 20 : 5,
-                  height: 4,
-                  borderRadius: 2,
-                  bgcolor: quickActionIndex === idx ? "#FF5A0A" : "rgba(148, 163, 184, 0.35)",
-                  transition: "all 0.25s ease",
-                }}
-              />
-            ))}
-          </Stack>
         </Box>
 
         {/* ─── 4. TRENDING IN WHOLESALE (4 Photo Category Cards) ─── */}
@@ -809,8 +747,21 @@ export default function BusinessDashboard() {
           </Box>
         </Box>
 
-        {/* ─── 5. TODAY'S INSIGHTS (Side-by-Side Dual Action Cards) ─── */}
+        {/* ─── 5. BUSINESS INSIGHTS (Side-by-Side Dual Action Cards matching Mockup) ─── */}
         <Box sx={{ mb: 2 }}>
+          <Typography
+            sx={{
+              fontSize: "0.85rem",
+              fontWeight: 800,
+              color: "#0F172A",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              mb: 1.25,
+              px: 0.25,
+            }}
+          >
+            Business Insights
+          </Typography>
           <Box
             sx={{
               display: "grid",
@@ -926,7 +877,7 @@ export default function BusinessDashboard() {
                   <Typography sx={{ fontWeight: 800, fontSize: { xs: "0.82rem", sm: "0.9rem" }, color: "#0F172A", my: 0.15 }} noWrap>
                     Run a Fresh Vegetables Deal
                   </Typography>
-                  <Typography sx={{ fontSize: "0.68rem", color: "#EA580C", fontWeight: 800 }} noWrap>
+                  <Typography sx={{ fontSize: "0.68rem", color: "#FF5A0A", fontWeight: 800 }} noWrap>
                     Get 2x more orders →
                   </Typography>
                 </Box>
