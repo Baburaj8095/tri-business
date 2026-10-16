@@ -161,6 +161,51 @@ export default function CaptainMerchantDetailPage() {
         </Alert>
       )}
 
+      {/* ── Store Pending Verification Callout Banner ── */}
+      {merchant.status !== 'Active' && (
+        <Box sx={{
+          mx: 2,
+          mt: 1.5,
+          p: 1.75,
+          bgcolor: '#FFF7ED',
+          border: '1.5px solid #FFD8A8',
+          borderRadius: '16px',
+        }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Box>
+              <Typography sx={{ fontWeight: 900, fontSize: '0.86rem', color: '#C2410C' }}>
+                Store Awaiting Captain Verification
+              </Typography>
+              <Typography sx={{ fontSize: '0.72rem', color: '#64748B', mt: 0.25 }}>
+                Verify store address, contact number & category before activating counter QR & NearStore discovery.
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleApprove}
+              disabled={approving}
+              sx={{
+                bgcolor: '#16a34a',
+                color: '#ffffff',
+                fontWeight: 900,
+                fontSize: '0.74rem',
+                textTransform: 'none',
+                borderRadius: '8px',
+                px: 2,
+                py: 0.6,
+                flexShrink: 0,
+                ml: 1.5,
+                boxShadow: '0 2px 8px rgba(22, 163, 74, 0.25)',
+                '&:hover': { bgcolor: '#15803d' },
+              }}
+            >
+              {approving ? 'Activating...' : 'Approve Now'}
+            </Button>
+          </Stack>
+        </Box>
+      )}
+
       {/* ── Merchant Store Header Profile (Matches Mockup Screen 4) ── */}
       <Box sx={{ p: 2, bgcolor: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
         <Box sx={{ display: 'flex', gap: 1.8, alignItems: 'center' }}>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Box, Typography, TextField, Chip, IconButton, Badge,
-  Menu, MenuItem, Stack, CircularProgress, Alert, Button,
+  Menu, MenuItem, Stack, CircularProgress, Alert, Button, Snackbar,
 } from '@mui/material';
 import {
   Notifications as BellIcon,
@@ -18,7 +18,7 @@ import {
   Refresh as RefreshIcon,
   Add as AddIcon,
 } from '@mui/icons-material';
-import { getCaptainShops } from '../../api/api';
+import { getCaptainShops, approveCaptainShop } from '../../api/api';
 
 const FALLBACK_MERCHANTS = [
   {
@@ -50,6 +50,27 @@ export default function CaptainMerchantsPage() {
   const [merchants, setMerchants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [approvingId, setApprovingId] = useState(null);
+  const [successToast, setSuccessToast] = useState('');
+
+  const handleDirectApprove = async (shopId, shopName) => {
+    try {
+      setApprovingId(shopId);
+      await approveCaptainShop(shopId);
+      setMerchants(prev =>
+        prev.map(m =>
+          m.id === String(shopId)
+            ? { ...m, status: 'ACTIVE', kycVerified: true, qrActive: true }
+            : m
+        )
+      );
+      setSuccessToast(`✓ "${shopName}" verified & activated! QR Standee is now live.`);
+    } catch (err) {
+      setError(`Failed to approve ${shopName}: ${err.message}`);
+    } finally {
+      setApprovingId(null);
+    }
+  };
 
   const fetchShops = async () => {
     setLoading(true);
@@ -176,6 +197,26 @@ export default function CaptainMerchantsPage() {
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+            <Button
+              size="small"
+              startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+              onClick={() => navigate('/registration-wizard')}
+              sx={{
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                color: '#ffffff',
+                borderRadius: '999px',
+                px: 1.5,
+                py: 0.45,
+                fontSize: '0.72rem',
+                fontWeight: 800,
+                textTransform: 'none',
+                border: '1px solid rgba(255, 255, 255, 0.35)',
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.3)' },
+              }}
+            >
+              + Onboard Store
+            </Button>
+
             <IconButton
               size="small"
               onClick={fetchShops}
@@ -452,11 +493,11 @@ export default function CaptainMerchantsPage() {
                       </Typography>
 
                       <Chip
-                        label={merchant.status === 'ACTIVE' ? 'Active' : merchant.status === 'INACTIVE' ? 'Inactive' : 'Needs Attention'}
+                        label={merchant.status === 'ACTIVE' ? 'Active' : merchant.status === 'PENDING' ? 'Pending Approval' : merchant.status === 'INACTIVE' ? 'Inactive' : 'Needs Attention'}
                         size="small"
                         sx={{
-                          bgcolor: merchant.status === 'ACTIVE' ? '#dcfce7' : merchant.status === 'INACTIVE' ? '#fee2e2' : '#fef3c7',
-                          color: merchant.status === 'ACTIVE' ? '#15803d' : merchant.status === 'INACTIVE' ? '#b91c1c' : '#b45309',
+                          bgcolor: merchant.status === 'ACTIVE' ? '#dcfce7' : merchant.status === 'PENDING' ? '#fef3c7' : merchant.status === 'INACTIVE' ? '#fee2e2' : '#fef3c7',
+                          color: merchant.status === 'ACTIVE' ? '#15803d' : merchant.status === 'PENDING' ? '#b45309' : merchant.status === 'INACTIVE' ? '#b91c1c' : '#b45309',
                           fontWeight: 800,
                           fontSize: '0.68rem',
                           height: 20,
@@ -526,26 +567,56 @@ export default function CaptainMerchantsPage() {
                 </Box>
 
                 {/* Badges: KYC Verified + QR Active (Exact Match to Mockup) */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{
-                    display: 'inline-flex', alignItems: 'center', gap: 0.5,
-                    bgcolor: merchant.kycVerified ? '#dcfce7' : '#fef3c7',
-                    color: merchant.kycVerified ? '#15803d' : '#b45309',
-                    px: 1, py: 0.3, borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700,
-                  }}>
-                    {merchant.kycVerified ? <CheckCircleIcon sx={{ fontSize: 13 }} /> : <WarningIcon sx={{ fontSize: 13 }} />}
-                    {merchant.kycVerified ? 'KYC Verified' : 'KYC Pending'}
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{
+                      display: 'inline-flex', alignItems: 'center', gap: 0.5,
+                      bgcolor: merchant.kycVerified ? '#dcfce7' : '#fef3c7',
+                      color: merchant.kycVerified ? '#15803d' : '#b45309',
+                      px: 1, py: 0.3, borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700,
+                    }}>
+                      {merchant.kycVerified ? <CheckCircleIcon sx={{ fontSize: 13 }} /> : <WarningIcon sx={{ fontSize: 13 }} />}
+                      {merchant.kycVerified ? 'KYC Verified' : 'KYC Pending'}
+                    </Box>
+
+                    <Box sx={{
+                      display: 'inline-flex', alignItems: 'center', gap: 0.5,
+                      bgcolor: merchant.qrActive ? '#eff6ff' : '#fef2f2',
+                      color: merchant.qrActive ? '#1d4ed8' : '#b91c1c',
+                      px: 1, py: 0.3, borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700,
+                    }}>
+                      <QrIcon sx={{ fontSize: 13 }} />
+                      {merchant.qrActive ? 'QR Active' : 'QR Inactive'}
+                    </Box>
                   </Box>
 
-                  <Box sx={{
-                    display: 'inline-flex', alignItems: 'center', gap: 0.5,
-                    bgcolor: merchant.qrActive ? '#eff6ff' : '#fef2f2',
-                    color: merchant.qrActive ? '#1d4ed8' : '#b91c1c',
-                    px: 1, py: 0.3, borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700,
-                  }}>
-                    <QrIcon sx={{ fontSize: 13 }} />
-                    {merchant.qrActive ? 'QR Active' : 'QR Inactive'}
-                  </Box>
+                  {/* 1-Click Direct Approval Button on Card */}
+                  {merchant.status !== 'ACTIVE' && (
+                    <Button
+                      size="small"
+                      variant="contained"
+                      disabled={approvingId === merchant.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDirectApprove(merchant.id, merchant.name);
+                      }}
+                      startIcon={approvingId === merchant.id ? <CircularProgress size={12} sx={{ color: '#ffffff' }} /> : <CheckCircleIcon sx={{ fontSize: 14 }} />}
+                      sx={{
+                        bgcolor: '#16a34a',
+                        color: '#ffffff',
+                        fontWeight: 900,
+                        fontSize: '0.72rem',
+                        textTransform: 'none',
+                        borderRadius: '8px',
+                        px: 1.5,
+                        py: 0.4,
+                        boxShadow: '0 2px 6px rgba(22, 163, 74, 0.25)',
+                        '&:hover': { bgcolor: '#15803d' },
+                      }}
+                    >
+                      {approvingId === merchant.id ? 'Activating...' : 'Approve & Activate'}
+                    </Button>
+                  )}
                 </Box>
               </Box>
             ))}
@@ -553,6 +624,18 @@ export default function CaptainMerchantsPage() {
         )}
 
       </Box>
+
+      {/* ── Success Toast Notification ── */}
+      <Snackbar
+        open={Boolean(successToast)}
+        autoHideDuration={4000}
+        onClose={() => setSuccessToast('')}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" sx={{ width: '100%', fontWeight: 700, borderRadius: '12px' }}>
+          {successToast}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
