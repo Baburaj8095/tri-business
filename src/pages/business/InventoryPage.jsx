@@ -891,7 +891,19 @@ export default function InventoryPage() {
           </Stack>
 
           {/* Filter Dropdown Chips */}
-          <Stack direction="row" spacing={1.25} sx={{ mb: 2.5, overflowX: 'auto', pb: 0.5 }}>
+          <Stack
+            direction="row"
+            spacing={1.25}
+            className="no-scrollbar"
+            sx={{
+              mb: 2.5,
+              overflowX: 'auto',
+              pb: 0.5,
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              '&::-webkit-scrollbar': { display: 'none' },
+            }}
+          >
             {/* Status Filter */}
             <Chip
               label={`Status: ${filterStatus}`}

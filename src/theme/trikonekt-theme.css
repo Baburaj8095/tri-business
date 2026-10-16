@@ -316,3 +316,19 @@ html, body {
     gap: 14px !important;
   }
 }
+
+/* Universal Scrollbar Hiding for Pill bars and Carousels */
+.no-scrollbar,
+.tri-no-scrollbar,
+[data-no-scrollbar="true"] {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.no-scrollbar::-webkit-scrollbar,
+.tri-no-scrollbar::-webkit-scrollbar,
+[data-no-scrollbar="true"]::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+

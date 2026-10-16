@@ -586,28 +586,45 @@ export default function BusinessShops() {
               Store Management
             </Typography>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon sx={{ fontSize: 18 }} />}
-            onClick={() => navigate('/registration-wizard')}
-            sx={{
-              bgcolor: '#FF6B00',
-              color: '#ffffff',
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 600,
-              fontSize: '0.84rem',
-              minHeight: '40px',
-              px: { xs: 2, sm: 2.5 },
-              boxShadow: 'none',
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-              '&:hover': { bgcolor: '#E85D04' },
-              '&:active': { transform: 'scale(0.98)' }
-            }}
-          >
-            + Add Store
-          </Button>
+          {(!shops || shops.length === 0) ? (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon sx={{ fontSize: 18 }} />}
+              onClick={() => navigate('/registration-wizard')}
+              sx={{
+                bgcolor: '#FF5A0A',
+                color: '#ffffff',
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.84rem',
+                minHeight: '40px',
+                px: { xs: 2, sm: 2.5 },
+                boxShadow: 'none',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                '&:hover': { bgcolor: '#D94708' },
+                '&:active': { transform: 'scale(0.98)' }
+              }}
+            >
+              + Add Store
+            </Button>
+          ) : (
+            <Chip
+              label="1 Store Active"
+              size="small"
+              sx={{
+                bgcolor: '#EAF7EF',
+                color: '#16805D',
+                fontWeight: 700,
+                fontSize: '0.78rem',
+                borderRadius: '9999px',
+                border: '1px solid #BBF7D0',
+                height: 32,
+                px: 1,
+              }}
+            />
+          )}
         </Stack>
 
         {/* Notifications */}
@@ -1232,7 +1249,18 @@ export default function BusinessShops() {
             </Stack>
 
             {/* Filter Pills */}
-            <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 0.5 }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              className="no-scrollbar"
+              sx={{
+                overflowX: 'auto',
+                pb: 0.5,
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                '&::-webkit-scrollbar': { display: 'none' },
+              }}
+            >
               {[
                 { id: 'ALL', label: `All Stores (${shops.length})` },
                 { id: 'ONLINE', label: `Online Stores (${onlineCount})` },
@@ -1251,12 +1279,14 @@ export default function BusinessShops() {
                       px: 0.75,
                       borderRadius: '9999px',
                       cursor: 'pointer',
-                      bgcolor: isSelected ? '#064E3B' : '#ffffff',
-                      color: isSelected ? '#ffffff' : '#64746C',
-                      border: `1px solid ${isSelected ? '#064E3B' : '#E2E8E5'}`,
+                      bgcolor: isSelected ? '#FF5A0A' : '#ffffff',
+                      color: isSelected ? '#ffffff' : '#647084',
+                      border: `1px solid ${isSelected ? '#FF5A0A' : '#E8E3DD'}`,
                       boxShadow: 'none',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
                       '&:hover': {
-                        bgcolor: isSelected ? '#043C2E' : '#F8FAF9',
+                        bgcolor: isSelected ? '#D94708' : '#FFF9F4',
                       },
                     }}
                   />
@@ -1267,7 +1297,7 @@ export default function BusinessShops() {
 
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-              <CircularProgress color="success" />
+              <CircularProgress sx={{ color: '#FF5A0A' }} />
             </Box>
           ) : filteredShops.length === 0 ? (
             <Card
@@ -1275,7 +1305,7 @@ export default function BusinessShops() {
               sx={{
                 borderRadius: '24px',
                 bgcolor: '#ffffff',
-                border: '1px solid #e2e8f0',
+                border: '1px solid #E8E3DD',
                 p: { xs: 4, sm: 6 },
                 textAlign: 'center',
                 boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)',
@@ -1289,9 +1319,9 @@ export default function BusinessShops() {
                   width: 72,
                   height: 72,
                   borderRadius: '50%',
-                  bgcolor: '#EAF5F0',
-                  color: '#064E3B',
-                  border: '1px solid #BBF7D0',
+                  bgcolor: '#FFF0E5',
+                  color: '#FF5A0A',
+                  border: '1px solid #FFE0C7',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1301,33 +1331,35 @@ export default function BusinessShops() {
               >
                 <StoreIcon sx={{ fontSize: 36 }} />
               </Box>
-              <Typography sx={{ color: '#14231D', fontWeight: 700, fontSize: '1.2rem', mb: 1 }}>
+              <Typography sx={{ color: '#172033', fontWeight: 700, fontSize: '1.2rem', mb: 1 }}>
                 {shopSearch || modeFilter !== 'ALL' ? 'No Matching Stores' : 'No Stores Registered Yet'}
               </Typography>
-              <Typography sx={{ color: '#64746C', fontSize: '0.85rem', fontWeight: 400, lineHeight: 1.5, maxWidth: 360, mx: 'auto', mb: 3 }}>
+              <Typography sx={{ color: '#647084', fontSize: '0.85rem', fontWeight: 400, lineHeight: 1.5, maxWidth: 360, mx: 'auto', mb: 3 }}>
                 {shopSearch || modeFilter !== 'ALL'
-                  ? 'Try clearing your search query or switching filters to see all registered outlets.'
+                  ? 'Try clearing your search query or switching filters to see your registered outlet.'
                   : 'Register your retail storefront to start accepting online orders, manage inventory and reach more customers.'}
               </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => navigate('/registration-wizard')}
-                sx={{
-                  bgcolor: '#FF6B00',
-                  color: '#ffffff',
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  fontSize: '0.9rem',
-                  px: 3.5,
-                  py: 1.1,
-                  boxShadow: 'none',
-                  '&:hover': { bgcolor: '#E85D04' },
-                }}
-              >
-                Add Your First Store
-              </Button>
+              {shops.length === 0 && (
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => navigate('/registration-wizard')}
+                  sx={{
+                    bgcolor: '#FF5A0A',
+                    color: '#ffffff',
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    px: 3.5,
+                    py: 1.1,
+                    boxShadow: 'none',
+                    '&:hover': { bgcolor: '#D94708' },
+                  }}
+                >
+                  Add Your Store
+                </Button>
+              )}
             </Card>
           ) : (
             <Grid container spacing={3}>

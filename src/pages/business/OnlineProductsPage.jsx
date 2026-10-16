@@ -421,7 +421,18 @@ export default function OnlineProductsPage() {
 
         {/* 4. STATUS FILTER TABS (Screen 2: All Products, Active, Inactive, Out of Stock) */}
         <Box sx={{ mb: 2.5 }}>
-          <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 0.5 }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            className="no-scrollbar"
+            sx={{
+              overflowX: 'auto',
+              pb: 0.5,
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              '&::-webkit-scrollbar': { display: 'none' },
+            }}
+          >
             {[
               { id: 'ALL', label: `All Products (${products.length})` },
               { id: 'ACTIVE', label: `Active (${activeCount})` },
