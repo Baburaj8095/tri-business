@@ -111,43 +111,49 @@ export default function CaptainHome() {
   return (
     <Box sx={{ pb: 3 }}>
 
-      {/* ── Top Curved Orange Header ── */}
+      {/* ── Top Curved Orange Header (Exact Match to Mockup Screen 1) ── */}
       <Box sx={{
         background: 'linear-gradient(145deg, #431407 0%, #7c2d12 55%, #EA580C 100%)',
         color: '#ffffff',
         pt: 3,
-        pb: 3.5,
+        pb: 3,
         px: 2.5,
         borderBottomLeftRadius: '28px',
         borderBottomRightRadius: '28px',
         boxShadow: '0 8px 24px rgba(234, 88, 12, 0.25)',
+        position: 'relative',
+        overflow: 'hidden',
       }}>
-        {/* Row 1: Avatar, Greeting, Name, Badges & Header Action Icons */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        {/* Subtle Storefront outline graphic in header background (Mockup Screen 1) */}
+        <Box sx={{
+          position: 'absolute', right: 10, bottom: 5, opacity: 0.15, pointerEvents: 'none',
+        }}>
+          <StoreIcon sx={{ fontSize: 90, color: '#ffffff' }} />
+        </Box>
+
+        {/* Row 1: Avatar, Greeting "Hi, Tri Captain", Gold Tier badge, PIN & Bell */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.8, position: 'relative', zIndex: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            {/* Avatar Circle with initial */}
+            {/* Avatar Circle with initial "T" */}
             <Box sx={{
-              width: 46,
-              height: 46,
+              width: 48,
+              height: 48,
               borderRadius: '50%',
               bgcolor: 'rgba(255, 255, 255, 0.18)',
               border: '2px solid rgba(255, 255, 255, 0.4)',
               display: 'grid',
               placeItems: 'center',
               fontWeight: 900,
-              fontSize: '1.25rem',
+              fontSize: '1.3rem',
               color: '#ffffff',
             }}>
-              {(captainName || 'B').charAt(0).toUpperCase()}
+              {(captainName || 'T').charAt(0).toUpperCase()}
             </Box>
 
             <Box>
-              <Typography sx={{ fontSize: '0.74rem', color: 'rgba(255, 255, 255, 0.8)', fontWeight: 600 }}>
-                Good Morning
-              </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                 <Typography sx={{ fontWeight: 900, fontSize: '1.15rem', color: '#ffffff', letterSpacing: '-0.02em' }}>
-                  {captainName}
+                  Hi, {captainName || 'Tri Captain'}
                 </Typography>
                 <Chip
                   label="⭐ Gold Tier"
@@ -162,56 +168,48 @@ export default function CaptainHome() {
                   }}
                 />
               </Box>
-              <Typography sx={{ fontSize: '0.72rem', color: 'rgba(255, 255, 255, 0.75)', fontWeight: 600, fontFamily: 'monospace' }}>
-                Captain ID: {captainId}
-              </Typography>
+
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, mt: 0.2, color: 'rgba(255, 255, 255, 0.9)' }}>
+                <LocationIcon sx={{ fontSize: 14, color: '#fef08a' }} />
+                <Typography sx={{ fontSize: '0.74rem', fontWeight: 600 }}>
+                  PIN: {stats.pincode || '560073'}
+                </Typography>
+              </Box>
             </Box>
           </Box>
 
-          {/* Right Notification & Chat Icons */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-            <IconButton
-              size="small"
-              onClick={fetchLiveHomeData}
-              disabled={loading}
-              title="Refresh Dashboard"
-              sx={{ color: '#ffffff', bgcolor: 'rgba(255, 255, 255, 0.15)', p: 0.8 }}
-            >
-              <RefreshIcon sx={{ fontSize: 20 }} />
-            </IconButton>
-
-            <IconButton
-              size="small"
-              sx={{ color: '#ffffff', bgcolor: 'rgba(255, 255, 255, 0.15)', p: 0.8 }}
-            >
-              <Badge color="error" variant="dot">
-                <BellIcon sx={{ fontSize: 20 }} />
-              </Badge>
-            </IconButton>
-
-            <IconButton
-              size="small"
-              sx={{ color: '#ffffff', bgcolor: 'rgba(255, 255, 255, 0.15)', p: 0.8 }}
-            >
-              <ChatIcon sx={{ fontSize: 20 }} />
-            </IconButton>
-          </Box>
+          {/* Right Notification Bell Icon (Single frosted button like Mockup Screen 1) */}
+          <IconButton
+            size="small"
+            sx={{
+              color: '#ffffff',
+              bgcolor: 'rgba(255, 255, 255, 0.16)',
+              p: 1,
+              borderRadius: '50%',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <Badge color="error" variant="dot">
+              <BellIcon sx={{ fontSize: 20 }} />
+            </Badge>
+          </IconButton>
         </Box>
 
-        {/* Row 2: Online Status Pill & Location */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 0.5 }}>
+        {/* Row 2: Online Status Pill + Receiving Tasks Pill side-by-side (Mockup Screen 1) */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', zIndex: 1 }}>
           <Box
             onClick={(e) => setStatusAnchor(e.currentTarget)}
             sx={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 0.8,
-              bgcolor: 'rgba(255, 255, 255, 0.15)',
+              bgcolor: 'rgba(255, 255, 255, 0.16)',
               px: 1.4,
               py: 0.5,
               borderRadius: '20px',
               cursor: 'pointer',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
             }}
           >
             <Box sx={{
@@ -221,6 +219,26 @@ export default function CaptainHome() {
             }} />
             <Typography sx={{ fontSize: '0.76rem', fontWeight: 800, color: '#ffffff' }}>
               {isOnline ? 'Online' : 'Offline'}
+            </Typography>
+          </Box>
+
+          <Box
+            onClick={(e) => setStatusAnchor(e.currentTarget)}
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.6,
+              bgcolor: 'rgba(255, 255, 255, 0.16)',
+              px: 1.4,
+              py: 0.5,
+              borderRadius: '20px',
+              cursor: 'pointer',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+            }}
+          >
+            <Box sx={{ width: 6, height: 6, bgcolor: '#f97316', transform: 'rotate(45deg)' }} />
+            <Typography sx={{ fontSize: '0.76rem', fontWeight: 700, color: '#ffffff' }}>
+              Receiving Tasks ⌵
             </Typography>
           </Box>
 
@@ -236,14 +254,6 @@ export default function CaptainHome() {
               🔴 Offline
             </MenuItem>
           </Menu>
-
-          {/* Location */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'rgba(255, 255, 255, 0.9)' }}>
-            <LocationIcon sx={{ fontSize: 16 }} />
-            <Typography sx={{ fontSize: '0.76rem', fontWeight: 600 }}>
-              {locationName} ⌵
-            </Typography>
-          </Box>
         </Box>
       </Box>
 
@@ -298,6 +308,7 @@ export default function CaptainHome() {
               </Button>
               <Button
                 onClick={() => navigate('/captain/analytics')}
+                startIcon={<TrendUpIcon sx={{ fontSize: 16 }} />}
                 endIcon={<ArrowForwardIcon sx={{ fontSize: 15 }} />}
                 sx={{
                   bgcolor: 'rgba(255, 255, 255, 0.2)',
@@ -306,13 +317,13 @@ export default function CaptainHome() {
                   fontSize: '0.76rem',
                   textTransform: 'none',
                   borderRadius: '10px',
-                  px: 1.5,
+                  px: 1.6,
                   py: 0.7,
                   border: '1px solid rgba(255, 255, 255, 0.4)',
                   '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.3)' },
                 }}
               >
-                Analytics
+                View Analytics
               </Button>
             </Stack>
           </Box>
@@ -344,7 +355,7 @@ export default function CaptainHome() {
             {
               title: 'Total Orders',
               val: String(stats.todayOrders),
-              badge: 'Territory',
+              badge: 'This Month',
               badgeColor: '#2563eb',
               badgeBg: '#eff6ff',
               icon: <CartIcon sx={{ fontSize: 20, color: '#2563eb' }} />,

@@ -105,7 +105,7 @@ export default function CaptainLayout() {
       flexDirection: 'column',
       minHeight: '100vh',
       bgcolor: '#f8fafc',
-      pb: '76px', // space for bottom nav
+      pb: '100px', // generous space for bottom nav dock and floating FAB
     }}>
       {/* ── Main Dynamic Screen Canvas ── */}
       <Box component="main" sx={{ flexGrow: 1, width: '100%', maxWidth: '520px', mx: 'auto' }}>
