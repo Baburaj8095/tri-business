@@ -48,19 +48,19 @@ export default function BusinessDashboard() {
   const banners = useMemo(() => [
     {
       id: "grow-business",
-      image: "/assets/trikonekt/banners/grow-your-business.png",
+      image: "/assets/trikonekt/banners/grow-your-business-hd.png",
       alt: "Grow Your Business with Trikonekt Business",
       link: "/business/packages",
     },
     {
       id: "factory-direct",
-      image: "/assets/trikonekt/banners/direct-from-factory.png",
+      image: "/assets/trikonekt/banners/direct-from-factory-hd.png",
       alt: "Manage Stores, Products & Reach More Customers",
       link: "/business/online-marketplace",
     },
     {
       id: "wholesale-deals",
-      image: "/assets/trikonekt/banners/wholesale-deals.png",
+      image: "/assets/trikonekt/banners/wholesale-deals-hd.png",
       alt: "Wholesale Deals For Your Business",
       link: "/business/online-marketplace",
     },
@@ -184,9 +184,12 @@ export default function BusinessDashboard() {
               sx={{
                 width: "100%",
                 height: "100%",
-                objectFit: "contain",
+                objectFit: "cover",
                 display: "block",
                 transition: "opacity 0.4s ease-in-out",
+                imageRendering: "-webkit-optimize-contrast",
+                WebkitBackfaceVisibility: "hidden",
+                transform: "translateZ(0)",
               }}
             />
             {/* Position indicator badge matching mockup */}
@@ -593,10 +596,17 @@ export default function BusinessDashboard() {
           </Stack>
 
           <Box
+            className="no-scrollbar"
             sx={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-              gap: { xs: 1, sm: 1.5 },
+              display: "flex",
+              overflowX: "auto",
+              gap: { xs: 1.25, sm: 1.75 },
+              pb: 1,
+              pt: 0.25,
+              px: 0.25,
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              "&::-webkit-scrollbar": { display: "none" },
             }}
           >
             {[
@@ -632,29 +642,50 @@ export default function BusinessDashboard() {
                 img: "/assets/categories/cat_snacks_drinks.png",
                 fallback: "🥤",
               },
+              {
+                title: "Cooking Oil & Ghee",
+                tag: "Bulk Kitchen",
+                bg: "#FFF7ED",
+                border: "#FED7AA",
+                img: "/assets/trikonekt/products/cooking-oil-reference.jpg",
+                fallback: "🍳",
+              },
+              {
+                title: "Spices & Masala",
+                tag: "Authentic Brands",
+                bg: "#FEF2F2",
+                border: "#FECACA",
+                img: "/assets/trikonekt/products/spices-reference.jpg",
+                fallback: "🌶️",
+              },
             ].map((cat) => (
               <Card
                 key={cat.title}
                 onClick={() => navigate("/business/online-marketplace")}
                 sx={{
                   cursor: "pointer",
-                  p: { xs: 1, sm: 1.5 },
+                  p: { xs: 1.25, sm: 1.5 },
                   borderRadius: "16px",
                   bgcolor: cat.bg,
                   border: `1px solid ${cat.border}`,
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "space-between",
-                  minHeight: { xs: 154, sm: 176 },
+                  minHeight: { xs: 158, sm: 174 },
+                  width: { xs: 136, sm: 154 },
+                  minWidth: { xs: 136, sm: 154 },
+                  maxWidth: { xs: 146, sm: 164 },
+                  flexShrink: 0,
                   transition: "all 0.15s ease",
-                  "&:hover": { transform: "translateY(-1px)", boxShadow: "0 4px 12px rgba(15, 23, 42, 0.08)" },
+                  "&:hover": { transform: "translateY(-2px)", boxShadow: "0 6px 16px rgba(15, 23, 42, 0.08)" },
+                  "&:active": { transform: "scale(0.98)" },
                 }}
               >
                 {/* Product Photo Box with contain mode & shadow */}
                 <Box
                   sx={{
                     width: "100%",
-                    height: { xs: 66, sm: 84 },
+                    height: { xs: 72, sm: 84 },
                     borderRadius: "10px",
                     overflow: "hidden",
                     display: "flex",
@@ -681,11 +712,11 @@ export default function BusinessDashboard() {
                 </Box>
 
                 {/* Title with consistent 2-line clamp and spacing */}
-                <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Box sx={{ flex: 1, minWidth: 0, mb: 0.5 }}>
                   <Typography
                     sx={{
                       fontWeight: 800,
-                      fontSize: { xs: "0.72rem", sm: "0.8rem" },
+                      fontSize: { xs: "0.76rem", sm: "0.82rem" },
                       color: "#0F172A",
                       lineHeight: 1.25,
                       minHeight: { xs: "2.5em", sm: "2.5em" },
@@ -694,7 +725,6 @@ export default function BusinessDashboard() {
                       WebkitBoxOrient: "vertical",
                       overflow: "hidden",
                       wordBreak: "break-word",
-                      mb: 0.25,
                     }}
                   >
                     {cat.title}
@@ -709,18 +739,16 @@ export default function BusinessDashboard() {
                     justifyContent: "space-between",
                     gap: 0.5,
                     mt: "auto",
-                    pt: 0.25,
+                    pt: 0.5,
                   }}
                 >
                   <Typography
                     sx={{
-                      fontSize: { xs: "0.6rem", sm: "0.68rem" },
+                      fontSize: { xs: "0.64rem", sm: "0.70rem" },
                       color: "#64748B",
                       lineHeight: 1.2,
                       fontWeight: 600,
                       minWidth: 0,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
                     }}
                   >
