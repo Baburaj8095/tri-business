@@ -111,26 +111,27 @@ export default function CaptainHome() {
   return (
     <Box sx={{ pb: 3 }}>
 
-      {/* ── Top Curved Orange Header (Exact Match to Mockup Screen 1) ── */}
-      <Box sx={{
-        background: 'linear-gradient(145deg, #431407 0%, #7c2d12 55%, #EA580C 100%)',
-        color: '#ffffff',
-        pt: 3,
-        pb: 3,
-        px: 2.5,
-        borderBottomLeftRadius: '28px',
-        borderBottomRightRadius: '28px',
-        boxShadow: '0 8px 24px rgba(234, 88, 12, 0.25)',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        {/* Subtle Storefront outline graphic in header background (Mockup Screen 1) */}
-        <Box sx={{
-          position: 'absolute', right: 10, bottom: 5, opacity: 0.15, pointerEvents: 'none',
-        }}>
-          <StoreIcon sx={{ fontSize: 90, color: '#ffffff' }} />
-        </Box>
-
+      {/* ── Top Curved Light Illustrated Hero Card (Exact Match to Mockup) ── */}
+      <Box
+        className="captain-header"
+        sx={{
+          position: 'relative',
+          overflow: 'hidden',
+          isolation: 'isolate',
+          bgcolor: '#FFF8F0',
+          backgroundImage: `linear-gradient(90deg, rgba(255, 248, 240, 0.98) 0%, rgba(255, 248, 240, 0.88) 50%, rgba(255, 248, 240, 0.15) 85%), url(${process.env.PUBLIC_URL || ''}/assets/captain-header-background.png)`,
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: { xs: 'right 25% top', sm: 'right top' },
+          backgroundSize: 'cover',
+          borderBottomLeftRadius: '32px',
+          borderBottomRightRadius: '32px',
+          boxShadow: '0 8px 24px rgba(234, 88, 12, 0.08)',
+          pt: 3,
+          pb: 3,
+          px: 2.5,
+          mb: 1.5,
+        }}
+      >
         {/* Row 1: Avatar, Greeting "Hi, Tri Captain", Gold Tier badge, PIN & Bell */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.8, position: 'relative', zIndex: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -139,55 +140,57 @@ export default function CaptainHome() {
               width: 48,
               height: 48,
               borderRadius: '50%',
-              bgcolor: 'rgba(255, 255, 255, 0.18)',
-              border: '2px solid rgba(255, 255, 255, 0.4)',
+              bgcolor: '#431407',
+              border: '2px solid rgba(255, 255, 255, 0.85)',
               display: 'grid',
               placeItems: 'center',
               fontWeight: 900,
               fontSize: '1.3rem',
               color: '#ffffff',
+              boxShadow: '0 2px 8px rgba(67, 20, 7, 0.25)',
             }}>
               {(captainName || 'T').charAt(0).toUpperCase()}
             </Box>
 
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                <Typography sx={{ fontWeight: 900, fontSize: '1.15rem', color: '#ffffff', letterSpacing: '-0.02em' }}>
+                <Typography sx={{ fontWeight: 900, fontSize: '1.18rem', color: '#172033', letterSpacing: '-0.02em' }}>
                   Hi, {captainName || 'Tri Captain'}
                 </Typography>
                 <Chip
                   label="⭐ Gold Tier"
                   size="small"
                   sx={{
-                    bgcolor: 'rgba(253, 224, 71, 0.22)',
-                    color: '#fef08a',
+                    bgcolor: '#FEF08A',
+                    color: '#854D0E',
                     fontWeight: 800,
                     fontSize: '0.68rem',
                     height: 20,
-                    border: '1px solid rgba(253, 224, 71, 0.4)',
+                    border: '1px solid #FDE047',
                   }}
                 />
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, mt: 0.2, color: 'rgba(255, 255, 255, 0.9)' }}>
-                <LocationIcon sx={{ fontSize: 14, color: '#fef08a' }} />
-                <Typography sx={{ fontSize: '0.74rem', fontWeight: 600 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, mt: 0.2 }}>
+                <LocationIcon sx={{ fontSize: 15, color: '#EA580C' }} />
+                <Typography sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#172033' }}>
                   PIN: {stats.pincode || '560073'}
                 </Typography>
               </Box>
             </Box>
           </Box>
 
-          {/* Right Notification Bell Icon (Single frosted button like Mockup Screen 1) */}
+          {/* Right Notification Bell Icon (White circular button) */}
           <IconButton
             size="small"
             sx={{
-              color: '#ffffff',
-              bgcolor: 'rgba(255, 255, 255, 0.16)',
+              color: '#EA580C',
+              bgcolor: '#ffffff',
               p: 1,
               borderRadius: '50%',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              border: '1px solid rgba(0, 0, 0, 0.06)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+              '&:hover': { bgcolor: '#FFF7ED' },
             }}
           >
             <Badge color="error" variant="dot">
@@ -196,28 +199,31 @@ export default function CaptainHome() {
           </IconButton>
         </Box>
 
-        {/* Row 2: Online Status Pill + Receiving Tasks Pill side-by-side (Mockup Screen 1) */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', zIndex: 1 }}>
+        {/* Row 2: Online Status Pill + Receiving Tasks Pill side-by-side */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', zIndex: 1, mb: 2.2 }}>
           <Box
             onClick={(e) => setStatusAnchor(e.currentTarget)}
             sx={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 0.8,
-              bgcolor: 'rgba(255, 255, 255, 0.16)',
+              bgcolor: '#ffffff',
               px: 1.4,
               py: 0.5,
               borderRadius: '20px',
               cursor: 'pointer',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
+              transition: 'all 0.15s ease',
+              '&:hover': { bgcolor: '#FFF7ED' },
             }}
           >
             <Box sx={{
               width: 8, height: 8, borderRadius: '50%',
-              bgcolor: isOnline ? '#4ade80' : '#f87171',
-              boxShadow: isOnline ? '0 0 8px #4ade80' : 'none',
+              bgcolor: isOnline ? '#22c55e' : '#f87171',
+              boxShadow: isOnline ? '0 0 6px #22c55e' : 'none',
             }} />
-            <Typography sx={{ fontSize: '0.76rem', fontWeight: 800, color: '#ffffff' }}>
+            <Typography sx={{ fontSize: '0.76rem', fontWeight: 800, color: '#172033' }}>
               {isOnline ? 'Online' : 'Offline'}
             </Typography>
           </Box>
@@ -228,16 +234,19 @@ export default function CaptainHome() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 0.6,
-              bgcolor: 'rgba(255, 255, 255, 0.16)',
+              bgcolor: '#ffffff',
               px: 1.4,
               py: 0.5,
               borderRadius: '20px',
               cursor: 'pointer',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
+              transition: 'all 0.15s ease',
+              '&:hover': { bgcolor: '#FFF7ED' },
             }}
           >
-            <Box sx={{ width: 6, height: 6, bgcolor: '#f97316', transform: 'rotate(45deg)' }} />
-            <Typography sx={{ fontSize: '0.76rem', fontWeight: 700, color: '#ffffff' }}>
+            <Box sx={{ width: 6, height: 6, bgcolor: '#EA580C', transform: 'rotate(45deg)' }} />
+            <Typography sx={{ fontSize: '0.76rem', fontWeight: 700, color: '#172033' }}>
               Receiving Tasks ⌵
             </Typography>
           </Box>
@@ -255,79 +264,60 @@ export default function CaptainHome() {
             </MenuItem>
           </Menu>
         </Box>
+
+        {/* Row 3: "Grow Your Network" Section (Integrated seamlessly) */}
+        <Box sx={{ position: 'relative', zIndex: 1, maxWidth: { xs: '72%', sm: '64%' } }}>
+          <Typography sx={{ fontWeight: 900, fontSize: '1.22rem', color: '#9A3412', mb: 0.4 }}>
+            Grow Your Network
+          </Typography>
+          <Typography sx={{ fontSize: '0.76rem', color: '#475569', lineHeight: 1.45, mb: 1.8, fontWeight: 500 }}>
+            Share your Captain Sponsor Link to onboard merchants instantly. Your referral code is pre-filled.
+          </Typography>
+          <Stack direction="row" spacing={1.2}>
+            <Button
+              onClick={() => setReferralOpen(true)}
+              startIcon={<ShareIcon sx={{ fontSize: 16 }} />}
+              sx={{
+                bgcolor: '#EA580C',
+                color: '#ffffff',
+                fontWeight: 900,
+                fontSize: '0.78rem',
+                textTransform: 'none',
+                borderRadius: '12px',
+                px: 2,
+                py: 0.8,
+                boxShadow: '0 4px 14px rgba(234, 88, 12, 0.35)',
+                '&:hover': { bgcolor: '#C2410C' },
+              }}
+            >
+              Refer Merchant
+            </Button>
+            <Button
+              onClick={() => navigate('/captain/analytics')}
+              startIcon={<TrendUpIcon sx={{ fontSize: 16, color: '#EA580C' }} />}
+              sx={{
+                bgcolor: 'rgba(255, 255, 255, 0.9)',
+                color: '#EA580C',
+                fontWeight: 800,
+                fontSize: '0.76rem',
+                textTransform: 'none',
+                borderRadius: '12px',
+                px: 1.8,
+                py: 0.8,
+                border: '1.5px solid #FED7AA',
+                backdropFilter: 'blur(4px)',
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+                '&:hover': { bgcolor: '#ffffff', borderColor: '#FDBA74' },
+              }}
+            >
+              View Analytics
+            </Button>
+          </Stack>
+        </Box>
       </Box>
 
       {/* ── Page Content Container ── */}
-      <Box sx={{ px: 2, mt: 2.5 }}>
-
-        {/* ── Banner: Grow Your Network (Exact Match to Mockup Screen 1) ── */}
-        <Box sx={{
-          background: 'linear-gradient(135deg, #FF7A00 0%, #EA580C 100%)',
-          borderRadius: '20px',
-          p: 2.5,
-          color: '#ffffff',
-          position: 'relative',
-          overflow: 'hidden',
-          boxShadow: '0 8px 24px rgba(234, 88, 12, 0.25)',
-          mb: 3,
-        }}>
-          {/* Subtle line chart background decoration */}
-          <Box sx={{
-            position: 'absolute', right: -10, top: 0, bottom: 0, width: '45%',
-            opacity: 0.25, pointerEvents: 'none',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <TrendUpIcon sx={{ fontSize: 120, color: '#ffffff' }} />
-          </Box>
-
-          <Box sx={{ position: 'relative', zIndex: 1, maxWidth: { xs: '85%', sm: '75%' } }}>
-            <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', mb: 0.4 }}>
-              Grow Your Network
-            </Typography>
-            <Typography sx={{ fontSize: '0.76rem', color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.45, mb: 1.8, fontWeight: 500 }}>
-              Share your Captain Sponsor Link to onboard merchants instantly. Your referral code is pre-filled.
-            </Typography>
-            <Stack direction="row" spacing={1}>
-              <Button
-                onClick={() => setReferralOpen(true)}
-                startIcon={<ShareIcon sx={{ fontSize: 16 }} />}
-                sx={{
-                  bgcolor: '#ffffff',
-                  color: '#EA580C',
-                  fontWeight: 900,
-                  fontSize: '0.78rem',
-                  textTransform: 'none',
-                  borderRadius: '10px',
-                  px: 2,
-                  py: 0.7,
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
-                  '&:hover': { bgcolor: '#FFF7ED' },
-                }}
-              >
-                Refer Merchant
-              </Button>
-              <Button
-                onClick={() => navigate('/captain/analytics')}
-                startIcon={<TrendUpIcon sx={{ fontSize: 16 }} />}
-                endIcon={<ArrowForwardIcon sx={{ fontSize: 15 }} />}
-                sx={{
-                  bgcolor: 'rgba(255, 255, 255, 0.2)',
-                  color: '#ffffff',
-                  fontWeight: 800,
-                  fontSize: '0.76rem',
-                  textTransform: 'none',
-                  borderRadius: '10px',
-                  px: 1.6,
-                  py: 0.7,
-                  border: '1px solid rgba(255, 255, 255, 0.4)',
-                  '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.3)' },
-                }}
-              >
-                View Analytics
-              </Button>
-            </Stack>
-          </Box>
-        </Box>
+      <Box sx={{ px: 2, mt: 1 }}>
 
         {/* ── 6 Metric Cards (Live Real Data: 100% Equal Size CSS Grid) ── */}
         <Box sx={{
