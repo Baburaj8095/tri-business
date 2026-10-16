@@ -27,6 +27,7 @@ import CaptainMerchantDetailPage from './pages/captain/CaptainMerchantDetailPage
 import CaptainAnalyticsPage from './pages/captain/CaptainAnalyticsPage';
 import CaptainDailyBusinessPage from './pages/captain/CaptainDailyBusinessPage';
 import CaptainDeliveryIssuesPage from './pages/captain/CaptainDeliveryIssuesPage';
+import CaptainScannerPage from './pages/captain/CaptainScannerPage';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -112,6 +113,7 @@ function App() {
           <Route path="merchants" element={<CaptainMerchantsPage />} />
           <Route path="merchant/:id" element={<CaptainMerchantDetailPage />} />
           <Route path="analytics" element={<CaptainAnalyticsPage />} />
+          <Route path="scanner" element={<CaptainScannerPage />} />
           <Route path="daily-business" element={<CaptainDailyBusinessPage />} />
           <Route path="delivery-issues" element={<CaptainDeliveryIssuesPage />} />
         </Route>

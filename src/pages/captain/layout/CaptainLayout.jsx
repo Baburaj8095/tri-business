@@ -178,7 +178,7 @@ export default function CaptainLayout() {
           {/* Tab 3: Scanner (Floating Orange Circle in Center) */}
           <Box sx={{ position: 'relative', flex: 1, display: 'flex', justifyContent: 'center' }}>
             <Box
-              onClick={() => navigate('/scanner')}
+              onClick={() => navigate('/captain/scanner')}
               sx={{
                 width: 52,
                 height: 52,
@@ -200,8 +200,8 @@ export default function CaptainLayout() {
             </Box>
             <Typography sx={{
               fontSize: '0.7rem',
-              fontWeight: 600,
-              color: '#94a3b8',
+              fontWeight: activeTab === 'scanner' ? 800 : 600,
+              color: activeTab === 'scanner' ? '#EA580C' : '#94a3b8',
               mt: 3.8,
             }}>
               Scanner
