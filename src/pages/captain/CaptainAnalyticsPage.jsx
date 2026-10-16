@@ -20,16 +20,16 @@ export default function CaptainAnalyticsPage() {
   return (
     <Box sx={{ pb: 3 }}>
 
-      {/* ── Top Header Bar (Matches Mockup Screen 3) ── */}
+      {/* ── Top Curved Orange Header (Matches CaptainHome) ── */}
       <Box sx={{
-        background: 'linear-gradient(145deg, #022c22 0%, #064e3b 55%, #047857 100%)',
+        background: 'linear-gradient(145deg, #431407 0%, #7c2d12 55%, #EA580C 100%)',
         color: '#ffffff',
         pt: 3,
         pb: 2.8,
         px: 2.5,
         borderBottomLeftRadius: '28px',
         borderBottomRightRadius: '28px',
-        boxShadow: '0 8px 24px rgba(2, 44, 34, 0.25)',
+        boxShadow: '0 8px 24px rgba(234, 88, 12, 0.25)',
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -79,7 +79,7 @@ export default function CaptainAnalyticsPage() {
                 sx={{
                   px: 1.1, py: 0.4, borderRadius: '8px', cursor: 'pointer',
                   fontSize: '0.72rem', fontWeight: timeRange === t ? 800 : 600,
-                  bgcolor: timeRange === t ? '#047857' : 'transparent',
+                  bgcolor: timeRange === t ? '#EA580C' : 'transparent',
                   color: timeRange === t ? '#ffffff' : '#64748b',
                   transition: 'all 0.15s ease',
                 }}
@@ -178,14 +178,14 @@ export default function CaptainAnalyticsPage() {
                 label={tab}
                 onClick={() => setActiveMetricTab(tab)}
                 sx={{
-                  bgcolor: activeMetricTab === tab ? '#047857' : '#f8fafc',
+                  bgcolor: activeMetricTab === tab ? '#EA580C' : '#f8fafc',
                   color: activeMetricTab === tab ? '#ffffff' : '#64748b',
                   fontWeight: 700,
                   fontSize: '0.74rem',
                   height: 28,
                   cursor: 'pointer',
                   border: activeMetricTab === tab ? 'none' : '1px solid #e2e8f0',
-                  '&:hover': { bgcolor: activeMetricTab === tab ? '#064e3b' : '#f1f5f9' },
+                  '&:hover': { bgcolor: activeMetricTab === tab ? '#C2410C' : '#f1f5f9' },
                 }}
               />
             ))}
@@ -196,8 +196,8 @@ export default function CaptainAnalyticsPage() {
             <svg viewBox="0 0 320 130" width="100%" height="100%" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+                  <stop offset="0%" stopColor="#EA580C" stopOpacity="0.28" />
+                  <stop offset="100%" stopColor="#EA580C" stopOpacity="0.0" />
                 </linearGradient>
               </defs>
 
@@ -216,7 +216,7 @@ export default function CaptainAnalyticsPage() {
               <path
                 d="M 15 95 C 40 85, 70 80, 95 65 C 130 55, 160 70, 190 35 C 220 50, 260 40, 305 25"
                 fill="none"
-                stroke="#10b981"
+                stroke="#EA580C"
                 strokeWidth="2.5"
               />
 
@@ -237,7 +237,7 @@ export default function CaptainAnalyticsPage() {
                   cy={p.cy}
                   r="3.5"
                   fill="#ffffff"
-                  stroke="#047857"
+                  stroke="#EA580C"
                   strokeWidth="2"
                 />
               ))}
@@ -298,11 +298,11 @@ export default function CaptainAnalyticsPage() {
             {/* Legend */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: 1, bgcolor: '#047857' }} />
+                <Box sx={{ width: 8, height: 8, borderRadius: 1, bgcolor: '#EA580C' }} />
                 <Typography sx={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 600 }}>Active</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: 1, bgcolor: '#86efac' }} />
+                <Box sx={{ width: 8, height: 8, borderRadius: 1, bgcolor: '#FED7AA' }} />
                 <Typography sx={{ fontSize: '0.66rem', color: '#64748b', fontWeight: 600 }}>New</Typography>
               </Box>
             </Box>
@@ -319,8 +319,8 @@ export default function CaptainAnalyticsPage() {
             ].map(col => (
               <Box key={col.label} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 0.4, height: 75 }}>
-                  <Box sx={{ width: 14, height: `${col.active}%`, bgcolor: '#047857', borderRadius: '4px 4px 0 0' }} />
-                  <Box sx={{ width: 14, height: `${col.newM}%`, bgcolor: '#86efac', borderRadius: '4px 4px 0 0' }} />
+                  <Box sx={{ width: 14, height: `${col.active}%`, bgcolor: '#EA580C', borderRadius: '4px 4px 0 0' }} />
+                  <Box sx={{ width: 14, height: `${col.newM}%`, bgcolor: '#FED7AA', borderRadius: '4px 4px 0 0' }} />
                 </Box>
                 <Typography sx={{ fontSize: '0.64rem', color: '#94a3b8', fontWeight: 600 }}>
                   {col.label}
@@ -393,7 +393,7 @@ export default function CaptainAnalyticsPage() {
             </Typography>
             <Typography
               onClick={() => navigate('/captain/merchants')}
-              sx={{ fontSize: '0.76rem', color: '#047857', fontWeight: 800, cursor: 'pointer' }}
+              sx={{ fontSize: '0.76rem', color: '#EA580C', fontWeight: 800, cursor: 'pointer' }}
             >
               See All
             </Typography>

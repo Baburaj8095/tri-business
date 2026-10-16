@@ -117,16 +117,16 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
   return (
     <Box sx={{ pb: 4 }}>
 
-      {/* ── Top Curved Dark Emerald Header (Matches Mockup Screen 1 & 2) ── */}
+      {/* ── Top Curved Orange Header (Matches CaptainHome) ── */}
       <Box sx={{
-        background: 'linear-gradient(145deg, #022c22 0%, #064e3b 55%, #047857 100%)',
+        background: 'linear-gradient(145deg, #431407 0%, #7c2d12 55%, #EA580C 100%)',
         color: '#ffffff',
         pt: 3,
         pb: 3.5,
         px: 2.5,
         borderBottomLeftRadius: '28px',
         borderBottomRightRadius: '28px',
-        boxShadow: '0 8px 24px rgba(2, 44, 34, 0.25)',
+        boxShadow: '0 8px 24px rgba(234, 88, 12, 0.25)',
       }}>
         {/* Row 1: Avatar, Greeting, Name, Badges & Header Action Icons */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
@@ -200,7 +200,7 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
           borderRadius: '20px',
           border: '1px solid rgba(255, 255, 255, 0.25)',
         }}>
-          <LocationIcon sx={{ fontSize: 16, color: '#4ade80' }} />
+          <LocationIcon sx={{ fontSize: 16, color: '#fef08a' }} />
           <Typography sx={{ fontSize: '0.76rem', fontWeight: 700, color: '#ffffff' }}>
             {city}, {stateName} • PIN {pincode}
           </Typography>
@@ -213,7 +213,7 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
         {/* ── 4 Quick Metric Summary Cards ── */}
         <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
           {[
-            { label: 'Assigned Merchants', val: '250', icon: <StoreIcon sx={{ fontSize: 18, color: '#047857' }} />, bg: '#ecfdf5' },
+            { label: 'Assigned Merchants', val: '250', icon: <StoreIcon sx={{ fontSize: 18, color: '#EA580C' }} />, bg: '#fff7ed' },
             { label: 'Monthly Earnings', val: '₹75,000', icon: <TrendUpIcon sx={{ fontSize: 18, color: '#16a34a' }} />, bg: '#f0fdf4' },
             { label: 'Captain Rating', val: '4.9 ⭐', icon: <StarIcon sx={{ fontSize: 18, color: '#eab308' }} />, bg: '#fefce8' },
             { label: 'Active Territory', val: 'HSR Zone', icon: <LocationIcon sx={{ fontSize: 18, color: '#0284c7' }} />, bg: '#f0f9ff' },
@@ -245,11 +245,11 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
 
         {/* ── World-Class KYC Status Card with Drawer Trigger ── */}
         <Box sx={{
-          background: 'linear-gradient(135deg, #064e3b 0%, #047857 70%, #059669 100%)',
+          background: 'linear-gradient(135deg, #431407 0%, #7c2d12 50%, #EA580C 100%)',
           borderRadius: '20px',
           p: 2.2,
           color: '#ffffff',
-          boxShadow: '0 8px 24px rgba(4, 120, 87, 0.22)',
+          boxShadow: '0 8px 24px rgba(234, 88, 12, 0.25)',
           mb: 2.5,
           position: 'relative',
           overflow: 'hidden',
@@ -297,7 +297,7 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
               startIcon={<EditIcon sx={{ fontSize: 16 }} />}
               sx={{
                 bgcolor: '#ffffff',
-                color: '#064e3b',
+                color: '#EA580C',
                 fontWeight: 900,
                 fontSize: '0.8rem',
                 textTransform: 'none',
@@ -305,7 +305,7 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
                 px: 2.2,
                 py: 0.8,
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
-                '&:hover': { bgcolor: '#f0fdf4' },
+                '&:hover': { bgcolor: '#FFF0E5' },
                 '&:active': { transform: 'scale(0.98)' },
               }}
             >
@@ -330,7 +330,7 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
           <Stack spacing={1.5}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <LocationIcon sx={{ fontSize: 18, color: '#047857' }} />
+                <LocationIcon sx={{ fontSize: 18, color: '#EA580C' }} />
                 <Typography sx={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>
                   Assigned Pincode
                 </Typography>
@@ -344,7 +344,7 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
 
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <StoreIcon sx={{ fontSize: 18, color: '#047857' }} />
+                <StoreIcon sx={{ fontSize: 18, color: '#EA580C' }} />
                 <Typography sx={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>
                   Cluster & Area
                 </Typography>
@@ -387,7 +387,7 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
             </Typography>
             <Typography
               onClick={() => setKycDrawerOpen(true)}
-              sx={{ fontSize: '0.74rem', color: '#047857', fontWeight: 800, cursor: 'pointer' }}
+              sx={{ fontSize: '0.74rem', color: '#EA580C', fontWeight: 800, cursor: 'pointer' }}
             >
               Edit Details
             </Typography>
@@ -396,7 +396,7 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
           <Stack spacing={1.5}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <BankIcon sx={{ fontSize: 18, color: '#047857' }} />
+                <BankIcon sx={{ fontSize: 18, color: '#EA580C' }} />
                 <Typography sx={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>
                   Bank & Account
                 </Typography>
@@ -430,8 +430,8 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
         }}>
           {[
             {
-              icon: <QrIcon sx={{ fontSize: 20, color: '#047857' }} />,
-              iconBg: '#ecfdf5',
+              icon: <QrIcon sx={{ fontSize: 20, color: '#EA580C' }} />,
+              iconBg: '#FFF0E5',
               title: 'Merchant QR Scanner',
               desc: 'Scan merchant QR codes & register shop counters',
               onClick: () => navigate('/scanner'),

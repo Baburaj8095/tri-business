@@ -268,7 +268,7 @@ export default function CaptainKycDrawer({ open, onClose, onSuccess }) {
             <Chip
               label={`Step ${activeStep + 1} of 4`}
               size="small"
-              sx={{ bgcolor: '#ecfdf5', color: '#047857', fontWeight: 800, fontSize: '0.68rem', height: 20 }}
+              sx={{ bgcolor: '#FFF0E5', color: '#EA580C', fontWeight: 800, fontSize: '0.68rem', height: 20 }}
             />
           </Box>
           <Typography sx={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 500, mt: 0.2 }}>
@@ -299,9 +299,9 @@ export default function CaptainKycDrawer({ open, onClose, onSuccess }) {
               key={s.id}
               onClick={() => setActiveStep(s.id)}
               sx={{
-                bgcolor: isCurrent ? '#047857' : isDone ? '#dcfce7' : '#ffffff',
+                bgcolor: isCurrent ? '#EA580C' : isDone ? '#dcfce7' : '#ffffff',
                 color: isCurrent ? '#ffffff' : isDone ? '#15803d' : '#64748b',
-                border: `1.5px solid ${isCurrent ? '#047857' : isDone ? '#86efac' : '#e2e8f0'}`,
+                border: `1.5px solid ${isCurrent ? '#EA580C' : isDone ? '#86efac' : '#e2e8f0'}`,
                 borderRadius: '12px',
                 py: 0.8,
                 px: 0.5,
@@ -923,15 +923,15 @@ export default function CaptainKycDrawer({ open, onClose, onSuccess }) {
             endIcon={<ArrowForwardIcon sx={{ fontSize: 18 }} />}
             sx={{
               flex: 2,
-              bgcolor: '#047857',
+              bgcolor: '#EA580C',
               color: '#ffffff',
               borderRadius: '14px',
               py: 1.3,
               fontWeight: 800,
               fontSize: '0.88rem',
               textTransform: 'none',
-              boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)',
-              '&:hover': { bgcolor: '#064e3b' },
+              boxShadow: '0 4px 14px rgba(234, 88, 12, 0.25)',
+              '&:hover': { bgcolor: '#C2410C' },
             }}
           >
             Continue to {STEPS[activeStep + 1]?.title}
@@ -944,15 +944,15 @@ export default function CaptainKycDrawer({ open, onClose, onSuccess }) {
             startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <ValidIcon sx={{ fontSize: 18 }} />}
             sx={{
               flex: 2,
-              bgcolor: '#047857',
+              bgcolor: '#EA580C',
               color: '#ffffff',
               borderRadius: '14px',
               py: 1.3,
               fontWeight: 800,
               fontSize: '0.88rem',
               textTransform: 'none',
-              boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)',
-              '&:hover': { bgcolor: '#064e3b' },
+              boxShadow: '0 4px 14px rgba(234, 88, 12, 0.25)',
+              '&:hover': { bgcolor: '#C2410C' },
             }}
           >
             {saving ? 'Saving Details...' : 'Save & Submit KYC'}

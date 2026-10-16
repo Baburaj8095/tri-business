@@ -27,13 +27,13 @@ import {
 } from '@mui/icons-material';
 
 const T = {
-  primary: '#0d9488',
-  primaryDark: '#0f766e',
-  bg: '#f8fafc',
+  primary: '#EA580C',
+  primaryDark: '#C2410C',
+  bg: '#FFF9F4',
   surface: '#ffffff',
-  text: '#0f172a',
-  textSecondary: '#475569',
-  border: '#e2e8f0',
+  text: '#172033',
+  textSecondary: '#647084',
+  border: '#E8E3DD',
   success: '#10b981',
   warning: '#f59e0b',
 };

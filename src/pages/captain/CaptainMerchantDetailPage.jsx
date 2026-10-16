@@ -84,7 +84,7 @@ export default function CaptainMerchantDetailPage() {
         </IconButton>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButton onClick={handleCall} size="small" sx={{ color: '#047857', bgcolor: '#f0fdf4', p: 0.8 }}>
+          <IconButton onClick={handleCall} size="small" sx={{ color: '#EA580C', bgcolor: '#FFF0E5', p: 0.8 }}>
             <PhoneIcon sx={{ fontSize: 18 }} />
           </IconButton>
           <IconButton onClick={handleWhatsApp} size="small" sx={{ color: '#16a34a', bgcolor: '#f0fdf4', p: 0.8 }}>
@@ -172,7 +172,7 @@ export default function CaptainMerchantDetailPage() {
               py: 1.3,
               cursor: 'pointer',
               position: 'relative',
-              color: activeTab === tab ? '#047857' : '#64748b',
+              color: activeTab === tab ? '#EA580C' : '#64748b',
               fontWeight: activeTab === tab ? 800 : 600,
               fontSize: '0.84rem',
             }}
@@ -185,7 +185,7 @@ export default function CaptainMerchantDetailPage() {
                 left: 0,
                 right: 0,
                 height: 3,
-                bgcolor: '#047857',
+                bgcolor: '#EA580C',
                 borderRadius: '3px 3px 0 0',
               }} />
             )}
@@ -314,7 +314,7 @@ export default function CaptainMerchantDetailPage() {
               />
             </Box>
 
-            <Typography sx={{ fontSize: '0.74rem', color: '#047857', fontWeight: 800, cursor: 'pointer' }}>
+            <Typography sx={{ fontSize: '0.74rem', color: '#EA580C', fontWeight: 800, cursor: 'pointer' }}>
               View All
             </Typography>
           </Box>
@@ -372,7 +372,7 @@ export default function CaptainMerchantDetailPage() {
 
           <Stack spacing={1.4}>
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-              <LocationIcon sx={{ fontSize: 18, color: '#047857', mt: 0.2 }} />
+              <LocationIcon sx={{ fontSize: 18, color: '#EA580C', mt: 0.2 }} />
               <Box>
                 <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>
                   {merchant.address}
@@ -384,16 +384,16 @@ export default function CaptainMerchantDetailPage() {
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <TimeIcon sx={{ fontSize: 18, color: '#047857' }} />
+              <TimeIcon sx={{ fontSize: 18, color: '#EA580C' }} />
               <Typography sx={{ fontSize: '0.78rem', color: '#0f172a', fontWeight: 600 }}>
                 {merchant.hours}
               </Typography>
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <PersonIcon sx={{ fontSize: 18, color: '#047857' }} />
+              <PersonIcon sx={{ fontSize: 18, color: '#EA580C' }} />
               <Typography sx={{ fontSize: '0.78rem', color: '#0f172a', fontWeight: 700 }}>
-                {merchant.ownerName} • <Box component="span" sx={{ color: '#047857' }}>{merchant.ownerPhone}</Box>
+                {merchant.ownerName} • <Box component="span" sx={{ color: '#EA580C' }}>{merchant.ownerPhone}</Box>
               </Typography>
             </Box>
           </Stack>
@@ -411,7 +411,7 @@ export default function CaptainMerchantDetailPage() {
             <Typography sx={{ fontWeight: 900, fontSize: '0.92rem', color: '#0f172a' }}>
               Recent Activity
             </Typography>
-            <Typography sx={{ fontSize: '0.74rem', color: '#047857', fontWeight: 800, cursor: 'pointer' }}>
+            <Typography sx={{ fontSize: '0.74rem', color: '#EA580C', fontWeight: 800, cursor: 'pointer' }}>
               See All
             </Typography>
           </Box>
@@ -478,14 +478,14 @@ export default function CaptainMerchantDetailPage() {
             startIcon={<PhoneIcon sx={{ fontSize: 18 }} />}
             sx={{
               flex: 1,
-              border: '1.5px solid #047857',
-              color: '#047857',
+              border: '1.5px solid #EA580C',
+              color: '#EA580C',
               borderRadius: '12px',
               py: 1.2,
               fontWeight: 800,
               fontSize: '0.86rem',
               textTransform: 'none',
-              '&:hover': { bgcolor: '#f0fdf4' },
+              '&:hover': { bgcolor: '#FFF0E5' },
             }}
           >
             Follow Up
@@ -496,15 +496,15 @@ export default function CaptainMerchantDetailPage() {
             startIcon={<CartIcon sx={{ fontSize: 18 }} />}
             sx={{
               flex: 1.4,
-              bgcolor: '#047857',
+              bgcolor: '#EA580C',
               color: '#ffffff',
               borderRadius: '12px',
               py: 1.2,
               fontWeight: 800,
               fontSize: '0.86rem',
               textTransform: 'none',
-              boxShadow: '0 4px 12px rgba(4, 120, 87, 0.25)',
-              '&:hover': { bgcolor: '#064e3b' },
+              boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)',
+              '&:hover': { bgcolor: '#C2410C' },
             }}
           >
             View Orders
