@@ -18,8 +18,8 @@ import {
 } from '@mui/icons-material';
 import AppShell from '../../components/layout/AppShell';
 
-const PRIMARY = '#047857';
-const PRIMARY_DARK = '#065f46';
+const PRIMARY = '#FF5A0A';
+const PRIMARY_DARK = '#D94708';
 const CART_KEY = 'tri_business_b2b_cart';
 const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || 'https://api-captain.trikonektbusiness.com/api';
 
@@ -141,7 +141,7 @@ export default function BusinessB2BCartPage() {
 
   return (
     <AppShell activeTab="/business/online-marketplace" title="Cart & Checkout">
-      <Container maxWidth="lg" sx={{ pt: { xs: 1, md: 3 }, pb: { xs: 12, md: 6 }, px: { xs: 1.5, sm: 2.5, md: 3 } }}>
+      <Container maxWidth="sm" sx={{ pt: 1, pb: 12 }}>
         
         {/* Top Header Row */}
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2.5 }}>
@@ -220,8 +220,7 @@ export default function BusinessB2BCartPage() {
             </Button>
           </Card>
         ) : (
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.6fr 1fr' }, gap: { xs: 2, md: 3 }, alignItems: 'start' }}>
-            <Stack spacing={2}>
+          <Stack spacing={2}>
             
             {/* Delivery Guarantee Card */}
             <Card
@@ -318,8 +317,8 @@ export default function BusinessB2BCartPage() {
                           sx={{
                             display: 'flex',
                             alignItems: 'center',
-                            bgcolor: '#ecfdf5',
-                            border: '1.5px solid #a7f3d0',
+                            bgcolor: '#FFF0E5',
+                            border: '1.5px solid #FFD2B0',
                             borderRadius: '10px',
                             px: 0.5,
                             py: 0.2,
@@ -358,18 +357,94 @@ export default function BusinessB2BCartPage() {
               </Stack>
             </Card>
 
+            {/* Apply Coupon Card (Mockup Screen 5) */}
+            <Card
+              elevation={0}
+              sx={{
+                borderRadius: '18px',
+                border: '1px solid #E8E3DD',
+                bgcolor: '#ffffff',
+                p: 2,
+                boxShadow: '0 2px 8px rgba(23, 32, 51, 0.04)',
+              }}
+            >
+              <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#172033', mb: 1 }}>
+                Apply Coupon
+              </Typography>
+              <Stack direction="row" spacing={1.25}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Enter coupon code"
+                  sx={{
+                    bgcolor: '#FFF9F4',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      fontSize: '0.84rem',
+                      '& fieldset': { borderColor: '#E8E3DD' },
+                      '&:hover fieldset': { borderColor: '#D5CFC7' },
+                      '&.Mui-focused fieldset': { borderColor: PRIMARY },
+                    }
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  sx={{
+                    bgcolor: PRIMARY,
+                    color: '#ffffff',
+                    fontWeight: 800,
+                    fontSize: '0.84rem',
+                    borderRadius: '12px',
+                    px: 3,
+                    textTransform: 'none',
+                    boxShadow: 'none',
+                    '&:hover': { bgcolor: PRIMARY_DARK },
+                  }}
+                >
+                  Apply
+                </Button>
+              </Stack>
+            </Card>
+
+            {/* Save More with Prime Card (Mockup Screen 5) */}
+            <Box
+              onClick={() => navigate('/business/packages')}
+              sx={{
+                p: 1.75,
+                borderRadius: '16px',
+                border: '1.5px solid #FFE0C7',
+                background: 'linear-gradient(135deg, #FFF8EE 0%, #FFF0E5 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                cursor: 'pointer',
+              }}
+            >
+              <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: '#FFF0E5', color: PRIMARY, display: 'grid', placeItems: 'center', fontSize: 20 }}>
+                👑
+              </Box>
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography sx={{ fontSize: '0.84rem', fontWeight: 900, color: '#172033', lineHeight: 1.2 }}>
+                  Save more with Trikonekt Prime
+                </Typography>
+                <Typography sx={{ fontSize: '0.72rem', color: '#647084', mt: 0.2 }}>
+                  Exclusive wholesale deals, lower prices
+                </Typography>
+              </Box>
+            </Box>
+
             {/* Order Notes Card */}
             <Card
               elevation={0}
               sx={{
                 borderRadius: '18px',
-                border: '1px solid #e2e8f0',
+                border: '1px solid #E8E3DD',
                 bgcolor: '#ffffff',
                 p: 2,
-                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
+                boxShadow: '0 2px 8px rgba(23, 32, 51, 0.04)',
               }}
             >
-              <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a', mb: 1 }}>
+              <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#172033', mb: 1 }}>
                 Order Instructions (Optional)
               </Typography>
               <TextField
@@ -380,122 +455,87 @@ export default function BusinessB2BCartPage() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 sx={{
-                  bgcolor: '#f8fafc',
+                  bgcolor: '#FFF9F4',
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '12px',
                     fontSize: '0.84rem',
-                    '& fieldset': { borderColor: '#e2e8f0' },
-                    '&:hover fieldset': { borderColor: '#cbd5e1' },
+                    '& fieldset': { borderColor: '#E8E3DD' },
+                    '&:hover fieldset': { borderColor: '#D5CFC7' },
                     '&.Mui-focused fieldset': { borderColor: PRIMARY },
                   }
                 }}
               />
             </Card>
-          </Stack>
 
-          {/* Right Column: Sticky Bill Summary & Desktop Checkout CTA */}
-          <Box sx={{ position: { xs: 'static', md: 'sticky' }, top: { md: 88 } }}>
+            {/* Price Details (Mockup Screen 5 Exact) */}
             <Card
               elevation={0}
               sx={{
                 borderRadius: '18px',
-                border: '1px solid #e2e8f0',
+                border: '1px solid #E8E3DD',
                 bgcolor: '#ffffff',
                 p: 2.25,
-                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
+                boxShadow: '0 2px 8px rgba(23, 32, 51, 0.04)',
               }}
             >
-              <Typography sx={{ fontSize: '0.88rem', fontWeight: 900, color: '#0f172a', mb: 1.5 }}>
-                Bill Summary
+              <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#172033', mb: 1.5 }}>
+                Price Details
               </Typography>
               <Stack spacing={1.25}>
                 <Stack direction="row" justifyContent="space-between">
-                  <Typography sx={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 500 }}>
-                    Item Total ({totalCount} items)
+                  <Typography sx={{ fontSize: '0.82rem', color: '#647084', fontWeight: 500 }}>
+                    Item Total
                   </Typography>
-                  <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f172a' }}>
+                  <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#172033' }}>
                     {money(subtotal)}
                   </Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
-                  <Typography sx={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 500 }}>
-                    Delivery Partner Fee
+                  <Typography sx={{ fontSize: '0.82rem', color: '#647084', fontWeight: 500 }}>
+                    Platform Fee
                   </Typography>
-                  <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: PRIMARY }}>
-                    FREE
-                  </Typography>
-                </Stack>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography sx={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 500 }}>
-                    GST & Service Charges
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#64748b' }}>
-                    Included
+                  <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#16805D' }}>
+                    ₹0
                   </Typography>
                 </Stack>
-                <Divider sx={{ my: 1, borderColor: '#f1f5f9' }} />
+                <Divider sx={{ my: 1, borderColor: '#F1ECE6' }} />
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography sx={{ fontSize: '0.95rem', fontWeight: 900, color: '#0f172a' }}>
-                    Grand Total
+                  <Typography sx={{ fontSize: '0.95rem', fontWeight: 900, color: '#172033' }}>
+                    Total Amount
                   </Typography>
                   <Typography sx={{ fontSize: '1.25rem', fontWeight: 900, color: PRIMARY }}>
                     {money(subtotal)}
                   </Typography>
                 </Stack>
               </Stack>
-
-              {/* Desktop Direct Checkout Button */}
-              <Button
-                variant="contained"
-                disabled={loading}
-                onClick={placeOrder}
-                fullWidth
-                sx={{
-                  display: { xs: 'none', md: 'flex' },
-                  mt: 2.5,
-                  bgcolor: PRIMARY,
-                  color: '#ffffff',
-                  fontWeight: 900,
-                  fontSize: '0.95rem',
-                  borderRadius: '14px',
-                  height: '48px',
-                  textTransform: 'none',
-                  boxShadow: '0 4px 14px rgba(4, 120, 87, 0.3)',
-                  '&:hover': { bgcolor: PRIMARY_DARK },
-                  '&:active': { transform: 'scale(0.98)' },
-                }}
-              >
-                {loading ? <CircularProgress size={22} color="inherit" /> : 'Place B2B Order'}
-              </Button>
             </Card>
-          </Box>
-        </Box>
-      )}
 
-      {/* Sticky Mobile Checkout Footer Dock (Mobile Only) */}
-      {items.length > 0 && (
-        <Box
-          sx={{
-            display: { xs: 'block', md: 'none' },
-            position: 'fixed',
-            bottom: 64,
-            left: 0,
-            right: 0,
-            bgcolor: '#ffffff',
-            borderTop: '1px solid #e2e8f0',
-            py: 1.5,
-            px: { xs: 2, sm: 4 },
-            zIndex: 1000,
-            boxShadow: '0 -4px 16px rgba(0,0,0,0.06)',
-          }}
-        >
+          </Stack>
+        )}
+
+        {/* Sticky Mobile Checkout Footer Dock */}
+        {items.length > 0 && (
+          <Box
+            sx={{
+              position: 'fixed',
+              bottom: { xs: 64, lg: 0 },
+              left: 0,
+              right: 0,
+              bgcolor: '#ffffff',
+              borderTop: '1px solid #E8E3DD',
+              py: 1.5,
+              px: { xs: 2, sm: 4 },
+              zIndex: 1000,
+              boxShadow: '0 -4px 16px rgba(23, 32, 51, 0.06)',
+            }}
+          >
             <Container maxWidth="sm" sx={{ p: '0 !important' }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
                 <Box>
-                  <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>
+                  <Typography sx={{ fontSize: '0.72rem', color: '#647084', fontWeight: 700, textTransform: 'uppercase' }}>
                     TOTAL AMOUNT
                   </Typography>
-                  <Typography sx={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.1 }}>
+                  <Typography sx={{ fontSize: '1.25rem', fontWeight: 900, color: '#172033', lineHeight: 1.1 }}>
                     {money(subtotal)}
                   </Typography>
                 </Box>
@@ -512,13 +552,13 @@ export default function BusinessB2BCartPage() {
                     height: '46px',
                     px: { xs: 3, sm: 4 },
                     textTransform: 'none',
-                    boxShadow: '0 4px 14px rgba(4, 120, 87, 0.3)',
+                    boxShadow: '0 4px 14px rgba(255, 90, 10, 0.3)',
                     whiteSpace: 'nowrap',
                     '&:hover': { bgcolor: PRIMARY_DARK },
                     '&:active': { transform: 'scale(0.98)' },
                   }}
                 >
-                  {loading ? <CircularProgress size={22} color="inherit" /> : 'Place B2B Order'}
+                  {loading ? <CircularProgress size={22} color="inherit" /> : 'Proceed to Order →'}
                 </Button>
               </Stack>
             </Container>

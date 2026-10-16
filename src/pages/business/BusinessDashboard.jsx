@@ -49,14 +49,14 @@ export default function BusinessDashboard() {
 
   const banners = useMemo(() => [
     {
-      id: "emerald",
-      image: "/assets/banners/business_banner_emerald.png",
+      id: "grow-business",
+      image: "/assets/trikonekt/banners/grow-your-business.png",
       alt: "Grow Your Business with Trikonekt Business",
       link: "/business/packages",
     },
     {
-      id: "light",
-      image: "/assets/banners/business_banner_light.png",
+      id: "factory-direct",
+      image: "/assets/trikonekt/banners/direct-from-factory.png",
       alt: "Manage Stores, Products & Reach More Customers",
       link: "/business/online-marketplace",
     },
@@ -210,7 +210,7 @@ export default function BusinessDashboard() {
                   width: activeBannerIdx === idx ? 22 : 6,
                   height: 6,
                   borderRadius: 3,
-                  bgcolor: activeBannerIdx === idx ? "#064E3B" : "#CBD5D0",
+                  bgcolor: activeBannerIdx === idx ? "#FF5A0A" : "#E8E3DD",
                   cursor: "pointer",
                   transition: "all 0.25s ease",
                 }}
@@ -426,7 +426,7 @@ export default function BusinessDashboard() {
               size="small"
               onClick={() => navigate("/business/shops")}
               sx={{
-                color: "#059669",
+                color: "#FF5A0A",
                 fontWeight: 800,
                 fontSize: "0.75rem",
                 textTransform: "none",
@@ -461,8 +461,8 @@ export default function BusinessDashboard() {
                 desc: "Manage branches",
                 path: "/business/shops",
                 icon: <ShopsIcon sx={{ fontSize: 20 }} />,
-                iconColor: "#10B981",
-                iconBg: "#ECFDF5",
+                iconColor: "#FF5A0A",
+                iconBg: "#FFF0E5",
               },
               {
                 title: "Inventory",
@@ -612,7 +612,7 @@ export default function BusinessDashboard() {
                   width: quickActionIndex === idx ? 20 : 5,
                   height: 4,
                   borderRadius: 2,
-                  bgcolor: quickActionIndex === idx ? "#059669" : "rgba(148, 163, 184, 0.35)",
+                  bgcolor: quickActionIndex === idx ? "#FF5A0A" : "rgba(148, 163, 184, 0.35)",
                   transition: "all 0.25s ease",
                 }}
               />
@@ -643,7 +643,7 @@ export default function BusinessDashboard() {
               size="small"
               onClick={() => navigate("/business/online-marketplace")}
               sx={{
-                color: "#059669",
+                color: "#FF5A0A",
                 fontWeight: 800,
                 fontSize: "0.75rem",
                 textTransform: "none",
@@ -794,7 +794,7 @@ export default function BusinessDashboard() {
                       height: { xs: 20, sm: 22 },
                       borderRadius: "50%",
                       bgcolor: "#FFFFFF",
-                      color: "#059669",
+                      color: "#FF5A0A",
                       display: "grid",
                       placeItems: "center",
                       boxShadow: "0 2px 5px rgba(0,0,0,0.12)",
@@ -838,8 +838,8 @@ export default function BusinessDashboard() {
                     width: 36,
                     height: 36,
                     borderRadius: "10px",
-                    bgcolor: "#ECFDF5",
-                    color: "#10B981",
+                    bgcolor: "#EAF7EF",
+                    color: "#16805D",
                     display: "grid",
                     placeItems: "center",
                     flexShrink: 0,
@@ -858,8 +858,8 @@ export default function BusinessDashboard() {
                     label="+24% sales growth"
                     size="small"
                     sx={{
-                      bgcolor: "#ECFDF5",
-                      color: "#059669",
+                      bgcolor: "#EAF7EF",
+                      color: "#16805D",
                       fontWeight: 800,
                       fontSize: "0.62rem",
                       height: 18,

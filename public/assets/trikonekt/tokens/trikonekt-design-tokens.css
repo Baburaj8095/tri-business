@@ -1,0 +1,30 @@
+:root {
+  --tri-primary: #FF5A0A;
+  --tri-primary-hover: #D94708;
+  --tri-peach: #FFF0E5;
+  --tri-cream: #FFF8EE;
+  --tri-background: #FFF9F4;
+  --tri-surface: #FFFFFF;
+  --tri-text: #172033;
+  --tri-text-muted: #647084;
+  --tri-border: #E8E3DD;
+  --tri-orange-soft: #FFE0C7;
+  --tri-success: #16805D;
+  --tri-success-bg: #EAF7EF;
+  --tri-info: #3676D9;
+  --tri-info-bg: #EDF4FF;
+  --tri-warning-bg: #FFF4D9;
+  --tri-error: #C93636;
+  --tri-error-bg: #FDECEC;
+  --tri-radius-sm: 10px;
+  --tri-radius-md: 16px;
+  --tri-radius-lg: 22px;
+  --tri-radius-pill: 999px;
+  --tri-shadow-card: 0 2px 10px rgba(23, 32, 51, 0.06);
+  --tri-space-1: 4px;
+  --tri-space-2: 8px;
+  --tri-space-3: 12px;
+  --tri-space-4: 16px;
+  --tri-space-5: 20px;
+  --tri-space-6: 24px;
+}

@@ -1,83 +1,88 @@
 /**
  * Trikonekt Business Design Tokens
- * Premium Unified Design System (Matching Visual Reference Specifications)
+ * Premium Unified Design System (Orange, Peach & Cream Identity)
  */
 
 export const T = {
-  // Primary Brand Colors
-  forestGreen: '#064E3B',       // Primary Forest Green
-  darkForestGreen: '#043C2E',   // Dark Forest Green (App header gradient start)
-  deepEmerald: '#022C22',       // Deep Emerald (Banner gradient start)
-  lightGreen: '#0F7A5B',        // Primary Light Green (Link text & accents)
-  emeraldAccent: '#10B981',     // Emerald Accent
+  // Primary Brand Colors (Orange, Peach, Cream Identity)
+  primary: '#FF5A0A',           // Primary Action Orange
+  primaryDark: '#D94708',       // Primary Hover/Pressed Orange
+  primaryDeep: '#B83804',
+  primaryLight: '#FFE0C7',      // Soft Orange Accent
+  primaryAccent: '#FF5A0A',
 
-  // Primary aliases for compatibility
-  primary: '#064E3B',
-  primaryDark: '#043C2E',
-  primaryDeep: '#022C22',
-  primaryLight: '#0F7A5B',
-  primaryAccent: '#10B981',
+  // Warm Accents & Pastels
+  softPeach: '#FFF0E5',
+  warmCream: '#FFF8EE',
+  softOrange: '#FFE0C7',
+
+  // Forest & Emerald Aliases (re-mapped for clean transition)
+  forestGreen: '#16805D',       // Semantic success green
+  darkForestGreen: '#0E5C42',
+  deepEmerald: '#172033',       // Dark Charcoal header
+  lightGreen: '#16805D',
+  emeraldAccent: '#16805D',
 
   // Brand Orange (CTAs, Scanner, Action buttons)
-  orange: '#FF6B00',
-  brandOrange: '#FF6B00',
-  orangeHover: '#E85D04',
+  orange: '#FF5A0A',
+  brandOrange: '#FF5A0A',
+  orangeHover: '#D94708',
   orangeLight: '#FFF0E5',
 
   // Gradients
-  headerGradient: 'linear-gradient(180deg, #043C2E 0%, #064E3B 100%)',
-  bannerGradient: 'linear-gradient(135deg, #022C22 0%, #064E3B 100%)',
-  orangeGradient: 'linear-gradient(135deg, #FF6B00 0%, #E85D04 100%)',
+  headerGradient: 'linear-gradient(180deg, #172033 0%, #0F172A 100%)',
+  bannerGradient: 'linear-gradient(135deg, #172033 0%, #0F172A 100%)',
+  orangeGradient: 'linear-gradient(135deg, #FF5A0A 0%, #D94708 100%)',
 
   // Backgrounds & Surfaces
-  bg: '#F4F7F6',                // Main App Background
-  surface: '#FFFFFF',           // Primary Surface
-  surfaceSecondary: '#F8FAF9',  // Secondary Surface
-  surfaceSoftGreen: '#EAF5F0',  // Soft Green Surface
-  surfaceWarm: '#FFF8ED',       // Warm Surface (Wallet balance card)
-  border: '#E2E8E5',            // Border
-  borderStrong: '#CBD5D0',      // Strong Border
-  overlay: 'rgba(2, 44, 34, 0.55)',
+  bg: '#FFF9F4',                // Page Background
+  surface: '#FFFFFF',           // Primary Card Surface
+  surfaceSecondary: '#FFF8EE',  // Warm Cream Surface
+  surfaceSoftGreen: '#EAF7EF',  // Soft Green Surface
+  surfaceWarm: '#FFF8EE',       // Warm Cream Surface
+  border: '#E8E3DD',            // Border
+  borderStrong: '#CBD5E1',      // Strong Border
+  overlay: 'rgba(23, 32, 51, 0.65)',
 
   // Legacy aliases
-  surfaceAlt: '#F8FAF9',
-  borderHover: '#CBD5D0',
-  borderFocus: '#0F7A5B',
+  surfaceAlt: '#FFF8EE',
+  borderHover: '#CBD5E1',
+  borderFocus: '#FF5A0A',
 
   // Typography
-  text: '#14231D',              // Primary Text
-  textSecondary: '#64746C',     // Secondary Text
-  textMuted: '#87938D',         // Muted Text
+  text: '#172033',              // Primary Text
+  textSecondary: '#647084',     // Secondary Text
+  textMuted: '#94A3B8',         // Muted Text
   textInverse: '#FFFFFF',
   textOnDark: '#FFFFFF',
   textOnOrange: '#FFFFFF',
-  linkText: '#0F7A5B',
+  linkText: '#FF5A0A',
 
   // Semantic Status Colors
-  success: '#15803D',
-  successBg: '#DCFCE7',
-  successText: '#15803D',
-  successBorder: '#BBF7D0',
+  success: '#16805D',
+  successBg: '#EAF7EF',
+  successText: '#16805D',
+  successBorder: '#B2E2CE',
 
   warning: '#B45309',
-  warningBg: '#FEF3C7',
+  warningBg: '#FFF4D9',
   warningText: '#B45309',
   warningBorder: '#FDE68A',
 
-  error: '#DC2626',
-  errorBg: '#FEE2E2',
-  errorText: '#DC2626',
-  errorBorder: '#FECACA',
+  error: '#C93636',
+  errorBg: '#FDECEC',
+  errorText: '#C93636',
+  errorBorder: '#F8B4B4',
 
-  info: '#2563EB',
-  infoBg: '#DBEAFE',
-  infoText: '#2563EB',
+  info: '#3676D9',
+  infoBg: '#EDF4FF',
+  infoText: '#3676D9',
   infoBorder: '#BFDBFE',
 
-  inactive: '#64746C',
-  inactiveBg: '#F1F5F3',
-  inactiveText: '#64746C',
-  inactiveBorder: '#E2E8E5',
+  inactive: '#647084',
+  inactiveBg: '#F1F5F9',
+  inactiveText: '#647084',
+  inactiveBorder: '#E8E3DD',
 
   // Radii
   radiusSm: '8px',
@@ -88,9 +93,9 @@ export const T = {
   radiusFull: '9999px',
 
   // Shadows
-  shadowCard: '0 2px 10px rgba(20, 35, 29, 0.04)',
-  shadowHover: '0 4px 14px rgba(20, 35, 29, 0.08)',
-  shadowElevated: '0 4px 18px rgba(0, 0, 0, 0.08)',
+  shadowCard: '0 1px 3px rgba(23, 32, 51, 0.05), 0 1px 2px rgba(23, 32, 51, 0.02)',
+  shadowHover: '0 4px 14px rgba(23, 32, 51, 0.08)',
+  shadowElevated: '0 6px 20px rgba(23, 32, 51, 0.08)',
 
   // Dimensions
   topBarHeight: 68,
@@ -129,15 +134,15 @@ export const primaryBtnSx = {
   boxShadow: 'none',
   '&:hover': {
     bgcolor: T.orangeHover,
-    boxShadow: '0 4px 12px rgba(255, 107, 0, 0.25)',
+    boxShadow: '0 4px 12px rgba(255, 90, 10, 0.25)',
   },
   '&:active': { transform: 'scale(0.98)' },
 };
 
 export const secondaryBtnSx = {
   bgcolor: T.surface,
-  color: T.forestGreen,
-  border: `1px solid ${T.forestGreen}`,
+  color: T.primary,
+  border: `1px solid ${T.primary}`,
   borderRadius: '12px',
   textTransform: 'none',
   fontWeight: 600,
@@ -145,8 +150,8 @@ export const secondaryBtnSx = {
   px: 2.2,
   boxShadow: 'none',
   '&:hover': {
-    bgcolor: T.surfaceSoftGreen,
-    borderColor: T.darkForestGreen,
+    bgcolor: T.softPeach,
+    borderColor: T.primaryDark,
   },
   '&:active': { transform: 'scale(0.98)' },
 };
@@ -160,7 +165,7 @@ export const searchInputSx = {
     color: T.text,
     '& fieldset': { borderColor: T.border },
     '&:hover fieldset': { borderColor: T.borderStrong },
-    '&.Mui-focused fieldset': { borderColor: T.lightGreen, borderWidth: 1.5 },
+    '&.Mui-focused fieldset': { borderColor: T.primary, borderWidth: 1.5 },
   },
   '& .MuiInputBase-input::placeholder': {
     color: T.textMuted,
@@ -174,12 +179,12 @@ export const chipFilterSx = (isSelected) => ({
   borderRadius: '9999px',
   fontWeight: isSelected ? 700 : 500,
   fontSize: '0.78rem',
-  bgcolor: isSelected ? T.forestGreen : T.surface,
+  bgcolor: isSelected ? T.primary : T.surface,
   color: isSelected ? '#FFFFFF' : T.textSecondary,
-  border: `1px solid ${isSelected ? T.forestGreen : T.border}`,
+  border: `1px solid ${isSelected ? T.primary : T.border}`,
   cursor: 'pointer',
   transition: 'all 0.15s ease',
   '&:hover': {
-    bgcolor: isSelected ? T.darkForestGreen : T.surfaceSecondary,
+    bgcolor: isSelected ? T.primaryDark : T.surfaceSecondary,
   },
 });

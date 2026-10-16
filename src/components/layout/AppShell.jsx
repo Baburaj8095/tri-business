@@ -518,9 +518,9 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                     position: 'sticky',
                     top: 0,
                     zIndex: 1000,
-                    background: 'linear-gradient(180deg, #064E3B 0%, #032E23 100%)',
+                    background: 'linear-gradient(180deg, #172033 0%, #0F172A 100%)',
                     color: '#ffffff',
-                    boxShadow: '0 4px 16px rgba(4, 56, 42, 0.25)',
+                    boxShadow: '0 4px 16px rgba(15, 23, 42, 0.25)',
                     display: 'flex',
                     flexDirection: 'column',
                     px: { xs: 1.25, sm: 2 },
@@ -537,7 +537,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                           sx={{
                             width: { xs: 38, sm: 42 },
                             height: { xs: 38, sm: 42 },
-                            bgcolor: '#043427',
+                            bgcolor: '#FF5A0A',
                             color: '#ffffff',
                             fontWeight: 900,
                             fontSize: '0.92rem',
@@ -562,7 +562,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                             color: '#ffffff',
                             display: 'grid',
                             placeItems: 'center',
-                            border: '1.5px solid #064E3B',
+                            border: '1.5px solid #172033',
                             boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
                           }}
                         >
@@ -777,12 +777,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business-dashboard') ? '#064E3B' : '#64748B',
+              color: isCurrentActive('/business-dashboard') ? '#FF5A0A' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <HomeIcon sx={{ fontSize: 22, color: isCurrentActive('/business-dashboard') ? '#064E3B' : '#64748B', mb: 0.25 }} />
+            <HomeIcon sx={{ fontSize: 22, color: isCurrentActive('/business-dashboard') ? '#FF5A0A' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business-dashboard') ? 800 : 600 }}>
               Home
             </Typography>
@@ -799,12 +799,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business/online-marketplace') ? '#064E3B' : '#64748B',
+              color: isCurrentActive('/business/online-marketplace') ? '#FF5A0A' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <MarketplaceIcon sx={{ fontSize: 22, color: isCurrentActive('/business/online-marketplace') ? '#064E3B' : '#64748B', mb: 0.25 }} />
+            <MarketplaceIcon sx={{ fontSize: 22, color: isCurrentActive('/business/online-marketplace') ? '#FF5A0A' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business/online-marketplace') ? 800 : 600 }}>
               Online
             </Typography>
@@ -840,7 +840,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
             >
               <ScanIcon sx={{ fontSize: 26 }} />
             </Box>
-            <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/scanner') ? 800 : 600, color: isCurrentActive('/scanner') ? '#064E3B' : '#64748B', mt: 0.25 }}>
+            <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/scanner') ? 800 : 600, color: isCurrentActive('/scanner') ? '#FF5A0A' : '#64748B', mt: 0.25 }}>
               Scanner
             </Typography>
           </Box>
@@ -856,12 +856,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business/nearby-stores') ? '#064E3B' : '#64748B',
+              color: isCurrentActive('/business/nearby-stores') ? '#FF5A0A' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <NearbyIcon sx={{ fontSize: 22, color: isCurrentActive('/business/nearby-stores') ? '#064E3B' : '#64748B', mb: 0.25 }} />
+            <NearbyIcon sx={{ fontSize: 22, color: isCurrentActive('/business/nearby-stores') ? '#FF5A0A' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business/nearby-stores') ? 800 : 600 }}>
               Nearby
             </Typography>
@@ -878,12 +878,12 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
               alignItems: 'center',
               py: 0.75,
               px: 0.5,
-              color: isCurrentActive('/business/orders') ? '#064E3B' : '#64748B',
+              color: isCurrentActive('/business/orders') ? '#FF5A0A' : '#64748B',
               textTransform: 'none',
               '&:hover': { bgcolor: 'transparent' },
             }}
           >
-            <OrdersIcon sx={{ fontSize: 22, color: isCurrentActive('/business/orders') ? '#064E3B' : '#64748B', mb: 0.25 }} />
+            <OrdersIcon sx={{ fontSize: 22, color: isCurrentActive('/business/orders') ? '#FF5A0A' : '#64748B', mb: 0.25 }} />
             <Typography sx={{ fontSize: '10.5px', fontWeight: isCurrentActive('/business/orders') ? 800 : 600 }}>
               Orders
             </Typography>
@@ -914,7 +914,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
             sx={{
               p: 2.5,
               pb: 4.5,
-              background: 'linear-gradient(180deg, #043C2E 0%, #064E3B 100%)',
+              background: 'linear-gradient(180deg, #172033 0%, #0F172A 100%)',
               color: '#ffffff',
               position: 'relative',
               overflow: 'hidden',
@@ -933,7 +933,7 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                     sx={{
                       width: 52,
                       height: 52,
-                      bgcolor: '#022C22',
+                      bgcolor: '#FF5A0A',
                       color: '#ffffff',
                       fontWeight: 900,
                       fontSize: '1.2rem',
@@ -1111,14 +1111,14 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
                   sx={{
                     flex: 1,
                     minHeight: '42px',
-                    borderColor: '#064E3B',
+                    borderColor: '#FF5A0A',
                     bgcolor: '#ffffff',
-                    color: '#064E3B',
+                    color: '#FF5A0A',
                     fontSize: '0.82rem',
                     fontWeight: 700,
                     textTransform: 'none',
                     borderRadius: '12px',
-                    '&:hover': { borderColor: '#043C2E', bgcolor: '#EAF5F0' },
+                    '&:hover': { borderColor: '#D94708', bgcolor: '#FFF0E5' },
                     '&:active': { transform: 'scale(0.98)' }
                   }}
                 >
