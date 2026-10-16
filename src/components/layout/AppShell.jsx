@@ -176,21 +176,24 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', maxWidth: '100vw', overflowX: 'hidden', bgcolor: T.bg, fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-      {/* ─── DESKTOP SIDEBAR NAVIGATION (Images 1 & Web Mockups) ─── */}
+      {/* ─── DESKTOP SIDEBAR NAVIGATION (Fixed Sidebar) ─── */}
       {isDesktop && (
         <Box
           component="aside"
           sx={{
-            width: { md: 230, lg: T.sidebarWidth || 260 },
+            width: { md: 240, lg: 260 },
             flexShrink: 0,
             bgcolor: T.surface,
             borderRight: `1px solid ${T.border}`,
             display: 'flex',
             flexDirection: 'column',
-            position: 'sticky',
+            position: 'fixed',
             top: 0,
+            left: 0,
+            bottom: 0,
             height: '100vh',
             zIndex: 1100,
+            boxShadow: '2px 0 12px rgba(15, 23, 42, 0.03)',
           }}
         >
           {/* Logo Area */}
@@ -308,7 +311,19 @@ export default function AppShell({ children, activeTab, title, hideHeader = fals
       )}
 
       {/* ─── MAIN CONTENT VIEWPORT ─── */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, maxWidth: '100vw', overflowX: 'hidden' }}>
+      <Box
+        component="main"
+        sx={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0,
+          ml: { md: '240px', lg: '260px' },
+          width: { md: 'calc(100% - 240px)', lg: 'calc(100% - 260px)' },
+          overflowX: 'hidden',
+          minHeight: '100vh',
+        }}
+      >
         {/* ─── DESKTOP TOP BAR (Only on Desktop) ─── */}
         {isDesktop && (
           <Box
