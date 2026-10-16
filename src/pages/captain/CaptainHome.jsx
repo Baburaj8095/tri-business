@@ -23,16 +23,19 @@ import {
   LocationOn as LocationIcon,
   ArrowForward as ArrowForwardIcon,
   Refresh as RefreshIcon,
+  Share as ShareIcon,
 } from '@mui/icons-material';
 import { getCaptainDailyBusiness, getCaptainShops } from '../../api/api';
+import CaptainReferralModal from './components/CaptainReferralModal';
 
 export default function CaptainHome() {
   const navigate = useNavigate();
 
-  const [captainName, setCaptainName] = useState('Baburaj');
-  const [captainId, setCaptainId] = useState('CB9868570448');
+  const [captainName, setCaptainName] = useState(localStorage.getItem('fullname_captain') || 'Captain');
+  const [captainId, setCaptainId] = useState(localStorage.getItem('username_captain') || '');
   const [isOnline, setIsOnline] = useState(true);
-  const [locationName, setLocationName] = useState('Bengaluru, Karnataka');
+  const [locationName, setLocationName] = useState('Territory Assigned');
+  const [referralOpen, setReferralOpen] = useState(false);
 
   // Status menu anchor
   const [statusAnchor, setStatusAnchor] = useState(null);
@@ -71,14 +74,18 @@ export default function CaptainHome() {
       const pendingCount = shopsList.filter(s => String(s.status).toUpperCase() === 'PENDING' || !s.is_verified).length;
       const inactiveCount = shopsList.filter(s => String(s.status).toUpperCase() === 'INACTIVE').length;
 
+      const ordersCount = daily.todayOrdersCount ?? daily.todayOrders ?? 0;
+      const gmvEstimate = daily.todayGmvEstimate ?? daily.todayGmv ?? 0;
+      const qrScansCount = daily.qrScans ?? 0;
+
       setStats({
         totalShops: daily.totalShops || shopsList.length,
         activeShops: activeCount,
         pendingShops: pendingCount,
         inactiveShops: inactiveCount,
-        todayOrders: daily.todayOrdersCount || (activeCount * 3),
-        todayGmv: daily.todayGmvEstimate || (activeCount * 1200),
-        qrScans: activeCount * 45,
+        todayOrders: ordersCount,
+        todayGmv: gmvEstimate,
+        qrScans: qrScansCount,
       });
 
       if (daily.pincode) {
@@ -263,51 +270,73 @@ export default function CaptainHome() {
             <TrendUpIcon sx={{ fontSize: 120, color: '#ffffff' }} />
           </Box>
 
-          <Box sx={{ position: 'relative', zIndex: 1, maxWidth: '75%' }}>
+          <Box sx={{ position: 'relative', zIndex: 1, maxWidth: { xs: '85%', sm: '75%' } }}>
             <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', mb: 0.4 }}>
               Grow Your Network
             </Typography>
             <Typography sx={{ fontSize: '0.76rem', color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.45, mb: 1.8, fontWeight: 500 }}>
-              Connect merchants, enable orders and earn more with Trikonekt.
+              Share your Captain Sponsor Link to onboard merchants instantly. Your referral code is pre-filled.
             </Typography>
-            <Button
-              onClick={() => navigate('/captain/analytics')}
-              endIcon={<ArrowForwardIcon sx={{ fontSize: 15 }} />}
-              sx={{
-                bgcolor: '#ffffff',
-                color: '#EA580C',
-                fontWeight: 900,
-                fontSize: '0.76rem',
-                textTransform: 'none',
-                borderRadius: '10px',
-                px: 1.8,
-                py: 0.6,
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
-                '&:hover': { bgcolor: '#FFF7ED' },
-              }}
-            >
-              View Growth Insights
-            </Button>
+            <Stack direction="row" spacing={1}>
+              <Button
+                onClick={() => setReferralOpen(true)}
+                startIcon={<ShareIcon sx={{ fontSize: 16 }} />}
+                sx={{
+                  bgcolor: '#ffffff',
+                  color: '#EA580C',
+                  fontWeight: 900,
+                  fontSize: '0.78rem',
+                  textTransform: 'none',
+                  borderRadius: '10px',
+                  px: 2,
+                  py: 0.7,
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                  '&:hover': { bgcolor: '#FFF7ED' },
+                }}
+              >
+                Refer Merchant
+              </Button>
+              <Button
+                onClick={() => navigate('/captain/analytics')}
+                endIcon={<ArrowForwardIcon sx={{ fontSize: 15 }} />}
+                sx={{
+                  bgcolor: 'rgba(255, 255, 255, 0.2)',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '0.76rem',
+                  textTransform: 'none',
+                  borderRadius: '10px',
+                  px: 1.5,
+                  py: 0.7,
+                  border: '1px solid rgba(255, 255, 255, 0.4)',
+                  '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.3)' },
+                }}
+              >
+                Analytics
+              </Button>
+            </Stack>
           </Box>
         </Box>
 
-        {/* ── 6 Metric Cards (Exact 2x3 Grid from Mockup Screen 1) ── */}
+        {/* ── 6 Metric Cards (Live Real Data) ── */}
         <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
           {[
             {
-              title: 'Assigned Merchants',
+              title: 'Assigned Stores',
               val: String(stats.totalShops),
-              trend: '+12%',
-              trendUp: true,
+              badge: 'Assigned',
+              badgeColor: '#EA580C',
+              badgeBg: '#FFF7ED',
               icon: <StoreIcon sx={{ fontSize: 20, color: '#EA580C' }} />,
               iconBg: '#FFF7ED',
               onClick: () => navigate('/captain/merchants'),
             },
             {
-              title: 'Active Merchants',
+              title: 'Active Stores',
               val: String(stats.activeShops),
-              trend: '+8%',
-              trendUp: true,
+              badge: 'Live',
+              badgeColor: '#16a34a',
+              badgeBg: '#f0fdf4',
               icon: <ActiveIcon sx={{ fontSize: 20, color: '#16a34a' }} />,
               iconBg: '#f0fdf4',
               onClick: () => navigate('/captain/merchants?filter=active'),
@@ -315,8 +344,9 @@ export default function CaptainHome() {
             {
               title: 'Total Orders',
               val: String(stats.todayOrders),
-              trend: '+18%',
-              trendUp: true,
+              badge: 'Territory',
+              badgeColor: '#2563eb',
+              badgeBg: '#eff6ff',
               icon: <CartIcon sx={{ fontSize: 20, color: '#2563eb' }} />,
               iconBg: '#eff6ff',
               onClick: () => navigate('/captain/analytics'),
@@ -324,8 +354,9 @@ export default function CaptainHome() {
             {
               title: 'Estimated GMV',
               val: stats.todayGmv ? `₹${Number(stats.todayGmv).toLocaleString('en-IN')}` : '₹0',
-              trend: '+22%',
-              trendUp: true,
+              badge: 'Turnover',
+              badgeColor: '#16a34a',
+              badgeBg: '#f0fdf4',
               icon: <Typography sx={{ fontWeight: 900, fontSize: 18, color: '#16a34a' }}>₹</Typography>,
               iconBg: '#f0fdf4',
               onClick: () => navigate('/captain/analytics'),
@@ -333,19 +364,21 @@ export default function CaptainHome() {
             {
               title: 'QR Scans',
               val: stats.qrScans ? Number(stats.qrScans).toLocaleString('en-IN') : '0',
-              trend: '+15%',
-              trendUp: true,
+              badge: 'Standee',
+              badgeColor: '#0891b2',
+              badgeBg: '#ecfeff',
               icon: <QrIcon sx={{ fontSize: 20, color: '#06b6d4' }} />,
               iconBg: '#ecfeff',
               onClick: () => navigate('/captain/analytics'),
             },
             {
-              title: 'Pending Tasks',
+              title: 'Pending Action',
               val: String(stats.pendingShops),
-              trend: stats.pendingShops > 0 ? '+1' : '0',
-              trendUp: false,
-              icon: <TaskIcon sx={{ fontSize: 20, color: '#dc2626' }} />,
-              iconBg: '#fef2f2',
+              badge: stats.pendingShops > 0 ? 'Review' : 'Clear',
+              badgeColor: stats.pendingShops > 0 ? '#dc2626' : '#16a34a',
+              badgeBg: stats.pendingShops > 0 ? '#fef2f2' : '#f0fdf4',
+              icon: <TaskIcon sx={{ fontSize: 20, color: stats.pendingShops > 0 ? '#dc2626' : '#16a34a' }} />,
+              iconBg: stats.pendingShops > 0 ? '#fef2f2' : '#f0fdf4',
               onClick: () => navigate('/captain/merchants?filter=pending'),
             },
           ].map((card, i) => (
@@ -380,15 +413,20 @@ export default function CaptainHome() {
                   <Typography sx={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600, mt: 0.3, mb: 0.5 }}>
                     {card.title}
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
-                    {card.trendUp ? (
-                      <TrendUpIcon sx={{ fontSize: 13, color: '#16a34a' }} />
-                    ) : (
-                      <TrendDownIcon sx={{ fontSize: 13, color: '#dc2626' }} />
-                    )}
-                    <Typography sx={{ fontSize: '0.66rem', fontWeight: 800, color: card.trendUp ? '#16a34a' : '#dc2626' }}>
-                      {card.trend}
-                    </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Chip
+                      label={card.badge}
+                      size="small"
+                      sx={{
+                        height: 18,
+                        fontSize: '0.62rem',
+                        fontWeight: 800,
+                        color: card.badgeColor,
+                        bgcolor: card.badgeBg,
+                        borderRadius: '6px',
+                        px: 0.2,
+                      }}
+                    />
                   </Box>
                 </Box>
               </Box>
@@ -469,7 +507,7 @@ export default function CaptainHome() {
                 icon: <DeliveryActionIcon sx={{ fontSize: 20, color: '#2563eb' }} />,
                 iconBg: '#eff6ff',
                 title: 'Delivery Issues',
-                badge: '2',
+                badge: null,
                 badgeBg: '#ef4444',
                 desc: 'Resolve order delivery issues',
                 onClick: () => navigate('/captain/delivery-issues'),
@@ -478,7 +516,7 @@ export default function CaptainHome() {
                 icon: <ScannerActionIcon sx={{ fontSize: 20, color: '#0891b2' }} />,
                 iconBg: '#ecfeff',
                 title: 'Scanner Activation',
-                badge: '4',
+                badge: null,
                 badgeBg: '#2563eb',
                 desc: 'Install and activate QR scanners',
                 onClick: () => navigate('/scanner'),
@@ -533,6 +571,14 @@ export default function CaptainHome() {
         </Box>
 
       </Box>
+
+      {/* ── Captain Referral Modal for Seamless Merchant Onboarding ── */}
+      <CaptainReferralModal
+        open={referralOpen}
+        onClose={() => setReferralOpen(false)}
+        captainId={captainId}
+        captainName={captainName}
+      />
     </Box>
   );
 }

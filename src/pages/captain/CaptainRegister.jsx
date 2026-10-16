@@ -159,7 +159,45 @@ const UnifiedRegister = ({ initialRole = null }) => {
 
   useEffect(() => {
     const ref = searchParams.get('ref') || searchParams.get('sponsor');
-    if (ref) setSponsorId(ref.trim());
+    if (ref) {
+      const code = ref.trim();
+      setSponsorId(code);
+
+      // Instantly verify the sponsor code from the referral link
+      const runAutoVerify = async () => {
+        setSponsorVerifying(true);
+        setSponsorError('');
+        const cleanDigits = code.replace(/\D/g, '');
+        const is10DigitMobile = cleanDigits.length === 10;
+        try {
+          let res = await fetch(`${CAPTAIN_API}/captain/sponsor/verify?id=${encodeURIComponent(code)}`);
+          let data = null;
+          try { data = await res.json(); } catch (_) {}
+
+          if ((!data || !data.valid) && is10DigitMobile) {
+            try {
+              const cbRes = await fetch(`${CAPTAIN_API}/captain/sponsor/verify?id=${encodeURIComponent('CB' + cleanDigits)}`);
+              try {
+                const cbData = await cbRes.json();
+                if (cbData && cbData.valid) data = cbData;
+              } catch (_) {}
+            } catch (_) {}
+          }
+
+          if (data && data.valid === true) {
+            setSponsorInfo({
+              sponsorId: data.sponsorId || code,
+              sponsorName: data.sponsorName || 'Captain Partner',
+              category: data.category || 'agency_sub_franchise',
+              pincode: data.pincode || '',
+            });
+          }
+        } catch (_) {} finally {
+          setSponsorVerifying(false);
+        }
+      };
+      runAutoVerify();
+    }
   }, [searchParams]);
 
   const storageKey = `trikonekt_reg_${role.toLowerCase()}_draft`;

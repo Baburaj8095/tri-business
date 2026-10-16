@@ -17,31 +17,10 @@ import {
   QrCode2 as QrIcon,
   Refresh as RefreshIcon,
   Add as AddIcon,
+  Share as ShareIcon,
 } from '@mui/icons-material';
 import { getCaptainShops, approveCaptainShop } from '../../api/api';
-
-const FALLBACK_MERCHANTS = [
-  {
-    id: '1',
-    name: 'Fresh Basket',
-    status: 'ACTIVE',
-    category: 'Grocery & Daily Needs',
-    area: 'HSR Layout',
-    distance: '2.4 km',
-    rating: '4.8',
-    reviews: 202,
-    orders: 120,
-    monthlySales: '₹12,500',
-    healthScore: 92,
-    kycVerified: true,
-    qrActive: true,
-    address: 'HSR Layout, Bengaluru - 560102',
-    hours: '08:00 AM - 10:00 PM (Open Now)',
-    ownerName: 'Ramesh Kumar',
-    ownerPhone: '+91 98765 43210',
-    image: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=300&auto=format&fit=crop&q=60',
-  },
-];
+import CaptainReferralModal from './components/CaptainReferralModal';
 
 export default function CaptainMerchantsPage() {
   const navigate = useNavigate();
@@ -52,6 +31,7 @@ export default function CaptainMerchantsPage() {
   const [error, setError] = useState('');
   const [approvingId, setApprovingId] = useState(null);
   const [successToast, setSuccessToast] = useState('');
+  const [referralModalOpen, setReferralModalOpen] = useState(false);
 
   const handleDirectApprove = async (shopId, shopName) => {
     try {
@@ -109,7 +89,7 @@ export default function CaptainMerchantsPage() {
     } catch (err) {
       console.warn('[CaptainMerchantsPage] Failed to fetch live shops:', err.message);
       setError('Unable to load live shops from server. Showing assigned directory.');
-      setMerchants(FALLBACK_MERCHANTS);
+      setMerchants([]);
     } finally {
       setLoading(false);
     }
@@ -199,13 +179,13 @@ export default function CaptainMerchantsPage() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
             <Button
               size="small"
-              startIcon={<AddIcon sx={{ fontSize: 16 }} />}
-              onClick={() => navigate('/registration-wizard')}
+              startIcon={<ShareIcon sx={{ fontSize: 16 }} />}
+              onClick={() => setReferralModalOpen(true)}
               sx={{
                 bgcolor: 'rgba(255, 255, 255, 0.2)',
                 color: '#ffffff',
                 borderRadius: '999px',
-                px: 1.5,
+                px: 1.6,
                 py: 0.45,
                 fontSize: '0.72rem',
                 fontWeight: 800,
@@ -214,7 +194,7 @@ export default function CaptainMerchantsPage() {
                 '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.3)' },
               }}
             >
-              + Onboard Store
+              Refer Merchant
             </Button>
 
             <IconButton
@@ -435,8 +415,8 @@ export default function CaptainMerchantsPage() {
             </Typography>
             <Button
               variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => navigate('/registration-wizard')}
+              startIcon={<ShareIcon />}
+              onClick={() => setReferralModalOpen(true)}
               sx={{
                 bgcolor: '#EA580C',
                 color: '#ffffff',
@@ -450,7 +430,7 @@ export default function CaptainMerchantsPage() {
                 '&:hover': { bgcolor: '#C2410C' },
               }}
             >
-              Onboard Merchant Store
+              Refer Merchant Store
             </Button>
           </Box>
         ) : (
@@ -636,6 +616,14 @@ export default function CaptainMerchantsPage() {
           {successToast}
         </Alert>
       </Snackbar>
+
+      {/* ── Captain Merchant Referral Modal ── */}
+      <CaptainReferralModal
+        open={referralModalOpen}
+        onClose={() => setReferralModalOpen(false)}
+        captainId={localStorage.getItem('username_captain')}
+        captainName={localStorage.getItem('fullname_captain')}
+      />
     </Box>
   );
 }

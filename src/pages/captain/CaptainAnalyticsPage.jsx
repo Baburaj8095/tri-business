@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Box, Typography, Grid, Chip, IconButton, Badge, CircularProgress, Button,
+  Box, Typography, Grid, Chip, IconButton, Badge, CircularProgress, Button, Stack,
 } from '@mui/material';
 import {
   Notifications as BellIcon,
@@ -12,8 +12,10 @@ import {
   Storefront as StoreIcon,
   Refresh as RefreshIcon,
   Add as AddIcon,
+  Share as ShareIcon,
 } from '@mui/icons-material';
 import { getCaptainShops, getCaptainDailyBusiness } from '../../api/api';
+import CaptainReferralModal from './components/CaptainReferralModal';
 
 export default function CaptainAnalyticsPage() {
   const navigate = useNavigate();
@@ -21,6 +23,7 @@ export default function CaptainAnalyticsPage() {
   const [timeRange, setTimeRange] = useState('30D');
   const [activeMetricTab, setActiveMetricTab] = useState('Orders');
   const [loading, setLoading] = useState(true);
+  const [referralOpen, setReferralOpen] = useState(false);
 
   // Live analytics state
   const [shops, setShops] = useState([]);
@@ -32,9 +35,9 @@ export default function CaptainAnalyticsPage() {
     activeMerchants: 0,
     newMerchants: 0,
     qrScans: 0,
-    deliveryRate: 98,
-    revenueGrowth: '+12%',
-    ordersGrowth: '+15%',
+    deliveryRate: 100,
+    revenueGrowth: 'Live',
+    ordersGrowth: 'Live',
   });
 
   const fetchAnalytics = async () => {
@@ -61,25 +64,20 @@ export default function CaptainAnalyticsPage() {
       const activeCount = shopsList.filter(s => String(s.status).toUpperCase() === 'ACTIVE').length;
       const newCount = shopsList.filter(s => String(s.status).toUpperCase() === 'PENDING' || !s.is_verified).length;
 
-      // Calculate totals
-      const multiplier = timeRange === '7D' ? 1 : timeRange === '30D' ? 4 : timeRange === '3M' ? 12 : 24;
-      const baseOrders = daily.todayOrdersCount || (activeCount * 8) || 0;
-      const baseGmv = daily.todayGmvEstimate || (activeCount * 3200) || 0;
-
-      const totalRev = baseGmv * multiplier;
-      const totalOrd = baseOrders * multiplier;
-      const scans = (activeCount * 45 * multiplier) || (totalOrd > 0 ? totalOrd * 3 : 0);
+      const baseOrders = Number(daily.todayOrdersCount || daily.totalOrders || 0);
+      const baseGmv = Number(daily.todayGmvEstimate || daily.totalGmv || 0);
+      const scans = Number(daily.qrScans || 0);
 
       setMetrics({
-        totalRevenue: totalRev,
-        totalOrders: totalOrd,
+        totalRevenue: baseGmv,
+        totalOrders: baseOrders,
         totalMerchants: shopsList.length,
         activeMerchants: activeCount,
         newMerchants: newCount,
         qrScans: scans,
-        deliveryRate: totalOrd > 0 ? 98 : 100,
-        revenueGrowth: totalRev > 0 ? '+18%' : '0%',
-        ordersGrowth: totalOrd > 0 ? '+15%' : '0%',
+        deliveryRate: 100,
+        revenueGrowth: 'Live',
+        ordersGrowth: 'Live',
       });
     } catch (err) {
       console.warn('[CaptainAnalyticsPage] Failed to fetch analytics:', err);
@@ -217,10 +215,11 @@ export default function CaptainAnalyticsPage() {
                     ₹{metrics.totalRevenue.toLocaleString('en-IN')}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
-                    <TrendUpIcon sx={{ fontSize: 13, color: '#16a34a' }} />
-                    <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, color: '#16a34a' }}>
-                      {metrics.revenueGrowth} vs prev period
-                    </Typography>
+                    <Chip
+                      label="Live Turnover"
+                      size="small"
+                      sx={{ height: 18, fontSize: '0.62rem', fontWeight: 700, color: '#16a34a', bgcolor: '#f0fdf4', borderRadius: '6px' }}
+                    />
                   </Box>
                 </Box>
               </Grid>
@@ -245,10 +244,11 @@ export default function CaptainAnalyticsPage() {
                     {metrics.totalOrders.toLocaleString('en-IN')}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
-                    <TrendUpIcon sx={{ fontSize: 13, color: '#16a34a' }} />
-                    <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, color: '#16a34a' }}>
-                      {metrics.ordersGrowth} vs prev period
-                    </Typography>
+                    <Chip
+                      label="Live Orders"
+                      size="small"
+                      sx={{ height: 18, fontSize: '0.62rem', fontWeight: 700, color: '#ea580c', bgcolor: '#fff7ed', borderRadius: '6px' }}
+                    />
                   </Box>
                 </Box>
               </Grid>
@@ -496,13 +496,13 @@ export default function CaptainAnalyticsPage() {
                     No Merchants Registered Yet
                   </Typography>
                   <Typography sx={{ fontSize: '0.74rem', color: '#64748B', maxWidth: 280, mx: 'auto', mb: 2 }}>
-                    Onboard merchants in your assigned pincode to start tracking their revenue.
+                    Share your Captain referral link to onboard merchants in your assigned pincode.
                   </Typography>
                   <Button
                     size="small"
                     variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => navigate('/registration-wizard')}
+                    startIcon={<ShareIcon />}
+                    onClick={() => setReferralOpen(true)}
                     sx={{
                       bgcolor: '#EA580C',
                       color: '#ffffff',
@@ -512,7 +512,7 @@ export default function CaptainAnalyticsPage() {
                       '&:hover': { bgcolor: '#C2410C' },
                     }}
                   >
-                    Onboard Merchant
+                    Refer Merchant
                   </Button>
                 </Box>
               ) : (
@@ -522,8 +522,8 @@ export default function CaptainAnalyticsPage() {
                     const rankColor = rank === 1 ? '#16a34a' : rank === 2 ? '#f59e0b' : '#ea580c';
                     const shopName = shop.shop_name || shop.name || `Store #${shop.id}`;
                     const area = shop.city || shop.address || 'Bengaluru';
-                    const ordersCount = Number(shop.orders_count || shop.order_count || 15);
-                    const revenueEst = Number(shop.monthly_sales || (ordersCount * 450) || 6750);
+                    const ordersCount = Number(shop.orders_count || shop.order_count || 0);
+                    const revenueEst = Number(shop.monthly_sales || shop.revenue || 0);
                     const img = shop.shop_image || 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=100&auto=format&fit=crop&q=60';
 
                     return (
@@ -578,6 +578,12 @@ export default function CaptainAnalyticsPage() {
         )}
 
       </Box>
+
+      {/* ── Captain Referral Modal ── */}
+      <CaptainReferralModal
+        open={referralOpen}
+        onClose={() => setReferralOpen(false)}
+      />
     </Box>
   );
 }

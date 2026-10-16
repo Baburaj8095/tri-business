@@ -45,19 +45,21 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const [captainName, setCaptainName] = useState('Captain Partner');
-  const [captainId, setCaptainId] = useState('CB_CAPTAIN');
-  const [phone, setPhone] = useState('+91 99999 99999');
-  const [email, setEmail] = useState('captain@trikonekt.com');
-  const [pincode, setPincode] = useState('560073');
-  const [city, setCity] = useState('Bengaluru');
-  const [stateName, setStateName] = useState('Karnataka');
-  const [kycStatus, setKycStatus] = useState('VERIFIED');
+  const [captainName, setCaptainName] = useState(localStorage.getItem('fullname_captain') || 'Captain Partner');
+  const [captainId, setCaptainId] = useState(localStorage.getItem('username_captain') || '');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [pincode, setPincode] = useState(localStorage.getItem('pincode_captain') || '');
+  const [city, setCity] = useState('');
+  const [stateName, setStateName] = useState('');
+  const [kycStatus, setKycStatus] = useState('PENDING');
+  const [bankName, setBankName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
 
   // Live Statistics
   const [assignedMerchantsCount, setAssignedMerchantsCount] = useState(0);
   const [monthlyEarnings, setMonthlyEarnings] = useState(0);
-  const [territoryName, setTerritoryName] = useState('Bengaluru Territory');
+  const [territoryName, setTerritoryName] = useState('');
   const [monthlyGmv, setMonthlyGmv] = useState(0);
 
   // KYC Bottom Drawer State
@@ -98,6 +100,8 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
           if (data.stateName) setStateName(data.stateName);
           if (data.kycStatus) setKycStatus(data.kycStatus);
           if (data.territory) setTerritoryName(data.territory);
+          if (data.bankName) setBankName(data.bankName);
+          if (data.accountNumber) setAccountNumber(data.accountNumber);
         }
 
         let shopsCount = 0;
@@ -108,16 +112,16 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
 
         if (dailyRes.status === 'fulfilled' && dailyRes.value) {
           const d = dailyRes.value;
-          const gmv = Number(d.todayGmvEstimate || (shopsCount * 1400)) * 30;
-          const earn = Math.round(gmv * 0.03); // 3% franchise commission override
+          const gmv = Number(d.monthlyGmv || (Number(d.todayGmvEstimate || 0) * 30) || 0);
+          const earn = Number(d.monthlyEarnings || Math.round(gmv * 0.03) || 0);
           setMonthlyGmv(gmv);
-          setMonthlyEarnings(earn > 0 ? earn : (shopsCount * 1250));
+          setMonthlyEarnings(earn);
           if (d.pincode && !territoryName) {
             setTerritoryName(`PIN: ${d.pincode} Zone`);
           }
         } else {
-          setMonthlyGmv(shopsCount * 42000);
-          setMonthlyEarnings(shopsCount * 1250);
+          setMonthlyGmv(0);
+          setMonthlyEarnings(0);
         }
       } catch (err) {
         console.warn('[CaptainProfile] Error loading profile stats:', err);
@@ -379,7 +383,7 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
                 </Typography>
               </Box>
               <Typography sx={{ fontSize: '0.84rem', fontWeight: 800, color: '#0f172a' }}>
-                {city} — Sector 4
+                {territoryName || (city ? `${city} Zone` : (pincode ? `PIN ${pincode}` : 'Assigned Territory'))}
               </Typography>
             </Box>
 
@@ -418,7 +422,7 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
               onClick={() => setKycDrawerOpen(true)}
               sx={{ fontSize: '0.74rem', color: '#EA580C', fontWeight: 800, cursor: 'pointer' }}
             >
-              Edit Details
+              {bankName ? 'Edit Details' : 'Add Bank'}
             </Typography>
           </Box>
 
@@ -431,7 +435,7 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
                 </Typography>
               </Box>
               <Typography sx={{ fontSize: '0.84rem', fontWeight: 800, color: '#0f172a' }}>
-                HDFC Bank •••• 1234
+                {bankName ? `${bankName} •••• ${(accountNumber || '0000').slice(-4)}` : 'Bank Not Linked (Add in KYC)'}
               </Typography>
             </Box>
 
