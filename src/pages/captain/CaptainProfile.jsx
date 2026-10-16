@@ -235,7 +235,7 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
         }}>
           <LocationIcon sx={{ fontSize: 16, color: '#fef08a' }} />
           <Typography sx={{ fontSize: '0.76rem', fontWeight: 700, color: '#ffffff' }}>
-            {city}, {stateName} • PIN {pincode}
+            {[city, stateName].filter(Boolean).join(', ') || 'Bengaluru Zone'} • PIN {pincode || '560073'}
           </Typography>
         </Box>
       </Box>
@@ -243,38 +243,67 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
       {/* ── Page Content Container ── */}
       <Box sx={{ px: 2, mt: 2.5 }}>
 
-        {/* ── 4 Quick Metric Summary Cards (Live Data) ── */}
-        <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
+        {/* ── 4 Quick Metric Summary Cards (Equal Size 2x2 Grid) ── */}
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: 1.5,
+          mb: 2.5,
+          width: '100%',
+        }}>
           {[
             { label: 'Assigned Merchants', val: `${assignedMerchantsCount}`, icon: <StoreIcon sx={{ fontSize: 18, color: '#EA580C' }} />, bg: '#fff7ed' },
             { label: 'Monthly Earnings', val: `₹${monthlyEarnings.toLocaleString('en-IN')}`, icon: <TrendUpIcon sx={{ fontSize: 18, color: '#16a34a' }} />, bg: '#f0fdf4' },
             { label: 'Captain Rating', val: '4.9 ⭐', icon: <StarIcon sx={{ fontSize: 18, color: '#eab308' }} />, bg: '#fefce8' },
-            { label: 'Active Territory', val: territoryName || `${city} Zone`, icon: <LocationIcon sx={{ fontSize: 18, color: '#0284c7' }} />, bg: '#f0f9ff' },
+            { label: 'Active Territory', val: territoryName || `${city || 'Bengaluru'} Zone`, icon: <LocationIcon sx={{ fontSize: 18, color: '#0284c7' }} />, bg: '#f0f9ff' },
           ].map((m, i) => (
-            <Grid item xs={6} key={i}>
-              <Box sx={{
+            <Box
+              key={i}
+              sx={{
                 bgcolor: '#ffffff',
                 borderRadius: '16px',
                 border: '1.5px solid #e2e8f0',
                 p: 1.6,
                 boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: 112,
+                height: '100%',
+                boxSizing: 'border-box',
+              }}
+            >
+              <Box sx={{
+                width: 32, height: 32, borderRadius: '8px', bgcolor: m.bg,
+                display: 'grid', placeItems: 'center', mb: 1,
               }}>
-                <Box sx={{
-                  width: 32, height: 32, borderRadius: '8px', bgcolor: m.bg,
-                  display: 'grid', placeItems: 'center', mb: 1,
+                {m.icon}
+              </Box>
+              <Box>
+                <Typography sx={{
+                  fontWeight: 900,
+                  fontSize: { xs: '1.05rem', sm: '1.2rem' },
+                  color: '#0f172a',
+                  lineHeight: 1.1,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                 }}>
-                  {m.icon}
-                </Box>
-                <Typography sx={{ fontWeight: 900, fontSize: '1.15rem', color: '#0f172a', lineHeight: 1.1 }}>
                   {m.val}
                 </Typography>
-                <Typography sx={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, mt: 0.3 }}>
+                <Typography sx={{
+                  fontSize: '0.7rem',
+                  color: '#64748b',
+                  fontWeight: 600,
+                  mt: 0.3,
+                  lineHeight: 1.25,
+                }}>
                   {m.label}
                 </Typography>
               </Box>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
 
         {/* ── World-Class KYC Status Card with Drawer Trigger ── */}
         <Box sx={{

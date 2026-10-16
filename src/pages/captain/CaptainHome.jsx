@@ -329,8 +329,14 @@ export default function CaptainHome() {
           </Box>
         </Box>
 
-        {/* ── 6 Metric Cards (Live Real Data) ── */}
-        <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
+        {/* ── 6 Metric Cards (Live Real Data: 100% Equal Size CSS Grid) ── */}
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 1.2,
+          mb: 2.5,
+          width: '100%',
+        }}>
           {[
             {
               title: 'Assigned Stores',
@@ -393,57 +399,80 @@ export default function CaptainHome() {
               onClick: () => navigate('/captain/merchants?filter=pending'),
             },
           ].map((card, i) => (
-            <Grid item xs={4} key={i}>
-              <Box
-                onClick={card.onClick}
-                sx={{
-                  bgcolor: '#ffffff',
-                  borderRadius: '16px',
-                  p: 1.5,
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
-                  cursor: 'pointer',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  transition: 'transform 0.15s ease',
-                  '&:active': { transform: 'scale(0.97)' },
-                }}
-              >
-                <Box sx={{
-                  width: 34, height: 34, borderRadius: '10px', bgcolor: card.iconBg,
-                  display: 'grid', placeItems: 'center', mb: 1,
-                }}>
-                  {card.icon}
-                </Box>
+            <Box
+              key={i}
+              onClick={card.onClick}
+              sx={{
+                bgcolor: '#ffffff',
+                borderRadius: '16px',
+                p: 1.2,
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: 126,
+                height: '100%',
+                boxSizing: 'border-box',
+                transition: 'transform 0.15s ease',
+                '&:active': { transform: 'scale(0.97)' },
+              }}
+            >
+              <Box sx={{
+                width: 32, height: 32, borderRadius: '8px', bgcolor: card.iconBg,
+                display: 'grid', placeItems: 'center', mb: 0.8,
+              }}>
+                {card.icon}
+              </Box>
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <Box>
-                  <Typography sx={{ fontWeight: 900, fontSize: '1.15rem', color: '#0f172a', lineHeight: 1.1 }}>
+                  <Typography sx={{
+                    fontWeight: 900,
+                    fontSize: { xs: '1.02rem', sm: '1.15rem' },
+                    color: '#0f172a',
+                    lineHeight: 1.1,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}>
                     {card.val}
                   </Typography>
-                  <Typography sx={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600, mt: 0.3, mb: 0.5 }}>
+                  <Typography sx={{
+                    fontSize: '0.66rem',
+                    color: '#64748b',
+                    fontWeight: 600,
+                    mt: 0.3,
+                    mb: 0.6,
+                    lineHeight: 1.15,
+                    height: '24px',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}>
                     {card.title}
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Chip
-                      label={card.badge}
-                      size="small"
-                      sx={{
-                        height: 18,
-                        fontSize: '0.62rem',
-                        fontWeight: 800,
-                        color: card.badgeColor,
-                        bgcolor: card.badgeBg,
-                        borderRadius: '6px',
-                        px: 0.2,
-                      }}
-                    />
-                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Chip
+                    label={card.badge}
+                    size="small"
+                    sx={{
+                      height: 18,
+                      fontSize: '0.62rem',
+                      fontWeight: 800,
+                      color: card.badgeColor,
+                      bgcolor: card.badgeBg,
+                      borderRadius: '6px',
+                      px: 0.2,
+                    }}
+                  />
                 </Box>
               </Box>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
 
         {/* ── KYC Approvals Pending Banner (Exact Match to Mockup Screen 1) ── */}
         <Box

@@ -193,66 +193,104 @@ export default function CaptainAnalyticsPage() {
           </Box>
         ) : (
           <>
-            {/* ── Top 2 Metric Summary Cards (Live Revenue & Orders) ── */}
-            <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
-              <Grid item xs={6}>
-                <Box sx={{
-                  bgcolor: '#ffffff', borderRadius: '16px', border: '1.5px solid #e2e8f0', p: 1.8,
-                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
-                }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8 }}>
-                    <Box sx={{
-                      width: 30, height: 30, borderRadius: '8px', bgcolor: '#f0fdf4',
-                      display: 'grid', placeItems: 'center', color: '#16a34a', fontWeight: 900,
-                    }}>
-                      ₹
-                    </Box>
-                    <Typography sx={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>
-                      Total Revenue
-                    </Typography>
+            {/* ── Top 2 Metric Summary Cards (Live Revenue & Orders: Equal Size CSS Grid) ── */}
+            <Box sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: 1.5,
+              mb: 2.5,
+              width: '100%',
+            }}>
+              <Box sx={{
+                bgcolor: '#ffffff',
+                borderRadius: '16px',
+                border: '1.5px solid #e2e8f0',
+                p: 1.8,
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: 112,
+                height: '100%',
+                boxSizing: 'border-box',
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8 }}>
+                  <Box sx={{
+                    width: 30, height: 30, borderRadius: '8px', bgcolor: '#f0fdf4',
+                    display: 'grid', placeItems: 'center', color: '#16a34a', fontWeight: 900,
+                  }}>
+                    ₹
                   </Box>
-                  <Typography sx={{ fontWeight: 900, fontSize: '1.25rem', color: '#0f172a', lineHeight: 1.1, mb: 0.4 }}>
-                    ₹{metrics.totalRevenue.toLocaleString('en-IN')}
+                  <Typography sx={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>
+                    Total Revenue
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
-                    <Chip
-                      label="Live Turnover"
-                      size="small"
-                      sx={{ height: 18, fontSize: '0.62rem', fontWeight: 700, color: '#16a34a', bgcolor: '#f0fdf4', borderRadius: '6px' }}
-                    />
-                  </Box>
                 </Box>
-              </Grid>
+                <Typography sx={{
+                  fontWeight: 900,
+                  fontSize: { xs: '1.15rem', sm: '1.25rem' },
+                  color: '#0f172a',
+                  lineHeight: 1.1,
+                  mb: 0.4,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}>
+                  ₹{metrics.totalRevenue.toLocaleString('en-IN')}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                  <Chip
+                    label="Live Turnover"
+                    size="small"
+                    sx={{ height: 18, fontSize: '0.62rem', fontWeight: 700, color: '#16a34a', bgcolor: '#f0fdf4', borderRadius: '6px' }}
+                  />
+                </Box>
+              </Box>
 
-              <Grid item xs={6}>
-                <Box sx={{
-                  bgcolor: '#ffffff', borderRadius: '16px', border: '1.5px solid #e2e8f0', p: 1.8,
-                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
-                }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8 }}>
-                    <Box sx={{
-                      width: 30, height: 30, borderRadius: '8px', bgcolor: '#fff7ed',
-                      display: 'grid', placeItems: 'center', color: '#ea580c',
-                    }}>
-                      <CartIcon sx={{ fontSize: 16 }} />
-                    </Box>
-                    <Typography sx={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>
-                      Total Orders
-                    </Typography>
+              <Box sx={{
+                bgcolor: '#ffffff',
+                borderRadius: '16px',
+                border: '1.5px solid #e2e8f0',
+                p: 1.8,
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: 112,
+                height: '100%',
+                boxSizing: 'border-box',
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8 }}>
+                  <Box sx={{
+                    width: 30, height: 30, borderRadius: '8px', bgcolor: '#fff7ed',
+                    display: 'grid', placeItems: 'center', color: '#ea580c',
+                  }}>
+                    <CartIcon sx={{ fontSize: 16 }} />
                   </Box>
-                  <Typography sx={{ fontWeight: 900, fontSize: '1.25rem', color: '#0f172a', lineHeight: 1.1, mb: 0.4 }}>
-                    {metrics.totalOrders.toLocaleString('en-IN')}
+                  <Typography sx={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>
+                    Total Orders
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
-                    <Chip
-                      label="Live Orders"
-                      size="small"
-                      sx={{ height: 18, fontSize: '0.62rem', fontWeight: 700, color: '#ea580c', bgcolor: '#fff7ed', borderRadius: '6px' }}
-                    />
-                  </Box>
                 </Box>
-              </Grid>
-            </Grid>
+                <Typography sx={{
+                  fontWeight: 900,
+                  fontSize: { xs: '1.15rem', sm: '1.25rem' },
+                  color: '#0f172a',
+                  lineHeight: 1.1,
+                  mb: 0.4,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}>
+                  {metrics.totalOrders.toLocaleString('en-IN')}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                  <Chip
+                    label="Live Orders"
+                    size="small"
+                    sx={{ height: 18, fontSize: '0.62rem', fontWeight: 700, color: '#ea580c', bgcolor: '#fff7ed', borderRadius: '6px' }}
+                  />
+                </Box>
+              </Box>
+            </Box>
 
             {/* ── Performance Trends Chart Container ── */}
             <Box sx={{
