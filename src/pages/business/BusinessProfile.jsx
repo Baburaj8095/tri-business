@@ -13,6 +13,7 @@ import {
   Drawer,
   Snackbar,
   Alert,
+  Grid,
 } from "@mui/material";
 import {
   StorefrontRounded as StorefrontIcon,
@@ -43,6 +44,7 @@ import {
   BoltRounded as BoltIcon,
   ShoppingBagRounded as RetailIcon,
   AccountBalanceRounded as BankIcon,
+  QrCodeScannerRounded as QrIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import AppShell from "../../components/layout/AppShell";
@@ -138,33 +140,33 @@ export default function BusinessProfile() {
 
       const activeShop = myShops[0] || {};
       const resolvedName = apiProf?.business_name || activeShop.shop_name || "Merchant Business";
-      const resolvedMobile = apiProf?.mobile_number || "";
-      const formattedMobile = resolvedMobile
-        ? (resolvedMobile.startsWith("+91") ? resolvedMobile : `+91 ${resolvedMobile.replace(/\D/g, "")}`)
-        : "";
+      const rawMobile = apiProf?.mobile_number || localStorage.getItem('business_phone') || localStorage.getItem('user_phone') || "";
+      const formattedMobile = rawMobile
+        ? (rawMobile.startsWith("+91") ? rawMobile : `+91 ${rawMobile.replace(/\D/g, "")}`)
+        : "Not Registered";
 
       setForm((prev) => ({
         ...prev,
         business_name: resolvedName,
         mobile_number: formattedMobile,
-        email: apiProf?.email || "",
+        email: apiProf?.email || localStorage.getItem('business_email') || localStorage.getItem('user_email') || "Not Registered",
         trade_category: activeShop.category || apiProf?.trade_category || activeShop.category_name || "Retail & Wholesale",
-        address: activeShop.address || apiProf?.address || "",
-        city: activeShop.city || apiProf?.city || "",
-        pincode: activeShop.pincode || apiProf?.pincode || "",
-        gstin: activeShop.gst_number || apiProf?.gstin || "",
-        operating_hours: activeShop.operating_hours || "",
-        delivery_time: activeShop.delivery_time || "",
+        address: activeShop.address || apiProf?.address || "Primary Store Location",
+        city: activeShop.city || apiProf?.city || "Bengaluru",
+        pincode: activeShop.pincode || apiProf?.pincode || "560001",
+        gstin: activeShop.gst_number || apiProf?.gstin || "Not Registered",
+        operating_hours: activeShop.operating_hours || "09:00 AM – 10:00 PM",
+        delivery_time: activeShop.delivery_time || "15–30 Mins",
         service_mode: apiProf?.service_mode || activeShop.service_mode || "OFFLINE",
-        bank_name: apiProf?.bank_name || "",
-        account_number: apiProf?.account_number ? `••••• ${String(apiProf.account_number).slice(-4)}` : "",
-        ifsc_code: apiProf?.ifsc_code || "",
-        rating: apiProf?.rating ? Number(apiProf.rating).toFixed(1) : "",
-        reviews_count: apiProf?.reviews_count ? String(apiProf.reviews_count) : "",
-        total_orders: apiProf?.total_orders ? String(apiProf.total_orders) : "",
-        active_outlets: String(myShops.filter(s => s.status === "ACTIVE").length || 0),
-        monthly_sales: apiProf?.monthly_sales ? `₹${Number(apiProf.monthly_sales).toLocaleString("en-IN")}` : "",
-        cover_image: activeShop.cover_image || apiProf?.cover_image || "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=1200&q=80",
+        bank_name: apiProf?.bank_name || "Bank Not Linked",
+        account_number: apiProf?.account_number ? `••••• ${String(apiProf.account_number).slice(-4)}` : "••••• 0000",
+        ifsc_code: apiProf?.ifsc_code || "—",
+        rating: apiProf?.rating ? Number(apiProf.rating).toFixed(1) : "5.0",
+        reviews_count: apiProf?.reviews_count ? String(apiProf.reviews_count) : "0",
+        total_orders: apiProf?.total_orders ? String(apiProf.total_orders) : "0",
+        active_outlets: String(myShops.filter(s => String(s.status).toUpperCase() === "ACTIVE").length || myShops.length || 0),
+        monthly_sales: apiProf?.monthly_sales ? `₹${Number(apiProf.monthly_sales).toLocaleString("en-IN")}` : "₹0",
+        cover_image: activeShop.cover_image || apiProf?.cover_image || "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=1400&q=80",
         store_thumbnail: activeShop.store_thumbnail || apiProf?.store_thumbnail || "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80",
       }));
 
@@ -223,48 +225,48 @@ export default function BusinessProfile() {
 
   return (
     <AppShell activeTab="/business/profile" title="Business Profile">
-      <Container maxWidth="md" sx={{ px: { xs: 1.5, sm: 3 }, py: { xs: 1.5, sm: 2.5 } }}>
+      <Container maxWidth="lg" sx={{ px: { xs: 1.5, sm: 2.5, md: 3 }, py: { xs: 1.5, sm: 2.5 } }}>
 
         {/* ══════════════════════════════════════════════════════════════════════════
-            2. STORE IDENTITY (Clean hero section with cover, avatar, rating & badges)
+            1. STORE IDENTITY (Responsive hero with cover, avatar, rating & badges)
            ══════════════════════════════════════════════════════════════════════════ */}
-        <Box sx={{ mb: 2 }}>
+        <Box sx={{ mb: 3 }}>
           {/* Cover Hero Banner */}
           <Box
             sx={{
-              height: { xs: 140, sm: 170 },
-              borderRadius: "18px",
-              overflow: "hidden",
-              position: "relative",
+              height: { xs: 140, sm: 180, md: 220 },
+              borderRadius: { xs: '16px', md: '20px' },
+              overflow: 'hidden',
+              position: 'relative',
               backgroundImage: `url(${form.cover_image})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              boxShadow: "0 4px 16px rgba(15, 23, 42, 0.08)",
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              boxShadow: '0 4px 20px rgba(15, 23, 42, 0.08)',
             }}
           >
             {/* Top Right: Edit Cover Button */}
             <Button
               size="small"
               onClick={() => {
-                const url = window.prompt("Enter cover image URL:", form.cover_image);
+                const url = window.prompt('Enter cover image URL:', form.cover_image);
                 if (url) setForm((p) => ({ ...p, cover_image: url }));
               }}
               startIcon={<CameraIcon sx={{ fontSize: 16 }} />}
               sx={{
-                position: "absolute",
+                position: 'absolute',
                 top: 12,
                 right: 12,
-                bgcolor: "rgba(255, 255, 255, 0.92)",
-                backdropFilter: "blur(8px)",
-                color: "#0f172a",
+                bgcolor: 'rgba(255, 255, 255, 0.92)',
+                backdropFilter: 'blur(8px)',
+                color: '#0f172a',
                 fontWeight: 800,
-                fontSize: "0.74rem",
-                borderRadius: "10px",
+                fontSize: '0.74rem',
+                borderRadius: '10px',
                 height: 32,
                 px: 1.5,
-                textTransform: "none",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                "&:hover": { bgcolor: "#ffffff" },
+                textTransform: 'none',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                '&:hover': { bgcolor: '#ffffff' },
               }}
             >
               Edit Cover
@@ -274,917 +276,801 @@ export default function BusinessProfile() {
           {/* Store Card Overlapping Banner */}
           <Box
             sx={{
-              mt: -4,
-              mx: { xs: 0.5, sm: 1.5 },
-              p: { xs: 2, sm: 2.5 },
-              borderRadius: "18px",
+              mt: { xs: -4, sm: -5, md: -6 },
+              mx: { xs: 0.5, sm: 1.5, md: 2.5 },
+              p: { xs: 2, sm: 2.5, md: 3 },
+              borderRadius: { xs: '18px', md: '20px' },
               border: `1.5px solid ${BORDER}`,
               bgcolor: SURFACE,
-              boxShadow: "0 4px 20px rgba(15, 23, 42, 0.06)",
-              position: "relative",
+              boxShadow: '0 8px 30px rgba(15, 23, 42, 0.06)',
+              position: 'relative',
               zIndex: 2,
             }}
           >
-            {/* Top Row: Avatar with Verified Checkmark & Status Chip */}
-            <Stack direction="row" alignItems="flex-end" justifyContent="space-between">
-              {/* Avatar with Verified Ring Badge */}
-              <Box sx={{ position: "relative", mt: -5 }}>
-                <Avatar
-                  sx={{
-                    width: { xs: 68, sm: 76 },
-                    height: { xs: 68, sm: 76 },
-                    bgcolor: "#064e3b",
-                    color: "#ffffff",
-                    fontWeight: 900,
-                    fontSize: { xs: "1.45rem", sm: "1.7rem" },
-                    border: "3.5px solid #ffffff",
-                    boxShadow: "0 4px 14px rgba(0,0,0,0.14)",
-                  }}
-                >
-                  {merchantInitials}
-                </Avatar>
-                <Box
-                  sx={{
-                    position: "absolute",
-                    bottom: 2,
-                    right: 2,
-                    width: 20,
-                    height: 20,
-                    borderRadius: "50%",
-                    bgcolor: "#16a34a",
-                    border: "2px solid #ffffff",
-                    display: "grid",
-                    placeItems: "center",
-                    boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-                  }}
-                >
-                  <VerifiedCheckIcon sx={{ fontSize: 13, color: "#ffffff" }} />
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              alignItems={{ xs: 'flex-start', md: 'center' }}
+              justifyContent="space-between"
+              spacing={2}
+            >
+              {/* Left: Avatar + Details */}
+              <Stack direction="row" alignItems="center" spacing={{ xs: 1.5, sm: 2 }}>
+                <Box sx={{ position: 'relative', flexShrink: 0 }}>
+                  <Avatar
+                    sx={{
+                      width: { xs: 68, sm: 78, md: 84 },
+                      height: { xs: 68, sm: 78, md: 84 },
+                      bgcolor: '#064e3b',
+                      color: '#ffffff',
+                      fontWeight: 900,
+                      fontSize: { xs: '1.45rem', sm: '1.75rem', md: '2rem' },
+                      border: '3.5px solid #ffffff',
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.14)',
+                    }}
+                  >
+                    {merchantInitials}
+                  </Avatar>
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      bottom: 2,
+                      right: 2,
+                      width: 22,
+                      height: 22,
+                      borderRadius: '50%',
+                      bgcolor: '#16a34a',
+                      border: '2px solid #ffffff',
+                      display: 'grid',
+                      placeItems: 'center',
+                      boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+                    }}
+                  >
+                    <VerifiedCheckIcon sx={{ fontSize: 14, color: '#ffffff' }} />
+                  </Box>
                 </Box>
-              </Box>
 
-              {/* Status Chip */}
-              <Chip
-                label="● Open for Orders"
-                size="small"
-                sx={{
-                  bgcolor: "#f0fdf4",
-                  color: "#15803d",
-                  border: "1.5px solid #bbf7d0",
-                  fontWeight: 800,
-                  fontSize: "0.72rem",
-                  height: 26,
-                  px: 0.5,
-                  letterSpacing: "0.2px",
-                }}
-              />
-            </Stack>
+                <Box sx={{ minWidth: 0 }}>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap', gap: 0.5 }}>
+                    <Typography
+                      sx={{
+                        fontWeight: 900,
+                        fontSize: { xs: '1.25rem', sm: '1.45rem', md: '1.65rem' },
+                        color: TEXT,
+                        lineHeight: 1.2,
+                      }}
+                      noWrap
+                    >
+                      {form.business_name}
+                    </Typography>
+                    <Chip
+                      label="● Open for Orders"
+                      size="small"
+                      sx={{
+                        bgcolor: '#f0fdf4',
+                        color: '#15803d',
+                        border: '1.5px solid #bbf7d0',
+                        fontWeight: 800,
+                        fontSize: '0.7rem',
+                        height: 24,
+                      }}
+                    />
+                  </Stack>
 
-            {/* Store Name, Subtitle & Rating */}
-            <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mt: 1.5 }}>
-              <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
-                <Typography sx={{ fontWeight: 900, fontSize: { xs: "1.25rem", sm: "1.45rem" }, color: TEXT, lineHeight: 1.2 }} noWrap>
-                  {form.business_name}
-                </Typography>
-                <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600, mt: 0.3 }} noWrap>
-                  {form.trade_category} • {form.city}
-                </Typography>
-              </Box>
+                  <Typography sx={{ fontSize: '0.84rem', color: TEXT_MUTED, fontWeight: 600, mt: 0.3 }} noWrap>
+                    {form.trade_category} • {form.city}
+                  </Typography>
 
-              {/* Star Rating Badge */}
-              <Box sx={{ textAlign: "right", flexShrink: 0 }}>
+                  {/* Badges */}
+                  <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 0.75 }}>
+                    <Box
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        bgcolor: '#ecfdf5',
+                        color: '#15803d',
+                        border: '1px solid #bbf7d0',
+                        borderRadius: '20px',
+                        px: 1.2,
+                        py: 0.3,
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                      }}
+                    >
+                      <VerifiedCheckIcon sx={{ fontSize: 14, color: '#16a34a' }} />
+                      Verified Merchant
+                    </Box>
+
+                    <Box
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        bgcolor: '#fffbeb',
+                        color: '#b45309',
+                        border: '1px solid #fde68a',
+                        borderRadius: '20px',
+                        px: 1.2,
+                        py: 0.3,
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                      }}
+                    >
+                      👑 Prime Partner
+                    </Box>
+                  </Stack>
+                </Box>
+              </Stack>
+
+              {/* Right: Star Rating */}
+              <Box sx={{ alignSelf: { xs: 'stretch', md: 'center' }, textAlign: { xs: 'left', md: 'right' } }}>
                 <Box
                   sx={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 0.4,
-                    bgcolor: "#fffbeb",
-                    border: "1.5px solid #fde68a",
-                    borderRadius: "8px",
-                    px: 0.9,
-                    py: 0.3,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    bgcolor: '#fffbeb',
+                    border: '1.5px solid #fde68a',
+                    borderRadius: '10px',
+                    px: 1.2,
+                    py: 0.4,
+                    mb: 0.5,
                   }}
                 >
-                  <StarIcon sx={{ fontSize: 16, color: "#d97706" }} />
-                  <Typography sx={{ fontSize: "0.86rem", fontWeight: 900, color: "#0f172a", lineHeight: 1 }}>
-                    {form.rating}
+                  <StarIcon sx={{ fontSize: 18, color: '#d97706' }} />
+                  <Typography sx={{ fontSize: '0.92rem', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>
+                    {form.rating || '5.0'}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.72rem', color: TEXT_MUTED, fontWeight: 700, ml: 0.5 }}>
+                    ({form.reviews_count || '0'} Reviews)
                   </Typography>
                 </Box>
-                <Typography sx={{ fontSize: "0.7rem", color: TEXT_MUTED, fontWeight: 600, mt: 0.25 }}>
-                  ({form.reviews_count} Reviews)
-                </Typography>
               </Box>
             </Stack>
 
-            {/* Badges Row */}
-            <Stack direction="row" spacing={1} sx={{ mt: 1.5, flexWrap: "wrap", gap: 0.75 }}>
+            {/* 4 Quick Actions Row */}
+            <Grid container spacing={{ xs: 1, sm: 1.5 }} sx={{ mt: { xs: 1.5, md: 2 } }}>
+              {[
+                {
+                  label: 'Call',
+                  icon: <PhoneIcon sx={{ fontSize: 18, color: '#15803d' }} />,
+                  onClick: () => window.location.href = `tel:${form.mobile_number.replace(/\s+/g, '')}`,
+                },
+                {
+                  label: 'WhatsApp',
+                  icon: <WhatsAppIcon sx={{ fontSize: 18, color: '#25d366' }} />,
+                  onClick: () => {
+                    const cleanNum = form.mobile_number.replace(/\D/g, '');
+                    window.open(`https://wa.me/91${cleanNum.slice(-10)}?text=Hello%20${encodeURIComponent(form.business_name)}`, '_blank');
+                  },
+                },
+                {
+                  label: 'Enquiry',
+                  icon: <InfoIcon sx={{ fontSize: 18, color: '#d97706' }} />,
+                  onClick: () => setEnquiryModalOpen(true),
+                },
+                {
+                  label: 'Direction',
+                  icon: <DirectionIcon sx={{ fontSize: 18, color: '#4f46e5' }} />,
+                  onClick: () => window.open(`https://maps.google.com/?q=${encodeURIComponent(form.address)}`, '_blank'),
+                },
+              ].map((act, idx) => (
+                <Grid item xs={3} key={idx}>
+                  <Box
+                    onClick={act.onClick}
+                    sx={{
+                      height: { xs: 56, sm: 50 },
+                      borderRadius: '12px',
+                      border: `1.5px solid ${BORDER}`,
+                      bgcolor: SURFACE,
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: { xs: 0.25, sm: 0.8 },
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      '&:hover': { borderColor: '#cbd5e1', bgcolor: BG, transform: 'translateY(-1px)' },
+                      '&:active': { transform: 'scale(0.98)' },
+                    }}
+                  >
+                    {act.icon}
+                    <Typography sx={{ fontSize: { xs: '0.68rem', sm: '0.78rem' }, fontWeight: 700, color: TEXT }}>
+                      {act.label}
+                    </Typography>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        </Box>
+
+        {/* ══════════════════════════════════════════════════════════════════════════
+            2. KEY METRICS CARDS (Responsive 4-Card Grid)
+           ══════════════════════════════════════════════════════════════════════════ */}
+        <Grid container spacing={{ xs: 1.25, sm: 1.5, md: 2 }} sx={{ mb: 3 }}>
+          {[
+            {
+              title: 'Total Orders',
+              val: form.total_orders || '0',
+              subtitle: 'Today Orders',
+              icon: <BagIcon sx={{ fontSize: 22, color: '#16a34a' }} />,
+              bg: '#f0fdf4',
+              border: '#bbf7d0',
+              color: '#166534',
+              onClick: () => navigate('/business/orders'),
+            },
+            {
+              title: 'Active Outlets',
+              val: form.active_outlets || '1',
+              subtitle: 'Store Counters',
+              icon: <StorefrontIcon sx={{ fontSize: 22, color: '#2563eb' }} />,
+              bg: '#eff6ff',
+              border: '#bfdbfe',
+              color: '#1e40af',
+              onClick: () => navigate('/business/shops'),
+            },
+            {
+              title: 'Monthly Turnover',
+              val: form.monthly_sales || '₹0',
+              subtitle: 'Gross Sales',
+              icon: <MoneyIcon sx={{ fontSize: 22, color: '#d97706' }} />,
+              bg: '#fffbeb',
+              border: '#fde68a',
+              color: '#b45309',
+              onClick: () => navigate('/business/orders'),
+            },
+            {
+              title: 'Merchant Rating',
+              val: form.rating ? `${form.rating} ⭐` : '5.0 ⭐',
+              subtitle: `${form.reviews_count || '0'} Reviews`,
+              icon: <PeopleIcon sx={{ fontSize: 22, color: '#9333ea' }} />,
+              bg: '#faf5ff',
+              border: '#e9d5ff',
+              color: '#6b21a8',
+              onClick: () => {},
+            },
+          ].map((m, idx) => (
+            <Grid item xs={6} sm={3} key={idx}>
               <Box
+                onClick={m.onClick}
                 sx={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 0.5,
-                  bgcolor: "#ecfdf5",
-                  color: "#15803d",
-                  border: "1px solid #bbf7d0",
-                  borderRadius: "20px",
-                  px: 1.25,
-                  py: 0.4,
-                  fontSize: "0.72rem",
-                  fontWeight: 800,
+                  p: { xs: 1.5, sm: 2 },
+                  borderRadius: '16px',
+                  bgcolor: m.bg,
+                  border: `1.5px solid ${m.border}`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  height: '100%',
+                  justifyContent: 'center',
+                  transition: 'all 0.15s ease',
+                  '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' },
+                  '&:active': { transform: 'scale(0.98)' },
                 }}
               >
-                <VerifiedCheckIcon sx={{ fontSize: 14, color: "#16a34a" }} />
-                Verified Merchant
+                <Box sx={{ mb: 0.5 }}>{m.icon}</Box>
+                <Typography sx={{ fontSize: { xs: '1.15rem', sm: '1.35rem', md: '1.5rem' }, fontWeight: 900, color: m.color, lineHeight: 1.1 }}>
+                  {m.val}
+                </Typography>
+                <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: m.color, mt: 0.4 }}>
+                  {m.title}
+                </Typography>
+                <Typography sx={{ fontSize: '0.64rem', fontWeight: 600, color: TEXT_MUTED, mt: 0.2 }}>
+                  {m.subtitle}
+                </Typography>
               </Box>
+            </Grid>
+          ))}
+        </Grid>
 
+        {/* ══════════════════════════════════════════════════════════════════════════
+            3. DESKTOP 2-COLUMN RESPONSIVE LAYOUT (7 cols Left / 5 cols Right)
+           ══════════════════════════════════════════════════════════════════════════ */}
+        <Grid container spacing={{ xs: 2, md: 3 }}>
+          {/* ── LEFT COLUMN (Core Business Details, Store Location, Payout) ── */}
+          <Grid item xs={12} md={7}>
+            <Stack spacing={2.5}>
+              {/* Card 1: Business Information */}
               <Box
                 sx={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 0.5,
-                  bgcolor: "#fffbeb",
-                  color: "#b45309",
-                  border: "1px solid #fde68a",
-                  borderRadius: "20px",
-                  px: 1.25,
-                  py: 0.4,
-                  fontSize: "0.72rem",
-                  fontWeight: 800,
+                  p: { xs: 2, sm: 2.5 },
+                  borderRadius: '18px',
+                  border: `1.5px solid ${BORDER}`,
+                  bgcolor: SURFACE,
+                  boxShadow: '0 2px 10px rgba(15, 23, 42, 0.02)',
                 }}
               >
-                👑 Prime Partner
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+                  <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: TEXT }}>
+                    Business Information
+                  </Typography>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => setEditInfoOpen(true)}
+                    startIcon={<EditIcon sx={{ fontSize: 14 }} />}
+                    sx={{
+                      height: 28,
+                      borderRadius: '8px',
+                      borderColor: '#cbd5e1',
+                      color: TEXT,
+                      fontWeight: 800,
+                      fontSize: '0.74rem',
+                      textTransform: 'none',
+                      '&:hover': { borderColor: '#94a3b8', bgcolor: BG },
+                    }}
+                  >
+                    Edit
+                  </Button>
+                </Stack>
+
+                <Stack spacing={1.5} divider={<Divider sx={{ borderColor: '#f1f5f9' }} />}>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Stack direction="row" alignItems="center" spacing={1.25}>
+                      <BankIcon sx={{ fontSize: 18, color: '#064E3B' }} />
+                      <Typography sx={{ fontSize: '0.82rem', color: TEXT_MUTED, fontWeight: 600 }}>
+                        Business Name
+                      </Typography>
+                    </Stack>
+                    <Typography sx={{ fontSize: '0.88rem', fontWeight: 800, color: TEXT }}>
+                      {form.business_name}
+                    </Typography>
+                  </Stack>
+
+                  <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Stack direction="row" alignItems="center" spacing={1.25}>
+                      <CategoryIcon sx={{ fontSize: 18, color: '#064E3B' }} />
+                      <Typography sx={{ fontSize: '0.82rem', color: TEXT_MUTED, fontWeight: 600 }}>
+                        Category
+                      </Typography>
+                    </Stack>
+                    <Typography sx={{ fontSize: '0.88rem', fontWeight: 800, color: TEXT }}>
+                      {form.trade_category}
+                    </Typography>
+                  </Stack>
+
+                  <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Stack direction="row" alignItems="center" spacing={1.25}>
+                      <PhoneIcon sx={{ fontSize: 18, color: '#064E3B' }} />
+                      <Typography sx={{ fontSize: '0.82rem', color: TEXT_MUTED, fontWeight: 600 }}>
+                        Mobile Number
+                      </Typography>
+                    </Stack>
+                    <Typography sx={{ fontSize: '0.88rem', fontWeight: 800, color: TEXT }}>
+                      {form.mobile_number}
+                    </Typography>
+                  </Stack>
+
+                  <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Stack direction="row" alignItems="center" spacing={1.25}>
+                      <EmailIcon sx={{ fontSize: 18, color: '#064E3B' }} />
+                      <Typography sx={{ fontSize: '0.82rem', color: TEXT_MUTED, fontWeight: 600 }}>
+                        Email Address
+                      </Typography>
+                    </Stack>
+                    <Typography sx={{ fontSize: '0.88rem', fontWeight: 800, color: TEXT, wordBreak: 'break-all' }}>
+                      {form.email}
+                    </Typography>
+                  </Stack>
+
+                  <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Stack direction="row" alignItems="center" spacing={1.25}>
+                      <DocIcon sx={{ fontSize: 18, color: '#064E3B' }} />
+                      <Typography sx={{ fontSize: '0.82rem', color: TEXT_MUTED, fontWeight: 600 }}>
+                        GSTIN
+                      </Typography>
+                    </Stack>
+                    <Typography sx={{ fontSize: '0.88rem', fontWeight: 800, color: TEXT }}>
+                      {form.gstin}
+                    </Typography>
+                  </Stack>
+
+                  <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Stack direction="row" alignItems="center" spacing={1.25}>
+                      <CalendarIcon sx={{ fontSize: 18, color: '#064E3B' }} />
+                      <Typography sx={{ fontSize: '0.82rem', color: TEXT_MUTED, fontWeight: 600 }}>
+                        Member Since
+                      </Typography>
+                    </Stack>
+                    <Typography sx={{ fontSize: '0.88rem', fontWeight: 800, color: TEXT }}>
+                      {form.member_since || 'Active Partner'}
+                    </Typography>
+                  </Stack>
+                </Stack>
               </Box>
-            </Stack>
-          </Box>
-        </Box>
 
-        {/* ══════════════════════════════════════════════════════════════════════════
-            3. QUICK ACTIONS (Common actions to connect with business)
-           ══════════════════════════════════════════════════════════════════════════ */}
-        <Stack direction="row" spacing={{ xs: 0.75, sm: 1.5 }} sx={{ mb: 2.5, width: "100%" }}>
-          {/* Action 1: Call */}
-          <Box
-            onClick={() => window.location.href = `tel:${form.mobile_number.replace(/\s+/g, "")}`}
-            sx={{
-              flex: 1,
-              minWidth: 0,
-              height: 64,
-              borderRadius: "14px",
-              border: `1.5px solid ${BORDER}`,
-              bgcolor: SURFACE,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-              boxShadow: "0 1px 3px rgba(15, 23, 42, 0.02)",
-              "&:hover": { borderColor: "#cbd5e1", bgcolor: BG },
-              "&:active": { transform: "scale(0.96)" },
-            }}
-          >
-            <PhoneIcon sx={{ fontSize: 20, color: "#15803d" }} />
-            <Typography sx={{ fontSize: { xs: "0.68rem", sm: "0.74rem" }, fontWeight: 700, color: TEXT, mt: 0.35, whiteSpace: "nowrap" }}>
-              Call
-            </Typography>
-          </Box>
+              {/* Card 2: Operating Store & Location */}
+              <Box
+                sx={{
+                  p: { xs: 2, sm: 2.5 },
+                  borderRadius: '18px',
+                  border: `1.5px solid ${BORDER}`,
+                  bgcolor: SURFACE,
+                  boxShadow: '0 2px 10px rgba(15, 23, 42, 0.02)',
+                }}
+              >
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+                  <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: TEXT }}>
+                    Operating Store & Location
+                  </Typography>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => setEditLocationOpen(true)}
+                    startIcon={<EditIcon sx={{ fontSize: 14 }} />}
+                    sx={{
+                      height: 28,
+                      borderRadius: '8px',
+                      borderColor: '#cbd5e1',
+                      color: TEXT,
+                      fontWeight: 800,
+                      fontSize: '0.74rem',
+                      textTransform: 'none',
+                      '&:hover': { borderColor: '#94a3b8', bgcolor: BG },
+                    }}
+                  >
+                    Edit
+                  </Button>
+                </Stack>
 
-          {/* Action 2: WhatsApp */}
-          <Box
-            onClick={() => {
-              const cleanNum = form.mobile_number.replace(/\D/g, "");
-              window.open(`https://wa.me/91${cleanNum.slice(-10)}?text=Hello%20${encodeURIComponent(form.business_name)}`, "_blank");
-            }}
-            sx={{
-              flex: 1,
-              minWidth: 0,
-              height: 64,
-              borderRadius: "14px",
-              border: `1.5px solid ${BORDER}`,
-              bgcolor: SURFACE,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-              boxShadow: "0 1px 3px rgba(15, 23, 42, 0.02)",
-              "&:hover": { borderColor: "#cbd5e1", bgcolor: BG },
-              "&:active": { transform: "scale(0.96)" },
-            }}
-          >
-            <WhatsAppIcon sx={{ fontSize: 21, color: "#25d366" }} />
-            <Typography sx={{ fontSize: { xs: "0.68rem", sm: "0.74rem" }, fontWeight: 700, color: TEXT, mt: 0.35, whiteSpace: "nowrap" }}>
-              WhatsApp
-            </Typography>
-          </Box>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }}>
+                  <Box
+                    component="img"
+                    src={form.store_thumbnail}
+                    alt="Operating Store"
+                    sx={{
+                      width: { xs: 80, sm: 88 },
+                      height: { xs: 80, sm: 88 },
+                      borderRadius: '14px',
+                      objectFit: 'cover',
+                      flexShrink: 0,
+                      border: '1px solid #e2e8f0',
+                    }}
+                  />
 
-          {/* Action 3: Enquiry */}
-          <Box
-            onClick={() => setEnquiryModalOpen(true)}
-            sx={{
-              flex: 1,
-              minWidth: 0,
-              height: 64,
-              borderRadius: "14px",
-              border: `1.5px solid ${BORDER}`,
-              bgcolor: SURFACE,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-              boxShadow: "0 1px 3px rgba(15, 23, 42, 0.02)",
-              "&:hover": { borderColor: "#cbd5e1", bgcolor: BG },
-              "&:active": { transform: "scale(0.96)" },
-            }}
-          >
-            <InfoIcon sx={{ fontSize: 20, color: "#d97706" }} />
-            <Typography sx={{ fontSize: { xs: "0.68rem", sm: "0.74rem" }, fontWeight: 700, color: TEXT, mt: 0.35, whiteSpace: "nowrap" }}>
-              Enquiry
-            </Typography>
-          </Box>
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, color: TEXT, lineHeight: 1.3 }}>
+                      {form.address}
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#15803d', mt: 0.5 }}>
+                      🟢 Open {form.operating_hours}
+                    </Typography>
 
-          {/* Action 5: Direction */}
-          <Box
-            onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(form.address)}`, "_blank")}
-            sx={{
-              flex: 1,
-              minWidth: 0,
-              height: 64,
-              borderRadius: "14px",
-              border: `1.5px solid ${BORDER}`,
-              bgcolor: SURFACE,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-              boxShadow: "0 1px 3px rgba(15, 23, 42, 0.02)",
-              "&:hover": { borderColor: "#cbd5e1", bgcolor: BG },
-              "&:active": { transform: "scale(0.96)" },
-            }}
-          >
-            <DirectionIcon sx={{ fontSize: 20, color: "#4f46e5" }} />
-            <Typography sx={{ fontSize: { xs: "0.68rem", sm: "0.74rem" }, fontWeight: 700, color: TEXT, mt: 0.35, whiteSpace: "nowrap" }}>
-              Direction
-            </Typography>
-          </Box>
-        </Stack>
+                    <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 0.6 }}>
+                      <Box
+                        sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 0.4,
+                          bgcolor: '#f1f5f9',
+                          color: '#475569',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '14px',
+                          px: 1,
+                          py: 0.25,
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                        }}
+                      >
+                        <BoltIcon sx={{ fontSize: 13, color: '#0ea5e9' }} />
+                        {form.delivery_time}
+                      </Box>
+                      <Box
+                        sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 0.4,
+                          bgcolor: '#eff6ff',
+                          color: '#1d4ed8',
+                          border: '1px solid #bfdbfe',
+                          borderRadius: '14px',
+                          px: 1,
+                          py: 0.25,
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                        }}
+                      >
+                        <RetailIcon sx={{ fontSize: 13, color: '#2563eb' }} />
+                        {form.service_mode}
+                      </Box>
+                    </Stack>
+                  </Box>
+                </Stack>
+              </Box>
 
-        {/* ══════════════════════════════════════════════════════════════════════════
-            4. KEY METRICS (Exact 4 Cards in 1 Row - Never Wrap onto 2nd line)
-           ══════════════════════════════════════════════════════════════════════════ */}
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: { xs: 0.75, sm: 1.25 },
-            mb: 2.5,
-          }}
-        >
-          {/* Metric 1: Total Orders */}
-          <Box
-            onClick={() => navigate("/business/orders")}
-            sx={{
-              py: { xs: 1.25, sm: 1.75 },
-              px: { xs: 0.5, sm: 1 },
-              borderRadius: "16px",
-              bgcolor: "#f0fdf4",
-              border: "1.5px solid #bbf7d0",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              textAlign: "center",
-              cursor: "pointer",
-              minWidth: 0,
-              transition: "all 0.15s ease",
-              "&:active": { transform: "scale(0.97)" },
-            }}
-          >
-            <BagIcon sx={{ fontSize: { xs: 18, sm: 22 }, color: "#16a34a", mb: 0.25 }} />
-            <Typography sx={{ fontSize: { xs: "1.15rem", sm: "1.45rem" }, fontWeight: 900, color: "#166534", lineHeight: 1 }}>
-              {form.total_orders}
-            </Typography>
-            <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 700, color: "#15803d", mt: 0.35, whiteSpace: "nowrap" }}>
-              Total Orders
-            </Typography>
-            <Typography sx={{ fontSize: { xs: "0.58rem", sm: "0.68rem" }, fontWeight: 800, color: "#15803d", mt: 0.2, whiteSpace: "nowrap" }}>
-              Today →
-            </Typography>
-          </Box>
+              {/* Card 3: Payout Account & Settlements */}
+              <Box
+                sx={{
+                  p: { xs: 2, sm: 2.5 },
+                  borderRadius: '18px',
+                  border: `1.5px solid ${BORDER}`,
+                  bgcolor: SURFACE,
+                  boxShadow: '0 2px 10px rgba(15, 23, 42, 0.02)',
+                }}
+              >
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+                  <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: TEXT }}>
+                    Settlement Bank Account
+                  </Typography>
+                  <Button
+                    size="small"
+                    onClick={() => setEditPayoutOpen(true)}
+                    sx={{
+                      color: BRAND_ORANGE,
+                      fontWeight: 800,
+                      fontSize: '0.8rem',
+                      textTransform: 'none',
+                      p: 0,
+                      minWidth: 0,
+                      '&:hover': { bgcolor: 'transparent', color: BRAND_ORANGE_HOVER },
+                    }}
+                  >
+                    Manage
+                  </Button>
+                </Stack>
 
-          {/* Metric 2: Active Outlets */}
-          <Box
-            onClick={() => navigate("/business/shops")}
-            sx={{
-              py: { xs: 1.25, sm: 1.75 },
-              px: { xs: 0.5, sm: 1 },
-              borderRadius: "16px",
-              bgcolor: "#eff6ff",
-              border: "1.5px solid #bfdbfe",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              textAlign: "center",
-              cursor: "pointer",
-              minWidth: 0,
-              transition: "all 0.15s ease",
-              "&:active": { transform: "scale(0.97)" },
-            }}
-          >
-            <StorefrontIcon sx={{ fontSize: { xs: 18, sm: 22 }, color: "#2563eb", mb: 0.25 }} />
-            <Typography sx={{ fontSize: { xs: "1.15rem", sm: "1.45rem" }, fontWeight: 900, color: "#1e40af", lineHeight: 1 }}>
-              {form.active_outlets}
-            </Typography>
-            <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 700, color: "#1d4ed8", mt: 0.35, whiteSpace: "nowrap" }}>
-              Active Outlets
-            </Typography>
-            <Typography sx={{ fontSize: { xs: "0.58rem", sm: "0.68rem" }, fontWeight: 800, color: "#1d4ed8", mt: 0.2, whiteSpace: "nowrap" }}>
-              Manage →
-            </Typography>
-          </Box>
-
-          {/* Metric 3: Monthly Sales */}
-          <Box
-            sx={{
-              py: { xs: 1.25, sm: 1.75 },
-              px: { xs: 0.5, sm: 1 },
-              borderRadius: "16px",
-              bgcolor: "#fffbeb",
-              border: "1.5px solid #fde68a",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              textAlign: "center",
-              minWidth: 0,
-            }}
-          >
-            <MoneyIcon sx={{ fontSize: { xs: 18, sm: 22 }, color: "#d97706", mb: 0.25 }} />
-            <Typography sx={{ fontSize: { xs: "0.95rem", sm: "1.3rem" }, fontWeight: 900, color: "#b45309", lineHeight: 1, whiteSpace: "nowrap" }}>
-              {form.monthly_sales}
-            </Typography>
-            <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 700, color: "#b45309", mt: 0.35, whiteSpace: "nowrap" }}>
-              Monthly Sales
-            </Typography>
-            <Typography sx={{ fontSize: { xs: "0.58rem", sm: "0.68rem" }, fontWeight: 800, color: "#15803d", mt: 0.2, whiteSpace: "nowrap" }}>
-              +12% ↗
-            </Typography>
-          </Box>
-
-          {/* Metric 4: Merchant Rating */}
-          <Box
-            sx={{
-              py: { xs: 1.25, sm: 1.75 },
-              px: { xs: 0.5, sm: 1 },
-              borderRadius: "16px",
-              bgcolor: "#faf5ff",
-              border: "1.5px solid #e9d5ff",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              textAlign: "center",
-              minWidth: 0,
-            }}
-          >
-            <PeopleIcon sx={{ fontSize: { xs: 18, sm: 22 }, color: "#9333ea", mb: 0.25 }} />
-            <Typography sx={{ fontSize: { xs: "1.15rem", sm: "1.45rem" }, fontWeight: 900, color: "#6b21a8", lineHeight: 1 }}>
-              {form.rating}
-            </Typography>
-            <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 700, color: "#7e22ce", mt: 0.35, whiteSpace: "nowrap" }}>
-              Merchant Rating
-            </Typography>
-            <Typography sx={{ fontSize: { xs: "0.58rem", sm: "0.68rem" }, fontWeight: 800, color: "#7e22ce", mt: 0.2, whiteSpace: "nowrap" }}>
-              ({form.reviews_count})
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* ══════════════════════════════════════════════════════════════════════════
-            5. BUSINESS DETAILS (Organized and easy to read information)
-           ══════════════════════════════════════════════════════════════════════════ */}
-        <Box
-          sx={{
-            p: 2.25,
-            borderRadius: "18px",
-            border: `1.5px solid ${BORDER}`,
-            bgcolor: SURFACE,
-            mb: 2.5,
-            boxShadow: "0 2px 10px rgba(15, 23, 42, 0.02)",
-          }}
-        >
-          {/* Header */}
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: "0.96rem", color: TEXT }}>
-              Business Information
-            </Typography>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={() => setEditInfoOpen(true)}
-              startIcon={<EditIcon sx={{ fontSize: 14 }} />}
-              sx={{
-                height: 28,
-                borderRadius: "8px",
-                borderColor: "#cbd5e1",
-                color: TEXT,
-                fontWeight: 800,
-                fontSize: "0.74rem",
-                textTransform: "none",
-                "&:hover": { borderColor: "#94a3b8", bgcolor: BG },
-              }}
-            >
-              Edit
-            </Button>
-          </Stack>
-
-          {/* 6 Information Rows */}
-          <Stack spacing={1.5} divider={<Divider sx={{ borderColor: "#f1f5f9" }} />}>
-            {/* Row 1: Business Name */}
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
-              <Stack direction="row" alignItems="center" spacing={1.25}>
-                <BankIcon sx={{ fontSize: 18, color: "#064E3B" }} />
-                <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
-                  Business Name
-                </Typography>
-              </Stack>
-              <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: TEXT }}>
-                {form.business_name}
-              </Typography>
-            </Stack>
-
-            {/* Row 2: Category */}
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
-              <Stack direction="row" alignItems="center" spacing={1.25}>
-                <CategoryIcon sx={{ fontSize: 18, color: "#064E3B" }} />
-                <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
-                  Category
-                </Typography>
-              </Stack>
-              <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: TEXT }}>
-                {form.trade_category}
-              </Typography>
-            </Stack>
-
-            {/* Row 3: Mobile Number */}
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
-              <Stack direction="row" alignItems="center" spacing={1.25}>
-                <PhoneIcon sx={{ fontSize: 18, color: "#064E3B" }} />
-                <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
-                  Mobile Number
-                </Typography>
-              </Stack>
-              <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: TEXT }}>
-                {form.mobile_number}
-              </Typography>
-            </Stack>
-
-            {/* Row 4: Email Address */}
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
-              <Stack direction="row" alignItems="center" spacing={1.25}>
-                <EmailIcon sx={{ fontSize: 18, color: "#064E3B" }} />
-                <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
-                  Email Address
-                </Typography>
-              </Stack>
-              <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: TEXT, wordBreak: "break-all" }}>
-                {form.email}
-              </Typography>
-            </Stack>
-
-            {/* Row 5: GSTIN */}
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
-              <Stack direction="row" alignItems="center" spacing={1.25}>
-                <DocIcon sx={{ fontSize: 18, color: "#064E3B" }} />
-                <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
-                  GSTIN
-                </Typography>
-              </Stack>
-              <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: TEXT }}>
-                {form.gstin}
-              </Typography>
-            </Stack>
-
-            {/* Row 6: Member Since */}
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
-              <Stack direction="row" alignItems="center" spacing={1.25}>
-                <CalendarIcon sx={{ fontSize: 18, color: "#064E3B" }} />
-                <Typography sx={{ fontSize: "0.82rem", color: TEXT_MUTED, fontWeight: 600 }}>
-                  Member Since
-                </Typography>
-              </Stack>
-              <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: TEXT }}>
-                {form.member_since}
-              </Typography>
-            </Stack>
-          </Stack>
-        </Box>
-
-        {/* ══════════════════════════════════════════════════════════════════════════
-            6. STORE & LOCATION (Current outlet details with status and service mode)
-           ══════════════════════════════════════════════════════════════════════════ */}
-        <Box
-          sx={{
-            p: 2.25,
-            borderRadius: "18px",
-            border: `1.5px solid ${BORDER}`,
-            bgcolor: SURFACE,
-            mb: 2.5,
-            boxShadow: "0 2px 10px rgba(15, 23, 42, 0.02)",
-          }}
-        >
-          {/* Header */}
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: "0.96rem", color: TEXT }}>
-              Operating Store & Location
-            </Typography>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={() => setEditLocationOpen(true)}
-              startIcon={<EditIcon sx={{ fontSize: 14 }} />}
-              sx={{
-                height: 28,
-                borderRadius: "8px",
-                borderColor: "#cbd5e1",
-                color: TEXT,
-                fontWeight: 800,
-                fontSize: "0.74rem",
-                textTransform: "none",
-                "&:hover": { borderColor: "#94a3b8", bgcolor: BG },
-              }}
-            >
-              Edit
-            </Button>
-          </Stack>
-
-          {/* Content Row: Thumbnail on Left, Details on Right */}
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Box
-              component="img"
-              src={form.store_thumbnail}
-              alt="Operating Store"
-              sx={{
-                width: 78,
-                height: 78,
-                borderRadius: "14px",
-                objectFit: "cover",
-                flexShrink: 0,
-                border: "1px solid #e2e8f0",
-              }}
-            />
-
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: TEXT, lineHeight: 1.25 }} noWrap>
-                {form.address}
-              </Typography>
-              <Typography sx={{ fontSize: "0.76rem", fontWeight: 700, color: "#15803d", mt: 0.4 }}>
-                🟢 Open {form.operating_hours}
-              </Typography>
-
-              {/* Service Badges */}
-              <Stack direction="row" spacing={1} sx={{ mt: 0.8, flexWrap: "wrap", gap: 0.6 }}>
-                <Box
-                  sx={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 0.4,
-                    bgcolor: "#f1f5f9",
-                    color: "#475569",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "14px",
-                    px: 1,
-                    py: 0.25,
-                    fontSize: "0.68rem",
-                    fontWeight: 700,
-                  }}
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1.5}
+                  onClick={() => setEditPayoutOpen(true)}
+                  sx={{ cursor: 'pointer', p: 1.25, borderRadius: '12px', '&:hover': { bgcolor: '#f8fafc' } }}
                 >
-                  <BoltIcon sx={{ fontSize: 13, color: "#0ea5e9" }} />
-                  {form.delivery_time}
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '10px',
+                      bgcolor: '#eff6ff',
+                      color: '#2563eb',
+                      display: 'grid',
+                      placeItems: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <BankIcon sx={{ fontSize: 22 }} />
+                  </Box>
+
+                  <Box sx={{ flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr' }, gap: 1 }}>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography sx={{ fontSize: '0.62rem', color: TEXT_MUTED, fontWeight: 700, textTransform: 'uppercase' }} noWrap>
+                        BANK NAME
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.84rem', fontWeight: 800, color: TEXT, mt: 0.15 }} noWrap>
+                        {form.bank_name}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography sx={{ fontSize: '0.62rem', color: TEXT_MUTED, fontWeight: 700, textTransform: 'uppercase' }} noWrap>
+                        ACCOUNT NUMBER
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.84rem', fontWeight: 800, color: TEXT, mt: 0.15 }} noWrap>
+                        {form.account_number}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ minWidth: 0, display: { xs: 'none', sm: 'block' } }}>
+                      <Typography sx={{ fontSize: '0.62rem', color: TEXT_MUTED, fontWeight: 700, textTransform: 'uppercase' }} noWrap>
+                        IFSC CODE
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.84rem', fontWeight: 800, color: TEXT, mt: 0.15 }} noWrap>
+                        {form.ifsc_code}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <ChevronRightIcon sx={{ fontSize: 18, color: '#94a3b8', flexShrink: 0 }} />
+                </Stack>
+              </Box>
+            </Stack>
+          </Grid>
+
+          {/* ── RIGHT COLUMN (KYC Status, Operations Tools, Security & Logout) ── */}
+          <Grid item xs={12} md={5}>
+            <Stack spacing={2.5}>
+              {/* Card 4: KYC & Verification Status Card */}
+              <Box
+                sx={{
+                  background: 'linear-gradient(135deg, #064E3B 0%, #043C2E 100%)',
+                  borderRadius: '18px',
+                  p: { xs: 2, sm: 2.5 },
+                  color: '#ffffff',
+                  boxShadow: '0 8px 24px rgba(6, 78, 59, 0.25)',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+              >
+                <Box sx={{ position: 'relative', zIndex: 1 }}>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <ShieldIcon sx={{ fontSize: 22, color: '#4ade80' }} />
+                      <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: '#ffffff' }}>
+                        KYC & Verification
+                      </Typography>
+                    </Stack>
+                    <Chip
+                      label="Verified Partner"
+                      size="small"
+                      sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 800, fontSize: '0.68rem', height: 22 }}
+                    />
+                  </Stack>
+
+                  <Typography sx={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.45, mb: 2 }}>
+                    Aadhaar, Business PAN, Settlement Bank and Shop License are active for instant payouts and voice alerts.
+                  </Typography>
+
+                  <Button
+                    variant="contained"
+                    onClick={() => navigate('/business/kyc')}
+                    sx={{
+                      bgcolor: '#ffffff',
+                      color: '#064E3B',
+                      fontWeight: 800,
+                      fontSize: '0.78rem',
+                      borderRadius: '10px',
+                      textTransform: 'none',
+                      py: 0.8,
+                      px: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                      '&:hover': { bgcolor: '#f0fdf4' },
+                    }}
+                  >
+                    View KYC Documents
+                  </Button>
                 </Box>
-                <Box
-                  sx={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 0.4,
-                    bgcolor: "#eff6ff",
-                    color: "#1d4ed8",
-                    border: "1px solid #bfdbfe",
-                    borderRadius: "14px",
-                    px: 1,
-                    py: 0.25,
-                    fontSize: "0.68rem",
-                    fontWeight: 700,
-                  }}
-                >
-                  <RetailIcon sx={{ fontSize: 13, color: "#2563eb" }} />
-                  {form.service_mode}
-                </Box>
-              </Stack>
-            </Box>
-          </Stack>
-        </Box>
-
-        {/* ══════════════════════════════════════════════════════════════════════════
-            7. OPERATIONS TOOLS (Exact 4 Tools in 1 Row - Pixel Match)
-           ══════════════════════════════════════════════════════════════════════════ */}
-        <Box
-          sx={{
-            p: { xs: 1.75, sm: 2.25 },
-            borderRadius: "18px",
-            border: `1.5px solid ${BORDER}`,
-            bgcolor: SURFACE,
-            mb: 2.5,
-            boxShadow: "0 2px 10px rgba(15, 23, 42, 0.02)",
-          }}
-        >
-          <Typography sx={{ fontWeight: 900, fontSize: "0.96rem", color: TEXT, mb: 1.5 }}>
-            Merchant Operations & Tools
-          </Typography>
-
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: { xs: 0.75, sm: 1.25 },
-            }}
-          >
-            {/* Tool 1: Manage Outlets & Shops */}
-            <Box
-              onClick={() => navigate("/business/shops")}
-              sx={{
-                py: { xs: 1.25, sm: 1.5 },
-                px: { xs: 0.5, sm: 1 },
-                borderRadius: "14px",
-                bgcolor: "#f0fdf4",
-                border: "1.5px solid #bbf7d0",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                textAlign: "center",
-                minHeight: { xs: 78, sm: 84 },
-                transition: "all 0.15s ease",
-                "&:hover": { borderColor: "#86efac" },
-                "&:active": { transform: "scale(0.97)" },
-              }}
-            >
-              <StorefrontIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: "#15803d", mb: 0.4 }} />
-              <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 800, color: "#166534", lineHeight: 1.15 }}>
-                Manage Outlets & Shops &gt;
-              </Typography>
-            </Box>
-
-            {/* Tool 2: Inventory & Billing POS */}
-            <Box
-              onClick={() => navigate("/business/inventory")}
-              sx={{
-                py: { xs: 1.25, sm: 1.5 },
-                px: { xs: 0.5, sm: 1 },
-                borderRadius: "14px",
-                bgcolor: "#eff6ff",
-                border: "1.5px solid #bfdbfe",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                textAlign: "center",
-                minHeight: { xs: 78, sm: 84 },
-                transition: "all 0.15s ease",
-                "&:hover": { borderColor: "#93c5fd" },
-                "&:active": { transform: "scale(0.97)" },
-              }}
-            >
-              <InventoryIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: "#2563eb", mb: 0.4 }} />
-              <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 800, color: "#1e40af", lineHeight: 1.15 }}>
-                Inventory & Billing POS &gt;
-              </Typography>
-            </Box>
-
-            {/* Tool 3: Ads & Local Promotions */}
-            <Box
-              onClick={() => navigate("/business/ads")}
-              sx={{
-                py: { xs: 1.25, sm: 1.5 },
-                px: { xs: 0.5, sm: 1 },
-                borderRadius: "14px",
-                bgcolor: "#fffbeb",
-                border: "1.5px solid #fde68a",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                textAlign: "center",
-                minHeight: { xs: 78, sm: 84 },
-                transition: "all 0.15s ease",
-                "&:hover": { borderColor: "#fcd34d" },
-                "&:active": { transform: "scale(0.97)" },
-              }}
-            >
-              <AdsIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: "#d97706", mb: 0.4 }} />
-              <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 800, color: "#b45309", lineHeight: 1.15 }}>
-                Ads & Local Promotions &gt;
-              </Typography>
-            </Box>
-
-            {/* Tool 4: KYC & Verification */}
-            <Box
-              onClick={() => navigate("/business/kyc")}
-              sx={{
-                py: { xs: 1.25, sm: 1.5 },
-                px: { xs: 0.5, sm: 1 },
-                borderRadius: "14px",
-                bgcolor: "#faf5ff",
-                border: "1.5px solid #e9d5ff",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                textAlign: "center",
-                minHeight: { xs: 78, sm: 84 },
-                transition: "all 0.15s ease",
-                "&:hover": { borderColor: "#d8b4fe" },
-                "&:active": { transform: "scale(0.97)" },
-              }}
-            >
-              <ShieldIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: "#7c3aed", mb: 0.4 }} />
-              <Typography sx={{ fontSize: { xs: "0.62rem", sm: "0.74rem" }, fontWeight: 800, color: "#6b21a8", lineHeight: 1.15 }}>
-                KYC & Verification &gt;
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-
-        {/* ══════════════════════════════════════════════════════════════════════════
-            8. PAYOUT DETAILS (Show bank information for settlements)
-           ══════════════════════════════════════════════════════════════════════════ */}
-        <Box
-          sx={{
-            p: 2.25,
-            borderRadius: "18px",
-            border: `1.5px solid ${BORDER}`,
-            bgcolor: SURFACE,
-            mb: 2.5,
-            boxShadow: "0 2px 10px rgba(15, 23, 42, 0.02)",
-          }}
-        >
-          {/* Header */}
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: "0.96rem", color: TEXT }}>
-              Payout Account
-            </Typography>
-            <Button
-              size="small"
-              onClick={() => setEditPayoutOpen(true)}
-              sx={{
-                color: TEXT,
-                fontWeight: 800,
-                fontSize: "0.8rem",
-                textTransform: "none",
-                p: 0,
-                minWidth: 0,
-                "&:hover": { bgcolor: "transparent", color: PRIMARY },
-              }}
-            >
-              Manage
-            </Button>
-          </Stack>
-
-          {/* Bank Info Row */}
-          <Stack
-            direction="row"
-            alignItems="center"
-            spacing={1.5}
-            onClick={() => setEditPayoutOpen(true)}
-            sx={{ cursor: "pointer" }}
-          >
-            {/* Bank Icon */}
-            <Box
-              sx={{
-                width: 38,
-                height: 38,
-                borderRadius: "10px",
-                bgcolor: "#eff6ff",
-                color: "#2563eb",
-                display: "grid",
-                placeItems: "center",
-                flexShrink: 0,
-              }}
-            >
-              <BankIcon sx={{ fontSize: 20 }} />
-            </Box>
-
-            {/* 3 Detail Columns */}
-            <Box sx={{ flex: 1, minWidth: 0, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 1 }}>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontSize: "0.62rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }} noWrap>
-                  BANK NAME
-                </Typography>
-                <Typography sx={{ fontSize: { xs: "0.78rem", sm: "0.85rem" }, fontWeight: 800, color: TEXT, mt: 0.15 }} noWrap>
-                  {form.bank_name}
-                </Typography>
               </Box>
 
-              <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontSize: "0.62rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }} noWrap>
-                  ACCOUNT NUMBER
+              {/* Card 5: Merchant Operations & Tools */}
+              <Box
+                sx={{
+                  p: { xs: 2, sm: 2.5 },
+                  borderRadius: '18px',
+                  border: `1.5px solid ${BORDER}`,
+                  bgcolor: SURFACE,
+                  boxShadow: '0 2px 10px rgba(15, 23, 42, 0.02)',
+                }}
+              >
+                <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: TEXT, mb: 1.8 }}>
+                  Operations & Tools
                 </Typography>
-                <Typography sx={{ fontSize: { xs: "0.78rem", sm: "0.85rem" }, fontWeight: 800, color: TEXT, mt: 0.15 }} noWrap>
-                  {form.account_number}
-                </Typography>
+
+                <Grid container spacing={1.5}>
+                  {[
+                    {
+                      title: 'Manage Outlets',
+                      desc: 'Multi-store locations',
+                      icon: <StorefrontIcon sx={{ fontSize: 20, color: '#15803d' }} />,
+                      bg: '#f0fdf4',
+                      border: '#bbf7d0',
+                      onClick: () => navigate('/business/shops'),
+                    },
+                    {
+                      title: 'Inventory POS',
+                      desc: 'Stock & barcode scan',
+                      icon: <InventoryIcon sx={{ fontSize: 20, color: '#2563eb' }} />,
+                      bg: '#eff6ff',
+                      border: '#bfdbfe',
+                      onClick: () => navigate('/business/inventory'),
+                    },
+                    {
+                      title: 'Local Ads',
+                      desc: 'Promotions & banners',
+                      icon: <AdsIcon sx={{ fontSize: 20, color: '#d97706' }} />,
+                      bg: '#fffbeb',
+                      border: '#fde68a',
+                      onClick: () => navigate('/business/ads'),
+                    },
+                    {
+                      title: 'QR Standee',
+                      desc: 'Voice alert scanner',
+                      icon: <QrIcon sx={{ fontSize: 20, color: '#7c3aed' }} />,
+                      bg: '#faf5ff',
+                      border: '#e9d5ff',
+                      onClick: () => navigate('/scanner'),
+                    },
+                  ].map((tool, idx) => (
+                    <Grid item xs={6} key={idx}>
+                      <Box
+                        onClick={tool.onClick}
+                        sx={{
+                          p: 1.5,
+                          borderRadius: '14px',
+                          bgcolor: tool.bg,
+                          border: `1.5px solid ${tool.border}`,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          height: '100%',
+                          transition: 'all 0.15s ease',
+                          '&:hover': { transform: 'translateY(-2px)' },
+                          '&:active': { transform: 'scale(0.98)' },
+                        }}
+                      >
+                        <Box sx={{ mb: 0.8 }}>{tool.icon}</Box>
+                        <Typography sx={{ fontWeight: 800, fontSize: '0.82rem', color: TEXT }}>
+                          {tool.title}
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.68rem', color: TEXT_MUTED, mt: 0.2 }}>
+                          {tool.desc}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
               </Box>
 
-              <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontSize: "0.62rem", color: TEXT_MUTED, fontWeight: 700, textTransform: "uppercase" }} noWrap>
-                  IFSC CODE
-                </Typography>
-                <Typography sx={{ fontSize: { xs: "0.78rem", sm: "0.85rem" }, fontWeight: 800, color: TEXT, mt: 0.15 }} noWrap>
-                  {form.ifsc_code}
-                </Typography>
+              {/* Card 6: Account Security & Sign Out */}
+              <Box
+                onClick={() => setSecurityModalOpen(true)}
+                sx={{
+                  p: 1.75,
+                  borderRadius: '16px',
+                  border: `1.5px solid ${BORDER}`,
+                  bgcolor: SURFACE,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.02)',
+                  transition: 'all 0.15s ease',
+                  '&:hover': { borderColor: '#cbd5e1', bgcolor: BG },
+                }}
+              >
+                <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: '10px',
+                      bgcolor: '#fef2f2',
+                      color: '#ef4444',
+                      display: 'grid',
+                      placeItems: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <LockIcon sx={{ fontSize: 18 }} />
+                  </Box>
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.86rem', color: TEXT }} noWrap>
+                      Security & Preferences
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.7rem', color: TEXT_MUTED, mt: 0.2 }} noWrap>
+                      Manage password and settings
+                    </Typography>
+                  </Box>
+                </Stack>
+                <ChevronRightIcon sx={{ fontSize: 20, color: '#94a3b8', flexShrink: 0 }} />
               </Box>
-            </Box>
 
-            {/* Right Chevron */}
-            <ChevronRightIcon sx={{ fontSize: 18, color: "#94a3b8", flexShrink: 0 }} />
-          </Stack>
-        </Box>
-
-        {/* ══════════════════════════════════════════════════════════════════════════
-            9. ACCOUNT & SECURITY (Additional settings and sign out at the end)
-           ══════════════════════════════════════════════════════════════════════════ */}
-        {/* Security & Preferences Row */}
-        <Box
-          onClick={() => setSecurityModalOpen(true)}
-          sx={{
-            p: 2,
-            borderRadius: "16px",
-            border: `1.5px solid ${BORDER}`,
-            bgcolor: SURFACE,
-            mb: 2.5,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            cursor: "pointer",
-            boxShadow: "0 2px 8px rgba(15, 23, 42, 0.02)",
-            transition: "all 0.15s ease",
-            "&:hover": { borderColor: "#cbd5e1", bgcolor: BG },
-          }}
-        >
-          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
-            <Box
-              sx={{
-                width: 38,
-                height: 38,
-                borderRadius: "10px",
-                bgcolor: "#fef2f2",
-                color: "#ef4444",
-                display: "grid",
-                placeItems: "center",
-                flexShrink: 0,
-              }}
-            >
-              <LockIcon sx={{ fontSize: 20 }} />
-            </Box>
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography sx={{ fontWeight: 800, fontSize: "0.88rem", color: TEXT }} noWrap>
-                Security & Preferences
-              </Typography>
-              <Typography sx={{ fontSize: "0.72rem", color: TEXT_MUTED, mt: 0.2 }} noWrap>
-                Manage your account, password and notification settings
-              </Typography>
-            </Box>
-          </Stack>
-          <ChevronRightIcon sx={{ fontSize: 20, color: "#94a3b8", ml: 1, flexShrink: 0 }} />
-        </Box>
-
-        {/* Sign Out of Business Terminal Button */}
-        <Button
-          fullWidth
-          variant="contained"
-          onClick={() => setLogoutDialogOpen(true)}
-          startIcon={<LogoutIcon sx={{ fontSize: 18 }} />}
-          sx={{
-            bgcolor: "#fef2f2",
-            color: "#dc2626",
-            border: "1.5px solid #fee2e2",
-            textTransform: "none",
-            fontWeight: 800,
-            fontSize: "0.88rem",
-            borderRadius: "14px",
-            height: 48,
-            mb: 6,
-            boxShadow: "none",
-            "&:hover": { bgcolor: "#fee2e2", borderColor: "#fca5a5" },
-            "&:active": { transform: "scale(0.99)" },
-          }}
-        >
-          Sign Out of Business Terminal
-        </Button>
+              {/* Sign Out Button */}
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => setLogoutDialogOpen(true)}
+                startIcon={<LogoutIcon sx={{ fontSize: 18 }} />}
+                sx={{
+                  bgcolor: '#fef2f2',
+                  color: '#dc2626',
+                  borderColor: '#fca5a5',
+                  textTransform: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.86rem',
+                  borderRadius: '14px',
+                  py: 1.2,
+                  boxShadow: 'none',
+                  '&:hover': { bgcolor: '#fee2e2', borderColor: '#ef4444' },
+                }}
+              >
+                Sign Out of Business Terminal
+              </Button>
+            </Stack>
+          </Grid>
+        </Grid>
 
       </Container>
 
