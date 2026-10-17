@@ -171,29 +171,6 @@ public class RegisterService {
             resolvedServiceMode
         );
 
-        // Insert baseline shop in market_shop
-        String effectiveStoreName = (req.getStoreName() != null && !req.getStoreName().isBlank())
-            ? req.getStoreName().trim()
-            : req.getBusinessName();
-        String effectiveContact = (req.getStoreContactNumber() != null && !req.getStoreContactNumber().isBlank())
-            ? req.getStoreContactNumber().trim()
-            : req.getPhone();
-
-        userRepository.insertShop(
-            userId,
-            effectiveStoreName,
-            req.getAddress(),
-            req.getCity(),
-            req.getPincode(),
-            req.getLatitude(),
-            req.getLongitude(),
-            effectiveContact,
-            req.getDiscountPercent() != null ? req.getDiscountPercent() : 0.00,
-            req.getCategoryId(),
-            req.getSubcategoryId(),
-            "[]"
-        );
-
         // Generate JWT tokens and return response
         String accessToken = jwtService.generateAccessToken(username, req.getFullName());
         String refreshToken = jwtService.generateRefreshToken(username);
