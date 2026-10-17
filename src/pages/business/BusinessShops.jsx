@@ -677,54 +677,91 @@ export default function BusinessShops() {
                       />
                     </Box>
 
-                    {/* Service Mode Selector - Strictly ONLINE or OFFLINE, never BOTH */}
-                    <Box>
-                      <Typography sx={labelSx}>Service Mode *</Typography>
-                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mt: 0.5 }}>
+                    {/* Service Mode Selector - Locked on Edit so registered online stores stay online */}
+                    {form.id ? (
+                      <Box>
+                        <Typography sx={labelSx}>Service Mode</Typography>
                         <Box
-                          onClick={() => setForm(p => ({ ...p, service_mode: 'ONLINE' }))}
                           sx={{
                             p: 1.5,
                             borderRadius: '12px',
-                            border: `2px solid ${form.service_mode === 'ONLINE' ? T.primary : T.border}`,
-                            bgcolor: form.service_mode === 'ONLINE' ? T.primaryLight : '#ffffff',
-                            cursor: 'pointer',
-                            textAlign: 'center',
-                            transition: 'all 0.15s ease',
+                            border: `2px solid ${T.primary}`,
+                            bgcolor: T.primaryLight,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
                           }}
                         >
-                          <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: form.service_mode === 'ONLINE' ? T.primary : T.text, mb: 0.25 }}>
-                            🌐 ONLINE
-                          </Typography>
-                          <Typography sx={{ fontSize: '0.68rem', color: T.textSecondary, lineHeight: 1.3 }}>
-                            Online Store & Delivery
-                          </Typography>
-                        </Box>
-
-                        <Box
-                          onClick={() => setForm(p => ({ ...p, service_mode: 'OFFLINE' }))}
-                          sx={{
-                            p: 1.5,
-                            borderRadius: '12px',
-                            border: `2px solid ${form.service_mode === 'OFFLINE' ? T.primary : T.border}`,
-                            bgcolor: form.service_mode === 'OFFLINE' ? T.primaryLight : '#ffffff',
-                            cursor: 'pointer',
-                            textAlign: 'center',
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: form.service_mode === 'OFFLINE' ? T.primary : T.text, mb: 0.25 }}>
-                            🏬 OFFLINE
-                          </Typography>
-                          <Typography sx={{ fontSize: '0.68rem', color: T.textSecondary, lineHeight: 1.3 }}>
-                            Nearby Store & Scan & Pay
-                          </Typography>
+                          <Box>
+                            <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: T.primary, mb: 0.25 }}>
+                              {form.service_mode === 'ONLINE' ? '🌐 ONLINE STORE' : '🏬 OFFLINE STORE'}
+                            </Typography>
+                            <Typography sx={{ fontSize: '0.7rem', color: T.textSecondary }}>
+                              {form.service_mode === 'ONLINE' ? 'Online Catalog & Home Delivery' : 'Nearby Store & Scan & Pay'}
+                            </Typography>
+                          </Box>
+                          <Chip
+                            size="small"
+                            label="Registered Mode (Fixed)"
+                            sx={{
+                              bgcolor: '#ffffff',
+                              color: T.primaryDark,
+                              fontWeight: 800,
+                              fontSize: '0.7rem',
+                              border: `1px solid ${T.border}`,
+                            }}
+                          />
                         </Box>
                       </Box>
-                      <Typography sx={{ fontSize: '0.68rem', color: T.textMuted, mt: 0.75, fontWeight: 500 }}>
-                        Note: Trikonekt does not support combined modes. To operate both Online & Offline, register separate stores with the same mobile number.
-                      </Typography>
-                    </Box>
+                    ) : (
+                      <Box>
+                        <Typography sx={labelSx}>Service Mode *</Typography>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mt: 0.5 }}>
+                          <Box
+                            onClick={() => setForm(p => ({ ...p, service_mode: 'ONLINE' }))}
+                            sx={{
+                              p: 1.5,
+                              borderRadius: '12px',
+                              border: `2px solid ${form.service_mode === 'ONLINE' ? T.primary : T.border}`,
+                              bgcolor: form.service_mode === 'ONLINE' ? T.primaryLight : '#ffffff',
+                              cursor: 'pointer',
+                              textAlign: 'center',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: form.service_mode === 'ONLINE' ? T.primary : T.text, mb: 0.25 }}>
+                              🌐 ONLINE
+                            </Typography>
+                            <Typography sx={{ fontSize: '0.68rem', color: T.textSecondary, lineHeight: 1.3 }}>
+                              Online Store & Delivery
+                            </Typography>
+                          </Box>
+
+                          <Box
+                            onClick={() => setForm(p => ({ ...p, service_mode: 'OFFLINE' }))}
+                            sx={{
+                              p: 1.5,
+                              borderRadius: '12px',
+                              border: `2px solid ${form.service_mode === 'OFFLINE' ? T.primary : T.border}`,
+                              bgcolor: form.service_mode === 'OFFLINE' ? T.primaryLight : '#ffffff',
+                              cursor: 'pointer',
+                              textAlign: 'center',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: form.service_mode === 'OFFLINE' ? T.primary : T.text, mb: 0.25 }}>
+                              🏬 OFFLINE
+                            </Typography>
+                            <Typography sx={{ fontSize: '0.68rem', color: T.textSecondary, lineHeight: 1.3 }}>
+                              Nearby Store & Scan & Pay
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Typography sx={{ fontSize: '0.68rem', color: T.textMuted, mt: 0.75, fontWeight: 500 }}>
+                          Note: Trikonekt does not support combined modes. To operate both Online & Offline, register separate stores with the same mobile number.
+                        </Typography>
+                      </Box>
+                    )}
 
                     {/* Business Type Select */}
                     {/* Mobile */}

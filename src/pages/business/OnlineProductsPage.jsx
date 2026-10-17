@@ -114,9 +114,23 @@ function ModernProductCard({ product, onToggleOnline, onEdit, onDelete }) {
           </Typography>
 
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 1 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: T.primary }}>
-              {fmtCurrency(product.price)}
-            </Typography>
+            <Stack direction="row" alignItems="baseline" spacing={0.75}>
+              <Typography sx={{ fontWeight: 900, fontSize: '1rem', color: T.primary }}>
+                {fmtCurrency(product.price)}
+              </Typography>
+              {product.mrp && Number(product.mrp) > Number(product.price) && (
+                <>
+                  <Typography sx={{ fontSize: '0.75rem', color: T.textMuted, textDecoration: 'line-through' }}>
+                    {fmtCurrency(product.mrp)}
+                  </Typography>
+                  <Chip
+                    size="small"
+                    label={`${Math.round(((Number(product.mrp) - Number(product.price)) / Number(product.mrp)) * 100)}% OFF`}
+                    sx={{ bgcolor: '#ECFDF5', color: '#159A65', fontWeight: 800, fontSize: '0.65rem', height: 18 }}
+                  />
+                </>
+              )}
+            </Stack>
 
             <Stack direction="row" alignItems="center" spacing={0.5}>
               <Tooltip title={isOnline ? 'Online Delivery Active' : 'Offline Only'}>

@@ -1094,6 +1094,7 @@ export default function InventoryPage() {
                 const rawImg = p.image || p.image_url || p.product_image;
                 const imgSrc = rawImg ? resolveImageUrl(rawImg) : defaultImg;
                 const price = Number(p.price || 0);
+                const mrp = Number(p.mrp || p.cost || p.originalPrice || 0);
                 const stockQty = Number(p.stock_qty ?? p.stockQty ?? 0);
                 const threshold = Number(p.low_stock_threshold ?? p.lowStockThreshold ?? 5);
                 const isActive = p.is_active !== false;
@@ -1188,10 +1189,35 @@ export default function InventoryPage() {
                           {p.title}
                         </Typography>
 
-                        {/* Price • Category • Stock */}
-                        <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, mt: 0.3 }}>
-                          ₹{price.toFixed(2)} • {p.category || 'General'} • <strong>{stockQty} in stock</strong>
-                        </Typography>
+                        {/* Price • MRP • Discount • Category • Stock */}
+                        <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.3, flexWrap: 'wrap' }}>
+                          <Typography sx={{ fontSize: '0.82rem', color: '#0f172a', fontWeight: 900 }}>
+                            ₹{price.toFixed(2)}
+                          </Typography>
+                          {mrp > price && (
+                            <>
+                              <Typography sx={{ fontSize: '0.72rem', color: '#94a3b8', textDecoration: 'line-through', fontWeight: 600 }}>
+                                ₹{mrp.toFixed(2)}
+                              </Typography>
+                              <Chip
+                                size="small"
+                                label={`${Math.round(((mrp - price) / mrp) * 100)}% OFF`}
+                                sx={{
+                                  bgcolor: '#f0fdf4',
+                                  color: '#15803d',
+                                  fontWeight: 800,
+                                  fontSize: '0.65rem',
+                                  height: 18,
+                                  borderRadius: '6px',
+                                  border: '1px solid #bbf7d0',
+                                }}
+                              />
+                            </>
+                          )}
+                          <Typography sx={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                            • {p.category || 'General'} • <strong>{stockQty} in stock</strong>
+                          </Typography>
+                        </Stack>
                       </Box>
 
                       {/* Quick Adjust Button & Three-dots Menu */}
