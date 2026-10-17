@@ -2001,7 +2001,8 @@ export async function getCaptainShopDetail(shopId) {
   const token = getCaptainToken();
   const headers = { Accept: "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
-  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops/${encodeURIComponent(shopId)}`, { headers });
+  const cleanShopId = String(shopId || '').replace(/\/.*$/, '').trim();
+  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops/${encodeURIComponent(cleanShopId)}`, { headers });
   if (!res.ok) throw new Error(`Failed to fetch shop details: ${res.status}`);
   return await res.json();
 }
@@ -2027,7 +2028,8 @@ export async function getCaptainShopOrders(shopId) {
   const token = getCaptainToken();
   const headers = { Accept: "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
-  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops/${encodeURIComponent(shopId)}/orders`, { headers });
+  const cleanShopId = String(shopId || '').replace(/\/.*$/, '').trim();
+  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops/${encodeURIComponent(cleanShopId)}/orders`, { headers });
   if (!res.ok) throw new Error(`Failed to fetch shop orders: ${res.status}`);
   return await res.json();
 }
@@ -2040,7 +2042,8 @@ export async function getCaptainShopKyc(shopId) {
   const token = getCaptainToken();
   const headers = { Accept: "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
-  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops/${encodeURIComponent(shopId)}/kyc`, { headers });
+  const cleanShopId = String(shopId || '').replace(/\/.*$/, '').trim();
+  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops/${encodeURIComponent(cleanShopId)}/kyc`, { headers });
   if (!res.ok) throw new Error(`Failed to fetch shop KYC: ${res.status}`);
   return await res.json();
 }
@@ -2053,11 +2056,16 @@ export async function approveCaptainShop(shopId) {
   const token = getCaptainToken();
   const headers = { Accept: "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
-  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops/${encodeURIComponent(shopId)}/approve`, {
+  const cleanShopId = String(shopId || '').replace(/\/.*$/, '').trim();
+  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops/${encodeURIComponent(cleanShopId)}/approve`, {
     method: "POST",
     headers,
   });
-  if (!res.ok) throw new Error(`Failed to approve shop: ${res.status}`);
+  if (!res.ok) {
+    let errData = null;
+    try { errData = await res.json(); } catch (_) {}
+    throw new Error(errData?.message || `Failed to approve shop: ${res.status}`);
+  }
   return await res.json();
 }
 
@@ -2069,12 +2077,17 @@ export async function rejectCaptainShop(shopId, reason) {
   const token = getCaptainToken();
   const headers = { Accept: "application/json", "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
-  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops/${encodeURIComponent(shopId)}/reject`, {
+  const cleanShopId = String(shopId || '').replace(/\/.*$/, '').trim();
+  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops/${encodeURIComponent(cleanShopId)}/reject`, {
     method: "POST",
     headers,
     body: JSON.stringify({ reason }),
   });
-  if (!res.ok) throw new Error(`Failed to reject shop: ${res.status}`);
+  if (!res.ok) {
+    let errData = null;
+    try { errData = await res.json(); } catch (_) {}
+    throw new Error(errData?.message || `Failed to reject shop: ${res.status}`);
+  }
   return await res.json();
 }
 

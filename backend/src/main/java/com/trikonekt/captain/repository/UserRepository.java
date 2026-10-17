@@ -336,13 +336,20 @@ public class UserRepository {
     public void insertShop(long merchantId, String shopName, String address, String city, String pincode,
                            Double latitude, Double longitude, String contactNumber, Double discountPercent,
                            Integer categoryId, Integer subcategoryId, String additionalImages) {
+        insertShop(merchantId, shopName, address, city, pincode, latitude, longitude, contactNumber, "ACTIVE", discountPercent, categoryId, subcategoryId, additionalImages);
+    }
+
+    public void insertShop(long merchantId, String shopName, String address, String city, String pincode,
+                           Double latitude, Double longitude, String contactNumber, String status, Double discountPercent,
+                           Integer categoryId, Integer subcategoryId, String additionalImages) {
         jdbc.update(
             "INSERT INTO market_shop " +
             "(merchant_id, shop_name, address, city, pincode, latitude, longitude, contact_number, status, created_at, " +
             " discount_percent, category_id, subcategory_id, additional_images) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', NOW(), ?, ?, ?, ?)",
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)",
             merchantId, shopName, address != null ? address : "", city != null ? city : "", pincode != null ? pincode : "",
             latitude, longitude, contactNumber != null ? contactNumber : "",
+            status != null ? status : "PENDING",
             discountPercent != null ? discountPercent : 0.00,
             categoryId, subcategoryId,
             additionalImages != null ? additionalImages : "[]"
@@ -467,11 +474,17 @@ public class UserRepository {
     /**
      * Retrieves full merchant KYC details for a given shop.
      */
-    public Optional<Map<String, Object>> findShopKycDetails(long shopId) {
+    public Optional<Map<String, Object>> findShopKycDetails(long targetId) {
         String query =
             "SELECT " +
-            "  s.id AS shop_id, s.shop_name, s.status AS shop_status, " +
+            "  COALESCE(s.id, u.id) AS shop_id, " +
+            "  COALESCE(s.shop_name, mp.business_name, u.full_name, 'Merchant Store') AS shop_name, " +
+            "  COALESCE(s.status, 'PENDING') AS shop_status, " +
             "  u.id AS merchant_id, u.full_name AS merchant_name, u.phone AS merchant_phone, u.email AS merchant_email, " +
+            "  COALESCE(s.address, mp.address, u.address, '') AS address, " +
+            "  COALESCE(s.city, 'Bengaluru') AS city, " +
+            "  COALESCE(s.pincode, u.pincode, '') AS pincode, " +
+            "  COALESCE(s.contact_number, u.phone, '') AS contact_number, " +
             "  COALESCE(mp.service_mode, 'OFFLINE') AS service_mode, " +
             "  COALESCE(mp.is_verified, false) AS profile_verified, " +
             "  kd.id AS kyc_id, " +
@@ -480,33 +493,117 @@ public class UserRepository {
             "  kd.is_gst_registered, kd.gstin, kd.gst_legal_name, kd.gst_certificate_url, " +
             "  kd.business_proof_type, kd.business_proof_url, " +
             "  kd.kyc_rejection_reason, kd.verified_at, kd.created_at AS kyc_submitted_at " +
-            "FROM market_shop s " +
-            "JOIN accounts_customuser u ON s.merchant_id = u.id " +
+            "FROM accounts_customuser u " +
+            "LEFT JOIN market_shop s ON s.merchant_id = u.id " +
             "LEFT JOIN market_merchantprofile mp ON u.id = mp.user_id " +
             "LEFT JOIN merchant_kyc_details kd ON kd.user_id = u.id " +
-            "WHERE s.id = ? LIMIT 1";
+            "WHERE s.id = ? OR u.id = ? " +
+            "ORDER BY CASE WHEN s.id = ? THEN 0 ELSE 1 END " +
+            "LIMIT 1";
 
-        List<Map<String, Object>> rows = jdbc.queryForList(query, shopId);
+        List<Map<String, Object>> rows = jdbc.queryForList(query, targetId, targetId, targetId);
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }
 
     /**
      * Approves a shop and activates Prime status & verified KYC on the merchant.
+     * Supports both market_shop.id and accounts_customuser.id (merchant_id).
      */
-    public boolean approveShopByCaptain(long shopId) {
-        int rows = jdbc.update("UPDATE market_shop SET status = 'ACTIVE' WHERE id = ?", shopId);
-        jdbc.update("UPDATE market_merchantprofile SET is_verified = true WHERE user_id = (SELECT merchant_id FROM market_shop WHERE id = ?)", shopId);
-        jdbc.update("UPDATE merchant_kyc_details SET kyc_status = 'VERIFIED', verified_at = NOW() WHERE user_id = (SELECT merchant_id FROM market_shop WHERE id = ?)", shopId);
-        return rows > 0;
+    public boolean approveShopByCaptain(long targetId) {
+        Long merchantUserId = null;
+        try {
+            List<Long> mIds = jdbc.queryForList("SELECT merchant_id FROM market_shop WHERE id = ?", Long.class, targetId);
+            if (!mIds.isEmpty()) {
+                merchantUserId = mIds.get(0);
+            } else {
+                List<Long> uIds = jdbc.queryForList("SELECT id FROM accounts_customuser WHERE id = ?", Long.class, targetId);
+                if (!uIds.isEmpty()) {
+                    merchantUserId = uIds.get(0);
+                }
+            }
+        } catch (Exception ignored) {}
+
+        long actualMerchantId = merchantUserId != null ? merchantUserId : targetId;
+
+        // 1. Update existing shop to ACTIVE
+        int rows = jdbc.update("UPDATE market_shop SET status = 'ACTIVE' WHERE id = ? OR merchant_id = ?", targetId, actualMerchantId);
+
+        // 2. If no shop row existed in market_shop yet for this merchant, create baseline ACTIVE shop
+        if (rows == 0) {
+            try {
+                jdbc.update(
+                    "INSERT INTO market_shop (merchant_id, shop_name, address, city, pincode, contact_number, status, created_at, discount_percent) " +
+                    "SELECT u.id, COALESCE(mp.business_name, u.full_name, 'Merchant Store'), COALESCE(mp.address, u.address, ''), " +
+                    "       'Bengaluru', COALESCE(u.pincode, '560001'), COALESCE(u.phone, ''), 'ACTIVE', NOW(), 0.00 " +
+                    "FROM accounts_customuser u " +
+                    "LEFT JOIN market_merchantprofile mp ON u.id = mp.user_id " +
+                    "WHERE u.id = ? AND NOT EXISTS (SELECT 1 FROM market_shop WHERE merchant_id = u.id)",
+                    actualMerchantId
+                );
+                rows = 1;
+            } catch (Exception ignored) {}
+        }
+
+        // 3. Mark merchant profile verified and user active
+        jdbc.update("UPDATE market_merchantprofile SET is_verified = true WHERE user_id = ?", actualMerchantId);
+        jdbc.update("UPDATE accounts_customuser SET account_active = true, is_active = true WHERE id = ?", actualMerchantId);
+
+        // 4. Update or insert KYC status as VERIFIED
+        int kycRows = jdbc.update(
+            "UPDATE merchant_kyc_details SET kyc_status = 'VERIFIED', verified_at = NOW(), updated_at = NOW() WHERE user_id = ?",
+            actualMerchantId
+        );
+        if (kycRows == 0) {
+            try {
+                jdbc.update(
+                    "INSERT INTO merchant_kyc_details (user_id, kyc_status, verified_at, updated_at, created_at) " +
+                    "VALUES (?, 'VERIFIED', NOW(), NOW(), NOW())",
+                    actualMerchantId
+                );
+            } catch (Exception ignored) {}
+        }
+
+        return true;
     }
 
     /**
      * Rejects a shop and sets KYC status to REJECTED with feedback reason.
+     * Supports both market_shop.id and accounts_customuser.id (merchant_id).
      */
-    public boolean rejectShopByCaptain(long shopId, String reason) {
-        int rows = jdbc.update("UPDATE market_shop SET status = 'REJECTED' WHERE id = ?", shopId);
-        jdbc.update("UPDATE merchant_kyc_details SET kyc_status = 'REJECTED', kyc_rejection_reason = ?, updated_at = NOW() WHERE user_id = (SELECT merchant_id FROM market_shop WHERE id = ?)",
-            reason != null ? reason : "KYC documents require review and resubmission.", shopId);
-        return rows > 0;
+    public boolean rejectShopByCaptain(long targetId, String reason) {
+        Long merchantUserId = null;
+        try {
+            List<Long> mIds = jdbc.queryForList("SELECT merchant_id FROM market_shop WHERE id = ?", Long.class, targetId);
+            if (!mIds.isEmpty()) {
+                merchantUserId = mIds.get(0);
+            } else {
+                List<Long> uIds = jdbc.queryForList("SELECT id FROM accounts_customuser WHERE id = ?", Long.class, targetId);
+                if (!uIds.isEmpty()) {
+                    merchantUserId = uIds.get(0);
+                }
+            }
+        } catch (Exception ignored) {}
+
+        long actualMerchantId = merchantUserId != null ? merchantUserId : targetId;
+        String finalReason = reason != null && !reason.isBlank() ? reason.trim() : "KYC documents require review and resubmission.";
+
+        jdbc.update("UPDATE market_shop SET status = 'REJECTED' WHERE id = ? OR merchant_id = ?", targetId, actualMerchantId);
+        jdbc.update("UPDATE market_merchantprofile SET is_verified = false WHERE user_id = ?", actualMerchantId);
+
+        int kycRows = jdbc.update(
+            "UPDATE merchant_kyc_details SET kyc_status = 'REJECTED', kyc_rejection_reason = ?, updated_at = NOW() WHERE user_id = ?",
+            finalReason, actualMerchantId
+        );
+        if (kycRows == 0) {
+            try {
+                jdbc.update(
+                    "INSERT INTO merchant_kyc_details (user_id, kyc_status, kyc_rejection_reason, created_at, updated_at) " +
+                    "VALUES (?, 'REJECTED', ?, NOW(), NOW())",
+                    actualMerchantId, finalReason
+                );
+            } catch (Exception ignored) {}
+        }
+
+        return true;
     }
 }

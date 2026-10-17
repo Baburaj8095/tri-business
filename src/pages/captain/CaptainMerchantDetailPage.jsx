@@ -39,9 +39,16 @@ import {
 
 export default function CaptainMerchantDetailPage() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id, tab } = useParams();
+  const cleanId = String(id || '').replace(/\/.*$/, '').trim();
 
-  const [activeTab, setActiveTab] = useState('Overview');
+  const getInitialTab = () => {
+    if (tab === '2' || tab === 'kyc') return 'KYC & Docs';
+    if (tab === '1' || tab === 'orders') return 'Orders';
+    if (tab === '3' || tab === 'activity') return 'Activity';
+    return 'Overview';
+  };
+  const [activeTab, setActiveTab] = useState(getInitialTab);
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
@@ -54,7 +61,7 @@ export default function CaptainMerchantDetailPage() {
 
   // Live Shop & Merchant state
   const [merchant, setMerchant] = useState({
-    id: id || '1',
+    id: cleanId || '1',
     name: 'Merchant Store',
     status: 'Pending',
     category: 'Retail Store',
@@ -93,16 +100,16 @@ export default function CaptainMerchantDetailPage() {
   const [ordersLoading, setOrdersLoading] = useState(false);
 
   const loadAllData = async () => {
-    if (!id) return;
+    if (!cleanId) return;
     try {
       setLoading(true);
       setError('');
 
       // Fetch shop details, KYC, and orders concurrently
       const [shopRes, kycRes, ordersRes] = await Promise.allSettled([
-        getCaptainShopDetail(id).catch(() => getPublicShopDetail(id)),
-        getCaptainShopKyc(id),
-        getCaptainShopOrders(id),
+        getCaptainShopDetail(cleanId).catch(() => getPublicShopDetail(cleanId)),
+        getCaptainShopKyc(cleanId),
+        getCaptainShopOrders(cleanId),
       ]);
 
       if (shopRes.status === 'fulfilled' && shopRes.value) {
@@ -114,7 +121,7 @@ export default function CaptainMerchantDetailPage() {
 
         setMerchant(prev => ({
           ...prev,
-          id: String(s.id || s.shop_id || id),
+          id: String(s.id || s.shop_id || cleanId),
           name: s.shop_name || s.name || prev.name,
           status: isActive ? 'Active' : (s.status || s.shop_status || 'Pending'),
           category: s.category_name || s.category || prev.category,
@@ -146,13 +153,14 @@ export default function CaptainMerchantDetailPage() {
 
   useEffect(() => {
     loadAllData();
-  }, [id]);
+  }, [cleanId]);
 
   const handleApprove = async () => {
     try {
       setApproving(true);
       setError('');
-      const res = await approveCaptainShop(id);
+      const targetId = merchant.id || cleanId;
+      const res = await approveCaptainShop(targetId);
       setMerchant(prev => ({ ...prev, status: 'Active', healthScore: 92 }));
       setKycDetails(prev => ({ ...prev, kyc_status: 'VERIFIED' }));
       setApprovalMsg(res?.message || 'Shop & KYC successfully verified and approved! Merchant store is now live.');
@@ -167,8 +175,9 @@ export default function CaptainMerchantDetailPage() {
     try {
       setRejecting(true);
       setError('');
+      const targetId = merchant.id || cleanId;
       const reason = rejectReason.trim() || 'KYC documents require review and resubmission.';
-      const res = await rejectCaptainShop(id, reason);
+      const res = await rejectCaptainShop(targetId, reason);
       setMerchant(prev => ({ ...prev, status: 'Rejected' }));
       setKycDetails(prev => ({ ...prev, kyc_status: 'REJECTED', kyc_rejection_reason: reason }));
       setApprovalMsg(res?.message || 'Shop registration rejected. Feedback sent to merchant.');

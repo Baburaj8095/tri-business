@@ -171,6 +171,23 @@ public class RegisterService {
             resolvedServiceMode
         );
 
+        // Also insert baseline shop in market_shop in PENDING status for Captain verification
+        userRepository.insertShop(
+            userId,
+            req.getBusinessName() != null && !req.getBusinessName().isBlank() ? req.getBusinessName() : req.getFullName(),
+            req.getAddress(),
+            req.getCity() != null && !req.getCity().isBlank() ? req.getCity() : "Bengaluru",
+            req.getPincode(),
+            req.getLatitude() != null ? req.getLatitude() : 0.0,
+            req.getLongitude() != null ? req.getLongitude() : 0.0,
+            req.getPhone(),
+            "PENDING",
+            req.getDiscountPercent() != null ? req.getDiscountPercent() : 0.0,
+            req.getCategoryId(),
+            null,
+            "[]"
+        );
+
         // Generate JWT tokens and return response
         String accessToken = jwtService.generateAccessToken(username, req.getFullName());
         String refreshToken = jwtService.generateRefreshToken(username);

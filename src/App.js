@@ -112,6 +112,7 @@ function App() {
           <Route path="kyc" element={<CaptainKyc />} />
           <Route path="merchants" element={<CaptainMerchantsPage />} />
           <Route path="merchant/:id" element={<CaptainMerchantDetailPage />} />
+          <Route path="merchant/:id/:tab" element={<CaptainMerchantDetailPage />} />
           <Route path="analytics" element={<CaptainAnalyticsPage />} />
           <Route path="scanner" element={<CaptainScannerPage />} />
           <Route path="daily-business" element={<CaptainDailyBusinessPage />} />
