@@ -79,11 +79,22 @@ public class OrderRepository {
                             Double totalMrp, Double totalDiscount,
                             Double subtotal, Double deliveryFee, Double grandTotal,
                             String paymentMethod, String orderChannel, String notes) {
+        return createOrder(userId, shopId, addressId, orderNumber, totalMrp, totalDiscount,
+                subtotal, deliveryFee, grandTotal, paymentMethod, orderChannel, notes,
+                "DRAFT", "PENDING", "");
+    }
+
+    public Long createOrder(Long userId, Long shopId, Long addressId,
+                            String orderNumber,
+                            Double totalMrp, Double totalDiscount,
+                            Double subtotal, Double deliveryFee, Double grandTotal,
+                            String paymentMethod, String orderChannel, String notes,
+                            String status, String paymentStatus, String paymentRefId) {
         String sql = "INSERT INTO online_orders (" +
                      "user_id, shop_id, delivery_address_id, order_number, status, " +
                      "total_mrp, total_discount, subtotal, delivery_fee, grand_total, total, " +
-                      "payment_method, order_channel, payment_status, notes, created_at, updated_at" +
-                      ") VALUES (?, ?, ?, ?, 'DRAFT', ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, NOW(), NOW())";
+                      "payment_method, order_channel, payment_status, notes, payment_ref_id, created_at, updated_at" +
+                      ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
@@ -92,15 +103,18 @@ public class OrderRepository {
             ps.setLong(2, shopId);
             ps.setLong(3, addressId);
             ps.setString(4, orderNumber);
-            ps.setDouble(5, totalMrp);
-            ps.setDouble(6, totalDiscount);
-            ps.setDouble(7, subtotal);
-            ps.setDouble(8, deliveryFee);
-            ps.setDouble(9, grandTotal);
-            ps.setDouble(10, grandTotal); // total mirrors grand_total
-            ps.setString(11, paymentMethod);
-            ps.setString(12, orderChannel != null ? orderChannel : "ONLINE_DELIVERY");
-            ps.setString(13, notes != null ? notes : "");
+            ps.setString(5, status != null ? status : "DRAFT");
+            ps.setDouble(6, totalMrp);
+            ps.setDouble(7, totalDiscount);
+            ps.setDouble(8, subtotal);
+            ps.setDouble(9, deliveryFee);
+            ps.setDouble(10, grandTotal);
+            ps.setDouble(11, grandTotal); // total mirrors grand_total
+            ps.setString(12, paymentMethod);
+            ps.setString(13, orderChannel != null ? orderChannel : "ONLINE_DELIVERY");
+            ps.setString(14, paymentStatus != null ? paymentStatus : "PENDING");
+            ps.setString(15, notes != null ? notes : "");
+            ps.setString(16, paymentRefId != null ? paymentRefId : "");
             return ps;
         }, keyHolder);
 

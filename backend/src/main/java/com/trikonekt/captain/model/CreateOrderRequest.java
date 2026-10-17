@@ -25,6 +25,27 @@ public class CreateOrderRequest {
     @JsonProperty("order_channel")
     private String orderChannel; // NEARBY_DELIVERY for local home-delivery flow
 
+    @JsonProperty("user_id")
+    private Long userId;
+
+    @JsonProperty("consumer_phone")
+    private String consumerPhone;
+
+    @JsonProperty("consumer_name")
+    private String consumerName;
+
+    @JsonProperty("delivery_address")
+    private String deliveryAddress;
+
+    @JsonProperty("payment_status")
+    private String paymentStatus;
+
+    @JsonProperty("transaction_ref")
+    private String transactionRef;
+
+    @JsonProperty("is_paid")
+    private Boolean isPaid;
+
     private Double latitude;
 
     private Double longitude;

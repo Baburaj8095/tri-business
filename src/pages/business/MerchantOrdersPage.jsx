@@ -514,10 +514,10 @@ export default function MerchantOrdersPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = res.data || [];
-      setOnlineOrders(data.length > 0 ? data : FALLBACK_MOCK_ONLINE_ORDERS);
+      setOnlineOrders(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.warn('Failed to fetch online shop orders, using offline fallback:', err);
-      setOnlineOrders(FALLBACK_MOCK_ONLINE_ORDERS);
+      console.warn('Failed to fetch online shop orders:', err);
+      setOnlineOrders([]);
     } finally {
       setLoadingOnlineOrders(false);
     }
@@ -673,10 +673,10 @@ export default function MerchantOrdersPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = Array.isArray(res.data) ? res.data : [];
-      setB2bOrders(data.length > 0 ? data : FALLBACK_MOCK_B2B_ORDERS);
+      setB2bOrders(data);
     } catch (err) {
-      console.warn('B2B seller orders API unavailable, using offline fallback', err);
-      setB2bOrders(FALLBACK_MOCK_B2B_ORDERS);
+      console.warn('B2B seller orders API unavailable:', err);
+      setB2bOrders([]);
     } finally {
       setLoadingB2bOrders(false);
     }

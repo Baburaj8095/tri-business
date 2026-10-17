@@ -12,12 +12,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/orders")
 public class ConsumerOrderController {
+
+    @Value("${internal.service.secret:}")
+    private String internalServiceSecret;
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
@@ -59,23 +63,62 @@ public class ConsumerOrderController {
     /**
      * POST /api/orders
      * Places/finalizes an online delivery order.
+     * Supports both direct Bearer token and S2S internal secret calls from consumer frontend.
      */
     @PostMapping
     public ResponseEntity<OnlineOrder> placeOrder(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestHeader(value = "X-Internal-Secret", required = false) String internalSecret,
             @RequestBody CreateOrderRequest req) {
-        Long userId = getUserIdFromToken(authHeader);
+        Long userId = null;
+
+        if (internalSecret != null && internalServiceSecret != null && !internalServiceSecret.isBlank()
+                && internalSecret.trim().equals(internalServiceSecret.trim())) {
+            // S2S authorized via internal secret
+            if (req.getUserId() != null && req.getUserId() > 0) {
+                userId = req.getUserId();
+            } else if (req.getConsumerPhone() != null && !req.getConsumerPhone().isBlank()) {
+                String cleanPhone = req.getConsumerPhone().replaceAll("\\D", "");
+                if (cleanPhone.length() > 10) cleanPhone = cleanPhone.substring(cleanPhone.length() - 10);
+                Optional<Map<String, Object>> u = userRepository.findByPhone(cleanPhone);
+                if (u.isEmpty()) u = userRepository.findByUsername(cleanPhone);
+                if (u.isPresent()) {
+                    userId = ((Number) u.get().get("id")).longValue();
+                }
+            }
+            if (userId == null) {
+                Optional<Map<String, Object>> rootUser = userRepository.findByUsername("6360445978");
+                if (rootUser.isEmpty()) rootUser = userRepository.findByPhone("6360445978");
+                userId = rootUser.map(m -> ((Number) m.get("id")).longValue()).orElse(1L);
+            }
+        } else if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            userId = getUserIdFromToken(authHeader);
+        } else {
+            throw new RuntimeException("Unauthorized. No valid Authorization token or internal secret provided.");
+        }
+
         OnlineOrder order = orderService.placeOrder(userId, req);
         return ResponseEntity.status(HttpStatus.CREATED).body(order);
     }
 
     /**
      * GET /api/orders
-     * Fetch list of orders submitted by the logged-in user.
+     * Fetch list of orders submitted by the logged-in user or via S2S request.
      */
     @GetMapping
-    public ResponseEntity<List<OnlineOrder>> getMyOrders(@RequestHeader("Authorization") String authHeader) {
-        Long userId = getUserIdFromToken(authHeader);
+    public ResponseEntity<List<OnlineOrder>> getMyOrders(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestHeader(value = "X-Internal-Secret", required = false) String internalSecret,
+            @RequestParam(value = "userId", required = false) Long paramUserId) {
+        Long userId = null;
+        if (internalSecret != null && internalServiceSecret != null && !internalServiceSecret.isBlank()
+                && internalSecret.trim().equals(internalServiceSecret.trim())) {
+            userId = paramUserId != null ? paramUserId : 1L;
+        } else if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            userId = getUserIdFromToken(authHeader);
+        } else {
+            throw new RuntimeException("Unauthorized. No valid Authorization token or internal secret provided.");
+        }
         List<OnlineOrder> orders = orderRepository.findOrdersByUserId(userId);
         return ResponseEntity.ok(orders);
     }

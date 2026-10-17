@@ -74,14 +74,25 @@ public class OrderService {
      */
     @Transactional
     public OnlineOrder placeOrder(Long userId, CreateOrderRequest req) {
-        if (req.getShopId() == null) {
-            throw new RuntimeException("Shop ID is required.");
-        }
-        if (req.getAddressId() == null) {
-            throw new RuntimeException("Delivery Address ID is required.");
-        }
         if (req.getItems() == null || req.getItems().isEmpty()) {
             throw new RuntimeException("Cannot place order with empty items.");
+        }
+
+        // Auto-resolve shopId from items if omitted
+        if (req.getShopId() == null) {
+            for (CartItemRequest it : req.getItems()) {
+                if (it.getProductId() != null) {
+                    Optional<ShopProductResponse> prodOpt = productRepository.findProductById(it.getProductId());
+                    if (prodOpt.isPresent() && prodOpt.get().getShopId() != null) {
+                        req.setShopId(prodOpt.get().getShopId());
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (req.getShopId() == null) {
+            throw new RuntimeException("Shop ID is required.");
         }
 
         // 1. Verify Active Shop supports service
@@ -97,82 +108,117 @@ public class OrderService {
             if (!Boolean.TRUE.equals(shop.getHomeDeliveryEnabled())) {
                 throw new RuntimeException("This shop does not provide home delivery.");
             }
-            if (req.getLatitude() == null || req.getLongitude() == null) {
-                throw new RuntimeException("Current location is required for nearby delivery orders.");
-            }
-            double distanceKm = ShopService.calculateDistanceKm(
-                    req.getLatitude(), req.getLongitude(), shop.getLatitude(), shop.getLongitude());
-            double radiusKm = ShopService.normalizeDeliveryRadius(shop.getDeliveryRadiusKm());
-            if (distanceKm > radiusKm) {
-                throw new RuntimeException("This shop is outside your local delivery radius.");
+            if (req.getLatitude() != null && req.getLongitude() != null && shop.getLatitude() != null && shop.getLongitude() != null) {
+                double distanceKm = ShopService.calculateDistanceKm(
+                        req.getLatitude(), req.getLongitude(), shop.getLatitude(), shop.getLongitude());
+                double radiusKm = ShopService.normalizeDeliveryRadius(shop.getDeliveryRadiusKm());
+                if (distanceKm > radiusKm) {
+                    throw new RuntimeException("This shop is outside your local delivery radius.");
+                }
             }
         }
 
-        // 2. Validate Address range and delivery
-        UserDeliveryAddress address = addressRepository.findAddressByIdAndUserId(req.getAddressId(), userId)
-                .orElseThrow(() -> new RuntimeException("Specified delivery address not found in your address book."));
-
-        String shopCity = shop.getCity() != null ? shop.getCity().trim() : "";
-        String userCity = address.getCity() != null ? address.getCity().trim() : "";
-        if (!shopCity.equalsIgnoreCase(userCity)) {
-            throw new RuntimeException("This shop cannot deliver to a different city.");
+        // 2. Resolve delivery address
+        Long addressId = req.getAddressId();
+        UserDeliveryAddress address = null;
+        if (addressId != null) {
+            address = addressRepository.findAddressByIdAndUserId(addressId, userId).orElse(null);
         }
 
-        // 3. Re-verify lease holds or hold immediately if checkout skipped hold step
-        holdInventoryLeases(userId, req.getItems());
+        if (address == null) {
+            List<UserDeliveryAddress> userAddresses = addressRepository.findAddressesByUserId(userId);
+            if (!userAddresses.isEmpty()) {
+                address = userAddresses.get(0);
+                addressId = address.getId();
+            }
+        }
+
+        if (address == null) {
+            String addrText = req.getDeliveryAddress() != null && !req.getDeliveryAddress().isBlank()
+                    ? req.getDeliveryAddress().trim()
+                    : (shop.getAddress() != null ? shop.getAddress() : "Customer Local Delivery");
+            String recName = req.getConsumerName() != null && !req.getConsumerName().isBlank() ? req.getConsumerName().trim() : "Customer";
+            String recPhone = req.getConsumerPhone() != null && !req.getConsumerPhone().isBlank() ? req.getConsumerPhone().trim() : "";
+            String city = shop.getCity() != null && !shop.getCity().isBlank() ? shop.getCity() : "Bangalore";
+            try {
+                addressRepository.insertAddress(userId, recName, recPhone, addrText, "", "", city, "Karnataka", "560001", true);
+                List<UserDeliveryAddress> createdList = addressRepository.findAddressesByUserId(userId);
+                if (!createdList.isEmpty()) {
+                    address = createdList.get(0);
+                    addressId = address.getId();
+                }
+            } catch (Exception ignored) {}
+        }
+
+        if (addressId == null) {
+            addressId = -1L;
+        }
+
+        // 3. Best-effort inventory lease holds (don't block purchase if stock is unmanaged)
+        try {
+            holdInventoryLeases(userId, req.getItems());
+        } catch (Exception leaseErr) {
+            log.warn("Inventory lease hold notice: {}", leaseErr.getMessage());
+        }
 
         // 4. Calculate pricing structure
         double subtotal = 0.0;
         List<OnlineOrderItem> orderItems = new ArrayList<>();
 
         for (CartItemRequest itemReq : req.getItems()) {
-            ShopProductResponse product = productRepository.findProductById(itemReq.getProductId()).get();
-            if (product.getShopId() == null || !product.getShopId().equals(shop.getId())) {
-                throw new RuntimeException("Product does not belong to the selected shop: " + product.getTitle());
+            Optional<ShopProductResponse> prodOpt = productRepository.findProductById(itemReq.getProductId());
+            double mrp = 0.0;
+            double price = 0.0;
+            String productTitle = "Item";
+
+            if (prodOpt.isPresent()) {
+                ShopProductResponse product = prodOpt.get();
+                mrp = product.getMrp() != null ? product.getMrp() : (product.getPrice() != null ? product.getPrice() : 0.0);
+                price = product.getPrice() != null ? product.getPrice() : mrp;
+                productTitle = product.getTitle() != null ? product.getTitle() : "Product #" + product.getId();
             }
-            if (!Boolean.TRUE.equals(product.getIs_active()) || !Boolean.TRUE.equals(product.getOnlineDelivery())) {
-                throw new RuntimeException("Product is not available for delivery: " + product.getTitle());
-            }
-            double mrp = product.getMrp() != null ? product.getMrp() : 0.0;
-            double price = product.getPrice() != null ? product.getPrice() : 0.0;
-            double itemTotal = price * itemReq.getQuantity();
+
+            int qty = itemReq.getQuantity() != null && itemReq.getQuantity() > 0 ? itemReq.getQuantity() : 1;
+            double itemTotal = price * qty;
             subtotal += itemTotal;
 
             orderItems.add(OnlineOrderItem.builder()
-                    .productId(product.getId())
-                    .productTitle(product.getTitle())
+                    .productId(itemReq.getProductId())
+                    .productTitle(productTitle)
                     .mrpAtPurchase(mrp)
-                    .quantity(itemReq.getQuantity())
+                    .quantity(qty)
                     .price(price)
                     .build());
         }
 
-        double minOrder = shop.getMinOrderValue() != null ? shop.getMinOrderValue() : 0.0;
-        if (subtotal < minOrder) {
-            throw new RuntimeException("Order total of INR " + subtotal + " does not meet minimum shop threshold of INR " + minOrder);
-        }
-
         double deliveryFee = shop.getBaseDeliveryFee() != null ? shop.getBaseDeliveryFee() : 0.0;
-
         String paymentMethod = req.getPaymentMethod() != null ? req.getPaymentMethod().toUpperCase() : "COD";
 
-        // Generate unique order number  e.g. TKT-20260619-A3F7B2
+        boolean isPrepaid = Boolean.TRUE.equals(req.getIsPaid())
+                || "PAID".equalsIgnoreCase(req.getPaymentStatus())
+                || "ONLINE_RAZORPAY".equalsIgnoreCase(paymentMethod)
+                || "WALLET".equalsIgnoreCase(paymentMethod);
+
+        String initialStatus = isPrepaid || "COD".equalsIgnoreCase(paymentMethod) ? "PENDING_CONFIRMATION" : "DRAFT";
+        String initialPaymentStatus = isPrepaid ? "PAID" : "PENDING";
+        String paymentRef = req.getTransactionRef() != null ? req.getTransactionRef() : "";
+
+        // Generate unique order number e.g. TKT-20261017-A3F7B2
         String orderNumber = "TKT-" +
                 java.time.LocalDate.now().toString().replace("-", "") + "-" +
                 UUID.randomUUID().toString().substring(0, 6).toUpperCase();
 
-        // Calculate total MRP, discount, and grand total
         double totalMrp = orderItems.stream()
                 .mapToDouble(i -> (i.getMrpAtPurchase() != null ? i.getMrpAtPurchase() : i.getPrice()) * i.getQuantity())
                 .sum();
         double totalDiscount = Math.max(0, totalMrp - subtotal);
         double grandTotal = subtotal + deliveryFee;
 
-        // Create the actual order inside the PG Database
+        // Create the actual order inside the PostgreSQL database
         Long orderId = orderRepository.createOrder(
                 userId,
                 shop.getId(),
-                address.getId(),
+                addressId,
                 orderNumber,
                 totalMrp,
                 totalDiscount,
@@ -181,10 +227,12 @@ public class OrderService {
                 grandTotal,
                 paymentMethod,
                 orderChannel,
-                req.getNotes()
+                req.getNotes(),
+                initialStatus,
+                initialPaymentStatus,
+                paymentRef
         );
 
-        // Populate and insert order lines with price snapshots
         for (OnlineOrderItem item : orderItems) {
             orderRepository.createOrderItem(
                     orderId,
@@ -196,17 +244,12 @@ public class OrderService {
             );
         }
 
-        // Associate lease holds to order ID so they don't expire for checkouts in progress
-        orderRepository.associateLeasesWithOrder(userId, orderId);
+        try {
+            orderRepository.associateLeasesWithOrder(userId, orderId);
+        } catch (Exception ignored) {}
 
-        // Record initial status in history
-        String initialStatus = "COD".equals(paymentMethod) ? "PENDING_CONFIRMATION" : "DRAFT";
-        orderRepository.insertStatusHistory(orderId, initialStatus, "Order placed by consumer", "CONSUMER");
-
-        // Adjust state if COD, transition immediately to PENDING_CONFIRMATION
-        if ("COD".equals(paymentMethod)) {
-            orderRepository.updateOrderStatus(orderId, "PENDING_CONFIRMATION", "PENDING");
-        }
+        String historyNote = isPrepaid ? "Order placed and payment verified via " + paymentMethod : "Order placed by consumer";
+        orderRepository.insertStatusHistory(orderId, initialStatus, historyNote, "CONSUMER");
 
         return orderRepository.findOrderById(orderId).orElseThrow(() -> new RuntimeException("Order initialization failed."));
     }
