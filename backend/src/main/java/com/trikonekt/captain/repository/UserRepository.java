@@ -139,7 +139,7 @@ public class UserRepository {
             "LEFT JOIN market_merchantprofile mp ON u.id = mp.user_id " +
             "LEFT JOIN business_merchantcategory mc ON s.category_id = mc.id " +
             "LEFT JOIN business_triapp ta ON s.tri_app_id = ta.id " +
-            "WHERE (u.category = 'business' OR u.category = 'merchant') AND u.is_active = true AND UPPER(COALESCE(s.status, '')) = 'ACTIVE' " +
+            "WHERE u.category = 'business' AND u.is_active = true AND UPPER(COALESCE(s.status, '')) = 'ACTIVE' " +
             "AND UPPER(COALESCE(s.service_mode, mp.service_mode, 'OFFLINE')) <> 'ONLINE' " +
             "LIMIT 50"
         );
