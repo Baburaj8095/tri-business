@@ -24,6 +24,8 @@ public class ShopResponse {
     private String shop_image;
     private String banner;
     private Long category;
+    @JsonProperty("category_name")
+    private String categoryName;
     private Long subcategory;
     private String description;
     private String gst_number;

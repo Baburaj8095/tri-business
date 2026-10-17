@@ -188,13 +188,14 @@ public class ShopRepository {
         return jdbc.query(
             "SELECT s.id, s.shop_name, s.address, s.city, s.pincode, s.latitude, s.longitude, " +
             "s.contact_number, s.shop_image, s.banner, s.category_id, s.subcategory_id, " +
+            "COALESCE(mc.name, '') AS category_name, " +
             "s.status, s.created_at, COALESCE(s.service_mode, mp.service_mode, 'OFFLINE') AS service_mode, " +
             "s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.discount_percent, s.scan_pay_commission_percent " +
             "FROM market_shop s " +
             "JOIN accounts_customuser u ON s.merchant_id = u.id " +
             "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
+            "LEFT JOIN business_merchantcategory mc ON mc.id = s.category_id " +
             "WHERE s.status = 'ACTIVE' " +
-            "  AND UPPER(COALESCE(s.service_mode, mp.service_mode, 'OFFLINE')) <> 'ONLINE' " +
             "ORDER BY s.created_at DESC",
             (rs, rowNum) -> ShopResponse.builder()
                 .id(rs.getLong("id"))
@@ -210,6 +211,7 @@ public class ShopRepository {
                 .shop_image(normalizeImageUrl(rs.getString("shop_image")))
                 .banner(normalizeImageUrl(rs.getString("banner")))
                 .category(rs.getLong("category_id"))
+                .categoryName(rs.getString("category_name"))
                 .subcategory(rs.getLong("subcategory_id"))
                 .description(null)
                 .gst_number(null)

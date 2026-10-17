@@ -93,85 +93,39 @@ export default function NearbyStoresPage() {
       getMerchantCategories().catch(() => []),
     ])
       .then(([merchantsRes, categoriesRes]) => {
-        const data = merchantsRes || [];
+        const data = Array.isArray(merchantsRes) ? merchantsRes : [];
+        const baseStores = data;
 
-        // Build fallback stores if API returns empty
-        const baseStores =
-          data.length > 0
-            ? data
-            : [
-                {
-                  id: 1,
-                  shop_name: 'Sri Balaji Supermarket',
-                  category: 'Grocery',
-                  city: 'Rajajinagar, Bengaluru',
-                  phone: '9876543210',
-                  shop_image:
-                    'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80',
-                  mapCoords: { x: 38, y: 44 },
-                },
-                {
-                  id: 2,
-                  shop_name: 'Royal Spices & Provisions',
-                  category: 'Food & Beverage',
-                  city: 'Indiranagar, Bengaluru',
-                  phone: '9876543211',
-                  shop_image:
-                    'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80',
-                  mapCoords: { x: 65, y: 32 },
-                },
-                {
-                  id: 3,
-                  shop_name: 'Apollo Medplus Pharmacy',
-                  category: 'Pharmacy',
-                  city: 'Koramangala, Bengaluru',
-                  phone: '9876543212',
-                  shop_image:
-                    'https://images.unsplash.com/photo-1586015555751-63c254b7c1ea?auto=format&fit=crop&w=800&q=80',
-                  mapCoords: { x: 50, y: 68 },
-                },
-                {
-                  id: 4,
-                  shop_name: 'Metro Wholesale Traders',
-                  category: 'Grocery',
-                  city: 'Yeshwanthpur, Bengaluru',
-                  phone: '9876543213',
-                  shop_image:
-                    'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=800&q=80',
-                  mapCoords: { x: 22, y: 28 },
-                },
-              ];
+        const mapped = baseStores.map((shop, idx) => {
+          const storeName = shop.shop_name || shop.business_name || shop.full_name || 'Merchant Store';
+          const storeAddress = [shop.address, shop.city, shop.pincode].filter(Boolean).join(', ') || 'Bengaluru';
+          const storePhone = shop.contact_number || shop.phone || '';
+          const storeImage = shop.shop_image || shop.banner || '';
 
-        const mapped = baseStores.map((shop, idx) => ({
-          id: shop.id,
-          name: shop.shop_name || shop.business_name || shop.full_name || 'Merchant Store',
-          category: resolveCategoryName(shop),
-          rating: (4.2 + (idx % 4) * 0.2).toFixed(1),
-          reviewCount: 120 + idx * 45,
-          yearsInBusiness: `${5 + (idx % 3) * 5} Yrs in Business`,
-          location: shop.city || shop.address || 'Bengaluru',
-          eta: `${15 + (idx % 3) * 8} mins`,
-          distance: `${(1.2 + idx * 1.8).toFixed(1)} km`,
-          cashback: `${3 + (idx % 3) * 2}% CASHBACK`,
-          isOpen: true,
-          badge1: 'Verified Merchant',
-          badge2: idx % 2 === 0 ? 'Instant Billing POS' : 'GST Enabled',
-          productCount: `${25 + idx * 15}+ Products`,
-          phone: shop.contact_number || shop.phone || '9876543210',
-          image:
-            shop.shop_image ||
-            (idx % 2 === 0
-              ? 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80'
-              : 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80'),
-          avatarImage:
-            idx % 2 === 1
-              ? 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=160&q=80'
-              : null,
-          mapCoords: shop.mapCoords || {
-            x: 20 + ((idx * 27) % 65),
-            y: 25 + ((idx * 33) % 55),
-          },
-        }));
+          return {
+            id: shop.id,
+            name: storeName,
+            category: resolveCategoryName(shop),
+            rating: (4.2 + (idx % 4) * 0.2).toFixed(1),
+            reviewCount: 45 + (idx % 5) * 18,
+            yearsInBusiness: `${2 + (idx % 4) * 2} Yrs in Business`,
+            location: storeAddress,
+            eta: `${10 + (idx % 3) * 5} mins`,
+            distance: shop.distance_km != null ? `${shop.distance_km} km` : `${(1.2 + idx * 0.8).toFixed(1)} km`,
+            cashback: shop.discount_percent ? `${Math.round(shop.discount_percent)}% CASHBACK` : '5% CASHBACK',
+            isOpen: shop.is_active !== false,
+            badge1: 'Verified Merchant',
+            badge2: shop.home_delivery_enabled ? 'Home Delivery Available' : 'Store Pickup / POS',
+            productCount: 'Store Catalog',
+            phone: storePhone,
+            image: storeImage,
+            avatarImage: storeImage || null,
+            mapCoords: shop.mapCoords || {
+              x: 20 + ((idx * 27) % 65),
+              y: 25 + ((idx * 33) % 55),
+            },
+          };
+        });
 
         setStores(mapped);
         setFilteredStores(mapped);
@@ -685,19 +639,38 @@ export default function NearbyStoresPage() {
                   }}
                 >
                   <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Box
-                      component="img"
-                      src={selectedStore.image}
-                      alt={selectedStore.name}
-                      sx={{
-                        width: 72,
-                        height: 72,
-                        borderRadius: '12px',
-                        objectFit: 'cover',
-                        border: `1px solid ${TOKENS.border}`,
-                        flexShrink: 0,
-                      }}
-                    />
+                    {selectedStore.image ? (
+                      <Box
+                        component="img"
+                        src={selectedStore.image}
+                        alt={selectedStore.name}
+                        sx={{
+                          width: 72,
+                          height: 72,
+                          borderRadius: '12px',
+                          objectFit: 'cover',
+                          border: `1px solid ${TOKENS.border}`,
+                          flexShrink: 0,
+                        }}
+                      />
+                    ) : (
+                      <Box
+                        sx={{
+                          width: 72,
+                          height: 72,
+                          borderRadius: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: TOKENS.softPeach,
+                          color: TOKENS.primary,
+                          border: `1px solid ${TOKENS.border}`,
+                          flexShrink: 0,
+                        }}
+                      >
+                        <StorefrontIcon sx={{ fontSize: 32 }} />
+                      </Box>
+                    )}
                     <Box sx={{ minWidth: 0, flex: 1 }}>
                       <Stack direction="row" alignItems="center" spacing={1}>
                         <Typography
@@ -823,23 +796,49 @@ export default function NearbyStoresPage() {
                         bgcolor: TOKENS.softPeach,
                       }}
                     >
-                      <Box
-                        component="img"
-                        src={store.image}
-                        alt={store.name}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src =
-                            'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80';
-                        }}
-                        sx={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          transition: 'transform 0.3s ease',
-                          '&:hover': { transform: 'scale(1.03)' },
-                        }}
-                      />
+                      {store.image ? (
+                        <Box
+                          component="img"
+                          src={store.image}
+                          alt={store.name}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                          sx={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            transition: 'transform 0.3s ease',
+                            '&:hover': { transform: 'scale(1.03)' },
+                          }}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: 'linear-gradient(135deg, #FFF8F0 0%, #FFE5CE 100%)',
+                            color: TOKENS.primary,
+                            gap: 0.75,
+                          }}
+                        >
+                          <StorefrontIcon sx={{ fontSize: 46, opacity: 0.85 }} />
+                          <Typography
+                            sx={{
+                              fontSize: '0.82rem',
+                              fontWeight: 800,
+                              color: TOKENS.primaryDark,
+                              letterSpacing: '0.2px',
+                            }}
+                          >
+                            {store.name}
+                          </Typography>
+                        </Box>
+                      )}
 
                       {/* Top-Left: Cashback Tag Badge */}
                       <Box

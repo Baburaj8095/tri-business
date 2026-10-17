@@ -881,7 +881,7 @@ export async function getMyECouponSummary() {
 export async function getPublicB2bMerchants() {
   const captainApiUrl = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || "https://api-captain.trikonektbusiness.com/api";
   try {
-    const res = await fetch(`${captainApiUrl}/captain/merchants/b2b`);
+    const res = await fetch(`${captainApiUrl}/captain/public/shops`);
     if (!res.ok) {
       throw new Error(`Failed to fetch B2B merchants: ${res.statusText}`);
     }
@@ -894,7 +894,7 @@ export async function getPublicB2bMerchants() {
 export async function getPublicB2cMerchants() {
   const captainApiUrl = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || "https://api-captain.trikonektbusiness.com/api";
   try {
-    const res = await fetch(`${captainApiUrl}/captain/merchants/b2c`);
+    const res = await fetch(`${captainApiUrl}/captain/public/shops`);
     if (!res.ok) {
       throw new Error(`Failed to fetch B2C merchants: ${res.statusText}`);
     }
