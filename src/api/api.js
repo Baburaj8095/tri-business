@@ -1985,7 +1985,10 @@ export async function getCaptainShops() {
   const token = getCaptainToken();
   const headers = { Accept: "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
-  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops`, { headers });
+  let res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/merchants`, { headers });
+  if (!res.ok) {
+    res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops`, { headers });
+  }
   if (!res.ok) throw new Error(`Failed to fetch captain shops: ${res.status}`);
   return await res.json();
 }

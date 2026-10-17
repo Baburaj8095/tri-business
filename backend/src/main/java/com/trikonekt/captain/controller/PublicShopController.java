@@ -46,7 +46,7 @@ public class PublicShopController {
      * - category=business or audience=b2c -> B2C only
      * - otherwise returns all active shops
      */
-    @GetMapping({"/captain/public-shops", "/captain/public/shops", "/captain/shops"})
+    @GetMapping({"/captain/public-shops", "/captain/public/shops"})
     public ResponseEntity<List<ShopResponse>> listPublicShops(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String audience) {
@@ -62,20 +62,20 @@ public class PublicShopController {
     }
 
     /**
-     * GET /captain/shops/{shopId} or /captain/public-shops/{shopId}
+     * GET /captain/public-shops/{shopId} or /captain/public/shops/{shopId}
      * Get shop detail by ID (public)
      */
-    @GetMapping({"/captain/shops/{shopId}", "/captain/public-shops/{shopId}", "/captain/public/shops/{shopId}"})
+    @GetMapping({"/captain/public-shops/{shopId}", "/captain/public/shops/{shopId}"})
     public ResponseEntity<ShopResponse> getShopDetail(@PathVariable Long shopId) {
         ShopResponse shop = shopService.getShopDetail(shopId);
         return ResponseEntity.ok(shop);
     }
 
     /**
-     * GET /captain/shops/{shopId}/products or /captain/public-shops/{shopId}/products
+     * GET /captain/public-shops/{shopId}/products or /captain/public/shops/{shopId}/products
      * Get products for a specific shop
      */
-    @GetMapping({"/captain/shops/{shopId}/products", "/captain/public-shops/{shopId}/products", "/captain/public/shops/{shopId}/products"})
+    @GetMapping({"/captain/public-shops/{shopId}/products", "/captain/public/shops/{shopId}/products"})
     public ResponseEntity<List<ShopProductResponse>> getShopProducts(@PathVariable Long shopId) {
         List<ShopProductResponse> products = shopService.getShopProducts(shopId);
         return ResponseEntity.ok(products);
