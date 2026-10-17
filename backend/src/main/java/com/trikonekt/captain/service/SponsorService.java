@@ -13,7 +13,10 @@ public class SponsorService {
 
     private static final Set<String> VALID_SPONSOR_CATEGORIES = Set.of(
         "agency_pincode",       // TRPN - Pincode Partner
-        "agency_sub_franchise"  // CB   - Fellow Captain
+        "agency_sub_franchise", // CB   - Fellow Captain
+        "captain",              // Direct Captain persona
+        "agency",               // Agency franchise role
+        "pincode_partner"       // Regional partner
     );
 
     private final UserRepository userRepository;
@@ -24,7 +27,7 @@ public class SponsorService {
 
     /**
      * Strict verification for Merchant Onboarding:
-     * Sponsor MUST be a registered, active Captain (agency_sub_franchise) or Pincode Partner (agency_pincode).
+     * Sponsor MUST be a registered, active Captain (agency_sub_franchise/captain) or Pincode Partner (agency_pincode).
      * If no official Captain account exists for the given ID or mobile, returns valid = false.
      */
     public SponsorInfo verifySponsor(String sponsorId) {
@@ -45,10 +48,22 @@ public class SponsorService {
 
         Map<String, Object> user = userOpt.get();
         String category = (String) user.getOrDefault("category", "");
-        boolean isActive = Boolean.TRUE.equals(user.get("is_active")) || "true".equalsIgnoreCase(String.valueOf(user.get("is_active")));
+        String role = (String) user.getOrDefault("role", "");
+        String username = (String) user.getOrDefault("username", "");
+        String prefixedId = (String) user.getOrDefault("prefixed_id", "");
 
-        // Strict enforcement: Only agency_sub_franchise (Captain) or agency_pincode (Partner)
-        boolean isCaptainOrPartner = VALID_SPONSOR_CATEGORIES.contains(category);
+        Object isActiveObj = user.get("is_active");
+        Object accountActiveObj = user.get("account_active");
+        boolean isActive = (isActiveObj == null || Boolean.TRUE.equals(isActiveObj) || "true".equalsIgnoreCase(String.valueOf(isActiveObj)))
+            || Boolean.TRUE.equals(accountActiveObj) || "true".equalsIgnoreCase(String.valueOf(accountActiveObj));
+
+        // Strict enforcement: Only verified Captain or Pincode Partner accounts
+        boolean isCaptainOrPartner = VALID_SPONSOR_CATEGORIES.contains(category)
+            || "agency".equalsIgnoreCase(role)
+            || "captain".equalsIgnoreCase(role)
+            || (username != null && (username.toUpperCase().startsWith("CB") || username.toUpperCase().startsWith("TRPN")))
+            || (prefixedId != null && (prefixedId.toUpperCase().startsWith("CB") || prefixedId.toUpperCase().startsWith("TRPN")));
+
         boolean isValidSponsor = isActive && isCaptainOrPartner;
 
         if (!isValidSponsor) {

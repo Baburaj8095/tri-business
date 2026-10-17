@@ -20,7 +20,11 @@ import ShareIcon from '@mui/icons-material/Share';
 export default function CaptainReferralModal({ open, onClose, captainId, captainName }) {
   const [copied, setCopied] = useState(false);
 
-  const cleanId = captainId || localStorage.getItem('username_captain') || 'CB_CAPTAIN';
+  const cleanId = captainId
+    || localStorage.getItem('captain_id')
+    || localStorage.getItem('username_captain')
+    || localStorage.getItem('phone_captain')
+    || 'CB_CAPTAIN';
   const name = captainName || localStorage.getItem('fullname_captain') || 'Captain Partner';
 
   const referralUrl = `${window.location.origin}/registration?sponsor=${encodeURIComponent(cleanId)}`;

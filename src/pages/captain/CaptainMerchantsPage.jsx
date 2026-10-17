@@ -555,7 +555,7 @@ export default function CaptainMerchantsPage() {
       <CaptainReferralModal
         open={referralModalOpen}
         onClose={() => setReferralModalOpen(false)}
-        captainId={localStorage.getItem('username_captain')}
+        captainId={localStorage.getItem('captain_id') || localStorage.getItem('username_captain') || localStorage.getItem('phone_captain')}
         captainName={localStorage.getItem('fullname_captain')}
       />
     </Box>

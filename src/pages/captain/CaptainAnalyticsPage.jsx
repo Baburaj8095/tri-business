@@ -669,6 +669,8 @@ export default function CaptainAnalyticsPage() {
       <CaptainReferralModal
         open={referralOpen}
         onClose={() => setReferralOpen(false)}
+        captainId={localStorage.getItem('captain_id') || localStorage.getItem('username_captain') || localStorage.getItem('phone_captain')}
+        captainName={localStorage.getItem('fullname_captain')}
       />
     </Box>
   );

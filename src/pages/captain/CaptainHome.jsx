@@ -97,7 +97,7 @@ export default function CaptainHome() {
 
   useEffect(() => {
     const storedName = localStorage.getItem('fullname_captain');
-    const storedId = localStorage.getItem('username_captain');
+    const storedId = localStorage.getItem('captain_id') || localStorage.getItem('username_captain') || localStorage.getItem('phone_captain');
     if (storedName) setCaptainName(storedName);
     if (storedId) setCaptainId(storedId);
 

@@ -79,10 +79,12 @@ const UnifiedLogin = () => {
         const role = data.role;
         const category = data.category;
         
-        if (role === 'agency' || category === 'agency_sub_franchise') {
+        if (role === 'agency' || category === 'agency_sub_franchise' || category === 'captain') {
           localStorage.setItem('token_captain', data.access);
           localStorage.setItem('refresh_captain', data.refresh);
           localStorage.setItem('username_captain', data.username || `CB${cleanPhone}`);
+          localStorage.setItem('phone_captain', cleanPhone);
+          if (data.captainId) localStorage.setItem('captain_id', data.captainId);
           localStorage.setItem('fullname_captain', data.fullName || 'Captain Partner');
           if (data.pincode) localStorage.setItem('pincode_captain', data.pincode);
           navigate('/captain/home');

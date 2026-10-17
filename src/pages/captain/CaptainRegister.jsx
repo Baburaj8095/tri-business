@@ -190,6 +190,9 @@ const UnifiedRegister = ({ initialRole = null }) => {
               sponsorName: data.sponsorName || 'Captain Partner',
               category: data.category || 'agency_sub_franchise',
               pincode: data.pincode || '',
+              district: data.district || '',
+              state: data.state || '',
+              valid: true,
             });
           }
         } catch (_) {} finally {
@@ -208,10 +211,11 @@ const UnifiedRegister = ({ initialRole = null }) => {
       if (saved) {
         const parsed = JSON.parse(saved);
         setForm(prev => ({ ...prev, ...parsed, pincodeLoading: false }));
-        if (parsed.sponsorId) setSponsorId(parsed.sponsorId);
+        const urlRef = searchParams.get('ref') || searchParams.get('sponsor');
+        if (!urlRef && parsed.sponsorId) setSponsorId(parsed.sponsorId);
       }
     } catch { /* ignore */ }
-  }, [role, storageKey]);
+  }, [role, storageKey, searchParams]);
 
   useEffect(() => {
     if (!submitted) {

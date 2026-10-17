@@ -159,7 +159,7 @@ public class UserRepository {
         String phone10 = cleanDigits.length() >= 10 ? cleanDigits.substring(cleanDigits.length() - 10) : cleanDigits;
 
         List<Map<String, Object>> rows = jdbc.queryForList(
-            "SELECT u.id, u.username, u.full_name, u.category, u.role, u.pincode, u.sponsor_id, u.prefixed_id, u.phone, u.is_superuser, u.is_staff, u.is_active, " +
+            "SELECT u.id, u.username, u.full_name, u.category, u.role, u.pincode, u.sponsor_id, u.prefixed_id, u.phone, u.is_superuser, u.is_staff, u.is_active, u.account_active, " +
             "       COALESCE(ara.district, '') as district, COALESCE(CAST(ara.state_id AS VARCHAR), '') as state " +
             "FROM accounts_customuser u " +
             "LEFT JOIN accounts_agencyregionassignment ara ON u.id = ara.user_id " +
@@ -167,15 +167,18 @@ public class UserRepository {
             "    OR UPPER(u.username) = UPPER(?) OR UPPER(u.prefixed_id) = UPPER(?) " +
             "    OR UPPER(u.username) = UPPER(?) OR UPPER(u.username) = UPPER(?) " +
             "    OR UPPER(u.prefixed_id) = UPPER(?) OR UPPER(u.prefixed_id) = UPPER(?) " +
-            "    OR (LENGTH(?) >= 10 AND u.phone LIKE ?)) " +
+            "    OR (LENGTH(?) >= 10 AND (u.phone LIKE ? OR REGEXP_REPLACE(COALESCE(u.phone, ''), '\\D', '', 'g') = ?))) " +
             "AND (u.is_active = true OR u.is_active IS NULL OR u.account_active = true) " +
-            "AND u.category IN ('agency_sub_franchise', 'agency_pincode') " +
-            "ORDER BY CASE WHEN u.category = 'agency_sub_franchise' THEN 0 ELSE 1 END, u.id DESC " +
+            "AND (u.category IN ('agency_sub_franchise', 'agency_pincode', 'agency', 'captain', 'pincode_partner') " +
+            "     OR u.role IN ('agency', 'captain') " +
+            "     OR u.username LIKE 'CB%' OR u.username LIKE 'TRPN%' " +
+            "     OR u.prefixed_id LIKE 'CB%' OR u.prefixed_id LIKE 'TRPN%') " +
+            "ORDER BY CASE WHEN u.category = 'agency_sub_franchise' OR u.username LIKE 'CB%' THEN 0 ELSE 1 END, u.id DESC " +
             "LIMIT 1",
             clean, phone10, "+91" + phone10, "91" + phone10,
             clean, clean, "CB" + clean, "CB" + phone10,
             "CB-" + clean, "CB-" + phone10,
-            phone10, "%" + phone10
+            phone10, "%" + phone10, phone10
         );
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }
