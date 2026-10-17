@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping({"/orders", "/api/orders"})
 public class ConsumerOrderController {
 
     @Value("${internal.service.secret:}")
