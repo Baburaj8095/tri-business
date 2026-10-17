@@ -150,27 +150,6 @@ export default function CaptainMerchantsPage() {
       <CaptainHeader
         onRefresh={fetchShops}
         refreshLoading={loading}
-        rightActions={
-          <Button
-            size="small"
-            startIcon={<ShareIcon sx={{ fontSize: 15 }} />}
-            onClick={() => setReferralModalOpen(true)}
-            sx={{
-              bgcolor: '#EA580C',
-              color: '#ffffff',
-              borderRadius: '999px',
-              px: 1.5,
-              py: 0.5,
-              fontSize: '0.72rem',
-              fontWeight: 800,
-              textTransform: 'none',
-              boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)',
-              '&:hover': { bgcolor: '#C2410C' },
-            }}
-          >
-            Refer Merchant
-          </Button>
-        }
         subtitle={`Merchant Network • ${merchants.length} Stores Assigned`}
       />
 
