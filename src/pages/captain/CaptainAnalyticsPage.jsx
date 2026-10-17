@@ -14,7 +14,7 @@ import {
   Add as AddIcon,
   Share as ShareIcon,
 } from '@mui/icons-material';
-import { getCaptainShops, getCaptainDailyBusiness } from '../../api/api';
+import { getCaptainShops, getCaptainDailyBusiness, getCaptainOrders } from '../../api/api';
 import CaptainReferralModal from './components/CaptainReferralModal';
 import CaptainHeader from './components/CaptainHeader';
 
@@ -29,6 +29,7 @@ export default function CaptainAnalyticsPage() {
   // Live analytics state
   const [shops, setShops] = useState([]);
   const [dailyData, setDailyData] = useState({});
+  const [orders, setOrders] = useState([]);
   const [metrics, setMetrics] = useState({
     totalRevenue: 0,
     totalOrders: 0,
@@ -44,9 +45,10 @@ export default function CaptainAnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const [shopsRes, dailyRes] = await Promise.allSettled([
+      const [shopsRes, dailyRes, ordersRes] = await Promise.allSettled([
         getCaptainShops(),
         getCaptainDailyBusiness(),
+        getCaptainOrders(),
       ]);
 
       let shopsList = [];
@@ -59,8 +61,14 @@ export default function CaptainAnalyticsPage() {
         daily = dailyRes.value;
       }
 
+      let ordersList = [];
+      if (ordersRes.status === 'fulfilled' && Array.isArray(ordersRes.value)) {
+        ordersList = ordersRes.value;
+      }
+
       setShops(shopsList);
       setDailyData(daily);
+      setOrders(ordersList);
 
       const activeCount = shopsList.filter(s => String(s.status).toUpperCase() === 'ACTIVE').length;
       const newCount = shopsList.filter(s => String(s.status).toUpperCase() === 'PENDING' || !s.is_verified).length;
@@ -564,6 +572,92 @@ export default function CaptainAnalyticsPage() {
                     );
                   })}
                 </Box>
+              )}
+            </Box>
+
+            {/* ── Recent Merchant Orders Section ── */}
+            <Box sx={{
+              bgcolor: '#ffffff',
+              borderRadius: '20px',
+              border: '1.5px solid #e2e8f0',
+              p: 2,
+              mt: 2.5,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.8 }}>
+                <Typography sx={{ fontWeight: 900, fontSize: '0.94rem', color: '#0f172a' }}>
+                  Merchant Orders ({orders.length})
+                </Typography>
+                <Typography sx={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>
+                  Live orders across onboarded merchants
+                </Typography>
+              </Box>
+
+              {orders.length === 0 ? (
+                <Box sx={{ py: 3, textAlign: 'center' }}>
+                  <CartIcon sx={{ fontSize: 32, color: '#94a3b8', mb: 0.8 }} />
+                  <Typography sx={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a' }}>
+                    No Customer Orders Yet
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.72rem', color: '#64748b', maxWidth: 280, mx: 'auto' }}>
+                    Orders placed at your merchants' stores will be listed here with status & amount.
+                  </Typography>
+                </Box>
+              ) : (
+                <Stack spacing={1.2}>
+                  {orders.slice(0, 10).map((ord, idx) => {
+                    const status = String(ord.status || 'PENDING').toUpperCase();
+                    const isDelivered = status === 'DELIVERED';
+                    const isAccepted = status === 'ACCEPTED' || status === 'CONFIRMED';
+                    const isCancelled = status === 'CANCELLED' || status === 'REJECTED';
+
+                    return (
+                      <Box
+                        key={ord.id || idx}
+                        sx={{
+                          p: 1.4,
+                          borderRadius: '12px',
+                          border: '1px solid #f1f5f9',
+                          bgcolor: '#f8fafc',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <Box sx={{ flex: 1, minWidth: 0, mr: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.3 }}>
+                            <Typography sx={{ fontWeight: 800, fontSize: '0.84rem', color: '#0f172a' }}>
+                              #{ord.order_number || `ORD-${ord.id}`}
+                            </Typography>
+                            <Chip
+                              label={status}
+                              size="small"
+                              sx={{
+                                bgcolor: isDelivered ? '#dcfce7' : isAccepted ? '#eff6ff' : isCancelled ? '#fee2e2' : '#fef3c7',
+                                color: isDelivered ? '#15803d' : isAccepted ? '#1d4ed8' : isCancelled ? '#b91c1c' : '#b45309',
+                                fontWeight: 800,
+                                fontSize: '0.62rem',
+                                height: 20,
+                              }}
+                            />
+                          </Box>
+                          <Typography sx={{ fontSize: '0.72rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {ord.shop_name} • {ord.merchant_name}
+                          </Typography>
+                        </Box>
+
+                        <Box sx={{ textAlign: 'right' }}>
+                          <Typography sx={{ fontWeight: 900, fontSize: '0.9rem', color: '#0f172a' }}>
+                            ₹{Number(ord.grand_total || ord.total || 0).toLocaleString('en-IN')}
+                          </Typography>
+                          <Typography sx={{ fontSize: '0.66rem', color: '#94a3b8' }}>
+                            {ord.items_count || 1} items • {ord.payment_method || 'Online'}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Stack>
               )}
             </Box>
           </>

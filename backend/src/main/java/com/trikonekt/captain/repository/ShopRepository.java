@@ -366,7 +366,7 @@ public class ShopRepository {
             "merchant_id, shop_name, address, city, pincode, latitude, longitude, " +
             "contact_number, category_id, subcategory_id, home_delivery_enabled, delivery_radius_km, " +
             "min_order_value, base_delivery_fee, discount_percent, scan_pay_commission_percent, status, created_at, shop_image, banner" +
-            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', NOW(), ?, ?)";
+            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', NOW(), ?, ?)";
 
         return jdbc.update(sql,
             merchantId, shopName, address, city, pincode, latitude, longitude,

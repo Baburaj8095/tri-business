@@ -21,14 +21,22 @@ public class UserRepository {
     }
 
     public Optional<Map<String, Object>> findByUsername(String username) {
+        if (username == null || username.isBlank()) return Optional.empty();
+        String clean = username.trim();
+        String cleanDigits = clean.replaceAll("\\D", "");
+        String phone10 = cleanDigits.length() >= 10 ? cleanDigits.substring(cleanDigits.length() - 10) : "";
+
         List<Map<String, Object>> rows = jdbc.queryForList(
             "SELECT u.id, u.username, u.password, u.email, u.full_name, u.phone, u.pincode, u.address, " +
             "u.sponsor_id, u.prefixed_id, u.prefix_code, u.role, u.category, u.is_active, " +
             "COALESCE(mp.service_mode, 'OFFLINE') AS service_mode " +
             "FROM accounts_customuser u " +
             "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
-            "WHERE u.username = ? LIMIT 1",
-            username
+            "WHERE (u.username = ? OR UPPER(u.username) = UPPER(?) OR UPPER(u.prefixed_id) = UPPER(?) " +
+            "       OR (? <> '' AND (u.phone = ? OR u.phone = ? OR u.phone = ?))) " +
+            "ORDER BY u.id DESC LIMIT 1",
+            clean, clean, clean,
+            phone10, phone10, "+91" + phone10, "91" + phone10
         );
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }
@@ -339,30 +347,163 @@ public class UserRepository {
     }
 
     /**
-     * Finds shops referred by this Captain or within Captain's assigned pincode.
+     * Finds all merchants & shops referred by this Captain or within Captain's assigned pincode.
+     * Includes KYC verification documents, shop status, real orders count, and sales volume.
      */
     public List<Map<String, Object>> findShopsForCaptain(String captainUsername, String captainPhone, String captainPincode) {
+        String cleanPhone = captainPhone != null ? captainPhone.replaceAll("\\D", "") : "";
+        String phone10 = cleanPhone.length() >= 10 ? cleanPhone.substring(cleanPhone.length() - 10) : cleanPhone;
+        String pin = captainPincode != null ? captainPincode.trim() : "";
+
         String query =
-            "SELECT s.id, s.shop_name, s.address, s.city, s.pincode, s.contact_number, s.status, s.created_at, " +
-            "       s.category_id, mc.name as category_name, " +
-            "       u.id as merchant_id, u.full_name as merchant_name, u.phone as merchant_phone, u.category as merchant_category, " +
-            "       COALESCE(mp.service_mode, 'OFFLINE') as service_mode, " +
-            "       COALESCE(mp.is_verified, false) as is_verified " +
-            "FROM market_shop s " +
-            "JOIN accounts_customuser u ON s.merchant_id = u.id " +
+            "SELECT " +
+            "  u.id AS merchant_id, " +
+            "  u.full_name AS merchant_name, " +
+            "  u.phone AS merchant_phone, " +
+            "  u.email AS merchant_email, " +
+            "  u.sponsor_id, " +
+            "  u.category AS merchant_category, " +
+            "  u.date_joined AS registered_at, " +
+            "  COALESCE(mp.service_mode, 'OFFLINE') AS service_mode, " +
+            "  COALESCE(mp.is_verified, false) AS is_verified, " +
+            "  s.id, " +
+            "  COALESCE(s.shop_name, mp.business_name, u.full_name, 'Merchant Store') AS shop_name, " +
+            "  COALESCE(s.address, mp.address, '') AS address, " +
+            "  COALESCE(s.city, '') AS city, " +
+            "  COALESCE(s.pincode, u.pincode, '') AS pincode, " +
+            "  COALESCE(s.contact_number, u.phone, '') AS contact_number, " +
+            "  COALESCE(s.status, 'PENDING') AS status, " +
+            "  COALESCE(s.created_at, u.date_joined) AS created_at, " +
+            "  s.category_id, " +
+            "  COALESCE(mc.name, mp.business_category, 'General Store') AS category_name, " +
+            "  s.shop_image, " +
+            "  s.banner, " +
+            "  COALESCE(kd.kyc_status, CASE WHEN mp.is_verified = true THEN 'VERIFIED' ELSE 'PENDING' END) AS kyc_status, " +
+            "  kd.pan_number, " +
+            "  kd.pan_card_url, " +
+            "  kd.is_gst_registered, " +
+            "  kd.gstin, " +
+            "  kd.gst_legal_name, " +
+            "  kd.gst_certificate_url, " +
+            "  kd.business_proof_type, " +
+            "  kd.business_proof_url, " +
+            "  (SELECT COUNT(*) FROM online_orders o WHERE o.shop_id = s.id) AS orders_count, " +
+            "  (SELECT COALESCE(SUM(o.grand_total), 0) FROM online_orders o WHERE o.shop_id = s.id AND o.status NOT IN ('CANCELLED', 'REJECTED')) AS total_sales " +
+            "FROM accounts_customuser u " +
             "LEFT JOIN market_merchantprofile mp ON u.id = mp.user_id " +
+            "LEFT JOIN market_shop s ON s.merchant_id = u.id " +
             "LEFT JOIN business_merchantcategory mc ON s.category_id = mc.id " +
-            "WHERE (u.sponsor_id = ? OR u.sponsor_id = ? OR UPPER(u.sponsor_id) = UPPER(?) OR s.pincode = ?) " +
-            "ORDER BY s.created_at DESC LIMIT 100";
-        return jdbc.queryForList(query, captainUsername, captainPhone, "CB-" + captainPhone, captainPincode != null ? captainPincode : "");
+            "LEFT JOIN merchant_kyc_details kd ON kd.user_id = u.id " +
+            "WHERE ( " +
+            "    u.sponsor_id = ? " +
+            "    OR u.sponsor_id = ? " +
+            "    OR UPPER(u.sponsor_id) = UPPER(?) " +
+            "    OR (? <> '' AND RIGHT(REGEXP_REPLACE(COALESCE(u.sponsor_id, ''), '\\D', '', 'g'), 10) = ?) " +
+            "    OR (LENGTH(?) >= 6 AND (s.pincode = ? OR u.pincode = ?)) " +
+            ") " +
+            "AND u.category IN ('merchant', 'business') " +
+            "ORDER BY COALESCE(s.created_at, u.date_joined) DESC LIMIT 200";
+
+        return jdbc.queryForList(
+            query,
+            captainUsername != null ? captainUsername : "",
+            captainPhone != null ? captainPhone : "",
+            "CB-" + phone10,
+            phone10, phone10,
+            pin, pin, pin
+        );
     }
 
     /**
-     * Approves a shop and activates Prime status on the merchant.
+     * Finds all customer orders placed across shops onboarded by or assigned to this Captain.
+     */
+    public List<Map<String, Object>> findOrdersForCaptain(String captainUsername, String captainPhone, String captainPincode) {
+        String cleanPhone = captainPhone != null ? captainPhone.replaceAll("\\D", "") : "";
+        String phone10 = cleanPhone.length() >= 10 ? cleanPhone.substring(cleanPhone.length() - 10) : cleanPhone;
+        String pin = captainPincode != null ? captainPincode.trim() : "";
+
+        String query =
+            "SELECT " +
+            "  o.id, " +
+            "  o.order_number, " +
+            "  o.shop_id, " +
+            "  COALESCE(s.shop_name, 'Merchant Store') AS shop_name, " +
+            "  COALESCE(s.contact_number, u.phone, '') AS shop_contact, " +
+            "  u.full_name AS merchant_name, " +
+            "  u.phone AS merchant_phone, " +
+            "  o.user_id AS customer_id, " +
+            "  o.grand_total, " +
+            "  o.status, " +
+            "  o.payment_status, " +
+            "  o.payment_method, " +
+            "  o.order_channel, " +
+            "  o.created_at, " +
+            "  (SELECT COUNT(*) FROM online_order_items oi WHERE oi.order_id = o.id) AS items_count " +
+            "FROM online_orders o " +
+            "JOIN market_shop s ON o.shop_id = s.id " +
+            "JOIN accounts_customuser u ON s.merchant_id = u.id " +
+            "WHERE ( " +
+            "    u.sponsor_id = ? " +
+            "    OR u.sponsor_id = ? " +
+            "    OR UPPER(u.sponsor_id) = UPPER(?) " +
+            "    OR (? <> '' AND RIGHT(REGEXP_REPLACE(COALESCE(u.sponsor_id, ''), '\\D', '', 'g'), 10) = ?) " +
+            "    OR (LENGTH(?) >= 6 AND (s.pincode = ? OR u.pincode = ?)) " +
+            ") " +
+            "ORDER BY o.created_at DESC LIMIT 100";
+
+        return jdbc.queryForList(
+            query,
+            captainUsername != null ? captainUsername : "",
+            captainPhone != null ? captainPhone : "",
+            "CB-" + phone10,
+            phone10, phone10,
+            pin, pin, pin
+        );
+    }
+
+    /**
+     * Retrieves full merchant KYC details for a given shop.
+     */
+    public Optional<Map<String, Object>> findShopKycDetails(long shopId) {
+        String query =
+            "SELECT " +
+            "  s.id AS shop_id, s.shop_name, s.status AS shop_status, " +
+            "  u.id AS merchant_id, u.full_name AS merchant_name, u.phone AS merchant_phone, u.email AS merchant_email, " +
+            "  COALESCE(mp.service_mode, 'OFFLINE') AS service_mode, " +
+            "  COALESCE(mp.is_verified, false) AS profile_verified, " +
+            "  kd.id AS kyc_id, " +
+            "  COALESCE(kd.kyc_status, CASE WHEN mp.is_verified = true THEN 'VERIFIED' ELSE 'PENDING' END) AS kyc_status, " +
+            "  kd.pan_number, kd.pan_card_url, " +
+            "  kd.is_gst_registered, kd.gstin, kd.gst_legal_name, kd.gst_certificate_url, " +
+            "  kd.business_proof_type, kd.business_proof_url, " +
+            "  kd.kyc_rejection_reason, kd.verified_at, kd.created_at AS kyc_submitted_at " +
+            "FROM market_shop s " +
+            "JOIN accounts_customuser u ON s.merchant_id = u.id " +
+            "LEFT JOIN market_merchantprofile mp ON u.id = mp.user_id " +
+            "LEFT JOIN merchant_kyc_details kd ON kd.user_id = u.id " +
+            "WHERE s.id = ? LIMIT 1";
+
+        List<Map<String, Object>> rows = jdbc.queryForList(query, shopId);
+        return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
+    }
+
+    /**
+     * Approves a shop and activates Prime status & verified KYC on the merchant.
      */
     public boolean approveShopByCaptain(long shopId) {
         int rows = jdbc.update("UPDATE market_shop SET status = 'ACTIVE' WHERE id = ?", shopId);
         jdbc.update("UPDATE market_merchantprofile SET is_verified = true WHERE user_id = (SELECT merchant_id FROM market_shop WHERE id = ?)", shopId);
+        jdbc.update("UPDATE merchant_kyc_details SET kyc_status = 'VERIFIED', verified_at = NOW() WHERE user_id = (SELECT merchant_id FROM market_shop WHERE id = ?)", shopId);
+        return rows > 0;
+    }
+
+    /**
+     * Rejects a shop and sets KYC status to REJECTED with feedback reason.
+     */
+    public boolean rejectShopByCaptain(long shopId, String reason) {
+        int rows = jdbc.update("UPDATE market_shop SET status = 'REJECTED' WHERE id = ?", shopId);
+        jdbc.update("UPDATE merchant_kyc_details SET kyc_status = 'REJECTED', kyc_rejection_reason = ?, updated_at = NOW() WHERE user_id = (SELECT merchant_id FROM market_shop WHERE id = ?)",
+            reason != null ? reason : "KYC documents require review and resubmission.", shopId);
         return rows > 0;
     }
 }

@@ -177,9 +177,9 @@ export default function CaptainHome() {
         }}>
           {[
             {
-              title: 'Assigned Stores',
+              title: 'Merchants Onboarded',
               val: String(stats.totalShops),
-              badge: 'Assigned',
+              badge: 'Onboarded',
               badgeColor: '#EA580C',
               badgeBg: '#FFF7ED',
               icon: <StoreIcon sx={{ fontSize: 20, color: '#EA580C' }} />,

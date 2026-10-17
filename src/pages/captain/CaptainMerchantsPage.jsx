@@ -60,21 +60,23 @@ export default function CaptainMerchantsPage() {
       const data = await getCaptainShops();
       if (Array.isArray(data)) {
         const formatted = data.map(s => {
-          const st = String(s.status || 'PENDING').toUpperCase();
+          const st = String(s.status || s.shop_status || 'PENDING').toUpperCase();
           const addr = [s.address, s.city, s.pincode].filter(Boolean).join(', ');
+          const isKycOk = s.kyc_status === 'VERIFIED' || Boolean(s.is_verified);
           return {
-            id: String(s.id),
-            name: s.shop_name || 'Merchant Shop',
+            id: String(s.id || s.shop_id || s.merchant_id),
+            name: s.shop_name || s.merchant_name || 'Merchant Shop',
             status: st,
             category: s.category_name || s.merchant_category || 'Retail Store',
             area: s.city || s.address || 'Bengaluru',
             distance: s.pincode ? `PIN: ${s.pincode}` : 'Local',
             rating: '4.8',
             reviews: 12,
-            orders: 15,
-            monthlySales: st === 'ACTIVE' ? 'Active' : 'Pending',
+            orders: Number(s.orders_count || 0),
+            monthlySales: s.total_sales ? `₹${Number(s.total_sales).toLocaleString('en-IN')}` : (st === 'ACTIVE' ? 'Active' : 'Pending'),
             healthScore: st === 'ACTIVE' ? 92 : 60,
-            kycVerified: Boolean(s.is_verified),
+            kycVerified: isKycOk,
+            kycStatus: s.kyc_status || (isKycOk ? 'VERIFIED' : 'PENDING'),
             qrActive: st === 'ACTIVE',
             address: addr || 'Address on file',
             hours: '08:00 AM - 10:00 PM',
@@ -89,7 +91,7 @@ export default function CaptainMerchantsPage() {
       }
     } catch (err) {
       console.warn('[CaptainMerchantsPage] Failed to fetch live shops:', err.message);
-      setError('Unable to load live shops from server. Showing assigned directory.');
+      setError('Unable to load merchants from server. Please reload.');
       setMerchants([]);
     } finally {
       setLoading(false);

@@ -1924,18 +1924,80 @@ export async function adminRejectRankUpgrade(id, reason = "") {
 }
 
 /**
- * Captain: Live shops, approvals, daily business, and public shop details
+ * Captain: Live shops, approvals, daily business, KYC, and orders
  */
+function getCaptainToken() {
+  try {
+    if (typeof localStorage !== "undefined") {
+      const t = localStorage.getItem("token_captain") || localStorage.getItem("token_business");
+      if (t && t !== "captain_active_session") return t;
+    }
+  } catch (_) {}
+  return getAccessToken();
+}
+
 export async function getCaptainShops() {
   const captainApiUrl =
     process.env.REACT_APP_CAPTAIN_API_URL ||
     (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
     "https://api-captain.trikonektbusiness.com/api";
-  const token = getAccessToken();
+  const token = getCaptainToken();
   const headers = { Accept: "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
   const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops`, { headers });
   if (!res.ok) throw new Error(`Failed to fetch captain shops: ${res.status}`);
+  return await res.json();
+}
+
+export async function getCaptainShopDetail(shopId) {
+  const captainApiUrl =
+    process.env.REACT_APP_CAPTAIN_API_URL ||
+    (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+    "https://api-captain.trikonektbusiness.com/api";
+  const token = getCaptainToken();
+  const headers = { Accept: "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops/${encodeURIComponent(shopId)}`, { headers });
+  if (!res.ok) throw new Error(`Failed to fetch shop details: ${res.status}`);
+  return await res.json();
+}
+
+export async function getCaptainOrders() {
+  const captainApiUrl =
+    process.env.REACT_APP_CAPTAIN_API_URL ||
+    (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+    "https://api-captain.trikonektbusiness.com/api";
+  const token = getCaptainToken();
+  const headers = { Accept: "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/orders`, { headers });
+  if (!res.ok) throw new Error(`Failed to fetch captain orders: ${res.status}`);
+  return await res.json();
+}
+
+export async function getCaptainShopOrders(shopId) {
+  const captainApiUrl =
+    process.env.REACT_APP_CAPTAIN_API_URL ||
+    (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+    "https://api-captain.trikonektbusiness.com/api";
+  const token = getCaptainToken();
+  const headers = { Accept: "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops/${encodeURIComponent(shopId)}/orders`, { headers });
+  if (!res.ok) throw new Error(`Failed to fetch shop orders: ${res.status}`);
+  return await res.json();
+}
+
+export async function getCaptainShopKyc(shopId) {
+  const captainApiUrl =
+    process.env.REACT_APP_CAPTAIN_API_URL ||
+    (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+    "https://api-captain.trikonektbusiness.com/api";
+  const token = getCaptainToken();
+  const headers = { Accept: "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops/${encodeURIComponent(shopId)}/kyc`, { headers });
+  if (!res.ok) throw new Error(`Failed to fetch shop KYC: ${res.status}`);
   return await res.json();
 }
 
@@ -1944,7 +2006,7 @@ export async function approveCaptainShop(shopId) {
     process.env.REACT_APP_CAPTAIN_API_URL ||
     (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
     "https://api-captain.trikonektbusiness.com/api";
-  const token = getAccessToken();
+  const token = getCaptainToken();
   const headers = { Accept: "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
   const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops/${encodeURIComponent(shopId)}/approve`, {
@@ -1955,12 +2017,29 @@ export async function approveCaptainShop(shopId) {
   return await res.json();
 }
 
+export async function rejectCaptainShop(shopId, reason) {
+  const captainApiUrl =
+    process.env.REACT_APP_CAPTAIN_API_URL ||
+    (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
+    "https://api-captain.trikonektbusiness.com/api";
+  const token = getCaptainToken();
+  const headers = { Accept: "application/json", "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/shops/${encodeURIComponent(shopId)}/reject`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ reason }),
+  });
+  if (!res.ok) throw new Error(`Failed to reject shop: ${res.status}`);
+  return await res.json();
+}
+
 export async function getCaptainDailyBusiness() {
   const captainApiUrl =
     process.env.REACT_APP_CAPTAIN_API_URL ||
     (typeof window !== "undefined" && window.REACT_APP_CAPTAIN_API_URL) ||
     "https://api-captain.trikonektbusiness.com/api";
-  const token = getAccessToken();
+  const token = getCaptainToken();
   const headers = { Accept: "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
   const res = await fetch(`${captainApiUrl.replace(/\/$/, "")}/captain/daily-business`, { headers });

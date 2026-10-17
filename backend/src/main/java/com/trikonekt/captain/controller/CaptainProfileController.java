@@ -6,6 +6,8 @@ import com.trikonekt.captain.repository.UserRepository;
 import com.trikonekt.captain.repository.KycRepository;
 import com.trikonekt.captain.service.JwtService;
 import com.trikonekt.captain.service.CloudinaryService;
+import com.trikonekt.captain.model.OnlineOrder;
+import com.trikonekt.captain.repository.OrderRepository;
 import io.jsonwebtoken.Claims;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,13 +24,16 @@ public class CaptainProfileController {
     private final UserRepository userRepository;
     private final KycRepository kycRepository;
     private final CloudinaryService cloudinaryService;
+    private final OrderRepository orderRepository;
 
     public CaptainProfileController(JwtService jwtService, UserRepository userRepository,
-                                    KycRepository kycRepository, CloudinaryService cloudinaryService) {
+                                    KycRepository kycRepository, CloudinaryService cloudinaryService,
+                                    OrderRepository orderRepository) {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.kycRepository = kycRepository;
         this.cloudinaryService = cloudinaryService;
+        this.orderRepository = orderRepository;
     }
 
     private String getUsernameFromToken(String authHeader) {
@@ -81,10 +86,10 @@ public class CaptainProfileController {
     }
 
     /**
-     * GET /api/captain/shops
-     * Lists all shops referred by this Captain or in Captain's assigned pincode.
+     * GET /api/captain/shops or /api/captain/merchants
+     * Lists all merchants and shops onboarded by this Captain or in Captain's assigned territory.
      */
-    @GetMapping("/shops")
+    @GetMapping({"/shops", "/merchants"})
     public ResponseEntity<List<Map<String, Object>>> getCaptainShops(@RequestHeader("Authorization") String authHeader) {
         String username = getUsernameFromToken(authHeader);
         Map<String, Object> user = userRepository.findByUsername(username)
@@ -98,8 +103,70 @@ public class CaptainProfileController {
     }
 
     /**
+     * GET /api/captain/orders
+     * Lists all customer orders placed across all merchants onboarded by this Captain.
+     */
+    @GetMapping("/orders")
+    public ResponseEntity<List<Map<String, Object>>> getCaptainOrders(@RequestHeader("Authorization") String authHeader) {
+        String username = getUsernameFromToken(authHeader);
+        Map<String, Object> user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("Captain user not found: " + username));
+
+        String phone = (String) user.getOrDefault("phone", "");
+        String pincode = (String) user.getOrDefault("pincode", "");
+
+        List<Map<String, Object>> orders = userRepository.findOrdersForCaptain(username, phone, pincode);
+        return ResponseEntity.ok(orders);
+    }
+
+    /**
+     * GET /api/captain/shops/{shopId}/orders
+     * Lists all orders placed specifically for this shop.
+     */
+    @GetMapping("/shops/{shopId}/orders")
+    public ResponseEntity<List<OnlineOrder>> getShopOrders(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable long shopId) {
+        getUsernameFromToken(authHeader);
+        List<OnlineOrder> orders = orderRepository.findOrdersByShopId(shopId);
+        return ResponseEntity.ok(orders);
+    }
+
+    /**
+     * GET /api/captain/shops/{shopId}
+     * Fetches shop & merchant details for Captain view regardless of shop status (PENDING or ACTIVE).
+     */
+    @GetMapping("/shops/{shopId}")
+    public ResponseEntity<Map<String, Object>> getShopDetail(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable long shopId) {
+        getUsernameFromToken(authHeader);
+        return userRepository.findShopKycDetails(shopId)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * GET /api/captain/shops/{shopId}/kyc
+     * Fetches the merchant KYC verification documents and approval details for a shop.
+     */
+    @GetMapping("/shops/{shopId}/kyc")
+    public ResponseEntity<Map<String, Object>> getShopKyc(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable long shopId) {
+        getUsernameFromToken(authHeader);
+        return userRepository.findShopKycDetails(shopId)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.ok(Map.of(
+                "shop_id", shopId,
+                "kyc_status", "NOT_SUBMITTED",
+                "message", "Merchant has not submitted KYC documents yet."
+            )));
+    }
+
+    /**
      * POST /api/captain/shops/{shopId}/approve
-     * Approves a shop onboarding request and activates Prime status on the merchant.
+     * Approves a shop onboarding request and activates Prime status and verified KYC on the merchant.
      */
     @PostMapping("/shops/{shopId}/approve")
     public ResponseEntity<Map<String, Object>> approveShop(
@@ -118,13 +185,42 @@ public class CaptainProfileController {
         return ResponseEntity.ok(Map.of(
             "success", true,
             "status", "ACTIVE",
-            "message", "Shop successfully verified and approved! Merchant Prime package and marketplace access activated."
+            "message", "Shop & KYC successfully verified and approved! Merchant store is now live."
+        ));
+    }
+
+    /**
+     * POST /api/captain/shops/{shopId}/reject
+     * Rejects a shop onboarding request and sets KYC status to REJECTED with feedback.
+     */
+    @PostMapping("/shops/{shopId}/reject")
+    public ResponseEntity<Map<String, Object>> rejectShop(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable long shopId,
+            @RequestBody(required = false) Map<String, String> body) {
+        getUsernameFromToken(authHeader);
+        String reason = (body != null && body.containsKey("reason"))
+            ? body.get("reason")
+            : "KYC documents require review and resubmission.";
+
+        boolean success = userRepository.rejectShopByCaptain(shopId, reason);
+        if (!success) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Shop not found."
+            ));
+        }
+
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "status", "REJECTED",
+            "message", "Shop registration marked as rejected. Merchant notified to update documents."
         ));
     }
 
     /**
      * GET /api/captain/daily-business
-     * Summarizes daily business performance by channel for Captain's pincode.
+     * Summarizes daily business performance with real DB orders and GMV for Captain.
      */
     @GetMapping("/daily-business")
     public ResponseEntity<Map<String, Object>> getDailyBusiness(@RequestHeader("Authorization") String authHeader) {
@@ -136,6 +232,14 @@ public class CaptainProfileController {
         String pincode = (String) user.getOrDefault("pincode", "");
 
         List<Map<String, Object>> shops = userRepository.findShopsForCaptain(username, phone, pincode);
+        List<Map<String, Object>> orders = userRepository.findOrdersForCaptain(username, phone, pincode);
+
+        long activeShopsCount = shops.stream()
+            .filter(s -> "ACTIVE".equalsIgnoreCase((String) s.get("status")))
+            .count();
+        long pendingShopsCount = shops.stream()
+            .filter(s -> !"ACTIVE".equalsIgnoreCase((String) s.get("status")))
+            .count();
 
         long onlineB2bCount = shops.stream()
             .filter(s -> "ONLINE".equalsIgnoreCase((String) s.get("service_mode")) && "merchant".equalsIgnoreCase((String) s.get("merchant_category")))
@@ -150,15 +254,24 @@ public class CaptainProfileController {
             .filter(s -> !"ONLINE".equalsIgnoreCase((String) s.get("service_mode")) && !"merchant".equalsIgnoreCase((String) s.get("merchant_category")))
             .count();
 
+        double totalGmv = orders.stream()
+            .mapToDouble(o -> {
+                Object totalObj = o.get("grand_total");
+                return totalObj instanceof Number ? ((Number) totalObj).doubleValue() : 0.0;
+            })
+            .sum();
+
         return ResponseEntity.ok(Map.of(
             "totalShops", shops.size(),
-            "pincode", pincode,
+            "activeShops", activeShopsCount,
+            "pendingShops", pendingShopsCount,
+            "pincode", pincode != null ? pincode : "",
             "onlineB2bShops", onlineB2bCount,
             "onlineB2cShops", onlineB2cCount,
             "offlineB2bShops", offlineB2bCount,
             "offlineB2cShops", offlineB2cCount,
-            "todayOrdersCount", 12 + shops.size() * 3,
-            "todayGmvEstimate", 14500.00 + shops.size() * 1200.00
+            "todayOrdersCount", orders.size(),
+            "todayGmvEstimate", totalGmv
         ));
     }
 }

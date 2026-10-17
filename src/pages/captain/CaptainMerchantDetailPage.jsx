@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box, Typography, Grid, Chip, IconButton, Button,
-  Divider, Stack, CircularProgress, Alert,
+  Divider, Stack, CircularProgress, Alert, Dialog, DialogTitle,
+  DialogContent, DialogActions, TextField,
 } from '@mui/material';
 import {
   ArrowBack as BackIcon,
@@ -23,8 +24,18 @@ import {
   Description as DocIcon,
   Verified as VerifiedIcon,
   CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+  OpenInNew as OpenInNewIcon,
+  Storefront as StoreIcon,
 } from '@mui/icons-material';
-import { getPublicShopDetail, approveCaptainShop } from '../../api/api';
+import {
+  getCaptainShopDetail,
+  getPublicShopDetail,
+  getCaptainShopKyc,
+  getCaptainShopOrders,
+  approveCaptainShop,
+  rejectCaptainShop,
+} from '../../api/api';
 
 export default function CaptainMerchantDetailPage() {
   const navigate = useNavigate();
@@ -33,60 +44,108 @@ export default function CaptainMerchantDetailPage() {
   const [activeTab, setActiveTab] = useState('Overview');
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
   const [approvalMsg, setApprovalMsg] = useState('');
   const [error, setError] = useState('');
 
+  // Reject dialog state
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+
+  // Live Shop & Merchant state
   const [merchant, setMerchant] = useState({
     id: id || '1',
-    name: 'Fresh Basket',
-    status: 'Active',
-    category: 'Grocery & Daily Needs',
-    area: 'HSR Layout',
+    name: 'Merchant Store',
+    status: 'Pending',
+    category: 'Retail Store',
+    area: 'Bengaluru',
     rating: '4.8',
-    reviews: 202,
-    healthScore: 92,
-    totalOrders: 120,
-    monthlySales: '₹12,500',
-    qrScans: 1250,
-    onTime: '96%',
-    address: 'HSR Layout, Bengaluru - 560102',
-    distance: '2.4 km • 10-15 mins',
-    hours: '08:00 AM - 10:00 PM (Open Now)',
-    ownerName: 'Ramesh Kumar',
-    ownerPhone: '+91 98765 43210',
-    image: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=300&auto=format&fit=crop&q=60',
+    reviews: 0,
+    healthScore: 75,
+    totalOrders: 0,
+    monthlySales: '₹0',
+    qrScans: 0,
+    onTime: '100%',
+    address: 'Address on file',
+    distance: 'Territory Assigned',
+    hours: '08:00 AM - 10:00 PM',
+    ownerName: 'Store Owner',
+    ownerPhone: '',
+    image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300&auto=format&fit=crop&q=60',
   });
 
-  useEffect(() => {
-    async function loadShop() {
-      if (!id) return;
-      try {
-        setLoading(true);
-        const shop = await getPublicShopDetail(id);
-        if (shop) {
-          const isActive = shop.is_active !== false && shop.status === 'ACTIVE';
-          const fullAddress = [shop.address, shop.city, shop.pincode].filter(Boolean).join(', ');
-          setMerchant(prev => ({
-            ...prev,
-            id: String(shop.id || id),
-            name: shop.shop_name || prev.name,
-            status: isActive ? 'Active' : (shop.status || 'Pending'),
-            category: shop.category_name || shop.category || prev.category,
-            area: shop.city || shop.address || prev.area,
-            address: fullAddress || prev.address,
-            ownerPhone: shop.contact_number || prev.ownerPhone,
-            ownerName: shop.merchant_name || prev.ownerName,
-            image: shop.shop_image || prev.image,
-            distance: shop.pincode ? `PIN: ${shop.pincode}` : prev.distance,
-          }));
-        }
-      } catch (err) {
-        console.warn('[CaptainMerchantDetailPage] Failed to load live shop:', err.message);
-      } finally {
-        setLoading(false);
+  // Live KYC details state
+  const [kycDetails, setKycDetails] = useState({
+    kyc_status: 'PENDING',
+    pan_number: '',
+    pan_card_url: '',
+    is_gst_registered: false,
+    gstin: '',
+    gst_legal_name: '',
+    gst_certificate_url: '',
+    business_proof_type: '',
+    business_proof_url: '',
+    kyc_rejection_reason: '',
+  });
+
+  // Live Orders state
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+
+  const loadAllData = async () => {
+    if (!id) return;
+    try {
+      setLoading(true);
+      setError('');
+
+      // Fetch shop details, KYC, and orders concurrently
+      const [shopRes, kycRes, ordersRes] = await Promise.allSettled([
+        getCaptainShopDetail(id).catch(() => getPublicShopDetail(id)),
+        getCaptainShopKyc(id),
+        getCaptainShopOrders(id),
+      ]);
+
+      if (shopRes.status === 'fulfilled' && shopRes.value) {
+        const s = shopRes.value;
+        const isActive = s.status === 'ACTIVE' || s.shop_status === 'ACTIVE';
+        const fullAddress = [s.address || s.shop_address, s.city || s.shop_city, s.pincode || s.shop_pincode]
+          .filter(Boolean)
+          .join(', ');
+
+        setMerchant(prev => ({
+          ...prev,
+          id: String(s.id || s.shop_id || id),
+          name: s.shop_name || s.name || prev.name,
+          status: isActive ? 'Active' : (s.status || s.shop_status || 'Pending'),
+          category: s.category_name || s.category || prev.category,
+          area: s.city || s.shop_city || prev.area,
+          address: fullAddress || prev.address,
+          ownerPhone: s.contact_number || s.merchant_phone || prev.ownerPhone,
+          ownerName: s.merchant_name || prev.ownerName,
+          image: s.shop_image || prev.image,
+          distance: (s.pincode || s.shop_pincode) ? `PIN: ${s.pincode || s.shop_pincode}` : prev.distance,
+          totalOrders: Number(s.orders_count || s.total_orders || 0),
+          monthlySales: s.total_sales ? `₹${Number(s.total_sales).toLocaleString('en-IN')}` : '₹0',
+          healthScore: isActive ? 92 : 60,
+        }));
       }
+
+      if (kycRes.status === 'fulfilled' && kycRes.value) {
+        setKycDetails(kycRes.value);
+      }
+
+      if (ordersRes.status === 'fulfilled' && Array.isArray(ordersRes.value)) {
+        setOrders(ordersRes.value);
+      }
+    } catch (err) {
+      console.warn('[CaptainMerchantDetailPage] Data load error:', err.message);
+    } finally {
+      setLoading(false);
     }
-    loadShop();
+  };
+
+  useEffect(() => {
+    loadAllData();
   }, [id]);
 
   const handleApprove = async () => {
@@ -94,12 +153,30 @@ export default function CaptainMerchantDetailPage() {
       setApproving(true);
       setError('');
       const res = await approveCaptainShop(id);
-      setMerchant(prev => ({ ...prev, status: 'Active' }));
-      setApprovalMsg(res?.message || 'Shop successfully verified and approved! Merchant Prime package activated.');
+      setMerchant(prev => ({ ...prev, status: 'Active', healthScore: 92 }));
+      setKycDetails(prev => ({ ...prev, kyc_status: 'VERIFIED' }));
+      setApprovalMsg(res?.message || 'Shop & KYC successfully verified and approved! Merchant store is now live.');
     } catch (err) {
       setError(err.message || 'Failed to approve shop');
     } finally {
       setApproving(false);
+    }
+  };
+
+  const handleRejectSubmit = async () => {
+    try {
+      setRejecting(true);
+      setError('');
+      const reason = rejectReason.trim() || 'KYC documents require review and resubmission.';
+      const res = await rejectCaptainShop(id, reason);
+      setMerchant(prev => ({ ...prev, status: 'Rejected' }));
+      setKycDetails(prev => ({ ...prev, kyc_status: 'REJECTED', kyc_rejection_reason: reason }));
+      setApprovalMsg(res?.message || 'Shop registration rejected. Feedback sent to merchant.');
+      setRejectDialogOpen(false);
+    } catch (err) {
+      setError(err.message || 'Failed to reject shop');
+    } finally {
+      setRejecting(false);
     }
   };
 
@@ -117,11 +194,13 @@ export default function CaptainMerchantDetailPage() {
     }
   };
 
+  const isStoreActive = merchant.status.toUpperCase() === 'ACTIVE';
+  const isKycVerified = kycDetails.kyc_status === 'VERIFIED';
 
   return (
     <Box sx={{ pb: 10 }}>
 
-      {/* ── Top Header Navigation Bar (Matches Mockup Screen 4) ── */}
+      {/* ── Top Header Navigation Bar ── */}
       <Box sx={{
         px: 2,
         pt: 2.5,
@@ -151,18 +230,18 @@ export default function CaptainMerchantDetailPage() {
 
       {/* ── Alerts for Approval / Error ── */}
       {approvalMsg && (
-        <Alert severity="success" sx={{ mx: 2, mt: 1.5, borderRadius: '12px', fontSize: '0.78rem' }}>
+        <Alert severity="success" sx={{ mx: 2, mt: 1.5, borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700 }}>
           {approvalMsg}
         </Alert>
       )}
       {error && (
-        <Alert severity="error" sx={{ mx: 2, mt: 1.5, borderRadius: '12px', fontSize: '0.78rem' }}>
+        <Alert severity="error" sx={{ mx: 2, mt: 1.5, borderRadius: '12px', fontSize: '0.78rem', fontWeight: 700 }}>
           {error}
         </Alert>
       )}
 
-      {/* ── Store Pending Verification Callout Banner ── */}
-      {merchant.status !== 'Active' && (
+      {/* ── Store Pending Verification Banner ── */}
+      {!isStoreActive && (
         <Box sx={{
           mx: 2,
           mt: 1.5,
@@ -171,42 +250,58 @@ export default function CaptainMerchantDetailPage() {
           border: '1.5px solid #FFD8A8',
           borderRadius: '16px',
         }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }} justifyContent="space-between">
             <Box>
-              <Typography sx={{ fontWeight: 900, fontSize: '0.86rem', color: '#C2410C' }}>
-                Store Awaiting Captain Verification
+              <Typography sx={{ fontWeight: 900, fontSize: '0.88rem', color: '#C2410C' }}>
+                Store Awaiting Captain Verification & KYC Approval
               </Typography>
-              <Typography sx={{ fontSize: '0.72rem', color: '#64748B', mt: 0.25 }}>
-                Verify store address, contact number & category before activating counter QR & NearStore discovery.
+              <Typography sx={{ fontSize: '0.74rem', color: '#64748B', mt: 0.25 }}>
+                Verify merchant KYC documents, store address & contact. Once approved, the merchant store goes live immediately.
               </Typography>
             </Box>
-            <Button
-              variant="contained"
-              size="small"
-              onClick={handleApprove}
-              disabled={approving}
-              sx={{
-                bgcolor: '#16a34a',
-                color: '#ffffff',
-                fontWeight: 900,
-                fontSize: '0.74rem',
-                textTransform: 'none',
-                borderRadius: '8px',
-                px: 2,
-                py: 0.6,
-                flexShrink: 0,
-                ml: 1.5,
-                boxShadow: '0 2px 8px rgba(22, 163, 74, 0.25)',
-                '&:hover': { bgcolor: '#15803d' },
-              }}
-            >
-              {approving ? 'Activating...' : 'Approve Now'}
-            </Button>
+            <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => setRejectDialogOpen(true)}
+                sx={{
+                  color: '#dc2626',
+                  borderColor: '#fca5a5',
+                  fontWeight: 800,
+                  fontSize: '0.74rem',
+                  textTransform: 'none',
+                  borderRadius: '8px',
+                  '&:hover': { bgcolor: '#fef2f2', borderColor: '#ef4444' },
+                }}
+              >
+                Reject
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleApprove}
+                disabled={approving}
+                startIcon={approving ? <CircularProgress size={14} sx={{ color: '#ffffff' }} /> : <CheckCircleIcon sx={{ fontSize: 16 }} />}
+                sx={{
+                  bgcolor: '#16a34a',
+                  color: '#ffffff',
+                  fontWeight: 900,
+                  fontSize: '0.74rem',
+                  textTransform: 'none',
+                  borderRadius: '8px',
+                  px: 2,
+                  boxShadow: '0 2px 8px rgba(22, 163, 74, 0.25)',
+                  '&:hover': { bgcolor: '#15803d' },
+                }}
+              >
+                {approving ? 'Activating...' : 'Approve & Activate'}
+              </Button>
+            </Stack>
           </Stack>
         </Box>
       )}
 
-      {/* ── Merchant Store Header Profile (Matches Mockup Screen 4) ── */}
+      {/* ── Merchant Store Header Profile ── */}
       <Box sx={{ p: 2, bgcolor: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
         <Box sx={{ display: 'flex', gap: 1.8, alignItems: 'center' }}>
           <Box
@@ -224,15 +319,15 @@ export default function CaptainMerchantDetailPage() {
 
           <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.3 }}>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.2rem', color: '#0f172a', letterSpacing: '-0.02em' }}>
+              <Typography sx={{ fontWeight: 900, fontSize: '1.15rem', color: '#0f172a', letterSpacing: '-0.02em' }}>
                 {merchant.name}
               </Typography>
               <Chip
-                label={merchant.status}
+                label={isStoreActive ? 'Active' : merchant.status}
                 size="small"
                 sx={{
-                  bgcolor: merchant.status === 'Active' ? '#dcfce7' : '#fef3c7',
-                  color: merchant.status === 'Active' ? '#15803d' : '#b45309',
+                  bgcolor: isStoreActive ? '#dcfce7' : '#fef3c7',
+                  color: isStoreActive ? '#15803d' : '#b45309',
                   fontWeight: 800,
                   fontSize: '0.68rem',
                   height: 20,
@@ -242,8 +337,8 @@ export default function CaptainMerchantDetailPage() {
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.4 }}>
               <Box sx={{
-                width: 22, height: 22, borderRadius: '6px', bgcolor: '#f0fdf4',
-                display: 'grid', placeItems: 'center', color: '#047857',
+                width: 22, height: 22, borderRadius: '6px', bgcolor: isStoreActive ? '#f0fdf4' : '#fff7ed',
+                display: 'grid', placeItems: 'center', color: isStoreActive ? '#047857' : '#ea580c',
               }}>
                 <QrIcon sx={{ fontSize: 15 }} />
               </Box>
@@ -254,19 +349,19 @@ export default function CaptainMerchantDetailPage() {
                   {merchant.rating}
                 </Typography>
                 <Typography sx={{ fontSize: '0.72rem', color: '#64748b' }}>
-                  ({merchant.reviews} reviews)
+                  ({orders.length} orders)
                 </Typography>
               </Box>
             </Box>
 
             <Typography sx={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 500 }}>
-              {merchant.category}
+              {merchant.category} • {merchant.ownerName}
             </Typography>
           </Box>
         </Box>
       </Box>
 
-      {/* ── Tab Navigation (Matches Mockup Screen 4) ── */}
+      {/* ── Tab Navigation ── */}
       <Box sx={{
         bgcolor: '#ffffff',
         borderBottom: '1px solid #e2e8f0',
@@ -287,7 +382,7 @@ export default function CaptainMerchantDetailPage() {
               fontSize: '0.84rem',
             }}
           >
-            {tab}
+            {tab} {tab === 'Orders' && `(${orders.length})`}
             {activeTab === tab && (
               <Box sx={{
                 position: 'absolute',
@@ -303,277 +398,476 @@ export default function CaptainMerchantDetailPage() {
         ))}
       </Box>
 
-      {/* ── Tab Content ── */}
+      {/* ── Tab Content Container ── */}
       <Box sx={{ p: 2 }}>
 
-        {/* ── Merchant Health Score Card (Circular Gauge + 4 Signals) ── */}
-        <Box sx={{
-          bgcolor: '#ffffff',
-          borderRadius: '20px',
-          border: '1.5px solid #e2e8f0',
-          p: 2.2,
-          mb: 2,
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
-        }}>
-          <Typography sx={{ fontWeight: 900, fontSize: '0.94rem', color: '#0f172a', mb: 1.8 }}>
-            Merchant Health Score
-          </Typography>
+        {/* ══════════════ TAB 1: OVERVIEW ══════════════ */}
+        {activeTab === 'Overview' && (
+          <Box>
+            {/* Health Score Card */}
+            <Box sx={{
+              bgcolor: '#ffffff',
+              borderRadius: '20px',
+              border: '1.5px solid #e2e8f0',
+              p: 2.2,
+              mb: 2,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
+            }}>
+              <Typography sx={{ fontWeight: 900, fontSize: '0.94rem', color: '#0f172a', mb: 1.8 }}>
+                Merchant Health & Status
+              </Typography>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-            {/* Circular Gauge Ring (Exact Match to Mockup Screen 4) */}
-            <Box sx={{ position: 'relative', width: 84, height: 84, flexShrink: 0 }}>
-              <svg viewBox="0 0 36 36" width="100%" height="100%">
-                <path
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  fill="none"
-                  stroke="#e2e8f0"
-                  strokeWidth="3.5"
-                />
-                <path
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  fill="none"
-                  stroke="#047857"
-                  strokeWidth="3.5"
-                  strokeDasharray="92, 100"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <Box sx={{
-                position: 'absolute', inset: 0,
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: '#0f172a', lineHeight: 1 }}>
-                  92%
-                </Typography>
-                <Typography sx={{ fontSize: '0.62rem', color: '#16a34a', fontWeight: 800, mt: 0.2 }}>
-                  Excellent
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* 4 Health Signals with Green Checkmarks */}
-            <Stack spacing={0.6}>
-              {[
-                'High order volume',
-                'Active QR usage',
-                'Good customer ratings',
-                'Low issue rate',
-              ].map((sig, i) => (
-                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+                <Box sx={{ position: 'relative', width: 84, height: 84, flexShrink: 0 }}>
+                  <svg viewBox="0 0 36 36" width="100%" height="100%">
+                    <path
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none"
+                      stroke="#e2e8f0"
+                      strokeWidth="3.5"
+                    />
+                    <path
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none"
+                      stroke={isStoreActive ? '#047857' : '#ea580c'}
+                      strokeWidth="3.5"
+                      strokeDasharray={`${merchant.healthScore}, 100`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
                   <Box sx={{
-                    width: 16, height: 16, borderRadius: '50%', bgcolor: '#dcfce7',
-                    display: 'grid', placeItems: 'center', color: '#16a34a',
+                    position: 'absolute', inset: 0,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   }}>
-                    <CheckIcon sx={{ fontSize: 11, strokeWidth: 2 }} />
+                    <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: '#0f172a', lineHeight: 1 }}>
+                      {merchant.healthScore}%
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.62rem', color: isStoreActive ? '#16a34a' : '#ea580c', fontWeight: 800, mt: 0.2 }}>
+                      {isStoreActive ? 'Active' : 'Pending'}
+                    </Typography>
                   </Box>
-                  <Typography sx={{ fontSize: '0.74rem', color: '#334155', fontWeight: 600 }}>
-                    {sig}
-                  </Typography>
                 </Box>
+
+                <Stack spacing={0.6}>
+                  {[
+                    isStoreActive ? 'Store Verified & Active' : 'Store Awaiting Captain Verification',
+                    isKycVerified ? 'KYC Documents Approved' : 'KYC Review Pending',
+                    orders.length > 0 ? `${orders.length} Orders Recorded` : 'Ready to receive orders',
+                    'Direct Sponsor Captain Assigned',
+                  ].map((sig, i) => (
+                    <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                      <Box sx={{
+                        width: 16, height: 16, borderRadius: '50%',
+                        bgcolor: i < 2 && !isStoreActive ? '#fef3c7' : '#dcfce7',
+                        display: 'grid', placeItems: 'center',
+                        color: i < 2 && !isStoreActive ? '#b45309' : '#16a34a',
+                      }}>
+                        <CheckIcon sx={{ fontSize: 11, strokeWidth: 2 }} />
+                      </Box>
+                      <Typography sx={{ fontSize: '0.74rem', color: '#334155', fontWeight: 600 }}>
+                        {sig}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Stack>
+              </Box>
+            </Box>
+
+            {/* Quick Metrics Grid */}
+            <Grid container spacing={1.2} sx={{ mb: 2 }}>
+              {[
+                { val: String(orders.length), lbl: 'Total Orders' },
+                { val: merchant.monthlySales, lbl: 'Sales Volume' },
+                { val: isKycVerified ? 'Verified' : 'Pending', lbl: 'KYC Status' },
+                { val: isStoreActive ? 'Live' : 'Pending', lbl: 'Store Mode' },
+              ].map((m, i) => (
+                <Grid item xs={3} key={i}>
+                  <Box sx={{
+                    bgcolor: '#ffffff', borderRadius: '14px', border: '1px solid #e2e8f0', p: 1.2,
+                    textAlign: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
+                  }}>
+                    <Typography sx={{ fontWeight: 900, fontSize: '0.88rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {m.val}
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.64rem', color: '#64748b', fontWeight: 600, mt: 0.2 }}>
+                      {m.lbl}
+                    </Typography>
+                  </Box>
+                </Grid>
               ))}
-            </Stack>
-          </Box>
-        </Box>
-
-        {/* ── 4 Quick Metrics Grid ── */}
-        <Grid container spacing={1.2} sx={{ mb: 2 }}>
-          {[
-            { val: merchant.totalOrders, lbl: 'Total Orders' },
-            { val: merchant.monthlySales, lbl: 'Monthly Sales' },
-            { val: merchant.qrScans, lbl: 'QR Scans' },
-            { val: merchant.onTime, lbl: 'On-Time' },
-          ].map((m, i) => (
-            <Grid item xs={3} key={i}>
-              <Box sx={{
-                bgcolor: '#ffffff', borderRadius: '14px', border: '1px solid #e2e8f0', p: 1.2,
-                textAlign: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
-              }}>
-                <Typography sx={{ fontWeight: 900, fontSize: '0.94rem', color: '#0f172a' }}>
-                  {m.val}
-                </Typography>
-                <Typography sx={{ fontSize: '0.64rem', color: '#64748b', fontWeight: 600, mt: 0.2 }}>
-                  {m.lbl}
-                </Typography>
-              </Box>
             </Grid>
-          ))}
-        </Grid>
 
-        {/* ── KYC & Documents Section (Exact Match to Mockup Screen 4) ── */}
-        <Box sx={{
-          bgcolor: '#ffffff',
-          borderRadius: '20px',
-          border: '1.5px solid #e2e8f0',
-          p: 2,
-          mb: 2,
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-              <Typography sx={{ fontWeight: 900, fontSize: '0.92rem', color: '#0f172a' }}>
-                KYC & Documents
-              </Typography>
-              <Chip
-                label="Verified"
-                size="small"
-                icon={<CheckIcon sx={{ fontSize: 13 }} />}
-                sx={{
-                  bgcolor: '#dcfce7', color: '#15803d', fontWeight: 800, fontSize: '0.68rem', height: 20,
-                  '& .MuiChip-icon': { color: '#15803d' },
-                }}
-              />
-            </Box>
+            {/* Store Information Card */}
+            <Box sx={{
+              bgcolor: '#ffffff',
+              borderRadius: '20px',
+              border: '1.5px solid #e2e8f0',
+              p: 2,
+              mb: 2,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                <Typography sx={{ fontWeight: 900, fontSize: '0.92rem', color: '#0f172a' }}>
+                  Store Information
+                </Typography>
+                <Chip
+                  label={merchant.status}
+                  size="small"
+                  sx={{
+                    bgcolor: isStoreActive ? '#dcfce7' : '#fef3c7',
+                    color: isStoreActive ? '#15803d' : '#b45309',
+                    fontWeight: 800,
+                    fontSize: '0.68rem',
+                  }}
+                />
+              </Box>
 
-            <Typography sx={{ fontSize: '0.74rem', color: '#EA580C', fontWeight: 800, cursor: 'pointer' }}>
-              View All
-            </Typography>
-          </Box>
+              <Stack spacing={1.4}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                  <LocationIcon sx={{ fontSize: 18, color: '#EA580C', mt: 0.2 }} />
+                  <Box>
+                    <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>
+                      {merchant.address}
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.7rem', color: '#64748b' }}>
+                      {merchant.distance}
+                    </Typography>
+                  </Box>
+                </Box>
 
-          {/* 4 Document Verification Tiles */}
-          <Grid container spacing={1.2}>
-            {[
-              { title: 'Business', verified: true, icon: '🏢' },
-              { title: 'GST', verified: true, icon: '📄' },
-              { title: 'PAN', verified: true, icon: '🪪' },
-              { title: 'Shop Photo', verified: true, icon: '📸' },
-            ].map(doc => (
-              <Grid item xs={3} key={doc.title}>
-                <Box sx={{
-                  bgcolor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '12px',
-                  p: 1.2,
-                  textAlign: 'center',
-                }}>
-                  <Typography sx={{ fontSize: 20, mb: 0.3 }}>{doc.icon}</Typography>
-                  <Typography sx={{ fontSize: '0.68rem', fontWeight: 800, color: '#0f172a' }}>
-                    {doc.title}
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.62rem', color: '#16a34a', fontWeight: 700 }}>
-                    Verified
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <TimeIcon sx={{ fontSize: 18, color: '#EA580C' }} />
+                  <Typography sx={{ fontSize: '0.78rem', color: '#0f172a', fontWeight: 600 }}>
+                    {merchant.hours}
                   </Typography>
                 </Box>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
 
-        {/* ── Store Information Card (Exact Match to Mockup Screen 4) ── */}
-        <Box sx={{
-          bgcolor: '#ffffff',
-          borderRadius: '20px',
-          border: '1.5px solid #e2e8f0',
-          p: 2,
-          mb: 2,
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: '0.92rem', color: '#0f172a' }}>
-              Store Information
-            </Typography>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, color: '#64748b', cursor: 'pointer' }}>
-              <EditIcon sx={{ fontSize: 15 }} />
-              <Typography sx={{ fontSize: '0.74rem', fontWeight: 700 }}>
-                Edit
-              </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <PersonIcon sx={{ fontSize: 18, color: '#EA580C' }} />
+                  <Typography sx={{ fontSize: '0.78rem', color: '#0f172a', fontWeight: 700 }}>
+                    {merchant.ownerName} • <Box component="span" sx={{ color: '#EA580C' }}>{merchant.ownerPhone}</Box>
+                  </Typography>
+                </Box>
+              </Stack>
             </Box>
           </Box>
+        )}
 
-          <Stack spacing={1.4}>
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-              <LocationIcon sx={{ fontSize: 18, color: '#EA580C', mt: 0.2 }} />
-              <Box>
-                <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>
-                  {merchant.address}
+        {/* ══════════════ TAB 2: ORDERS ══════════════ */}
+        {activeTab === 'Orders' && (
+          <Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+              <Typography sx={{ fontWeight: 900, fontSize: '0.94rem', color: '#0f172a' }}>
+                Store Orders ({orders.length})
+              </Typography>
+              <Typography sx={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>
+                Live customer orders
+              </Typography>
+            </Box>
+
+            {orders.length === 0 ? (
+              <Box sx={{
+                bgcolor: '#ffffff',
+                borderRadius: '16px',
+                border: '1.5px dashed #cbd5e1',
+                p: 4,
+                textAlign: 'center',
+              }}>
+                <CartIcon sx={{ fontSize: 36, color: '#94a3b8', mb: 1 }} />
+                <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f172a' }}>
+                  No Orders Recorded Yet
                 </Typography>
-                <Typography sx={{ fontSize: '0.7rem', color: '#64748b' }}>
-                  {merchant.distance}
+                <Typography sx={{ fontSize: '0.74rem', color: '#64748b', mt: 0.5 }}>
+                  When consumers place online delivery or store pickup orders, they will appear here in real time.
                 </Typography>
               </Box>
-            </Box>
+            ) : (
+              <Stack spacing={1.5}>
+                {orders.map((order, idx) => {
+                  const status = String(order.status || 'PENDING').toUpperCase();
+                  const isDelivered = status === 'DELIVERED';
+                  const isAccepted = status === 'ACCEPTED' || status === 'CONFIRMED';
+                  const isCancelled = status === 'CANCELLED' || status === 'REJECTED';
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <TimeIcon sx={{ fontSize: 18, color: '#EA580C' }} />
-              <Typography sx={{ fontSize: '0.78rem', color: '#0f172a', fontWeight: 600 }}>
-                {merchant.hours}
-              </Typography>
-            </Box>
+                  return (
+                    <Box
+                      key={order.id || idx}
+                      sx={{
+                        bgcolor: '#ffffff',
+                        borderRadius: '14px',
+                        border: '1px solid #e2e8f0',
+                        p: 1.8,
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography sx={{ fontWeight: 900, fontSize: '0.88rem', color: '#0f172a' }}>
+                          #{order.order_number || `ORD-${order.id}`}
+                        </Typography>
+                        <Chip
+                          label={status}
+                          size="small"
+                          sx={{
+                            bgcolor: isDelivered ? '#dcfce7' : isAccepted ? '#eff6ff' : isCancelled ? '#fee2e2' : '#fef3c7',
+                            color: isDelivered ? '#15803d' : isAccepted ? '#1d4ed8' : isCancelled ? '#b91c1c' : '#b45309',
+                            fontWeight: 800,
+                            fontSize: '0.68rem',
+                            height: 22,
+                          }}
+                        />
+                      </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <PersonIcon sx={{ fontSize: 18, color: '#EA580C' }} />
-              <Typography sx={{ fontSize: '0.78rem', color: '#0f172a', fontWeight: 700 }}>
-                {merchant.ownerName} • <Box component="span" sx={{ color: '#EA580C' }}>{merchant.ownerPhone}</Box>
-              </Typography>
-            </Box>
-          </Stack>
-        </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Box>
+                          <Typography sx={{ fontSize: '0.74rem', color: '#64748b' }}>
+                            {order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Recent'}
+                          </Typography>
+                          <Typography sx={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                            {order.payment_method || 'Online'} • {order.payment_status || 'Paid'}
+                          </Typography>
+                        </Box>
 
-        {/* ── Recent Activity Feed (Exact Match to Mockup Screen 4) ── */}
-        <Box sx={{
-          bgcolor: '#ffffff',
-          borderRadius: '20px',
-          border: '1.5px solid #e2e8f0',
-          p: 2,
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: '0.92rem', color: '#0f172a' }}>
-              Recent Activity
-            </Typography>
-            <Typography sx={{ fontSize: '0.74rem', color: '#EA580C', fontWeight: 800, cursor: 'pointer' }}>
-              See All
-            </Typography>
+                        <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: '#0f172a' }}>
+                          ₹{Number(order.grand_total || order.total || 0).toLocaleString('en-IN')}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  );
+                })}
+              </Stack>
+            )}
           </Box>
+        )}
 
-          <Stack spacing={1.5}>
-            {[
-              {
-                icon: <CartIcon sx={{ fontSize: 17, color: '#ea580c' }} />,
-                iconBg: '#fff7ed',
-                title: 'New order received',
-                sub: '#TRK10293 • 2 mins ago',
-              },
-              {
-                icon: <QrIcon sx={{ fontSize: 17, color: '#2563eb' }} />,
-                iconBg: '#eff6ff',
-                title: 'QR scan • 5 products',
-                sub: '2 hrs ago',
-              },
-              {
-                icon: <PayoutIcon sx={{ fontSize: 17, color: '#16a34a' }} />,
-                iconBg: '#f0fdf4',
-                title: 'Payout settled',
-                sub: '₹2,480 • 12 Aug 2024',
-              },
-            ].map((act, i) => (
-              <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Box sx={{
-                  width: 34, height: 34, borderRadius: '10px', bgcolor: act.iconBg,
-                  display: 'grid', placeItems: 'center', flexShrink: 0,
-                }}>
-                  {act.icon}
-                </Box>
-                <Box sx={{ flex: 1 }}>
-                  <Typography sx={{ fontWeight: 800, fontSize: '0.82rem', color: '#0f172a' }}>
-                    {act.title}
+        {/* ══════════════ TAB 3: KYC & DOCS ══════════════ */}
+        {activeTab === 'KYC & Docs' && (
+          <Box>
+            <Box sx={{
+              bgcolor: '#ffffff',
+              borderRadius: '20px',
+              border: '1.5px solid #e2e8f0',
+              p: 2,
+              mb: 2,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography sx={{ fontWeight: 900, fontSize: '0.94rem', color: '#0f172a' }}>
+                    Merchant KYC Review
                   </Typography>
-                  <Typography sx={{ fontSize: '0.7rem', color: '#64748b' }}>
-                    {act.sub}
-                  </Typography>
+                  <Chip
+                    label={isKycVerified ? 'KYC Verified' : kycDetails.kyc_status === 'REJECTED' ? 'Rejected' : 'Pending Review'}
+                    size="small"
+                    icon={isKycVerified ? <CheckCircleIcon sx={{ fontSize: 13 }} /> : undefined}
+                    sx={{
+                      bgcolor: isKycVerified ? '#dcfce7' : kycDetails.kyc_status === 'REJECTED' ? '#fee2e2' : '#fef3c7',
+                      color: isKycVerified ? '#15803d' : kycDetails.kyc_status === 'REJECTED' ? '#b91c1c' : '#b45309',
+                      fontWeight: 800,
+                      fontSize: '0.68rem',
+                    }}
+                  />
                 </Box>
-                <ChevronRightIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
               </Box>
-            ))}
-          </Stack>
-        </Box>
+
+              {kycDetails.kyc_rejection_reason && (
+                <Alert severity="warning" sx={{ mb: 2, borderRadius: '10px', fontSize: '0.76rem' }}>
+                  <strong>Rejection Note:</strong> {kycDetails.kyc_rejection_reason}
+                </Alert>
+              )}
+
+              {/* 3 Document Cards */}
+              <Stack spacing={1.5}>
+                {/* 1. PAN Card */}
+                <Box sx={{ bgcolor: '#f8fafc', p: 1.5, borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.82rem', color: '#0f172a' }}>
+                      🪪 PAN Card
+                    </Typography>
+                    {kycDetails.pan_card_url ? (
+                      <Button
+                        size="small"
+                        endIcon={<OpenInNewIcon sx={{ fontSize: 13 }} />}
+                        onClick={() => window.open(kycDetails.pan_card_url, '_blank')}
+                        sx={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'none', color: '#EA580C', p: 0 }}
+                      >
+                        View Document
+                      </Button>
+                    ) : (
+                      <Chip label="Not Uploaded" size="small" sx={{ fontSize: '0.64rem', height: 18 }} />
+                    )}
+                  </Box>
+                  <Typography sx={{ fontSize: '0.76rem', color: '#475569', fontWeight: 600 }}>
+                    PAN: {kycDetails.pan_number || 'Not provided'}
+                  </Typography>
+                </Box>
+
+                {/* 2. GSTIN Certificate */}
+                <Box sx={{ bgcolor: '#f8fafc', p: 1.5, borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.82rem', color: '#0f172a' }}>
+                      📄 GSTIN Registration
+                    </Typography>
+                    {kycDetails.gst_certificate_url ? (
+                      <Button
+                        size="small"
+                        endIcon={<OpenInNewIcon sx={{ fontSize: 13 }} />}
+                        onClick={() => window.open(kycDetails.gst_certificate_url, '_blank')}
+                        sx={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'none', color: '#EA580C', p: 0 }}
+                      >
+                        View Certificate
+                      </Button>
+                    ) : (
+                      <Chip label={kycDetails.is_gst_registered ? 'Upload Pending' : 'Non-GST'} size="small" sx={{ fontSize: '0.64rem', height: 18 }} />
+                    )}
+                  </Box>
+                  <Typography sx={{ fontSize: '0.76rem', color: '#475569', fontWeight: 600 }}>
+                    GSTIN: {kycDetails.gstin || (kycDetails.is_gst_registered ? 'Pending' : 'Unregistered / Composite')}
+                  </Typography>
+                  {kycDetails.gst_legal_name && (
+                    <Typography sx={{ fontSize: '0.72rem', color: '#64748b' }}>
+                      Trade Name: {kycDetails.gst_legal_name}
+                    </Typography>
+                  )}
+                </Box>
+
+                {/* 3. Business Proof / License */}
+                <Box sx={{ bgcolor: '#f8fafc', p: 1.5, borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.82rem', color: '#0f172a' }}>
+                      🏢 Business Proof / Shop License
+                    </Typography>
+                    {kycDetails.business_proof_url ? (
+                      <Button
+                        size="small"
+                        endIcon={<OpenInNewIcon sx={{ fontSize: 13 }} />}
+                        onClick={() => window.open(kycDetails.business_proof_url, '_blank')}
+                        sx={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'none', color: '#EA580C', p: 0 }}
+                      >
+                        View Proof
+                      </Button>
+                    ) : (
+                      <Chip label="Not Uploaded" size="small" sx={{ fontSize: '0.64rem', height: 18 }} />
+                    )}
+                  </Box>
+                  <Typography sx={{ fontSize: '0.76rem', color: '#475569', fontWeight: 600 }}>
+                    Type: {kycDetails.business_proof_type || 'Trade License / Shop Act / Electricity Bill'}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              {/* Action Buttons inside KYC Tab */}
+              {!isStoreActive && (
+                <Box sx={{ mt: 2.5, pt: 2, borderTop: '1px solid #e2e8f0' }}>
+                  <Typography sx={{ fontSize: '0.76rem', color: '#475569', mb: 1.5, fontWeight: 600 }}>
+                    As the sponsoring Captain, verify that the documents match the merchant store details before activating:
+                  </Typography>
+                  <Stack direction="row" spacing={1.5}>
+                    <Button
+                      variant="outlined"
+                      onClick={() => setRejectDialogOpen(true)}
+                      sx={{
+                        flex: 1,
+                        color: '#dc2626',
+                        borderColor: '#fca5a5',
+                        fontWeight: 800,
+                        fontSize: '0.82rem',
+                        textTransform: 'none',
+                        borderRadius: '10px',
+                        py: 1,
+                        '&:hover': { bgcolor: '#fef2f2', borderColor: '#ef4444' },
+                      }}
+                    >
+                      Reject Documents
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={handleApprove}
+                      disabled={approving}
+                      startIcon={approving ? <CircularProgress size={16} sx={{ color: '#ffffff' }} /> : <CheckCircleIcon sx={{ fontSize: 18 }} />}
+                      sx={{
+                        flex: 2,
+                        bgcolor: '#16a34a',
+                        color: '#ffffff',
+                        fontWeight: 900,
+                        fontSize: '0.84rem',
+                        textTransform: 'none',
+                        borderRadius: '10px',
+                        py: 1,
+                        boxShadow: '0 4px 12px rgba(22, 163, 74, 0.25)',
+                        '&:hover': { bgcolor: '#15803d' },
+                      }}
+                    >
+                      {approving ? 'Verifying...' : 'Approve KYC & Activate Store'}
+                    </Button>
+                  </Stack>
+                </Box>
+              )}
+            </Box>
+          </Box>
+        )}
+
+        {/* ══════════════ TAB 4: ACTIVITY ══════════════ */}
+        {activeTab === 'Activity' && (
+          <Box>
+            <Box sx={{
+              bgcolor: '#ffffff',
+              borderRadius: '20px',
+              border: '1.5px solid #e2e8f0',
+              p: 2,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
+            }}>
+              <Typography sx={{ fontWeight: 900, fontSize: '0.94rem', color: '#0f172a', mb: 2 }}>
+                Onboarding & Audit Timeline
+              </Typography>
+
+              <Stack spacing={2}>
+                {[
+                  {
+                    title: isStoreActive ? 'Store Activated & Live' : 'Store Registration Submitted',
+                    time: isStoreActive ? 'Approved by Captain' : 'Pending Verification',
+                    color: isStoreActive ? '#16a34a' : '#ea580c',
+                    bg: isStoreActive ? '#dcfce7' : '#fff7ed',
+                  },
+                  {
+                    title: isKycVerified ? 'KYC Documents Verified' : 'KYC Submitted for Review',
+                    time: isKycVerified ? 'PAN & Business Proof Validated' : 'Awaiting Review',
+                    color: isKycVerified ? '#16a34a' : '#ea580c',
+                    bg: isKycVerified ? '#dcfce7' : '#fff7ed',
+                  },
+                  {
+                    title: 'Merchant Onboarded under Captain',
+                    time: merchant.distance || 'Territory Assigned',
+                    color: '#2563eb',
+                    bg: '#eff6ff',
+                  },
+                ].map((item, idx) => (
+                  <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Box sx={{
+                      width: 12, height: 12, borderRadius: '50%',
+                      bgcolor: item.color,
+                      flexShrink: 0,
+                    }} />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: '0.82rem', color: '#0f172a' }}>
+                        {item.title}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.72rem', color: '#64748b' }}>
+                        {item.time}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+              </Stack>
+            </Box>
+          </Box>
+        )}
 
       </Box>
 
-      {/* ── Fixed Bottom Action Bar (Follow Up & View Orders) ── */}
+      {/* ── Fixed Bottom Action Bar ── */}
       <Box sx={{
         position: 'fixed',
-        bottom: 64, // above the 5-tab bottom navigation
+        bottom: 64,
         left: 0,
         right: 0,
         zIndex: 1100,
@@ -598,10 +892,10 @@ export default function CaptainMerchantDetailPage() {
               '&:hover': { bgcolor: '#FFF0E5' },
             }}
           >
-            Follow Up
+            Call Owner
           </Button>
 
-          {merchant.status !== 'Active' ? (
+          {!isStoreActive ? (
             <Button
               onClick={handleApprove}
               disabled={approving}
@@ -623,7 +917,7 @@ export default function CaptainMerchantDetailPage() {
             </Button>
           ) : (
             <Button
-              onClick={() => navigate('/captain/merchants')}
+              onClick={() => setActiveTab('Orders')}
               startIcon={<CartIcon sx={{ fontSize: 18 }} />}
               sx={{
                 flex: 1.4,
@@ -638,11 +932,63 @@ export default function CaptainMerchantDetailPage() {
                 '&:hover': { bgcolor: '#C2410C' },
               }}
             >
-              View Orders
+              View Orders ({orders.length})
             </Button>
           )}
         </Box>
       </Box>
+
+      {/* ── Reject Modal Dialog ── */}
+      <Dialog
+        open={rejectDialogOpen}
+        onClose={() => setRejectDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 900, fontSize: '1rem', color: '#0f172a' }}>
+          Reject Merchant KYC / Shop
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: '0.78rem', color: '#64748b', mb: 2 }}>
+            Please enter the reason for rejecting this merchant registration so they can rectify and resubmit their documents.
+          </Typography>
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            placeholder="e.g. PAN card image is blurry, or GSTIN certificate does not match the shop name."
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            sx={{
+              '& .MuiOutlinedInput-root': { borderRadius: '12px', fontSize: '0.82rem' },
+            }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 2, pb: 2 }}>
+          <Button
+            onClick={() => setRejectDialogOpen(false)}
+            sx={{ color: '#64748b', fontWeight: 700, textTransform: 'none' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleRejectSubmit}
+            disabled={rejecting}
+            sx={{
+              bgcolor: '#dc2626',
+              color: '#ffffff',
+              fontWeight: 800,
+              textTransform: 'none',
+              borderRadius: '8px',
+              '&:hover': { bgcolor: '#b91c1c' },
+            }}
+          >
+            {rejecting ? 'Submitting...' : 'Confirm Rejection'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
     </Box>
   );
