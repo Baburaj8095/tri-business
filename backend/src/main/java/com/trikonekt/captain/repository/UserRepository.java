@@ -23,9 +23,26 @@ public class UserRepository {
     public Optional<Map<String, Object>> findByUsername(String username) {
         if (username == null || username.isBlank()) return Optional.empty();
         String clean = username.trim();
+        boolean isAllDigits = clean.matches("^\\d+$");
         String cleanDigits = clean.replaceAll("\\D", "");
         String phone10 = cleanDigits.length() >= 10 ? cleanDigits.substring(cleanDigits.length() - 10) : "";
 
+        // If username contains letters (e.g. ONB2C9999999999, CB9999999999), match strictly on username / prefixed_id
+        if (!isAllDigits) {
+            List<Map<String, Object>> rows = jdbc.queryForList(
+                "SELECT u.id, u.username, u.password, u.email, u.full_name, u.phone, u.pincode, u.address, " +
+                "u.sponsor_id, u.prefixed_id, u.prefix_code, u.role, u.category, u.is_active, " +
+                "COALESCE(mp.service_mode, 'OFFLINE') AS service_mode " +
+                "FROM accounts_customuser u " +
+                "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
+                "WHERE UPPER(u.username) = UPPER(?) OR UPPER(u.prefixed_id) = UPPER(?) " +
+                "ORDER BY u.id DESC LIMIT 1",
+                clean, clean
+            );
+            return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
+        }
+
+        // Pure digits: match username = digits OR prefixed_id = digits OR phone = digits
         List<Map<String, Object>> rows = jdbc.queryForList(
             "SELECT u.id, u.username, u.password, u.email, u.full_name, u.phone, u.pincode, u.address, " +
             "u.sponsor_id, u.prefixed_id, u.prefix_code, u.role, u.category, u.is_active, " +
@@ -39,6 +56,37 @@ public class UserRepository {
             phone10, phone10, "+91" + phone10, "91" + phone10
         );
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
+    }
+
+    public Optional<Map<String, Object>> findMerchantByPhoneAndPrefix(String phone, String prefix) {
+        if (phone == null || phone.isBlank()) return Optional.empty();
+        String cleanDigits = phone.replaceAll("\\D", "");
+        String phone10 = cleanDigits.length() >= 10 ? cleanDigits.substring(cleanDigits.length() - 10) : cleanDigits;
+        String pfx = (prefix != null && !prefix.isBlank()) ? prefix.trim().toUpperCase() : "";
+
+        // 1. If prefix provided (e.g. ONB2C), try matching prefix + phone10 or prefix_code
+        if (!pfx.isEmpty()) {
+            List<Map<String, Object>> rows = jdbc.queryForList(
+                "SELECT u.id, u.username, u.password, u.email, u.full_name, u.phone, u.pincode, " +
+                "       u.sponsor_id, u.prefixed_id, u.prefix_code, u.role, u.category, u.is_active, " +
+                "       COALESCE(mp.service_mode, 'OFFLINE') AS service_mode " +
+                "FROM accounts_customuser u " +
+                "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
+                "WHERE (UPPER(u.username) = ? OR UPPER(u.username) = ? " +
+                "       OR UPPER(COALESCE(u.prefixed_id, '')) = ? OR UPPER(COALESCE(u.prefixed_id, '')) = ? " +
+                "       OR ((u.phone = ? OR u.phone = ? OR u.phone = ?) AND (UPPER(COALESCE(u.prefix_code, '')) = ? OR UPPER(u.username) LIKE ?))) " +
+                "  AND (u.category = 'business' OR u.category = 'merchant') " +
+                "ORDER BY u.id DESC LIMIT 1",
+                pfx + phone10, pfx + "-" + phone10,
+                pfx + phone10, pfx + "-" + phone10,
+                phone10, "+91" + phone10, "91" + phone10,
+                pfx, pfx + "%"
+            );
+            if (!rows.isEmpty()) return Optional.of(rows.get(0));
+        }
+
+        // 2. Otherwise fall back to any merchant account with this phone
+        return findMerchantByPhone(phone10);
     }
 
     public Optional<Map<String, Object>> findCaptainByPhone(String phone) {

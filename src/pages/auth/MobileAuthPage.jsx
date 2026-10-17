@@ -105,7 +105,7 @@ export default function MobileAuthPage() {
       const data = await res.json();
       const token = data.access || data.token;
       if (token) {
-        if (userRole === 'CAPTAIN' || data.role === 'CAPTAIN' || data.role === 'agency' || data.category === 'agency_sub_franchise') {
+        if (userRole === 'CAPTAIN') {
           localStorage.setItem('token_captain', token);
           localStorage.removeItem('token_business');
           if (data.refresh) localStorage.setItem('refresh_captain', data.refresh);
@@ -197,10 +197,16 @@ export default function MobileAuthPage() {
     setLoading(true);
 
     try {
-      const cleanPhone = identifier.replace(/\D/g, '');
+      const cleanPhone = identifier.replace(/\D/g, '').slice(-10);
+      const channel = selectedCategory.startsWith('ON') ? 'ONLINE' : 'OFFLINE';
+      const businessType = selectedCategory.endsWith('B2B') ? 'B2B' : 'B2C';
       const loginPayload = {
         identifier: cleanPhone,
         password: password || '12345678',
+        portal: userRole,
+        prefix: userRole === 'BUSINESS' ? selectedCategory : '',
+        channel: userRole === 'BUSINESS' ? channel : '',
+        businessType: userRole === 'BUSINESS' ? businessType : '',
       };
 
       let res = await fetch(`${CAPTAIN_API}/captain/auth/login`, {
@@ -238,11 +244,7 @@ export default function MobileAuthPage() {
         token = data.access || data.token;
         if (token) {
           localStorage.setItem('token_business', token);
-          if (data.role === 'CAPTAIN' || data.isCaptain) {
-            localStorage.setItem('token_captain', token);
-          } else {
-            localStorage.removeItem('token_captain');
-          }
+          localStorage.removeItem('token_captain');
           if (data.username) localStorage.setItem('business_username', data.username);
           if (data.fullName) localStorage.setItem('business_full_name', data.fullName);
         }

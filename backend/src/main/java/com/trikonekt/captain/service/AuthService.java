@@ -64,15 +64,7 @@ public class AuthService {
                     resolvedPrefix = ch + bt;
                 }
 
-                // 1. Try exact username matching prefix + phone (e.g. ONB2C9999999999)
-                if (!resolvedPrefix.isEmpty()) {
-                    userOpt = userRepository.findByUsername(resolvedPrefix + cleanPhone);
-                }
-
-                // 2. If not found by prefix, fallback to any merchant account for this phone
-                if (userOpt.isEmpty()) {
-                    userOpt = userRepository.findMerchantByPhone(cleanPhone);
-                }
+                userOpt = userRepository.findMerchantByPhoneAndPrefix(cleanPhone, resolvedPrefix);
 
                 if (userOpt.isEmpty()) {
                     String desc = resolvedPrefix.isEmpty() ? "" : (" (" + resolvedPrefix + ")");
@@ -103,11 +95,22 @@ public class AuthService {
             new RuntimeException("No Captain or Merchant account found for: " + (is10DigitPhone ? cleanPhone : raw))
         );
 
-        // Ensure this is a Captain or Business account
+        // Strict Persona Validation based on portal
         String category = (String) user.getOrDefault("category", "");
         String role = (String) user.getOrDefault("role", "");
-        if (!"agency_sub_franchise".equals(category) && !"business".equals(category) && !"merchant".equals(category)) {
-            throw new RuntimeException("This account is not authorized for the Business/Captain portal.");
+
+        if ("MERCHANT".equals(portal) || "BUSINESS".equals(portal)) {
+            if (!"business".equals(category) && !"merchant".equals(category)) {
+                throw new RuntimeException("Account for mobile number " + (is10DigitPhone ? cleanPhone : raw) + " is registered as Captain, not as a Merchant. Please sign in under the Captain tab or register a new merchant store.");
+            }
+        } else if ("CAPTAIN".equals(portal)) {
+            if (!"agency_sub_franchise".equals(category) && !"agency".equalsIgnoreCase(role) && !"CAPTAIN".equalsIgnoreCase(role)) {
+                throw new RuntimeException("Account for mobile number " + (is10DigitPhone ? cleanPhone : raw) + " is registered as Merchant, not as Captain. Please sign in under the Business tab.");
+            }
+        } else {
+            if (!"agency_sub_franchise".equals(category) && !"business".equals(category) && !"merchant".equals(category)) {
+                throw new RuntimeException("This account is not authorized for the Business/Captain portal.");
+            }
         }
 
         // Verify account is active
