@@ -16,6 +16,7 @@ import {
 } from '@mui/icons-material';
 import { getCaptainShops, getCaptainDailyBusiness } from '../../api/api';
 import CaptainReferralModal from './components/CaptainReferralModal';
+import CaptainHeader from './components/CaptainHeader';
 
 export default function CaptainAnalyticsPage() {
   const navigate = useNavigate();
@@ -98,59 +99,12 @@ export default function CaptainAnalyticsPage() {
   return (
     <Box sx={{ pb: 3 }}>
 
-      {/* ── Top Curved Orange Header ── */}
-      <Box sx={{
-        background: 'linear-gradient(145deg, #431407 0%, #7c2d12 55%, #EA580C 100%)',
-        color: '#ffffff',
-        pt: 3,
-        pb: 2.8,
-        px: 2.5,
-        borderBottomLeftRadius: '28px',
-        borderBottomRightRadius: '28px',
-        boxShadow: '0 8px 24px rgba(234, 88, 12, 0.25)',
-      }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box sx={{
-              width: 44, height: 44, borderRadius: '50%',
-              bgcolor: 'rgba(255, 255, 255, 0.18)',
-              border: '2px solid rgba(255, 255, 255, 0.4)',
-              display: 'grid', placeItems: 'center',
-              fontWeight: 900, fontSize: '1.2rem', color: '#ffffff',
-            }}>
-              B
-            </Box>
-            <Box>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.15rem', color: '#ffffff', letterSpacing: '-0.02em' }}>
-                Analytics &amp; Growth
-              </Typography>
-              <Typography sx={{ fontSize: '0.74rem', color: 'rgba(255, 255, 255, 0.8)', fontWeight: 500 }}>
-                Live territory performance • {metrics.totalMerchants} Assigned Stores
-              </Typography>
-            </Box>
-          </Box>
-
-          <Stack direction="row" spacing={0.75}>
-            <IconButton
-              size="small"
-              onClick={fetchAnalytics}
-              disabled={loading}
-              title="Refresh Analytics"
-              sx={{ color: '#ffffff', bgcolor: 'rgba(255, 255, 255, 0.15)', p: 0.8 }}
-            >
-              <RefreshIcon sx={{ fontSize: 20 }} />
-            </IconButton>
-            <IconButton
-              size="small"
-              sx={{ color: '#ffffff', bgcolor: 'rgba(255, 255, 255, 0.15)', p: 0.8 }}
-            >
-              <Badge color="error" variant="dot">
-                <BellIcon sx={{ fontSize: 20 }} />
-              </Badge>
-            </IconButton>
-          </Stack>
-        </Box>
-      </Box>
+      {/* ── Top Header Bar (Unified Captain Illustrated Header) ── */}
+      <CaptainHeader
+        onRefresh={fetchAnalytics}
+        refreshLoading={loading}
+        subtitle={`Analytics & Growth • ${metrics.totalMerchants} Assigned Stores`}
+      />
 
       {/* ── Page Content Container ── */}
       <Box sx={{ px: 2, mt: 2 }}>

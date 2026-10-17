@@ -21,6 +21,7 @@ import {
 } from '@mui/icons-material';
 import { getCaptainShops, approveCaptainShop } from '../../api/api';
 import CaptainReferralModal from './components/CaptainReferralModal';
+import CaptainHeader from './components/CaptainHeader';
 
 export default function CaptainMerchantsPage() {
   const navigate = useNavigate();
@@ -143,81 +144,33 @@ export default function CaptainMerchantsPage() {
   return (
     <Box sx={{ pb: 3 }}>
 
-      {/* ── Top Header Bar ── */}
-      <Box sx={{
-        background: 'linear-gradient(145deg, #431407 0%, #7c2d12 55%, #EA580C 100%)',
-
-        color: '#ffffff',
-        pt: 3,
-        pb: 2.8,
-        px: 2.5,
-        borderBottomLeftRadius: '28px',
-        borderBottomRightRadius: '28px',
-        boxShadow: '0 8px 24px rgba(234, 88, 12, 0.25)',
-      }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box sx={{
-              width: 44, height: 44, borderRadius: '50%',
-              bgcolor: 'rgba(255, 255, 255, 0.18)',
-              border: '2px solid rgba(255, 255, 255, 0.4)',
-              display: 'grid', placeItems: 'center',
-              fontWeight: 900, fontSize: '1.2rem', color: '#ffffff',
-            }}>
-              B
-            </Box>
-            <Box>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.15rem', color: '#ffffff', letterSpacing: '-0.02em' }}>
-                Merchant Network
-              </Typography>
-              <Typography sx={{ fontSize: '0.74rem', color: 'rgba(255, 255, 255, 0.8)', fontWeight: 500 }}>
-                Manage your assigned merchants
-              </Typography>
-            </Box>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-            <Button
-              size="small"
-              startIcon={<ShareIcon sx={{ fontSize: 16 }} />}
-              onClick={() => setReferralModalOpen(true)}
-              sx={{
-                bgcolor: 'rgba(255, 255, 255, 0.2)',
-                color: '#ffffff',
-                borderRadius: '999px',
-                px: 1.6,
-                py: 0.45,
-                fontSize: '0.72rem',
-                fontWeight: 800,
-                textTransform: 'none',
-                border: '1px solid rgba(255, 255, 255, 0.35)',
-                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.3)' },
-              }}
-            >
-              Refer Merchant
-            </Button>
-
-            <IconButton
-              size="small"
-              onClick={fetchShops}
-              disabled={loading}
-              title="Refresh Merchants"
-              sx={{ color: '#ffffff', bgcolor: 'rgba(255, 255, 255, 0.15)', p: 0.8 }}
-            >
-              <RefreshIcon sx={{ fontSize: 20 }} />
-            </IconButton>
-
-            <IconButton
-              size="small"
-              sx={{ color: '#ffffff', bgcolor: 'rgba(255, 255, 255, 0.15)', p: 0.8 }}
-            >
-              <Badge color="error" variant="dot">
-                <BellIcon sx={{ fontSize: 20 }} />
-              </Badge>
-            </IconButton>
-          </Box>
-        </Box>
-      </Box>
+      {/* ── Top Header Bar (Unified Captain Illustrated Header) ── */}
+      <CaptainHeader
+        onRefresh={fetchShops}
+        refreshLoading={loading}
+        rightActions={
+          <Button
+            size="small"
+            startIcon={<ShareIcon sx={{ fontSize: 15 }} />}
+            onClick={() => setReferralModalOpen(true)}
+            sx={{
+              bgcolor: '#EA580C',
+              color: '#ffffff',
+              borderRadius: '999px',
+              px: 1.5,
+              py: 0.5,
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              textTransform: 'none',
+              boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)',
+              '&:hover': { bgcolor: '#C2410C' },
+            }}
+          >
+            Refer Merchant
+          </Button>
+        }
+        subtitle={`Merchant Network • ${merchants.length} Stores Assigned`}
+      />
 
       {/* ── Page Content Container ── */}
       <Box sx={{ px: 2, mt: 2 }}>

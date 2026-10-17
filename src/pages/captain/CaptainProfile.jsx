@@ -35,6 +35,7 @@ import {
   Edit as EditIcon,
 } from '@mui/icons-material';
 import CaptainKycDrawer from './components/CaptainKycDrawer';
+import CaptainHeader from './components/CaptainHeader';
 import { getCaptainShops, getCaptainDailyBusiness, getCaptainProfile } from '../../api/api';
 
 const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
@@ -150,95 +151,54 @@ export default function CaptainProfile({ autoOpenKyc = false }) {
   return (
     <Box sx={{ pb: 4 }}>
 
-      {/* ── Top Curved Orange Header (Matches CaptainHome) ── */}
-      <Box sx={{
-        background: 'linear-gradient(145deg, #431407 0%, #7c2d12 55%, #EA580C 100%)',
-        color: '#ffffff',
-        pt: 3,
-        pb: 3.5,
-        px: 2.5,
-        borderBottomLeftRadius: '28px',
-        borderBottomRightRadius: '28px',
-        boxShadow: '0 8px 24px rgba(234, 88, 12, 0.25)',
-      }}>
-        {/* Row 1: Avatar, Greeting, Name, Badges & Header Action Icons */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box sx={{
-              width: 52,
-              height: 52,
-              borderRadius: '50%',
-              bgcolor: 'rgba(255, 255, 255, 0.18)',
-              border: '2.5px solid rgba(255, 255, 255, 0.5)',
-              display: 'grid',
-              placeItems: 'center',
-              fontWeight: 900,
-              fontSize: '1.4rem',
-              color: '#ffffff',
-              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
-            }}>
-              {String(captainName || 'B').charAt(0).toUpperCase()}
-            </Box>
-
-            <Box>
-              <Typography sx={{ fontSize: '0.74rem', color: 'rgba(255, 255, 255, 0.8)', fontWeight: 600 }}>
-                Franchise Partner Profile
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                <Typography sx={{ fontWeight: 900, fontSize: '1.25rem', color: '#ffffff', letterSpacing: '-0.02em' }}>
-                  {captainName}
-                </Typography>
-                <Chip
-                  label="⭐ Gold Tier"
-                  size="small"
-                  sx={{
-                    bgcolor: 'rgba(253, 224, 71, 0.22)',
-                    color: '#fef08a',
-                    fontWeight: 800,
-                    fontSize: '0.68rem',
-                    height: 20,
-                    border: '1px solid rgba(253, 224, 71, 0.4)',
-                  }}
-                />
-              </Box>
-
-              {/* Captain ID with copy */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.3 }}>
-                <Typography sx={{ fontSize: '0.74rem', color: 'rgba(255, 255, 255, 0.85)', fontWeight: 600, fontFamily: 'monospace' }}>
-                  {captainId}
-                </Typography>
-                <IconButton onClick={handleCopyId} size="small" sx={{ color: 'rgba(255, 255, 255, 0.8)', p: 0.2 }}>
-                  <CopyIcon sx={{ fontSize: 14 }} />
-                </IconButton>
-              </Box>
-            </Box>
+      {/* ── Top Header Bar (Unified Captain Illustrated Header) ── */}
+      <CaptainHeader
+        captainName={captainName}
+        pincode={pincode}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, mt: 0.5 }}>
+          {/* Captain ID pill with copy */}
+          <Box sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 0.6,
+            bgcolor: '#ffffff',
+            px: 1.4,
+            py: 0.45,
+            borderRadius: '20px',
+            border: '1px solid #E2E8F0',
+            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
+          }}>
+            <Typography sx={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 700 }}>
+              ID:
+            </Typography>
+            <Typography sx={{ fontSize: '0.74rem', color: '#172033', fontWeight: 800, fontFamily: 'monospace' }}>
+              {captainId}
+            </Typography>
+            <IconButton onClick={handleCopyId} size="small" sx={{ color: '#EA580C', p: 0.2 }}>
+              <CopyIcon sx={{ fontSize: 14 }} />
+            </IconButton>
           </Box>
 
-          <IconButton
-            size="small"
-            sx={{ color: '#ffffff', bgcolor: 'rgba(255, 255, 255, 0.15)', p: 0.8 }}
-          >
-            <BellIcon sx={{ fontSize: 20 }} />
-          </IconButton>
+          {/* Territory Location Pill */}
+          <Box sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 0.6,
+            bgcolor: '#ffffff',
+            px: 1.4,
+            py: 0.45,
+            borderRadius: '20px',
+            border: '1px solid #E2E8F0',
+            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
+          }}>
+            <LocationIcon sx={{ fontSize: 14, color: '#EA580C' }} />
+            <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: '#172033' }}>
+              {[city, stateName].filter(Boolean).join(', ') || 'Bengaluru Zone'}
+            </Typography>
+          </Box>
         </Box>
-
-        {/* Territory Location Pill */}
-        <Box sx={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 0.8,
-          bgcolor: 'rgba(255, 255, 255, 0.15)',
-          px: 1.5,
-          py: 0.6,
-          borderRadius: '20px',
-          border: '1px solid rgba(255, 255, 255, 0.25)',
-        }}>
-          <LocationIcon sx={{ fontSize: 16, color: '#fef08a' }} />
-          <Typography sx={{ fontSize: '0.76rem', fontWeight: 700, color: '#ffffff' }}>
-            {[city, stateName].filter(Boolean).join(', ') || 'Bengaluru Zone'} • PIN {pincode || '560073'}
-          </Typography>
-        </Box>
-      </Box>
+      </CaptainHeader>
 
       {/* ── Page Content Container ── */}
       <Box sx={{ px: 2, mt: 2.5 }}>

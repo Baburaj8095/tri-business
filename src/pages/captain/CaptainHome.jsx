@@ -27,18 +27,15 @@ import {
 } from '@mui/icons-material';
 import { getCaptainDailyBusiness, getCaptainShops } from '../../api/api';
 import CaptainReferralModal from './components/CaptainReferralModal';
+import CaptainHeader from './components/CaptainHeader';
 
 export default function CaptainHome() {
   const navigate = useNavigate();
 
   const [captainName, setCaptainName] = useState(localStorage.getItem('fullname_captain') || 'Captain');
   const [captainId, setCaptainId] = useState(localStorage.getItem('username_captain') || '');
-  const [isOnline, setIsOnline] = useState(true);
   const [locationName, setLocationName] = useState('Territory Assigned');
   const [referralOpen, setReferralOpen] = useState(false);
-
-  // Status menu anchor
-  const [statusAnchor, setStatusAnchor] = useState(null);
 
   // Live stats from backend
   const [stats, setStats] = useState({
@@ -112,159 +109,10 @@ export default function CaptainHome() {
     <Box sx={{ pb: 3 }}>
 
       {/* ── Top Curved Light Illustrated Hero Card (Exact Match to Mockup) ── */}
-      <Box
-        className="captain-header"
-        sx={{
-          position: 'relative',
-          overflow: 'hidden',
-          isolation: 'isolate',
-          bgcolor: '#FFF8F0',
-          backgroundImage: `linear-gradient(90deg, rgba(255, 248, 240, 0.98) 0%, rgba(255, 248, 240, 0.88) 50%, rgba(255, 248, 240, 0.15) 85%), url(${process.env.PUBLIC_URL || ''}/assets/captain-header-background.png)`,
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: { xs: 'right 25% top', sm: 'right top' },
-          backgroundSize: 'cover',
-          borderBottomLeftRadius: '32px',
-          borderBottomRightRadius: '32px',
-          boxShadow: '0 8px 24px rgba(234, 88, 12, 0.08)',
-          pt: 3,
-          pb: 3,
-          px: 2.5,
-          mb: 1.5,
-        }}
+      <CaptainHeader
+        captainName={captainName}
+        pincode={stats.pincode}
       >
-        {/* Row 1: Avatar, Greeting "Hi, Tri Captain", Gold Tier badge, PIN & Bell */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.8, position: 'relative', zIndex: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            {/* Avatar Circle with initial "T" */}
-            <Box sx={{
-              width: 48,
-              height: 48,
-              borderRadius: '50%',
-              bgcolor: '#431407',
-              border: '2px solid rgba(255, 255, 255, 0.85)',
-              display: 'grid',
-              placeItems: 'center',
-              fontWeight: 900,
-              fontSize: '1.3rem',
-              color: '#ffffff',
-              boxShadow: '0 2px 8px rgba(67, 20, 7, 0.25)',
-            }}>
-              {(captainName || 'T').charAt(0).toUpperCase()}
-            </Box>
-
-            <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                <Typography sx={{ fontWeight: 900, fontSize: '1.18rem', color: '#172033', letterSpacing: '-0.02em' }}>
-                  Hi, {captainName || 'Tri Captain'}
-                </Typography>
-                <Chip
-                  label="⭐ Gold Tier"
-                  size="small"
-                  sx={{
-                    bgcolor: '#FEF08A',
-                    color: '#854D0E',
-                    fontWeight: 800,
-                    fontSize: '0.68rem',
-                    height: 20,
-                    border: '1px solid #FDE047',
-                  }}
-                />
-              </Box>
-
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, mt: 0.2 }}>
-                <LocationIcon sx={{ fontSize: 15, color: '#EA580C' }} />
-                <Typography sx={{ fontSize: '0.74rem', fontWeight: 700, color: '#172033' }}>
-                  PIN: {stats.pincode || '560073'}
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          {/* Right Notification Bell Icon (White circular button) */}
-          <IconButton
-            size="small"
-            sx={{
-              color: '#EA580C',
-              bgcolor: '#ffffff',
-              p: 1,
-              borderRadius: '50%',
-              border: '1px solid rgba(0, 0, 0, 0.06)',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-              '&:hover': { bgcolor: '#FFF7ED' },
-            }}
-          >
-            <Badge color="error" variant="dot">
-              <BellIcon sx={{ fontSize: 20 }} />
-            </Badge>
-          </IconButton>
-        </Box>
-
-        {/* Row 2: Online Status Pill + Receiving Tasks Pill side-by-side */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'relative', zIndex: 1, mb: 2.2 }}>
-          <Box
-            onClick={(e) => setStatusAnchor(e.currentTarget)}
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 0.8,
-              bgcolor: '#ffffff',
-              px: 1.4,
-              py: 0.5,
-              borderRadius: '20px',
-              cursor: 'pointer',
-              border: '1px solid #E2E8F0',
-              boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
-              transition: 'all 0.15s ease',
-              '&:hover': { bgcolor: '#FFF7ED' },
-            }}
-          >
-            <Box sx={{
-              width: 8, height: 8, borderRadius: '50%',
-              bgcolor: isOnline ? '#22c55e' : '#f87171',
-              boxShadow: isOnline ? '0 0 6px #22c55e' : 'none',
-            }} />
-            <Typography sx={{ fontSize: '0.76rem', fontWeight: 800, color: '#172033' }}>
-              {isOnline ? 'Online' : 'Offline'}
-            </Typography>
-          </Box>
-
-          <Box
-            onClick={(e) => setStatusAnchor(e.currentTarget)}
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 0.6,
-              bgcolor: '#ffffff',
-              px: 1.4,
-              py: 0.5,
-              borderRadius: '20px',
-              cursor: 'pointer',
-              border: '1px solid #E2E8F0',
-              boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
-              transition: 'all 0.15s ease',
-              '&:hover': { bgcolor: '#FFF7ED' },
-            }}
-          >
-            <Box sx={{ width: 6, height: 6, bgcolor: '#EA580C', transform: 'rotate(45deg)' }} />
-            <Typography sx={{ fontSize: '0.76rem', fontWeight: 700, color: '#172033' }}>
-              Receiving Tasks ⌵
-            </Typography>
-          </Box>
-
-          <Menu
-            anchorEl={statusAnchor}
-            open={Boolean(statusAnchor)}
-            onClose={() => setStatusAnchor(null)}
-          >
-            <MenuItem onClick={() => { setIsOnline(true); setStatusAnchor(null); }}>
-              🟢 Online (Receiving Tasks)
-            </MenuItem>
-            <MenuItem onClick={() => { setIsOnline(false); setStatusAnchor(null); }}>
-              🔴 Offline
-            </MenuItem>
-          </Menu>
-        </Box>
-
         {/* Row 3: "Grow Your Network" Section (Integrated seamlessly) */}
         <Box sx={{ position: 'relative', zIndex: 1, maxWidth: { xs: '72%', sm: '64%' } }}>
           <Typography sx={{ fontWeight: 900, fontSize: '1.22rem', color: '#9A3412', mb: 0.4 }}>
@@ -314,7 +162,7 @@ export default function CaptainHome() {
             </Button>
           </Stack>
         </Box>
-      </Box>
+      </CaptainHeader>
 
       {/* ── Page Content Container ── */}
       <Box sx={{ px: 2, mt: 1 }}>
