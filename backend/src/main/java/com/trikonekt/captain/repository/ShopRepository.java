@@ -87,10 +87,17 @@ public class ShopRepository {
      */
     public Optional<ShopResponse> findActiveShopById(Long shopId) {
         List<ShopResponse> result = jdbc.query(
-            "SELECT id, shop_name, address, city, pincode, latitude, longitude, " +
-            "contact_number, shop_image, banner, category_id, subcategory_id, " +
-            "status, created_at, service_mode, home_delivery_enabled, delivery_radius_km, min_order_value, base_delivery_fee, discount_percent, scan_pay_commission_percent " +
-            "FROM market_shop WHERE id = ? AND status = 'ACTIVE'",
+            "SELECT s.id, s.shop_name, s.address, s.city, s.pincode, s.latitude, s.longitude, " +
+            "s.contact_number, s.shop_image, s.banner, s.category_id, s.subcategory_id, " +
+            "COALESCE(mc.name, '') AS category_name, " +
+            "s.status, s.created_at, COALESCE(s.service_mode, mp.service_mode, 'OFFLINE') AS service_mode, " +
+            "s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.discount_percent, s.scan_pay_commission_percent, " +
+            "u.category AS merchant_category " +
+            "FROM market_shop s " +
+            "JOIN accounts_customuser u ON s.merchant_id = u.id " +
+            "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
+            "LEFT JOIN business_merchantcategory mc ON mc.id = s.category_id " +
+            "WHERE s.id = ? AND s.status = 'ACTIVE'",
             new Object[]{shopId},
             (rs, rowNum) -> ShopResponse.builder()
                 .id(rs.getLong("id"))
@@ -106,6 +113,7 @@ public class ShopRepository {
                 .shop_image(normalizeImageUrl(rs.getString("shop_image")))
                 .banner(normalizeImageUrl(rs.getString("banner")))
                 .category(rs.getLong("category_id"))
+                .categoryName(rs.getString("category_name"))
                 .subcategory(rs.getLong("subcategory_id"))
                 .description(null)
                 .gst_number(null)
@@ -120,6 +128,7 @@ public class ShopRepository {
                 .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
                 .discountPercent(rs.getDouble("discount_percent"))
                 .scanPayCommissionPercent(rs.getDouble("scan_pay_commission_percent"))
+                .merchantCategory(rs.getString("merchant_category"))
                 .createdAt(rs.getString("created_at"))
                 .updatedAt(rs.getString("created_at"))
                 .build()
@@ -137,7 +146,8 @@ public class ShopRepository {
             "SELECT s.id, s.shop_name, s.address, s.city, s.pincode, s.latitude, s.longitude, " +
             "s.contact_number, s.shop_image, s.banner, s.category_id, s.subcategory_id, " +
             "s.status, s.created_at, COALESCE(s.service_mode, mp.service_mode, 'OFFLINE') AS service_mode, " +
-            "s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.discount_percent " +
+            "s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.discount_percent, " +
+            "u.category AS merchant_category " +
             "FROM market_shop s " +
             "JOIN accounts_customuser u ON s.merchant_id = u.id " +
             "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
@@ -174,6 +184,7 @@ public class ShopRepository {
                 .minOrderValue(rs.getDouble("min_order_value"))
                 .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
                 .discountPercent(rs.getDouble("discount_percent"))
+                .merchantCategory(rs.getString("merchant_category"))
                 .createdAt(rs.getString("created_at"))
                 .updatedAt(rs.getString("created_at"))
                 .build()
@@ -190,7 +201,8 @@ public class ShopRepository {
             "s.contact_number, s.shop_image, s.banner, s.category_id, s.subcategory_id, " +
             "COALESCE(mc.name, '') AS category_name, " +
             "s.status, s.created_at, COALESCE(s.service_mode, mp.service_mode, 'OFFLINE') AS service_mode, " +
-            "s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.discount_percent, s.scan_pay_commission_percent " +
+            "s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.discount_percent, s.scan_pay_commission_percent, " +
+            "u.category AS merchant_category " +
             "FROM market_shop s " +
             "JOIN accounts_customuser u ON s.merchant_id = u.id " +
             "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
@@ -226,6 +238,116 @@ public class ShopRepository {
                 .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
                 .discountPercent(rs.getDouble("discount_percent"))
                 .scanPayCommissionPercent(rs.getDouble("scan_pay_commission_percent"))
+                .merchantCategory(rs.getString("merchant_category"))
+                .createdAt(rs.getString("created_at"))
+                .updatedAt(rs.getString("created_at"))
+                .build()
+        );
+    }
+
+    /**
+     * List all public active B2B shops (audience: B2B merchants only)
+     */
+    public List<ShopResponse> findAllB2bActiveShops() {
+        return jdbc.query(
+            "SELECT s.id, s.shop_name, s.address, s.city, s.pincode, s.latitude, s.longitude, " +
+            "s.contact_number, s.shop_image, s.banner, s.category_id, s.subcategory_id, " +
+            "COALESCE(mc.name, '') AS category_name, " +
+            "s.status, s.created_at, COALESCE(s.service_mode, mp.service_mode, 'OFFLINE') AS service_mode, " +
+            "s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.discount_percent, s.scan_pay_commission_percent, " +
+            "u.category AS merchant_category " +
+            "FROM market_shop s " +
+            "JOIN accounts_customuser u ON s.merchant_id = u.id " +
+            "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
+            "LEFT JOIN business_merchantcategory mc ON mc.id = s.category_id " +
+            "WHERE s.status = 'ACTIVE' " +
+            "  AND u.category = 'merchant' " +
+            "ORDER BY s.created_at DESC",
+            (rs, rowNum) -> ShopResponse.builder()
+                .id(rs.getLong("id"))
+                .shop_name(rs.getString("shop_name"))
+                .address(rs.getString("address"))
+                .city(rs.getString("city"))
+                .state(null)
+                .pincode(rs.getString("pincode"))
+                .latitude(rs.getDouble("latitude"))
+                .longitude(rs.getDouble("longitude"))
+                .contact_number(rs.getString("contact_number"))
+                .email(null)
+                .shop_image(normalizeImageUrl(rs.getString("shop_image")))
+                .banner(normalizeImageUrl(rs.getString("banner")))
+                .category(rs.getLong("category_id"))
+                .categoryName(rs.getString("category_name"))
+                .subcategory(rs.getLong("subcategory_id"))
+                .description(null)
+                .gst_number(null)
+                .pan_number(null)
+                .business_reg_number(null)
+                .business_logo(null)
+                .is_active("ACTIVE".equals(rs.getString("status")))
+                .serviceMode(rs.getString("service_mode"))
+                .homeDeliveryEnabled(rs.getBoolean("home_delivery_enabled"))
+                .deliveryRadiusKm(rs.getDouble("delivery_radius_km"))
+                .minOrderValue(rs.getDouble("min_order_value"))
+                .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
+                .discountPercent(rs.getDouble("discount_percent"))
+                .scanPayCommissionPercent(rs.getDouble("scan_pay_commission_percent"))
+                .merchantCategory(rs.getString("merchant_category"))
+                .createdAt(rs.getString("created_at"))
+                .updatedAt(rs.getString("created_at"))
+                .build()
+        );
+    }
+
+    /**
+     * List all public active B2C shops (audience: consumer NearStore)
+     */
+    public List<ShopResponse> findAllB2cActiveShops() {
+        return jdbc.query(
+            "SELECT s.id, s.shop_name, s.address, s.city, s.pincode, s.latitude, s.longitude, " +
+            "s.contact_number, s.shop_image, s.banner, s.category_id, s.subcategory_id, " +
+            "COALESCE(mc.name, '') AS category_name, " +
+            "s.status, s.created_at, COALESCE(s.service_mode, mp.service_mode, 'OFFLINE') AS service_mode, " +
+            "s.home_delivery_enabled, s.delivery_radius_km, s.min_order_value, s.base_delivery_fee, s.discount_percent, s.scan_pay_commission_percent, " +
+            "u.category AS merchant_category " +
+            "FROM market_shop s " +
+            "JOIN accounts_customuser u ON s.merchant_id = u.id " +
+            "LEFT JOIN market_merchantprofile mp ON mp.user_id = u.id " +
+            "LEFT JOIN business_merchantcategory mc ON mc.id = s.category_id " +
+            "WHERE s.status = 'ACTIVE' " +
+            "  AND u.category = 'business' " +
+            "  AND UPPER(COALESCE(s.service_mode, mp.service_mode, 'OFFLINE')) <> 'ONLINE' " +
+            "ORDER BY s.created_at DESC",
+            (rs, rowNum) -> ShopResponse.builder()
+                .id(rs.getLong("id"))
+                .shop_name(rs.getString("shop_name"))
+                .address(rs.getString("address"))
+                .city(rs.getString("city"))
+                .state(null)
+                .pincode(rs.getString("pincode"))
+                .latitude(rs.getDouble("latitude"))
+                .longitude(rs.getDouble("longitude"))
+                .contact_number(rs.getString("contact_number"))
+                .email(null)
+                .shop_image(normalizeImageUrl(rs.getString("shop_image")))
+                .banner(normalizeImageUrl(rs.getString("banner")))
+                .category(rs.getLong("category_id"))
+                .categoryName(rs.getString("category_name"))
+                .subcategory(rs.getLong("subcategory_id"))
+                .description(null)
+                .gst_number(null)
+                .pan_number(null)
+                .business_reg_number(null)
+                .business_logo(null)
+                .is_active("ACTIVE".equals(rs.getString("status")))
+                .serviceMode(rs.getString("service_mode"))
+                .homeDeliveryEnabled(rs.getBoolean("home_delivery_enabled"))
+                .deliveryRadiusKm(rs.getDouble("delivery_radius_km"))
+                .minOrderValue(rs.getDouble("min_order_value"))
+                .baseDeliveryFee(rs.getDouble("base_delivery_fee"))
+                .discountPercent(rs.getDouble("discount_percent"))
+                .scanPayCommissionPercent(rs.getDouble("scan_pay_commission_percent"))
+                .merchantCategory(rs.getString("merchant_category"))
                 .createdAt(rs.getString("created_at"))
                 .updatedAt(rs.getString("created_at"))
                 .build()

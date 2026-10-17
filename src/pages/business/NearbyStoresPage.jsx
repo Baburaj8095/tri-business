@@ -94,7 +94,11 @@ export default function NearbyStoresPage() {
     ])
       .then(([merchantsRes, categoriesRes]) => {
         const data = Array.isArray(merchantsRes) ? merchantsRes : [];
-        const baseStores = data;
+        // Strictly filter to ensure B2B merchants only (exclude B2C / 'business' stores)
+        const baseStores = data.filter((shop) => {
+          const cat = String(shop.merchant_category || shop.merchantCategory || '').toLowerCase();
+          return cat !== 'business';
+        });
 
         const mapped = baseStores.map((shop, idx) => {
           const storeName = shop.shop_name || shop.business_name || shop.full_name || 'Merchant Store';
@@ -217,7 +221,7 @@ export default function NearbyStoresPage() {
                   fontWeight: 500,
                 }}
               >
-                Explore and connect with trusted B2B/B2C stores near your location
+                Explore and connect with trusted B2B wholesale suppliers & merchants near your location
               </Typography>
             </Box>
 

@@ -79,19 +79,24 @@ public class OnlineMarketplaceController {
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "60") int limit,
             @RequestParam(defaultValue = "0")  int offset,
-            @RequestParam(defaultValue = "true") boolean excludeOwn) {
+            @RequestParam(defaultValue = "false") boolean excludeOwn) {
         try {
-            long userId = extractUserId(auth); // auth required for business marketplace access
+            long userId = 0L;
+            if (auth != null && auth.startsWith("Bearer ")) {
+                try {
+                    userId = extractUserId(auth);
+                } catch (Exception ignored) {
+                    userId = 0L;
+                }
+            }
             int safeLimit  = Math.min(Math.max(limit, 1), 120);
             int safeOffset = Math.max(offset, 0);
-            return ResponseEntity.ok(repo.findBusinessOnlineProducts(userId, excludeOwn, category, search, safeLimit, safeOffset));
+            return ResponseEntity.ok(repo.findBusinessOnlineProducts(userId, excludeOwn && userId > 0, category, search, safeLimit, safeOffset));
         } catch (DataAccessException ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "error", "Failed to load B2B online products",
                     "details", ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage()
             ));
-        } catch (RuntimeException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", ex.getMessage()));
         }
     }
 

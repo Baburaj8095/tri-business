@@ -115,13 +115,13 @@ public class OnlineMarketplaceRepository {
             "  AND sp.stock_qty > 0 " +
             "  AND s.status = 'ACTIVE' " +
             "  AND u.category = 'merchant' " +
-            "  AND UPPER(COALESCE(mp.service_mode, 'OFFLINE')) = 'ONLINE' "
+            "  AND UPPER(COALESCE(s.service_mode, mp.service_mode, 'OFFLINE')) IN ('ONLINE', 'BOTH') "
         );
 
         List<Object> params = new ArrayList<>();
         params.add(viewerMerchantId);
 
-        if (excludeOwn) {
+        if (excludeOwn && viewerMerchantId > 0) {
             sql.append("AND s.merchant_id <> ? ");
             params.add(viewerMerchantId);
         }

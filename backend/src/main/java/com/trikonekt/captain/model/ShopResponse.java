@@ -64,6 +64,9 @@ public class ShopResponse {
     @JsonProperty("delivery_unavailable_reason")
     private String deliveryUnavailableReason;
 
+    @JsonProperty("merchant_category")
+    private String merchantCategory;
+
     @JsonProperty("created_at")
     private String createdAt;
 

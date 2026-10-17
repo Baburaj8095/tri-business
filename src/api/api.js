@@ -881,26 +881,67 @@ export async function getMyECouponSummary() {
 export async function getPublicB2bMerchants() {
   const captainApiUrl = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || "https://api-captain.trikonektbusiness.com/api";
   try {
-    const res = await fetch(`${captainApiUrl}/captain/public/shops`);
+    // Primary: dedicated B2B endpoint; Fallback: query param
+    let res = await fetch(`${captainApiUrl}/captain/merchants/b2b`);
+    if (!res.ok) {
+      res = await fetch(`${captainApiUrl}/captain/public/shops?category=merchant`);
+    }
     if (!res.ok) {
       throw new Error(`Failed to fetch B2B merchants: ${res.statusText}`);
     }
-    return await res.json();
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : [];
+    // Strict safety filter: B2B only (exclude B2C / 'business' shops)
+    return list.filter((s) => {
+      const cat = String(s.merchant_category || s.merchantCategory || '').toLowerCase();
+      return cat !== 'business';
+    });
   } catch (err) {
     console.error("Error in getPublicB2bMerchants:", err);
     return [];
   }
 }
+
 export async function getPublicB2cMerchants() {
   const captainApiUrl = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || "https://api-captain.trikonektbusiness.com/api";
   try {
-    const res = await fetch(`${captainApiUrl}/captain/public/shops`);
+    let res = await fetch(`${captainApiUrl}/captain/merchants/b2c`);
+    if (!res.ok) {
+      res = await fetch(`${captainApiUrl}/captain/public/shops?category=business`);
+    }
     if (!res.ok) {
       throw new Error(`Failed to fetch B2C merchants: ${res.statusText}`);
     }
     return await res.json();
   } catch (err) {
     console.error("Error in getPublicB2cMerchants:", err);
+    return [];
+  }
+}
+
+export async function getBusinessOnlineProducts(params = {}) {
+  const captainApiUrl = process.env.REACT_APP_CAPTAIN_API_URL || window.REACT_APP_CAPTAIN_API_URL || "https://api-captain.trikonektbusiness.com/api";
+  try {
+    const q = new URLSearchParams();
+    if (params.category && params.category !== 'All' && params.category !== 'all') {
+      q.append('category', params.category);
+    }
+    if (params.search) q.append('search', params.search);
+    if (params.limit) q.append('limit', String(params.limit));
+    if (params.offset) q.append('offset', String(params.offset));
+    if (params.excludeOwn !== undefined) q.append('excludeOwn', String(params.excludeOwn));
+
+    const token = localStorage.getItem('token_business') || localStorage.getItem('token_captain') || localStorage.getItem('captain_token');
+    const headers = { 'Accept': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${captainApiUrl}/captain/business/online-products?${q.toString()}`, { headers });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch B2B online products: ${res.statusText}`);
+    }
+    return await res.json();
+  } catch (err) {
+    console.error("Error in getBusinessOnlineProducts:", err);
     return [];
   }
 }

@@ -49,7 +49,7 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import AppShell from '../../components/layout/AppShell';
-import { getMerchantCategories } from '../../api/api';
+import { getMerchantCategories, getBusinessOnlineProducts } from '../../api/api';
 
 const CAPTAIN_API = process.env.REACT_APP_CAPTAIN_API_URL
   || window.REACT_APP_CAPTAIN_API_URL
@@ -614,6 +614,59 @@ export default function BusinessOnlineMarketplacePage() {
     }
   }, [paramCategory]);
 
+  // Fetch live B2B online products from Spring Boot API
+  const [liveB2bProducts, setLiveB2bProducts] = useState([]);
+  const [loadingLiveProducts, setLoadingLiveProducts] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    setLoadingLiveProducts(true);
+    getBusinessOnlineProducts({
+      category: currentCategoryKey === 'All' ? '' : currentCategoryKey,
+      limit: 100,
+    })
+      .then((items) => {
+        if (!mounted) return;
+        if (Array.isArray(items)) {
+          setLiveB2bProducts(items);
+        }
+      })
+      .catch((err) => console.error("Error fetching live B2B online products:", err))
+      .finally(() => {
+        if (mounted) setLoadingLiveProducts(false);
+      });
+    return () => { mounted = false; };
+  }, [currentCategoryKey]);
+
+  // Map live DB products to marketplace format
+  const mappedLiveProducts = useMemo(() => {
+    if (!liveB2bProducts || liveB2bProducts.length === 0) return [];
+    return liveB2bProducts.map((p) => {
+      const mrpVal = Number(p.mrp || p.price || 0);
+      const priceVal = Number(p.price || 0);
+      const discountVal = p.discount_percent || (mrpVal > priceVal ? Math.round(((mrpVal - priceVal) / mrpVal) * 100) : 0);
+      return {
+        id: p.id,
+        title: p.title,
+        subcat: "wholesale",
+        packSize: p.description && p.description.length <= 25 ? p.description : '1 Standard Pack',
+        price: priceVal,
+        mrp: mrpVal,
+        discount: discountVal,
+        image: p.image || p.image_url || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80',
+        deliveryMins: 'Express B2B',
+        rating: 4.8,
+        ratingCount: 42,
+        description: p.description || `${p.title} - Wholesale product from ${p.shop_name || 'Verified B2B Merchant'}.`,
+        shopName: p.shop_name,
+        shopId: p.shop_id,
+        merchantId: p.merchant_id,
+        merchantName: p.merchant_name,
+        isLive: true,
+      };
+    });
+  }, [liveB2bProducts]);
+
   const activeCategoryData = useMemo(() => {
     return resolveCategoryData(currentCategoryKey);
   }, [currentCategoryKey]);
@@ -632,9 +685,9 @@ export default function BusinessOnlineMarketplacePage() {
 
     if (!nextCart) {
       nextCart = {
-        shopId: 1,
-        sellerId: 1,
-        shopName: 'Trikonekt Wholesale Hub',
+        shopId: product.shopId || 1,
+        sellerId: product.merchantId || 1,
+        shopName: product.shopName || 'Trikonekt Wholesale Hub',
         items: [],
       };
     }
@@ -687,11 +740,13 @@ export default function BusinessOnlineMarketplacePage() {
 
   // Filtered Products
   const filteredProducts = useMemo(() => {
-    let list = [...(activeCategoryData.catalog || [])];
+    // Priority: Live B2B products from database; fallback to curated category catalog
+    let list = mappedLiveProducts.length > 0 ? [...mappedLiveProducts] : [...(activeCategoryData.catalog || [])];
 
     // Subcategory Filter
     if (activeSubcatId !== "all") {
-      list = list.filter(p => p.subcat === activeSubcatId);
+      const subList = list.filter(p => p.subcat === activeSubcatId);
+      if (subList.length > 0) list = subList;
     }
 
     // Search Query

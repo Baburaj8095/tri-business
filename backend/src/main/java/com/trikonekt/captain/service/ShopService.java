@@ -140,6 +140,28 @@ public class ShopService {
     }
 
     /**
+     * List all public active B2B shops (audience: B2B merchants only)
+     */
+    public List<ShopResponse> listB2bPublicShops() {
+        try {
+            return shopRepository.findAllB2bActiveShops();
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Failed to fetch B2B shops: " + e.getMessage());
+        }
+    }
+
+    /**
+     * List all public active B2C shops (audience: consumer NearStore)
+     */
+    public List<ShopResponse> listB2cPublicShops() {
+        try {
+            return shopRepository.findAllB2cActiveShops();
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Failed to fetch B2C shops: " + e.getMessage());
+        }
+    }
+
+    /**
      * Get products for a shop (public)
      */
     public List<ShopProductResponse> getShopProducts(Long shopId) {
